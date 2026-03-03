@@ -1,0 +1,8 @@
+FROM node:20-alpine
+WORKDIR /app
+COPY apps/web-ui/build ./build
+ENV NODE_ENV=production
+ENV PORT=3000
+ENV BACKEND_BASE_URL=${BACKEND_BASE_URL:-http://qltb_assets_api:3000}
+EXPOSE 3000
+CMD ["node", "build/index.js"]

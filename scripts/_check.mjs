@@ -1,0 +1,13 @@
+import pg from 'pg';
+const { Client } = pg;
+const c = new Client({ connectionString: 'postgresql://postgres:postgres@localhost:5432/qltb' });
+await c.connect();
+const cols = await c.query("SELECT column_name FROM information_schema.columns WHERE table_name='wf_definitions' ORDER BY ordinal_position");
+console.log('DEF COLS:', cols.rows.map(r => r.column_name).join(', '));
+const defs = await c.query("SELECT * FROM wf_definitions LIMIT 5");
+defs.rows.forEach(r => console.log('DEF:', JSON.stringify(r)));
+const stepcols = await c.query("SELECT column_name FROM information_schema.columns WHERE table_name='wf_steps' ORDER BY ordinal_position");
+console.log('STEP COLS:', stepcols.rows.map(r => r.column_name).join(', '));
+const steps = await c.query("SELECT * FROM wf_steps LIMIT 11");
+steps.rows.forEach(r => console.log('STEP:', JSON.stringify(r)));
+await c.end();

@@ -1,0 +1,35 @@
+# Dockerfile for Playwright Tests
+FROM mcr.microsoft.com/playwright:v1.40.0-focal
+
+# Set working directory
+WORKDIR /app
+
+# Install Node.js and pnpm
+RUN apt-get update && apt-get install -y curl && \
+    curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && \
+    apt-get install -y nodejs && \
+    npm install -g pnpm && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# Copy package files
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY packages/*/package.json ./packages/*/
+COPY apps/*/package.json ./apps/*/
+
+# Install dependencies
+RUN pnpm install --frozen-lockfile
+
+# Copy test configuration and source
+COPY playwright.config.ts ./
+COPY tests/ ./tests/
+COPY .env.test.example ./.env.test
+
+# Create directories for test output
+RUN mkdir -p test-results playwright-report
+
+# Set environment variables
+ENV CI=true
+ENV NODE_ENV=test
+
+# Default command to run tests
+CMD ["pnpm", "exec", "playwright", "test"]

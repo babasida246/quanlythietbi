@@ -1,0 +1,2843 @@
+﻿Loading svelte-check in workspace: e:\GitHub\QuanLyThietBi\apps\web-ui
+Getting Svelte diagnostics...
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\Modal.svelte[39m:48:5
+[33mWarn[39m: Visible, non-interactive elements with a click event must be accompanied by a keyboard event handler. Consider whether an interactive element such as `<button type="button">` or `<a>` might be more appropriate
+https://svelte.dev/e/a11y_click_events_have_key_events (svelte)
+[36m    <!-- svelte-ignore a11y_no_static_element_interactions a11y_click_events_have_key_events -->
+    [35m<div class="modal-panel {sizeClass[size]}" onclick={(e) => e.stopPropagation()}>
+      <div class="modal-header">
+        <h3 id="modal-title" class="text-base font-semibold text-slate-100">{title}</h3>
+        {#if dismissable}
+          <button
+            type="button"
+            class="btn-icon btn-xs btn-ghost"
+            onclick={() => (open = false)}
+            aria-label="Đóng"
+          >
+            <X class="h-4 w-4" />
+          </button>
+        {/if}
+      </div>
+
+      <div class="modal-body space-y-4">
+        {@render children?.()}
+      </div>
+
+      {#if footer}
+        <div class="modal-footer">
+          {@render footer()}
+        </div>
+      {/if}
+    </div>[36m
+  </div>[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\assets\components\catalogs\DynamicSpecForm.svelte[39m:122:9
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m      {#if def.fieldType !== 'boolean'}
+        [35m<label class="label-base mb-1">
+          {def.label}{def.required ? ' *' : ''}{def.unit ? ` (${def.unit})` : ''}
+        </label>[36m
+      {/if}[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\assets\components\AddAssetModal.svelte[39m:127:18
+[33mWarn[39m: Quoted attributes on components and custom elements will be stringified in a future version of Svelte. If this isn't what you want, remove the quotes
+https://svelte.dev/e/attribute_quoted (svelte)
+[36m
+<Modal bind:open [35mtitle="{$isLoading ? 'Create Asset' : $_('assets.createAsset')}"[36m size="lg">[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\assets\components\AddAssetModal.svelte[39m:135:7
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m    <div>
+      [35m<label class="label-base mb-2">{$isLoading ? 'Asset Code' : $_('assets.assetCode')}</label>[36m
+      <input class="input-base" bind:value={form.assetCode} placeholder="ASSET-001" />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\assets\components\AddAssetModal.svelte[39m:139:7
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m    <div>
+      [35m<label class="label-base mb-2">{$isLoading ? 'Model' : $_('assets.model')}</label>[36m
+      <select class="select-base" bind:value={form.modelId}>[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\assets\components\AddAssetModal.svelte[39m:149:9
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m      <div>
+        [35m<label class="label-base mb-2">{$isLoading ? 'Status' : $_('assets.status')}</label>[36m
+        <select class="select-base" bind:value={form.status}>[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\assets\components\AddAssetModal.svelte[39m:160:9
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m      <div>
+        [35m<label class="label-base mb-2">{$isLoading ? 'Location' : $_('assets.location')}</label>[36m
+        <select class="select-base" bind:value={form.locationId}>[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\assets\components\AddAssetModal.svelte[39m:171:9
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m      <div>
+        [35m<label class="label-base mb-2">{$isLoading ? 'Vendor' : $_('assets.vendor')}</label>[36m
+        <select class="select-base" bind:value={form.vendorId}>[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\assets\components\AddAssetModal.svelte[39m:180:9
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m      <div>
+        [35m<label class="label-base mb-2">{$isLoading ? 'Serial No' : $_('assets.serialNo')}</label>[36m
+        <input class="input-base" bind:value={form.serialNo} />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\assets\components\AddAssetModal.svelte[39m:186:9
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m      <div>
+        [35m<label class="label-base mb-2">{$isLoading ? 'Hostname' : $_('assets.hostname')}</label>[36m
+        <input class="input-base" bind:value={form.hostname} />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\assets\components\AddAssetModal.svelte[39m:190:9
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m      <div>
+        [35m<label class="label-base mb-2">{$isLoading ? 'Management IP' : $_('assets.managementIp')}</label>[36m
+        <input class="input-base" bind:value={form.mgmtIp} />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\assets\components\AddAssetModal.svelte[39m:195:7
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m    <div>
+      [35m<label class="label-base mb-2">{$isLoading ? 'MAC Address' : $_('assets.macAddress')}</label>[36m
+      <input class="input-base" bind:value={form.macAddress} />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\assets\components\AddAssetModal.svelte[39m:199:7
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m    <div>
+      [35m<label class="label-base mb-2">{$isLoading ? 'Notes' : $_('assets.notes')}</label>[36m
+      <input class="input-base" bind:value={form.notes} />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\assets\components\AssetFilters.svelte[39m:60:7
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m    <div>
+      [35m<label class="label-base mb-2">{$isLoading ? 'Search' : $_('common.search')}</label>[36m
+      <div class="relative">[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\assets\components\AssetFilters.svelte[39m:68:7
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m    <div>
+      [35m<label class="label-base mb-2">{$isLoading ? 'Status' : $_('assets.filters.status')}</label>[36m
+      <select class="select-base" bind:value={status}>[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\assets\components\AssetFilters.svelte[39m:81:7
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m    <div>
+      [35m<label class="label-base mb-2">{$isLoading ? 'Warranty' : $_('assets.filters.warranty')}</label>[36m
+      <select class="select-base" bind:value={warrantyExpiringDays}>[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\assets\components\AssetFilters.svelte[39m:91:7
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m    <div>
+      [35m<label class="label-base mb-2">{$isLoading ? 'Sort' : $_('assets.filters.sort')}</label>[36m
+      <select class="select-base" bind:value={sort}>[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\assets\components\AssetFilters.svelte[39m:101:7
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m    <div>
+      [35m<label class="label-base mb-2">{$isLoading ? 'Category' : $_('assets.filters.category')}</label>[36m
+      <select class="select-base" bind:value={categoryId}>[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\assets\components\AssetFilters.svelte[39m:111:7
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m    <div>
+      [35m<label class="label-base mb-2">{$isLoading ? 'Vendor' : $_('assets.filters.vendor')}</label>[36m
+      <select class="select-base" bind:value={vendorId}>[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\assets\components\AssetFilters.svelte[39m:121:7
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m    <div>
+      [35m<label class="label-base mb-2">{$isLoading ? 'Model' : $_('assets.filters.model')}</label>[36m
+      <select class="select-base" bind:value={modelId}>[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\assets\components\AssetFilters.svelte[39m:131:7
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m    <div>
+      [35m<label class="label-base mb-2">{$isLoading ? 'Location' : $_('assets.filters.location')}</label>[36m
+      <select class="select-base" bind:value={locationId}>[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\assets\components\AssignModal.svelte[39m:43:7
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m    <div>
+      [35m<label class="label-base mb-2">{$isLoading ? 'Assignee Type' : $_('assets.assigneeType')}</label>[36m
+      <select class="select-base" bind:value={assigneeType}>[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\assets\components\AssignModal.svelte[39m:51:7
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m    <div>
+      [35m<label class="label-base mb-2">{$isLoading ? 'Assignee Name' : $_('assets.assigneeName')}</label>[36m
+      <input class="input-base" bind:value={assigneeName} placeholder={$isLoading ? 'e.g. Nguyen Van A' : $_('assets.placeholders.assigneeName')} />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\assets\components\AssignModal.svelte[39m:55:7
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m    <div>
+      [35m<label class="label-base mb-2">{$isLoading ? 'Assignee ID' : $_('assets.assigneeId')}</label>[36m
+      <input class="input-base" bind:value={assigneeId} placeholder={$isLoading ? 'Employee ID / Dept ID' : $_('assets.placeholders.assigneeId')} />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\assets\components\AssignModal.svelte[39m:59:7
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m    <div>
+      [35m<label class="label-base mb-2">{$isLoading ? 'Note' : $_('assets.note')}</label>[36m
+      <input class="input-base" bind:value={note} placeholder={$isLoading ? 'Optional note' : $_('assets.placeholders.note')} />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\assets\components\ImportWizard.svelte[39m:190:18
+[33mWarn[39m: Quoted attributes on components and custom elements will be stringified in a future version of Svelte. If this isn't what you want, remove the quotes
+https://svelte.dev/e/attribute_quoted (svelte)
+[36m
+<Modal bind:open [35mtitle="{$isLoading ? 'Import Assets' : $_('assets.importAssets')}"[36m size="lg">[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\assets\components\InventoryScanPanel.svelte[39m:50:7
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m    <div>
+      [35m<label class="label-base mb-2">{$isLoading ? 'Asset Code' : $_('assets.assetCode')}</label>[36m
+      <input class="input-base" bind:value={assetCode} placeholder="ASSET-001" />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\assets\components\InventoryScanPanel.svelte[39m:54:7
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m    <div>
+      [35m<label class="label-base mb-2">{$isLoading ? 'Scanned Location' : $_('assets.scannedLocation')}</label>[36m
+      <select class="select-base" bind:value={scannedLocationId}>[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\assets\components\MaintenanceModal.svelte[39m:43:7
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m    <div>
+      [35m<label class="label-base mb-2">{$isLoading ? 'Title' : $_('maintenance.ticketTitle')}</label>[36m
+      <input class="input-base" bind:value={title} placeholder={$isLoading ? 'Issue summary' : $_('assets.placeholders.issueSummary')} />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\assets\components\MaintenanceModal.svelte[39m:47:7
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m    <div>
+      [35m<label class="label-base mb-2">{$isLoading ? 'Severity' : $_('maintenance.severity')}</label>[36m
+      <select class="select-base" bind:value={severity}>[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\assets\components\MaintenanceModal.svelte[39m:56:7
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m    <div>
+      [35m<label class="label-base mb-2">{$isLoading ? 'Diagnosis' : $_('maintenance.diagnosis')}</label>[36m
+      <input class="input-base" bind:value={diagnosis} placeholder={$isLoading ? 'Optional diagnosis' : $_('assets.placeholders.optionalDiagnosis')} />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\assets\components\MaintenanceModal.svelte[39m:60:7
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m    <div>
+      [35m<label class="label-base mb-2">{$isLoading ? 'Resolution' : $_('maintenance.resolution')}</label>[36m
+      <input class="input-base" bind:value={resolution} placeholder={$isLoading ? 'Optional resolution' : $_('assets.placeholders.optionalResolution')} />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\assets\components\WorkflowRequestForm.svelte[39m:161:5
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m  <div>
+    [35m<label class="label-base mb-2">{$isLoading ? 'Request Type' : $_('assets.requestType')}</label>[36m
+    <select class="select-base" bind:value={requestType}>[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\assets\components\WorkflowRequestForm.svelte[39m:172:5
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m  <div>
+    [35m<label class="label-base mb-2">{$isLoading ? 'Asset ID' : $_('assets.assetId')}</label>[36m
+    <input class="input-base" bind:value={assetId} placeholder="UUID" disabled={Boolean(presetAssetId)} />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\assets\components\WorkflowRequestForm.svelte[39m:177:7
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m    <div>
+      [35m<label class="label-base mb-2">{$isLoading ? 'From Department' : $_('assets.fromDepartment')}</label>[36m
+      <input class="input-base" bind:value={fromDept} />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\assets\components\WorkflowRequestForm.svelte[39m:181:7
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m    <div>
+      [35m<label class="label-base mb-2">{$isLoading ? 'To Department' : $_('assets.toDepartment')}</label>[36m
+      <input class="input-base" bind:value={toDept} />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\assets\components\WorkflowRequestForm.svelte[39m:189:11
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m        <div>
+          [35m<label class="label-base mb-2">Warehouse</label>[36m
+          <select class="select-base" bind:value={issueWarehouseId} disabled={optionsLoading}>[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\assets\components\WorkflowRequestForm.svelte[39m:198:11
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m        <div>
+          [35m<label class="label-base mb-2">Doc Date (optional)</label>[36m
+          <input class="input-base" type="date" bind:value={issueDocDate} />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\assets\components\WorkflowRequestForm.svelte[39m:215:9
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m      <div>
+        [35m<label class="label-base mb-2">Request Note</label>[36m
+        <textarea class="textarea-base" bind:value={issueNote} rows={2} placeholder="Optional note for generated stock issue document"></textarea>[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\assets\components\WorkflowRequestForm.svelte[39m:221:11
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m        <div class="flex items-center justify-between">
+          [35m<label class="label-base mb-0">Issue Lines</label>[36m
+          <Button type="button" size="sm" variant="secondary" onclick={addIssueLine}>Add line</Button>[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\assets\components\WorkflowRequestForm.svelte[39m:235:15
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m            <div>
+              [35m<label class="label-base mb-2">Spare Part</label>[36m
+              <select class="select-base" value={line.partId} disabled={optionsLoading} onchange={(e) => updateIssueLine(line.id, { partId: (e.currentTarget as HTMLSelectElement).value })}>[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\assets\components\WorkflowRequestForm.svelte[39m:246:17
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m              <div>
+                [35m<label class="label-base mb-2">Requested Qty</label>[36m
+                <input[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\assets\components\WorkflowRequestForm.svelte[39m:256:17
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m              <div>
+                [35m<label class="label-base mb-2">Issue Qty (first issue)</label>[36m
+                <input[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\assets\components\WorkflowRequestForm.svelte[39m:268:15
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m            <div>
+              [35m<label class="label-base mb-2">Line Note</label>[36m
+              <input[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\assets\components\WorkflowRequestForm.svelte[39m:282:7
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m    <div>
+      [35m<label class="label-base mb-2">{$isLoading ? 'Payload (JSON)' : $_('assets.payloadJson')}</label>[36m
+      <textarea class="textarea-base" bind:value={payload} rows={4} placeholder={$isLoading ? 'e.g. {"note":"optional"}' : $_('assets.placeholders.optionalNote')}></textarea>[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\assets\components\catalogs\SpecVersionControls.svelte[39m:33:5
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m  <div class="min-w-[220px]">
+    [35m<label class="label-base mb-2">{$isLoading ? 'Spec Version' : $_('assets.specVersion')}</label>[36m
+    <select class="select-base" bind:value={selectedVersionId} onchange={handleSelect}>[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\assets\components\catalogs\SpecFieldForm.svelte[39m:102:7
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m    <div>
+      [35m<label class="label-base mb-2">{$isLoading ? 'Label' : $_('assets.label')}</label>[36m
+      <input class="input-base" name="label" bind:value={draft.label} placeholder={$isLoading ? 'Memory Size' : $_('assets.placeholders.memorySize')} />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\assets\components\catalogs\SpecFieldForm.svelte[39m:106:7
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m    <div>
+      [35m<label class="label-base mb-2">{$isLoading ? 'Key' : $_('assets.key')}</label>[36m
+      <input class="input-base" name="key" bind:value={draft.key} placeholder="memorySizeGb" />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\assets\components\catalogs\SpecFieldForm.svelte[39m:110:7
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m    <div>
+      [35m<label class="label-base mb-2">{$isLoading ? 'Type' : $_('assets.type')}</label>[36m
+      <select class="select-base" name="fieldType" bind:value={draft.fieldType} onchange={handleFieldTypeChange}>[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\assets\components\catalogs\SpecFieldForm.svelte[39m:118:7
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m    <div>
+      [35m<label class="label-base mb-2">{$isLoading ? 'Unit' : $_('assets.unit')}</label>[36m
+      <input class="input-base" name="unit" bind:value={draft.unit} placeholder="GB" />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\assets\components\catalogs\SpecFieldForm.svelte[39m:125:7
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m    <div>
+      [35m<label class="label-base mb-2">{$isLoading ? 'Sort Order' : $_('assets.sortOrder')}</label>[36m
+      <input class="input-base" name="sortOrder" type="number" bind:value={draft.sortOrder} placeholder="0" />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\assets\components\catalogs\SpecFieldForm.svelte[39m:155:7
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m    <div>
+      [35m<label class="label-base mb-2">{$isLoading ? 'Enum Values' : $_('assets.enumValues')}</label>[36m
+      <input class="input-base" name="enumValues" bind:value={draft.enumValues} placeholder="DDR3, DDR4, DDR5" />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\assets\components\catalogs\SpecFieldForm.svelte[39m:164:9
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m      <div>
+        [35m<label class="label-base mb-2">{$isLoading ? 'Min' : $_('assets.min')}</label>[36m
+        <input class="input-base" name="minValue" type="number" bind:value={draft.minValue} placeholder="0" />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\assets\components\catalogs\SpecFieldForm.svelte[39m:168:9
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m      <div>
+        [35m<label class="label-base mb-2">{$isLoading ? 'Max' : $_('assets.max')}</label>[36m
+        <input class="input-base" name="maxValue" type="number" bind:value={draft.maxValue} placeholder="1024" />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\assets\components\catalogs\SpecFieldForm.svelte[39m:172:9
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m      <div>
+        [35m<label class="label-base mb-2">{$isLoading ? 'Step' : $_('assets.step')}</label>[36m
+        <input class="input-base" name="stepValue" type="number" bind:value={draft.stepValue} placeholder="1" />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\assets\components\catalogs\SpecFieldForm.svelte[39m:178:9
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m      <div>
+        [35m<label class="label-base mb-2">{$isLoading ? 'Precision' : $_('assets.precision')}</label>[36m
+        <input class="input-base" name="precision" type="number" bind:value={draft.precision} placeholder="10" />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\assets\components\catalogs\SpecFieldForm.svelte[39m:182:9
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m      <div>
+        [35m<label class="label-base mb-2">{$isLoading ? 'Scale' : $_('assets.scale')}</label>[36m
+        <input class="input-base" name="scale" type="number" bind:value={draft.scale} placeholder="2" />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\assets\components\catalogs\SpecFieldForm.svelte[39m:191:9
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m      <div>
+        [35m<label class="label-base mb-2">{$isLoading ? 'Min Length' : $_('assets.minLength')}</label>[36m
+        <input class="input-base" name="minLen" type="number" bind:value={draft.minLen} placeholder="0" />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\assets\components\catalogs\SpecFieldForm.svelte[39m:195:9
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m      <div>
+        [35m<label class="label-base mb-2">{$isLoading ? 'Max Length' : $_('assets.maxLength')}</label>[36m
+        <input class="input-base" name="maxLen" type="number" bind:value={draft.maxLen} placeholder="255" />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\assets\components\catalogs\SpecFieldForm.svelte[39m:199:9
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m      <div>
+        [35m<label class="label-base mb-2">{$isLoading ? 'Normalize' : $_('assets.normalize')}</label>[36m
+        <select class="select-base" name="normalize" bind:value={draft.normalize}>[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\assets\components\catalogs\SpecFieldForm.svelte[39m:209:7
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m    <div>
+      [35m<label class="label-base mb-2">{$isLoading ? 'Pattern' : $_('assets.pattern')}</label>[36m
+      <input class="input-base" name="pattern" bind:value={draft.pattern} placeholder="^[A-Z0-9-]+$" />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\assets\components\catalogs\SpecFieldForm.svelte[39m:216:7
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m    <div>
+      [35m<label class="label-base mb-2">{$isLoading ? 'Default Value' : $_('assets.defaultValue')}</label>[36m
+      <input class="input-base" name="defaultValue" bind:value={draft.defaultValue} placeholder={$isLoading ? 'Optional default value' : $_('assets.placeholders.optionalDefaultValue')} />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\assets\components\catalogs\SpecFieldForm.svelte[39m:220:7
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m    <div>
+      [35m<label class="label-base mb-2">{$isLoading ? 'Help Text' : $_('assets.helpText')}</label>[36m
+      <textarea class="textarea-base" name="helpText" rows={2} bind:value={draft.helpText} placeholder={$isLoading ? 'Describe how to fill this field' : $_('assets.placeholders.helpTextDescription')}></textarea>[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\assets\components\catalogs\SpecFieldForm.svelte[39m:226:5
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m  <div>
+    [35m<label class="label-base mb-2">{$isLoading ? 'Computed Expression' : $_('assets.computedExpression')}</label>[36m
+    <input class="input-base" name="computedExpr" bind:value={draft.computedExpr} placeholder="modelName.capacityGb" />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\assets\components\catalogs\CategoryCatalog.svelte[39m:82:9
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m      <div>
+        [35m<label class="label-base mb-2">{$isLoading ? 'Category name' : $_('assets.categoryName')}</label>[36m
+        <input class="input-base" bind:value={name} placeholder={$isLoading ? 'Laptop' : $_('assets.placeholders.categoryName')} />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\assets\components\catalogs\LocationCatalog.svelte[39m:77:9
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m      <div>
+        [35m<label class="label-base mb-2">{$isLoading ? 'Location name' : $_('assets.locationName')}</label>[36m
+        <input class="input-base" bind:value={form.name} placeholder="HQ / Floor 2" />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\assets\components\catalogs\LocationCatalog.svelte[39m:81:9
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m      <div>
+        [35m<label class="label-base mb-2">{$isLoading ? 'Parent location' : $_('assets.parentLocation')}</label>[36m
+        <select class="select-base" bind:value={form.parentId}>[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\assets\components\catalogs\ModelForm.svelte[39m:201:9
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m    <div>
+        [35m<label class="label-base mb-2">{$isLoading ? 'Model' : $_('common.model')}</label>[36m
+      <input class="input-base" bind:value={form.model} placeholder="Latitude 7420" />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\assets\components\catalogs\ModelForm.svelte[39m:205:9
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m    <div>
+        [35m<label class="label-base mb-2">{$isLoading ? 'Brand' : $_('common.brand')}</label>[36m
+        <input class="input-base" bind:value={form.brand} placeholder={$isLoading ? 'Dell' : $_('assets.placeholders.brand')} />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\assets\components\catalogs\ModelForm.svelte[39m:209:7
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m    <div>
+      [35m<label class="label-base mb-2">{$isLoading ? 'Category' : $_('assets.category')}</label>[36m
+      <select class="select-base" bind:value={form.categoryId} onchange={() => useVersionDefs = false}>[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\assets\components\catalogs\ModelForm.svelte[39m:218:9
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m    <div>
+        [35m<label class="label-base mb-2">{$isLoading ? 'Vendor' : $_('common.vendor')}</label>[36m
+        <select class="select-base" bind:value={form.vendorId}>[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\assets\components\catalogs\ModelForm.svelte[39m:229:9
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m    <div>
+        [35m<label class="label-base mb-2">{$isLoading ? 'Specifications' : $_('assets.specifications')}</label>[36m
+      {#if specLoading}[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\assets\components\catalogs\ModelFilters.svelte[39m:145:9
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m    <div>
+        [35m<label class="label-base mb-2">{$isLoading ? 'Category Filter' : $_('assets.categoryFilter')}</label>[36m
+      <select[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\assets\components\catalogs\ModelFilters.svelte[39m:169:11
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m        <div class="space-y-1">
+          [35m<label class="label-base mb-1">{def.label}</label>[36m
+          {#if def.fieldType === 'enum'}[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\assets\components\catalogs\VendorCatalog.svelte[39m:92:9
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m      <div>
+        [35m<label class="label-base mb-2">{$isLoading ? 'Vendor name' : $_('assets.vendorName')}</label>[36m
+        <input class="input-base" bind:value={form.name} placeholder={$isLoading ? 'Dell' : $_('assets.placeholders.vendorName')} />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\assets\components\catalogs\VendorCatalog.svelte[39m:96:9
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m      <div>
+        [35m<label class="label-base mb-2">{$isLoading ? 'Tax code' : $_('assets.taxCode')}</label>[36m
+        <input class="input-base" bind:value={form.taxCode} placeholder={$isLoading ? 'Optional' : $_('assets.placeholders.taxCode')} />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\assets\components\catalogs\VendorCatalog.svelte[39m:100:9
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m      <div>
+        [35m<label class="label-base mb-2">{$isLoading ? 'Phone' : $_('assets.phone')}</label>[36m
+        <input class="input-base" bind:value={form.phone} placeholder={$isLoading ? 'Optional' : $_('assets.placeholders.phone')} />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\assets\components\catalogs\VendorCatalog.svelte[39m:104:9
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m      <div>
+        [35m<label class="label-base mb-2">{$isLoading ? 'Email' : $_('assets.email')}</label>[36m
+        <input class="input-base" bind:value={form.email} placeholder={$isLoading ? 'Optional' : $_('assets.placeholders.email')} />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\assets\components\catalogs\VendorCatalog.svelte[39m:108:9
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m      <div class="md:col-span-2">
+        [35m<label class="label-base mb-2">{$isLoading ? 'Address' : $_('assets.address')}</label>[36m
+        <input class="input-base" bind:value={form.address} placeholder={$isLoading ? 'Optional' : $_('assets.placeholders.address')} />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\flow\WorkflowDiagram.svelte[39m:74:23
+[31mError[39m: Parameter 'node' implicitly has an 'any' type. (ts)
+[36m  $effect(() => {
+    nodes = nodes.map([35mnode[36m => ({
+      ...node,[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\flow\WorkflowProgressPanel.svelte[39m:117:3
+[31mError[39m: `$:` is not allowed in runes mode, use `$derived` or `$effect` instead
+https://svelte.dev/e/legacy_reactive_statement_invalid (svelte)
+[36m  // Reactive data
+  [35m$: flowData = generateFlowData();[36m
+  $: mermaidDiagram = generateMermaidDiagram();[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\flow\WorkflowProgressPanel.svelte[39m:37:30
+[31mError[39m: Parameter 'step' implicitly has an 'any' type. (ts)
+[36m  function generateFlowData() {
+    const nodes = steps.map(([35mstep[36m, index) => ({
+      id: step.id,[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\flow\WorkflowProgressPanel.svelte[39m:37:36
+[31mError[39m: Parameter 'index' implicitly has an 'any' type. (ts)
+[36m  function generateFlowData() {
+    const nodes = steps.map((step, [35mindex[36m) => ({
+      id: step.id,[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\flow\WorkflowProgressPanel.svelte[39m:50:33
+[31mError[39m: Parameter 'step' implicitly has an 'any' type. (ts)
+[36m
+    const edges = steps.flatMap([35mstep[36m => 
+      (step.dependencies || []).map(depId => ({[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\flow\WorkflowProgressPanel.svelte[39m:51:37
+[31mError[39m: Parameter 'depId' implicitly has an 'any' type. (ts)
+[36m    const edges = steps.flatMap(step => 
+      (step.dependencies || []).map([35mdepId[36m => ({
+        id: `${depId}-${step.id}`,[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\flow\WorkflowProgressPanel.svelte[39m:67:19
+[31mError[39m: Parameter 'step' implicitly has an 'any' type. (ts)
+[36m    // Add nodes
+    steps.forEach([35mstep[36m => {
+      const statusSymbol = getStatusSymbol(step.status);[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\flow\WorkflowProgressPanel.svelte[39m:78:19
+[31mError[39m: Parameter 'step' implicitly has an 'any' type. (ts)
+[36m    // Add edges
+    steps.forEach([35mstep[36m => {
+      (step.dependencies || []).forEach(depId => {[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\flow\WorkflowProgressPanel.svelte[39m:79:41
+[31mError[39m: Parameter 'depId' implicitly has an 'any' type. (ts)
+[36m    steps.forEach(step => {
+      (step.dependencies || []).forEach([35mdepId[36m => {
+        lines.push(`    ${depId} --> ${step.id}`);[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\flow\WorkflowProgressPanel.svelte[39m:122:36
+[31mError[39m: Parameter 's' implicitly has an 'any' type. (ts)
+[36m  $: totalSteps = steps.length;
+  $: completedSteps = steps.filter([35ms[36m => s.status === 'completed').length;
+  $: inProgressSteps = steps.filter(s => s.status === 'in-progress').length;[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\flow\WorkflowProgressPanel.svelte[39m:123:37
+[31mError[39m: Parameter 's' implicitly has an 'any' type. (ts)
+[36m  $: completedSteps = steps.filter(s => s.status === 'completed').length;
+  $: inProgressSteps = steps.filter([35ms[36m => s.status === 'in-progress').length;
+  $: failedSteps = steps.filter(s => s.status === 'failed').length;[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\flow\WorkflowProgressPanel.svelte[39m:124:33
+[31mError[39m: Parameter 's' implicitly has an 'any' type. (ts)
+[36m  $: inProgressSteps = steps.filter(s => s.status === 'in-progress').length;
+  $: failedSteps = steps.filter([35ms[36m => s.status === 'failed').length;
+  $: overallProgress = totalSteps > 0 ? Math.round((completedSteps / totalSteps) * 100) : 0;[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\flow\WorkflowProgressPanel.svelte[39m:176:35
+[31mError[39m: Parameter 's' implicitly has an 'any' type. (ts)
+[36m        onNodeClick={(event, node) => {
+          const step = steps.find([35ms[36m => s.id === node.id);
+          if (step) onStepClick?.(step);[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\flow\WorkflowProgressPanel.svelte[39m:225:60
+[31mError[39m: 'e.target' is possibly 'null'. (ts)
+[36m                value={step.status}
+                onchange={(e) => updateStepStatus(step.id, [35me.target[36m.value)}
+                class="text-xs border rounded px-2 py-1"[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\flow\WorkflowProgressPanel.svelte[39m:225:69
+[31mError[39m: Property 'value' does not exist on type 'EventTarget'. (ts)
+[36m                value={step.status}
+                onchange={(e) => updateStepStatus(step.id, e.target.[35mvalue[36m)}
+                class="text-xs border rounded px-2 py-1"[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\cmdb\CiRelationshipsTab.svelte[39m:238:9
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m      <div>
+        [35m<label class="label-base">Direction</label>[36m
+        <div class="mt-2 flex gap-4">[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\admin\ApprovalWorkflowPanel.svelte[39m:4:55
+[31mError[39m: Cannot find module '$lib/netops/api/governanceApi' or its corresponding type declarations. (ts)
+[36m  import { Button } from '$lib/components/ui';
+  import { governanceApi, type ApprovalRequest } from [35m'$lib/netops/api/governanceApi'[36m;[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\admin\BaselineDriftPanel.svelte[39m:4:65
+[31mError[39m: Cannot find module '$lib/netops/api/governanceApi' or its corresponding type declarations. (ts)
+[36m  import { Button } from '$lib/components/ui';
+  import { governanceApi, type Baseline, type DriftEvent } from [35m'$lib/netops/api/governanceApi'[36m;[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\admin\BreakGlassPanel.svelte[39m:4:55
+[31mError[39m: Cannot find module '$lib/netops/api/governanceApi' or its corresponding type declarations. (ts)
+[36m  import { Button } from '$lib/components/ui';
+  import { governanceApi, type BreakGlassEvent } from [35m'$lib/netops/api/governanceApi'[36m;[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\admin\ChangeCalendarPanel.svelte[39m:46:7
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m    <div class="space-y-2">
+      [35m<label class="label-base">Title</label>[36m
+      <input class="input-base" bind:value={title} placeholder="Monthly maintenance"  />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\admin\ChangeCalendarPanel.svelte[39m:48:7
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m      <input class="input-base" bind:value={title} placeholder="Monthly maintenance"  />
+      [35m<label class="label-base">Environment</label>[36m
+      <select class="select-base" bind:value={environment}>[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\admin\ChangeCalendarPanel.svelte[39m:57:7
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m    <div class="space-y-2">
+      [35m<label class="label-base">Start</label>[36m
+      <input class="input-base" type="datetime-local" bind:value={startAt}  />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\admin\ChangeCalendarPanel.svelte[39m:59:7
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m      <input class="input-base" type="datetime-local" bind:value={startAt}  />
+      [35m<label class="label-base">End</label>[36m
+      <input class="input-base" type="datetime-local" bind:value={endAt}  />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\admin\ChangeCalendarPanel.svelte[39m:4:57
+[31mError[39m: Cannot find module '$lib/netops/api/governanceApi' or its corresponding type declarations. (ts)
+[36m  import { Button } from '$lib/components/ui';
+  import { governanceApi, type MaintenanceWindow } from [35m'$lib/netops/api/governanceApi'[36m;[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\admin\EvidenceBuilderPanel.svelte[39m:4:52
+[31mError[39m: Cannot find module '$lib/netops/api/governanceApi' or its corresponding type declarations. (ts)
+[36m  import { Button } from '$lib/components/ui';
+  import { governanceApi, type EvidenceCase } from [35m'$lib/netops/api/governanceApi'[36m;[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\admin\JitAccessPanel.svelte[39m:42:7
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m    <div class="space-y-2">
+      [35m<label class="label-base">User ID</label>[36m
+      <input class="input-base" bind:value={userId} placeholder="user-123" />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\admin\JitAccessPanel.svelte[39m:44:7
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m      <input class="input-base" bind:value={userId} placeholder="user-123" />
+      [35m<label class="label-base">Role</label>[36m
+      <input class="input-base" bind:value={role} placeholder="admin" />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\admin\JitAccessPanel.svelte[39m:48:7
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m    <div class="space-y-2">
+      [35m<label class="label-base">Expires At</label>[36m
+      <input class="input-base" type="datetime-local" bind:value={expiresAt} />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\admin\JitAccessPanel.svelte[39m:50:7
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m      <input class="input-base" type="datetime-local" bind:value={expiresAt} />
+      [35m<label class="label-base">Reason</label>[36m
+      <input class="input-base" bind:value={reason} placeholder="Urgent troubleshooting" />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\admin\JitAccessPanel.svelte[39m:4:48
+[31mError[39m: Cannot find module '$lib/netops/api/governanceApi' or its corresponding type declarations. (ts)
+[36m  import { Button } from '$lib/components/ui';
+  import { governanceApi, type JitGrant } from [35m'$lib/netops/api/governanceApi'[36m;[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\models\ModelsConsole.svelte[39m:555:17
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m              <div>
+                [35m<label class="label-base">{$isLoading ? 'ID' : $_('common.id')}</label>[36m
+                <input class="input-base" bind:value={newModel.id} placeholder="provider/model-id" />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\models\ModelsConsole.svelte[39m:559:17
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m              <div>
+                [35m<label class="label-base">{$isLoading ? 'Provider' : $_('models.provider')}</label>[36m
+                <input class="input-base" bind:value={newModel.provider} placeholder="openai" />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\models\ModelsConsole.svelte[39m:563:17
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m              <div>
+                [35m<label class="label-base">{$isLoading ? 'Display name' : $_('models.displayName')}</label>[36m
+                <input class="input-base" bind:value={newModel.displayName} placeholder={$isLoading ? 'Friendly name' : $_('models.placeholders.displayName')} />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\models\ModelsConsole.svelte[39m:567:17
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m              <div>
+                [35m<label class="label-base">{$isLoading ? 'Tier' : $_('models.tier')}</label>[36m
+                <input class="input-base" type="number" bind:value={newModel.tier} />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\models\ModelsConsole.svelte[39m:571:17
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m              <div>
+                [35m<label class="label-base">{$isLoading ? 'Priority' : $_('models.priority')}</label>[36m
+                <input class="input-base" type="number" bind:value={newModel.priority} />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\models\ModelsConsole.svelte[39m:579:17
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                </label>
+                [35m<label class="label-base">{$isLoading ? 'Enabled' : $_('common.enabled')}</label>[36m
+              </div>[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\models\ModelsConsole.svelte[39m:582:17
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m              <div class="md:col-span-3">
+                [35m<label class="label-base">{$isLoading ? 'Description' : $_('common.description')}</label>[36m
+                <textarea class="textarea-base" bind:value={newModel.description} rows={2}></textarea>[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\models\ModelsConsole.svelte[39m:690:33
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                              <div>
+                                [35m<label class="label-base">{$isLoading ? 'Display name' : $_('models.displayName')}</label>[36m
+                                <input class="input-base" bind:value={modelEdit.displayName} placeholder={$isLoading ? 'Friendly name' : $_('models.placeholders.displayName')} />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\models\ModelsConsole.svelte[39m:694:33
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                              <div>
+                                [35m<label class="label-base">{$isLoading ? 'Tier' : $_('models.tier')}</label>[36m
+                                <input class="input-base" type="number" bind:value={modelEdit.tier} />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\models\ModelsConsole.svelte[39m:698:33
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                              <div>
+                                [35m<label class="label-base">{$isLoading ? 'Context window' : $_('models.contextWindow')}</label>[36m
+                                <input class="input-base" type="number" bind:value={modelEdit.contextWindow} />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\models\ModelsConsole.svelte[39m:702:33
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                              <div>
+                                [35m<label class="label-base">{$isLoading ? 'Max tokens' : $_('models.maxTokens')}</label>[36m
+                                <input class="input-base" type="number" bind:value={modelEdit.maxTokens} />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\models\ModelsConsole.svelte[39m:706:33
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                              <div>
+                                [35m<label class="label-base">{$isLoading ? 'Cost /1k input' : $_('models.costPer1kInput')}</label>[36m
+                                <input class="input-base" type="number" step="0.0001" bind:value={modelEdit.costPer1kInput} />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\models\ModelsConsole.svelte[39m:710:33
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                              <div>
+                                [35m<label class="label-base">{$isLoading ? 'Cost /1k output' : $_('models.costPer1kOutput')}</label>[36m
+                                <input class="input-base" type="number" step="0.0001" bind:value={modelEdit.costPer1kOutput} />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\models\ModelsConsole.svelte[39m:718:33
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                                </label>
+                                [35m<label class="label-base">{$isLoading ? 'Enabled' : $_('common.enabled')}</label>[36m
+                              </div>[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\models\ModelsConsole.svelte[39m:721:33
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                              <div>
+                                [35m<label class="label-base">{$isLoading ? 'Status' : $_('common.status')}</label>[36m
+                                <select class="select-base" bind:value={modelEdit.status}>[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\models\ModelsConsole.svelte[39m:836:29
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                          <div>
+                            [35m<label class="label-base">{$isLoading ? 'Display name' : $_('models.displayName')}</label>[36m
+                            <input class="input-base" bind:value={modelEdit.displayName} placeholder={$isLoading ? 'Friendly name' : $_('models.placeholders.displayName')} />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\models\ModelsConsole.svelte[39m:840:29
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                          <div>
+                            [35m<label class="label-base">{$isLoading ? 'Tier' : $_('models.tier')}</label>[36m
+                            <input class="input-base" type="number" bind:value={modelEdit.tier} />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\models\ModelsConsole.svelte[39m:844:29
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                          <div>
+                            [35m<label class="label-base">{$isLoading ? 'Context window' : $_('models.contextWindow')}</label>[36m
+                            <input class="input-base" type="number" bind:value={modelEdit.contextWindow} />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\models\ModelsConsole.svelte[39m:848:29
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                          <div>
+                            [35m<label class="label-base">{$isLoading ? 'Max tokens' : $_('models.maxTokens')}</label>[36m
+                            <input class="input-base" type="number" bind:value={modelEdit.maxTokens} />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\models\ModelsConsole.svelte[39m:852:29
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                          <div>
+                            [35m<label class="label-base">{$isLoading ? 'Cost /1k input' : $_('models.costPer1kInput')}</label>[36m
+                            <input class="input-base" type="number" step="0.0001" bind:value={modelEdit.costPer1kInput} />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\models\ModelsConsole.svelte[39m:856:29
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                          <div>
+                            [35m<label class="label-base">{$isLoading ? 'Cost /1k output' : $_('models.costPer1kOutput')}</label>[36m
+                            <input class="input-base" type="number" step="0.0001" bind:value={modelEdit.costPer1kOutput} />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\models\ModelsConsole.svelte[39m:864:29
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                            </label>
+                            [35m<label class="label-base">{$isLoading ? 'Enabled' : $_('common.enabled')}</label>[36m
+                          </div>[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\models\ModelsConsole.svelte[39m:867:29
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                          <div>
+                            [35m<label class="label-base">{$isLoading ? 'Status' : $_('common.status')}</label>[36m
+                            <select class="select-base" bind:value={modelEdit.status}>[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\models\ModelsConsole.svelte[39m:925:17
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m              <div>
+                [35m<label class="label-base">{$isLoading ? 'ID' : $_('common.id')}</label>[36m
+                <input class="input-base" bind:value={newProvider.id} placeholder="openai" />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\models\ModelsConsole.svelte[39m:929:17
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m              <div>
+                [35m<label class="label-base">{$isLoading ? 'Name' : $_('common.name')}</label>[36m
+                <input class="input-base" bind:value={newProvider.name} placeholder={$isLoading ? 'OpenAI' : $_('models.placeholders.providerName')} />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\models\ModelsConsole.svelte[39m:933:17
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m              <div>
+                [35m<label class="label-base">{$isLoading ? 'API endpoint' : $_('models.apiEndpoint')}</label>[36m
+                <input class="input-base" bind:value={newProvider.apiEndpoint} placeholder="https://..." />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\models\ModelsConsole.svelte[39m:937:17
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m              <div>
+                [35m<label class="label-base">{$isLoading ? 'Status' : $_('common.status')}</label>[36m
+                <select class="select-base" bind:value={newProvider.status}>[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\models\ModelsConsole.svelte[39m:1021:27
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                        <div>
+                          [35m<label class="label-base">{$isLoading ? 'Name' : $_('common.name')}</label>[36m
+                          <input class="input-base" bind:value={providerEdit.name} />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\models\ModelsConsole.svelte[39m:1025:27
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                        <div>
+                          [35m<label class="label-base">{$isLoading ? 'Status' : $_('common.status')}</label>[36m
+                          <select class="select-base" bind:value={providerEdit.status}>[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\models\ModelsConsole.svelte[39m:1033:27
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                        <div>
+                          [35m<label class="label-base">{$isLoading ? 'API endpoint' : $_('models.apiEndpoint')}</label>[36m
+                          <input class="input-base" bind:value={providerEdit.apiEndpoint} />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\models\ModelsConsole.svelte[39m:1037:27
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                        <div>
+                          [35m<label class="label-base">{$isLoading ? 'API Key' : $_('models.apiKey')}</label>[36m
+                          <input class="input-base" type="password" bind:value={providerEdit.apiKey} placeholder="******" />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\models\ModelsConsole.svelte[39m:1041:27
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                        <div>
+                          [35m<label class="label-base">{$isLoading ? 'Credits' : $_('models.credits')}</label>[36m
+                          <input class="input-base" type="number" step="0.0001" bind:value={providerEdit.creditsRemaining} />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\models\ModelsConsole.svelte[39m:1045:27
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                        <div>
+                          [35m<label class="label-base">{$isLoading ? 'Tokens' : $_('stats.tokens')}</label>[36m
+                          <input class="input-base" type="number" bind:value={providerEdit.tokensUsed} />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\models\ModelsConsole.svelte[39m:1278:7
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m    <div>
+      [35m<label class="label-base">{$isLoading ? 'Model Sequence' : $_('models.modelSequence')}</label>[36m
+      <div class="space-y-2">[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\models\ModelsConsole.svelte[39m:1309:7
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m      </label>
+      [35m<label class="label-base">{$isLoading ? 'Enabled' : $_('common.enabled')}</label>[36m
+    </div>[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\models\ModelsConsole.svelte[39m:1341:9
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m      <div>
+        [35m<label class="label-base">{$isLoading ? 'Priority' : $_('models.priority')}</label>[36m
+        <input class="input-base" type="number" bind:value={importPriority} />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\admin\PolicyAsCodePanel.svelte[39m:50:7
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m    <div class="space-y-2">
+      [35m<label class="label-base">Name</label>[36m
+      <input class="input-base" bind:value={name} placeholder="Prod Guardrails"  />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\admin\PolicyAsCodePanel.svelte[39m:52:7
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m      <input class="input-base" bind:value={name} placeholder="Prod Guardrails"  />
+      [35m<label class="label-base">Environment</label>[36m
+      <select class="select-base" bind:value={environment}>[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\admin\PolicyAsCodePanel.svelte[39m:65:7
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m    <div class="space-y-2">
+      [35m<label class="label-base">Allowlist (one per line)</label>[36m
+      <textarea class="textarea-base" rows={2} bind:value={allowList} placeholder="show\nprint" ></textarea>[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\admin\PolicyAsCodePanel.svelte[39m:67:7
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m      <textarea class="textarea-base" rows={2} bind:value={allowList} placeholder="show\nprint" ></textarea>
+      [35m<label class="label-base">Denylist (one per line)</label>[36m
+      <textarea class="textarea-base" rows={2} bind:value={denyList} ></textarea>[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\admin\PolicyAsCodePanel.svelte[39m:69:7
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m      <textarea class="textarea-base" rows={2} bind:value={denyList} ></textarea>
+      [35m<label class="label-base">Dangerous (one per line)</label>[36m
+      <textarea class="textarea-base" rows={2} bind:value={dangerousList} ></textarea>[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\admin\PolicyAsCodePanel.svelte[39m:4:56
+[31mError[39m: Cannot find module '$lib/netops/api/governanceApi' or its corresponding type declarations. (ts)
+[36m  import { Button } from '$lib/components/ui';
+  import { governanceApi, type GovernancePolicy } from [35m'$lib/netops/api/governanceApi'[36m;[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\admin\RolePermissionMatrix.svelte[39m:436:25
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                    <div class="min-w-[180px]">
+                        [35m<label class="label-base">Filter group</label>[36m
+                        <select class="select-base" bind:value={selectedGroup}>[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\admin\RolePermissionMatrix.svelte[39m:445:25
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                    <div class="min-w-[180px]">
+                        [35m<label class="label-base">Template role</label>[36m
+                        <select class="select-base" bind:value={templateRole}>[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\admin\RolePermissionMatrix.svelte[39m:453:25
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                    <div class="min-w-[220px]">
+                        [35m<label class="label-base">Apply template</label>[36m
+                        <div class="flex gap-2">[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\admin\RolePermissionMatrix.svelte[39m:567:21
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                <div>
+                    [35m<label class="label-base">Role</label>[36m
+                    <select class="select-base" bind:value={scopeRole}>[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\admin\RolePermissionMatrix.svelte[39m:575:21
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                <div>
+                    [35m<label class="label-base">Permission</label>[36m
+                    <select class="select-base" bind:value={scopePermission}>[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\admin\RolePermissionMatrix.svelte[39m:583:21
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                <div>
+                    [35m<label class="label-base">Effect</label>[36m
+                    <select class="select-base" bind:value={scopeEffect}>[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\admin\RolePermissionMatrix.svelte[39m:590:21
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                <div>
+                    [35m<label class="label-base">Scope type</label>[36m
+                    <select class="select-base" bind:value={scopeType}>[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\admin\RolePermissionMatrix.svelte[39m:600:25
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                    <div class="sm:col-span-2">
+                        [35m<label class="label-base">Scope value</label>[36m
+                        <input class="input-base" bind:value={scopeValue} placeholder="org-123 / model-id / group"  />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\admin\RolePermissionMatrix.svelte[39m:605:21
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                <div>
+                    [35m<label class="label-base">Expires</label>[36m
+                    <input class="input-base" type="datetime-local" bind:value={scopeExpiresAt}  />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\admin\RolePermissionMatrix.svelte[39m:609:21
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                <div>
+                    [35m<label class="label-base">Reason</label>[36m
+                    <input class="input-base" bind:value={scopeReason} placeholder="Change reason"  />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\admin\RolePermissionMatrix.svelte[39m:652:21
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                <div class="sm:col-span-2">
+                    [35m<label class="label-base">User id / email</label>[36m
+                    <input class="input-base" bind:value={overrideUserId} placeholder="user-123 or admin@company"  />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\admin\RolePermissionMatrix.svelte[39m:656:21
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                <div>
+                    [35m<label class="label-base">Permission</label>[36m
+                    <select class="select-base" bind:value={overridePermission}>[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\admin\RolePermissionMatrix.svelte[39m:664:21
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                <div>
+                    [35m<label class="label-base">Effect</label>[36m
+                    <select class="select-base" bind:value={overrideEffect}>[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\admin\RolePermissionMatrix.svelte[39m:671:21
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                <div>
+                    [35m<label class="label-base">Expires</label>[36m
+                    <input class="input-base" type="datetime-local" bind:value={overrideExpiresAt}  />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\admin\RolePermissionMatrix.svelte[39m:675:21
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                <div>
+                    [35m<label class="label-base">Reason</label>[36m
+                    <input class="input-base" bind:value={overrideReason} placeholder="Incident or support case"  />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\admin\RolePermissionMatrix.svelte[39m:762:21
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                <div class="sm:col-span-2">
+                    [35m<label class="label-base">User id / email (optional)</label>[36m
+                    <input class="input-base" bind:value={simulateUserId} placeholder="Leave blank for role-only"  />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\admin\RolePermissionMatrix.svelte[39m:766:21
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                <div>
+                    [35m<label class="label-base">Role</label>[36m
+                    <select class="select-base" bind:value={simulateRole}>[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\admin\RolePermissionMatrix.svelte[39m:774:21
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                <div>
+                    [35m<label class="label-base">Scope type</label>[36m
+                    <select class="select-base" bind:value={simulateScopeType}>[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\admin\RolePermissionMatrix.svelte[39m:784:25
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                    <div class="sm:col-span-2">
+                        [35m<label class="label-base">Scope value</label>[36m
+                        <input class="input-base" bind:value={simulateScopeValue}  />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\admin\RoutingRulesPanel.svelte[39m:169:54
+[31mError[39m: Expected token }
+https://svelte.dev/e/expected_token (svelte)
+[36m                                    value={rule.priority}
+                                    onchange={(e) = /[35m[36m> updatePriority(rule, Number((e.target as HTMLInputElement).value))}
+                                />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\admin\RoutingRulesPanel.svelte[39m:169:54
+[31mError[39m: Expected token }
+https://svelte.dev/e/expected_token (ts)
+[36m                                    value={rule.priority}
+                                    onchange={(e) = /[35m[36m> updatePriority(rule, Number((e.target as HTMLInputElement).value))}
+                                />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\admin\UserManagementPanel.svelte[39m:151:21
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                <div>
+                    [35m<label class="label-base">Email</label>[36m
+                    <input class="input-base" bind:value={newUser.email}  />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\admin\UserManagementPanel.svelte[39m:155:21
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                <div>
+                    [35m<label class="label-base">Name</label>[36m
+                    <input class="input-base" bind:value={newUser.name}  />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\admin\UserManagementPanel.svelte[39m:159:21
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                <div>
+                    [35m<label class="label-base">Password</label>[36m
+                    <input class="input-base" type="password" bind:value={newUser.password}  />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\admin\UserManagementPanel.svelte[39m:163:21
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                <div>
+                    [35m<label class="label-base">Role</label>[36m
+                    <select class="select-base" bind:value={newUser.role}>[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\admin\rbac\GroupAssignmentTab.svelte[39m:338:15
+[31mError[39m: `</Button>` attempted to close an element that was not open
+https://svelte.dev/e/element_invalid_closing_tag (svelte)
+[36m                {$_('adminRbac.groups.bulk.apply')}
+              [35m[36m</Button>
+              <div class="text-xs text-slate-500">{$_('adminRbac.groups.bulk.selected', { values: { count: memberSelection.size } })}</div>[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\admin\rbac\GroupAssignmentTab.svelte[39m:338:15
+[31mError[39m: `</Button>` attempted to close an element that was not open
+https://svelte.dev/e/element_invalid_closing_tag (ts)
+[36m                {$_('adminRbac.groups.bulk.apply')}
+              [35m[36m</Button>
+              <div class="text-xs text-slate-500">{$_('adminRbac.groups.bulk.selected', { values: { count: memberSelection.size } })}</div>[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\FieldKitPanel.svelte[39m:573:9
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m      <div>
+        [35m<label class="label-base">Device</label>[36m
+        <select class="select-base" bind:value={fieldDeviceId}>[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\FieldKitPanel.svelte[39m:585:9
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m      <div>
+        [35m<label class="label-base">Environment</label>[36m
+        <select class="select-base" value={sshPolicy.environment} disabled>[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\FieldKitPanel.svelte[39m:593:9
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m      <div>
+        [35m<label class="label-base">Ticket (optional)</label>[36m
+        <input class="input-base" bind:value={fieldTicket} placeholder="INC-2026-001" />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\FieldKitPanel.svelte[39m:798:15
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m            <div class="space-y-2">
+              [35m<label class="label-base">Hostname</label>[36m
+              <input class="input-base" bind:value={templateHostname} placeholder="FIELD-EDGE-01" />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\FieldKitPanel.svelte[39m:800:15
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m              <input class="input-base" bind:value={templateHostname} placeholder="FIELD-EDGE-01" />
+              [35m<label class="label-base">Management IP</label>[36m
+              <input class="input-base" bind:value={templateMgmtIp} placeholder="10.0.0.10" />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\FieldKitPanel.svelte[39m:802:15
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m              <input class="input-base" bind:value={templateMgmtIp} placeholder="10.0.0.10" />
+              [35m<label class="label-base">Subnet Mask</label>[36m
+              <input class="input-base" bind:value={templateMask} />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\FieldKitPanel.svelte[39m:804:15
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m              <input class="input-base" bind:value={templateMask} />
+              [35m<label class="label-base">Default Gateway</label>[36m
+              <input class="input-base" bind:value={templateGateway} placeholder="10.0.0.1" />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\FieldKitPanel.svelte[39m:808:15
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m            <div class="space-y-2">
+              [35m<label class="label-base">NTP servers (comma separated)</label>[36m
+              <input class="input-base" bind:value={templateNtp} placeholder="1.pool.ntp.org,2.pool.ntp.org" />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\FieldKitPanel.svelte[39m:810:15
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m              <input class="input-base" bind:value={templateNtp} placeholder="1.pool.ntp.org,2.pool.ntp.org" />
+              [35m<label class="label-base">DNS servers (comma separated)</label>[36m
+              <input class="input-base" bind:value={templateDns} placeholder="8.8.8.8,1.1.1.1" />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\FieldKitPanel.svelte[39m:812:15
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m              <input class="input-base" bind:value={templateDns} placeholder="8.8.8.8,1.1.1.1" />
+              [35m<label class="label-base">Syslog server</label>[36m
+              <input class="input-base" bind:value={templateSyslog} placeholder="10.0.0.50" />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\FieldKitPanel.svelte[39m:1036:13
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m          <div class="space-y-2">
+            [35m<label class="label-base">Request approval</label>[36m
+            <textarea class="textarea-base" rows={2} bind:value={approvalReason} placeholder="Reason for high-risk action"></textarea>[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\FieldKitPanel.svelte[39m:15:31
+[31mError[39m: Cannot find module '$lib/netops/types' or its corresponding type declarations. (ts)
+[36m  } from 'lucide-svelte';
+  import type { Device } from [35m'$lib/netops/types'[36m;
+  import type { Vendor } from '$lib/tools/config/types';[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\FieldKitPanel.svelte[39m:16:31
+[31mError[39m: Cannot find module '$lib/tools/config/types' or its corresponding type declarations. (ts)
+[36m  import type { Device } from '$lib/netops/types';
+  import type { Vendor } from [35m'$lib/tools/config/types'[36m;
+  import type { SshCommandPolicy } from '$lib/tools/ssh/types';[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\FieldKitPanel.svelte[39m:17:41
+[31mError[39m: Cannot find module '$lib/tools/ssh/types' or its corresponding type declarations. (ts)
+[36m  import type { Vendor } from '$lib/tools/config/types';
+  import type { SshCommandPolicy } from [35m'$lib/tools/ssh/types'[36m;
+  import { defaultCanonicalConfig } from '$lib/tools/config/schema';[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\FieldKitPanel.svelte[39m:18:42
+[31mError[39m: Cannot find module '$lib/tools/config/schema' or its corresponding type declarations. (ts)
+[36m  import type { SshCommandPolicy } from '$lib/tools/ssh/types';
+  import { defaultCanonicalConfig } from [35m'$lib/tools/config/schema'[36m;
+  import { generateConfigPipeline } from '$lib/tools/config/service';[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\FieldKitPanel.svelte[39m:19:42
+[31mError[39m: Cannot find module '$lib/tools/config/service' or its corresponding type declarations. (ts)
+[36m  import { defaultCanonicalConfig } from '$lib/tools/config/schema';
+  import { generateConfigPipeline } from [35m'$lib/tools/config/service'[36m;
+  import { listSessions, openSession, sendCommand } from '$lib/tools/ssh/service';[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\FieldKitPanel.svelte[39m:20:58
+[31mError[39m: Cannot find module '$lib/tools/ssh/service' or its corresponding type declarations. (ts)
+[36m  import { generateConfigPipeline } from '$lib/tools/config/service';
+  import { listSessions, openSession, sendCommand } from [35m'$lib/tools/ssh/service'[36m;
+  import {[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\FieldKitPanel.svelte[39m:36:10
+[31mError[39m: Cannot find module '$lib/tools/field/service' or its corresponding type declarations. (ts)
+[36m    runQuickCheck
+  } from [35m'$lib/tools/field/service'[36m;
+  import type {[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\FieldKitPanel.svelte[39m:47:10
+[31mError[39m: Cannot find module '$lib/tools/field/types' or its corresponding type declarations. (ts)
+[36m    VisualizerData
+  } from [35m'$lib/tools/field/types'[36m;[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\FieldKitPanel.svelte[39m:149:37
+[31mError[39m: Parameter 'session' implicitly has an 'any' type. (ts)
+[36m    const sessions = await listSessions();
+    const existing = sessions.find(([35msession[36m) => session.deviceId === fieldDevice.id && session.status === 'connected');
+    if (existing) return existing.id;[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\FieldKitPanel.svelte[39m:221:53
+[31mError[39m: Parameter 'cmd' implicitly has an 'any' type. (ts)
+[36m
+    if (step.requiresConfirm || step.commands.some(([35mcmd[36m) => cmd.risk === 'high')) {
+      const confirmed = confirm(`Confirm running step: ${step.title}`);[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\FieldKitPanel.svelte[39m:231:51
+[31mError[39m: Parameter 'cmd' implicitly has an 'any' type. (ts)
+[36m
+    if (requiresApproval() && step.commands.some(([35mcmd[36m) => cmd.risk === 'high')) {
+      playbookError = 'Approval required for high-risk steps.';[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\FieldKitPanel.svelte[39m:238:37
+[31mError[39m: Parameter 'item' implicitly has an 'any' type. (ts)
+[36m      ...playbookRun,
+      steps: playbookRun.steps.map(([35mitem[36m, idx) => (idx === stepIndex ? { ...item, status: 'running' } : item))
+    };[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\FieldKitPanel.svelte[39m:238:43
+[31mError[39m: Parameter 'idx' implicitly has an 'any' type. (ts)
+[36m      ...playbookRun,
+      steps: playbookRun.steps.map((item, [35midx[36m) => (idx === stepIndex ? { ...item, status: 'running' } : item))
+    };[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\FieldKitPanel.svelte[39m:263:37
+[31mError[39m: Parameter 'item' implicitly has an 'any' type. (ts)
+[36m      ...playbookRun,
+      steps: playbookRun.steps.map(([35mitem[36m, idx) =>
+        idx === stepIndex ? { ...item, status: 'done', output: outputs } : item[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\FieldKitPanel.svelte[39m:263:43
+[31mError[39m: Parameter 'idx' implicitly has an 'any' type. (ts)
+[36m      ...playbookRun,
+      steps: playbookRun.steps.map((item, [35midx[36m) =>
+        idx === stepIndex ? { ...item, status: 'done', output: outputs } : item[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\FieldKitPanel.svelte[39m:458:40
+[31mError[39m: Parameter 'item' implicitly has an 'any' type. (ts)
+[36m      ...connectivityPlan,
+      hops: connectivityPlan.hops.map(([35mitem[36m, idx) =>
+        idx === hopIndex ? { ...item, status: 'done', output: outputs } : item[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\FieldKitPanel.svelte[39m:458:46
+[31mError[39m: Parameter 'idx' implicitly has an 'any' type. (ts)
+[36m      ...connectivityPlan,
+      hops: connectivityPlan.hops.map((item, [35midx[36m) =>
+        idx === hopIndex ? { ...item, status: 'done', output: outputs } : item[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\FieldKitPanel.svelte[39m:725:21
+[31mError[39m: Parameter 'cmd' implicitly has an 'any' type. (ts)
+[36m                  <pre class="mt-2 text-xs bg-slate-900 text-slate-100 rounded-md p-2 whitespace-pre-wrap">
+{step.commands.map(([35mcmd[36m) => cmd.command).join('\n')}
+                  </pre>[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\FieldKitPanel.svelte[39m:931:20
+[31mError[39m: Parameter 'cmd' implicitly has an 'any' type. (ts)
+[36m                  <pre class="mt-2 text-xs bg-slate-900 text-slate-100 rounded-md p-2 whitespace-pre-wrap">
+{hop.commands.map(([35mcmd[36m) => cmd.command).join('\n')}
+                  </pre>[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\WarningBadge.svelte[39m:16:12
+[31mError[39m: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type 'Record<Tone, string>'. (ts)
+[36m    };
+    return [35mmap[tone][36m ?? 'badge-warning';
+  });[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\MikroTikFullConfigPanel.svelte[39m:446:15
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m            <div class="space-y-1">
+              [35m<label class="label-base">{$_('netops.mikrotik.device')}</label>[36m
+              <select[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\MikroTikFullConfigPanel.svelte[39m:465:15
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m            <div class="space-y-1">
+              [35m<label class="label-base">{$_('netops.mikrotik.role')}</label>[36m
+              <select class="select-base" bind:value={role}>[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\MikroTikFullConfigPanel.svelte[39m:476:15
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m            <div class="space-y-1">
+              [35m<label class="label-base">{$_('netops.mikrotik.environment')}</label>[36m
+              <select class="select-base" bind:value={environment}>[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\MikroTikFullConfigPanel.svelte[39m:488:15
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m            <div class="space-y-1">
+              [35m<label class="label-base">{$_('netops.mikrotik.hostname')}</label>[36m
+              <input class="input-base" bind:value={hostname} placeholder="CORE-EDGE-01" />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\MikroTikFullConfigPanel.svelte[39m:492:15
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m            <div class="space-y-1">
+              [35m<label class="label-base">{$_('netops.mikrotik.routerOsVersion')}</label>[36m
+              <input class="input-base" bind:value={routerOsVersion} placeholder="7.12.1" />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\MikroTikFullConfigPanel.svelte[39m:496:15
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m            <div class="space-y-1">
+              [35m<label class="label-base">{$_('netops.mikrotik.securityPreset')}</label>[36m
+              <select class="select-base" bind:value={securityPreset}>[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\MikroTikFullConfigPanel.svelte[39m:515:15
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m            <div class="space-y-1">
+              [35m<label class="label-base">{$_('netops.mikrotik.mgmtSubnet')}</label>[36m
+              <input class="input-base" bind:value={mgmtSubnet} placeholder="10.10.0.0/24" />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\MikroTikFullConfigPanel.svelte[39m:520:15
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m            <div class="space-y-1">
+              [35m<label class="label-base">{$_('netops.mikrotik.allowedSubnets')}</label>[36m
+              <textarea class="textarea-base" rows={2} bind:value={allowedSubnetsText} placeholder="10.10.0.0/24&#10;10.20.0.0/24"></textarea>[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\MikroTikFullConfigPanel.svelte[39m:592:17
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m              <div class="space-y-1">
+                [35m<label class="label-base">{$_('netops.mikrotik.wanInterface')}</label>[36m
+                <select class="select-base" bind:value={wanInterface}>[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\MikroTikFullConfigPanel.svelte[39m:601:17
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m              <div class="space-y-1">
+                [35m<label class="label-base">{$_('netops.mikrotik.publicType')}</label>[36m
+                <select class="select-base" bind:value={publicType}>[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\MikroTikFullConfigPanel.svelte[39m:609:17
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m              <div class="space-y-1">
+                [35m<label class="label-base">{$_('netops.mikrotik.dnsServers')}</label>[36m
+                <textarea class="textarea-base" rows={2} bind:value={dnsServersText} placeholder="1.1.1.1&#10;8.8.8.8"></textarea>[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\MikroTikFullConfigPanel.svelte[39m:617:19
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                <div class="space-y-1">
+                  [35m<label class="label-base">{$_('netops.mikrotik.wanAddress')}</label>[36m
+                  <input class="input-base" bind:value={wanAddress} placeholder="203.0.113.2/30" />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\MikroTikFullConfigPanel.svelte[39m:621:19
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                <div class="space-y-1">
+                  [35m<label class="label-base">{$_('netops.mikrotik.wanGateway')}</label>[36m
+                  <input class="input-base" bind:value={wanGateway} placeholder="203.0.113.1" />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\MikroTikFullConfigPanel.svelte[39m:628:19
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                <div class="space-y-1">
+                  [35m<label class="label-base">{$_('netops.mikrotik.pppoeUser')}</label>[36m
+                  <input class="input-base" bind:value={pppoeUser} />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\MikroTikFullConfigPanel.svelte[39m:632:19
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                <div class="space-y-1">
+                  [35m<label class="label-base">{$_('netops.mikrotik.pppoePassword')}</label>[36m
+                  <input class="input-base" bind:value={pppoePassword} type="password" />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\MikroTikFullConfigPanel.svelte[39m:672:21
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                  <div class="space-y-1">
+                    [35m<label class="label-base">{$_('netops.mikrotik.ospfRouterId')}</label>[36m
+                    <input class="input-base" bind:value={ospfRouterId} placeholder="10.10.0.1" />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\MikroTikFullConfigPanel.svelte[39m:676:21
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                  <div class="space-y-1">
+                    [35m<label class="label-base">{$_('netops.mikrotik.ospfArea')}</label>[36m
+                    <input class="input-base" bind:value={ospfArea} placeholder="0.0.0.0" />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\MikroTikFullConfigPanel.svelte[39m:682:21
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                  <div class="space-y-1">
+                    [35m<label class="label-base">{$_('netops.mikrotik.ospfNetworks')}</label>[36m
+                    <textarea class="textarea-base" rows={3} bind:value={ospfNetworksText} placeholder="10.10.0.0/24&#10;10.20.0.0/24"></textarea>[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\MikroTikFullConfigPanel.svelte[39m:686:21
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                  <div class="space-y-1">
+                    [35m<label class="label-base">{$_('netops.mikrotik.ospfPassive')}</label>[36m
+                    <textarea class="textarea-base" rows={3} bind:value={ospfPassiveText} placeholder="br-core&#10;vlan10-mgmt"></textarea>[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\MikroTikFullConfigPanel.svelte[39m:814:11
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m        <div class="space-y-1">
+          [35m<label class="label-base">{$_('netops.mikrotik.modals.interfaceName')}</label>[36m
+          <input class="input-base" bind:value={interfaceDraft.name} placeholder="ether1" />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\MikroTikFullConfigPanel.svelte[39m:818:11
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m        <div class="space-y-1">
+          [35m<label class="label-base">{$_('netops.mikrotik.modals.interfacePurpose')}</label>[36m
+          <select class="select-base" bind:value={interfaceDraft.purpose}>[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\MikroTikFullConfigPanel.svelte[39m:827:11
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m        <div class="space-y-1">
+          [35m<label class="label-base">{$_('netops.mikrotik.modals.interfaceAccessVlan')}</label>[36m
+          <input class="input-base"[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\MikroTikFullConfigPanel.svelte[39m:835:11
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m        <div class="space-y-1">
+          [35m<label class="label-base">{$_('netops.mikrotik.modals.interfaceTrunkVlans')}</label>[36m
+          <input class="input-base" bind:value={interfaceDraft.trunkVlanIds} placeholder="10,20,30" />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\MikroTikFullConfigPanel.svelte[39m:839:11
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m        <div class="space-y-1 md:col-span-2">
+          [35m<label class="label-base">{$_('netops.mikrotik.modals.interfaceComment')}</label>[36m
+          <input class="input-base" bind:value={interfaceDraft.comment} placeholder={$_('netops.mikrotik.modals.optional')} />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\MikroTikFullConfigPanel.svelte[39m:856:11
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m        <div class="space-y-1">
+          [35m<label class="label-base">{$_('netops.mikrotik.modals.vlanId')}</label>[36m
+          <input class="input-base" type="number" bind:value={vlanDraft.id} placeholder="10" />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\MikroTikFullConfigPanel.svelte[39m:860:11
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m        <div class="space-y-1">
+          [35m<label class="label-base">{$_('netops.mikrotik.modals.vlanName')}</label>[36m
+          <input class="input-base" bind:value={vlanDraft.name} placeholder="mgmt" />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\MikroTikFullConfigPanel.svelte[39m:864:11
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m        <div class="space-y-1">
+          [35m<label class="label-base">{$_('netops.mikrotik.modals.vlanSubnet')}</label>[36m
+          <input class="input-base" bind:value={vlanDraft.subnet} placeholder="10.10.0.0/24" />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\MikroTikFullConfigPanel.svelte[39m:868:11
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m        <div class="space-y-1">
+          [35m<label class="label-base">{$_('netops.mikrotik.modals.vlanGateway')}</label>[36m
+          <input class="input-base" bind:value={vlanDraft.gateway} placeholder="10.10.0.1" />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\MikroTikFullConfigPanel.svelte[39m:872:11
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m        <div class="space-y-1">
+          [35m<label class="label-base">{$_('netops.mikrotik.modals.vlanGroup')}</label>[36m
+          <select class="select-base" bind:value={vlanDraft.group}>[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\MikroTikFullConfigPanel.svelte[39m:906:11
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m        <div class="space-y-1 md:col-span-2">
+          [35m<label class="label-base">{$_('netops.mikrotik.modals.routeDst')}</label>[36m
+          <input class="input-base" bind:value={routeDraft.dst} placeholder="0.0.0.0/0" />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\MikroTikFullConfigPanel.svelte[39m:910:11
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m        <div class="space-y-1 md:col-span-2">
+          [35m<label class="label-base">{$_('netops.mikrotik.modals.routeGateway')}</label>[36m
+          <input class="input-base" bind:value={routeDraft.gateway} placeholder="192.0.2.1" />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\MikroTikFullConfigPanel.svelte[39m:914:11
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m        <div class="space-y-1">
+          [35m<label class="label-base">{$_('netops.mikrotik.modals.routeDistance')}</label>[36m
+          <input class="input-base" type="number" bind:value={routeDraft.distance} placeholder={$_('netops.mikrotik.modals.optional')} />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\MikroTikFullConfigPanel.svelte[39m:918:11
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m        <div class="space-y-1">
+          [35m<label class="label-base">{$_('netops.mikrotik.modals.routeComment')}</label>[36m
+          <input class="input-base" bind:value={routeDraft.comment} placeholder={$_('netops.mikrotik.modals.optional')} />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\MikroTikFullConfigPanel.svelte[39m:7:30
+[31mError[39m: Cannot find module '$lib/netops/api/netopsApi' or its corresponding type declarations. (ts)
+[36m  import { _, isLoading } from '$lib/i18n';
+  import { devicesApi } from [35m'$lib/netops/api/netopsApi'[36m;
+  import type { Device } from '$lib/netops/types';[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\MikroTikFullConfigPanel.svelte[39m:8:31
+[31mError[39m: Cannot find module '$lib/netops/types' or its corresponding type declarations. (ts)
+[36m  import { devicesApi } from '$lib/netops/api/netopsApi';
+  import type { Device } from [35m'$lib/netops/types'[36m;
+  import PageHeader from '$lib/components/tools/PageHeader.svelte';[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\MikroTikFullConfigPanel.svelte[39m:27:10
+[31mError[39m: Cannot find module '$lib/tools/mikrotik/service' or its corresponding type declarations. (ts)
+[36m    type MikroTikSecurityPreset
+  } from [35m'$lib/tools/mikrotik/service'[36m;[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:1445:17
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m              <div class="space-y-1">
+                [35m<label class="label-base">{$_('netops.generator.profile.label')}</label>[36m
+                <select[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:1480:17
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m              <div class="space-y-1">
+                [35m<label class="label-base">{$_('netops.generator.device')}</label>[36m
+                <select class="select-base" bind:value={selectedDeviceId} disabled={deviceLoading}>[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:1493:17
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m              <div class="space-y-1">
+                [35m<label class="label-base">{$_('netops.generator.vendor')}</label>[36m
+                <select class="select-base" bind:value={vendor}>[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:1501:17
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m              <div class="space-y-1">
+                [35m<label class="label-base" title={$_('netops.generator.environmentHelp')}>{$_('netops.generator.environment')}</label>[36m
+                <select class="select-base" bind:value={sshPolicy.environment}>[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:1552:21
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                  <div class="space-y-1">
+                    [35m<label class="label-base">{$_('netops.generator.base.hostname')}</label>[36m
+                    <input class="input-base" bind:value={config.hostname} placeholder="CORE-EDGE-01" />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:1557:21
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                  <div class="space-y-1">
+                    [35m<label class="label-base">{$_('netops.generator.base.mgmtCidr')}</label>[36m
+                    <input class="input-base" bind:value={config.firewall.allowMgmtFrom} placeholder="10.0.0.0/24" />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:1580:23
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                    <div class="space-y-1">
+                      [35m<label class="label-base">{$_('netops.generator.monitoring.snmpVersion')}</label>[36m
+                      <select class="select-base" bind:value={config.services.snmpVersion}>[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:1587:23
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                    <div class="space-y-1">
+                      [35m<label class="label-base">{$_('netops.generator.monitoring.snmpCommunity')}</label>[36m
+                      <input class="input-base" bind:value={config.services.snmpCommunity} placeholder="public" />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:1633:21
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                  <div>
+                    [35m<label class="label-base">{$_('netops.generator.monitoring.syslog')}</label>[36m
+                    <div class="flex gap-2">[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:1640:25
+[33mWarn[39m: Visible, non-interactive elements with a click event must be accompanied by a keyboard event handler. Consider whether an interactive element such as `<button type="button">` or `<a>` might be more appropriate
+https://svelte.dev/e/a11y_click_events_have_key_events (svelte)
+[36m                      {#each config.services.syslogServers as server, index}
+                        [35m<span class="badge-primary cursor-pointer" onclick={() => removeSyslog(index)}>{server}</span>[36m
+                      {/each}[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:1640:25
+[33mWarn[39m: `<span>` with a click handler must have an ARIA role
+https://svelte.dev/e/a11y_no_static_element_interactions (svelte)
+[36m                      {#each config.services.syslogServers as server, index}
+                        [35m<span class="badge-primary cursor-pointer" onclick={() => removeSyslog(index)}>{server}</span>[36m
+                      {/each}[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:1652:25
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                      <div class="space-y-1">
+                        [35m<label class="label-base">{$_('netops.generator.monitoring.collector')}</label>[36m
+                        <input class="input-base" bind:value={config.services.netflow.collector} placeholder="10.0.0.50" />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:1656:25
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                      <div class="space-y-1">
+                        [35m<label class="label-base">{$_('netops.generator.monitoring.port')}</label>[36m
+                        <input class="input-base" type="number" bind:value={config.services.netflow.port} />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:1666:25
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                      <div class="space-y-1">
+                        [35m<label class="label-base">{$_('netops.generator.monitoring.collector')}</label>[36m
+                        <input class="input-base" bind:value={config.services.sflow.collector} placeholder="10.0.0.60" />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:1670:25
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                      <div class="space-y-1">
+                        [35m<label class="label-base">{$_('netops.generator.monitoring.port')}</label>[36m
+                        <input class="input-base" type="number" bind:value={config.services.sflow.port} />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:1966:27
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                        <div class="space-y-1">
+                          [35m<label class="label-base">{$_('netops.generator.routing.ospfRouterId')}</label>[36m
+                          <input class="input-base" bind:value={config.routing.ospf.routerId} placeholder="1.1.1.1" />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:2011:27
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                        <div class="space-y-1">
+                          [35m<label class="label-base">{$_('netops.generator.routing.bgpLocalAs')}</label>[36m
+                          <input[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:2101:27
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                        <div class="space-y-1">
+                          [35m<label class="label-base">{$_('netops.generator.routing.ripVersion')}</label>[36m
+                          <select class="select-base" bind:value={config.routing.rip.version}>[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:2108:27
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                        <div class="space-y-1">
+                          [35m<label class="label-base">{$_('netops.generator.routing.ripNetwork')}</label>[36m
+                          <div class="flex gap-2">[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:2117:27
+[33mWarn[39m: Visible, non-interactive elements with a click event must be accompanied by a keyboard event handler. Consider whether an interactive element such as `<button type="button">` or `<a>` might be more appropriate
+https://svelte.dev/e/a11y_click_events_have_key_events (svelte)
+[36m                        {#each config.routing.rip.networks as network, index}
+                          [35m<span class="badge-primary cursor-pointer" onclick={() => removeRipNetwork(index)}>{network}</span>[36m
+                        {/each}[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:2117:27
+[33mWarn[39m: `<span>` with a click handler must have an ARIA role
+https://svelte.dev/e/a11y_no_static_element_interactions (svelte)
+[36m                        {#each config.routing.rip.networks as network, index}
+                          [35m<span class="badge-primary cursor-pointer" onclick={() => removeRipNetwork(index)}>{network}</span>[36m
+                        {/each}[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:2287:25
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                      <div class="space-y-1">
+                        [35m<label class="label-base">{$_('netops.generator.services.sshVersion')}</label>[36m
+                        <select[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:2311:23
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                    <div>
+                      [35m<label class="label-base">{$_('netops.generator.services.ntpServers')}</label>[36m
+                      <div class="flex gap-2">[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:2318:27
+[33mWarn[39m: Visible, non-interactive elements with a click event must be accompanied by a keyboard event handler. Consider whether an interactive element such as `<button type="button">` or `<a>` might be more appropriate
+https://svelte.dev/e/a11y_click_events_have_key_events (svelte)
+[36m                        {#each config.services.ntpServers as server, index}
+                          [35m<span class="badge-primary cursor-pointer" onclick={() => removeService('ntpServers', index)}>{server}</span>[36m
+                        {/each}[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:2318:27
+[33mWarn[39m: `<span>` with a click handler must have an ARIA role
+https://svelte.dev/e/a11y_no_static_element_interactions (svelte)
+[36m                        {#each config.services.ntpServers as server, index}
+                          [35m<span class="badge-primary cursor-pointer" onclick={() => removeService('ntpServers', index)}>{server}</span>[36m
+                        {/each}[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:2323:23
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                    <div>
+                      [35m<label class="label-base">{$_('netops.generator.services.dnsServers')}</label>[36m
+                      <div class="flex gap-2">[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:2330:27
+[33mWarn[39m: Visible, non-interactive elements with a click event must be accompanied by a keyboard event handler. Consider whether an interactive element such as `<button type="button">` or `<a>` might be more appropriate
+https://svelte.dev/e/a11y_click_events_have_key_events (svelte)
+[36m                        {#each config.services.dnsServers as server, index}
+                          [35m<span class="badge-primary cursor-pointer" onclick={() => removeService('dnsServers', index)}>{server}</span>[36m
+                        {/each}[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:2330:27
+[33mWarn[39m: `<span>` with a click handler must have an ARIA role
+https://svelte.dev/e/a11y_no_static_element_interactions (svelte)
+[36m                        {#each config.services.dnsServers as server, index}
+                          [35m<span class="badge-primary cursor-pointer" onclick={() => removeService('dnsServers', index)}>{server}</span>[36m
+                        {/each}[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:2612:25
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                      <div class="space-y-2">
+                        [35m<label class="label-base">{$_('netops.generator.explain.title')}</label>[36m
+                        <select class="select-base" bind:value={selectedExplainCommand}>[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:2750:17
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m              <div>
+                [35m<label class="label-base">{$_('netops.generator.profile.name')}</label>[36m
+                <input class="input-base" bind:value={profileName} placeholder="Baseline - Branch Router" />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:2768:17
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m              <div>
+                [35m<label class="label-base">{$_('netops.generator.guardrails.reason')}</label>[36m
+                <textarea class="textarea-base" rows={3} bind:value={guardrailReason} placeholder={$_('netops.generator.guardrails.reasonPlaceholder')}></textarea>[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:2782:19
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                <div>
+                  [35m<label class="label-base">{$_('netops.generator.network.vlanId')}</label>[36m
+                  <input class="input-base" type="number" bind:value={vlanDraft.id} />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:2786:19
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                <div>
+                  [35m<label class="label-base">{$_('netops.generator.network.vlanName')}</label>[36m
+                  <input class="input-base" bind:value={vlanDraft.name} />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:2790:19
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                <div>
+                  [35m<label class="label-base">{$_('netops.generator.network.vlanSubnet')}</label>[36m
+                  <input class="input-base" bind:value={vlanDraft.subnet} />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:2794:19
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                <div>
+                  [35m<label class="label-base">{$_('netops.generator.network.vlanGateway')}</label>[36m
+                  <input class="input-base" bind:value={vlanDraft.gateway} />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:2809:19
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                <div>
+                  [35m<label class="label-base">{$_('netops.generator.network.interfaceName')}</label>[36m
+                  <input class="input-base" bind:value={interfaceDraft.name} />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:2813:19
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                <div>
+                  [35m<label class="label-base">{$_('netops.generator.network.interfaceRole')}</label>[36m
+                  <select class="select-base" bind:value={interfaceDraft.role}>[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:2820:19
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                <div>
+                  [35m<label class="label-base">{$_('netops.generator.network.interfaceIp')}</label>[36m
+                  <input class="input-base" bind:value={interfaceDraft.ipAddress} />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:2824:19
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                <div>
+                  [35m<label class="label-base">{$_('netops.generator.network.interfaceMask')}</label>[36m
+                  <input class="input-base" bind:value={interfaceDraft.subnetMask} />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:2828:19
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                <div>
+                  [35m<label class="label-base">{$_('netops.generator.network.interfaceVlan')}</label>[36m
+                  <input class="input-base" type="number" bind:value={interfaceDraft.vlanId} />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:2832:19
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                <div>
+                  [35m<label class="label-base">{$_('netops.generator.network.interfaceDescription')}</label>[36m
+                  <input class="input-base" bind:value={interfaceDraft.description} />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:2851:19
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                <div>
+                  [35m<label class="label-base">{$_('netops.generator.network.routeDestination')}</label>[36m
+                  <input class="input-base" bind:value={routeDraft.destination} />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:2855:19
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                <div>
+                  [35m<label class="label-base">{$_('netops.generator.network.routeNetmask')}</label>[36m
+                  <input class="input-base" bind:value={routeDraft.netmask} />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:2859:19
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                <div>
+                  [35m<label class="label-base">{$_('netops.generator.network.routeNextHop')}</label>[36m
+                  <input class="input-base" bind:value={routeDraft.nextHop} />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:2874:19
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                <div>
+                  [35m<label class="label-base">{$_('netops.generator.routing.ospfArea')}</label>[36m
+                  <input class="input-base" bind:value={ospfAreaDraft.area} placeholder="0.0.0.0" />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:2878:19
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                <div>
+                  [35m<label class="label-base">{$_('netops.generator.routing.ospfNetworks')}</label>[36m
+                  <textarea class="textarea-base" rows={2} bind:value={ospfAreaDraft.networks} placeholder="10.0.0.0/24, 10.0.1.0/24"></textarea>[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:2893:19
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                <div>
+                  [35m<label class="label-base">{$_('netops.generator.routing.bgpNeighbor')}</label>[36m
+                  <input class="input-base" bind:value={bgpNeighborDraft.neighbor} placeholder="203.0.113.1" />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:2897:19
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                <div>
+                  [35m<label class="label-base">{$_('netops.generator.routing.bgpRemoteAs')}</label>[36m
+                  <input class="input-base" type="number" bind:value={bgpNeighborDraft.remoteAs} />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:2911:17
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m              <div>
+                [35m<label class="label-base">{$_('netops.generator.routing.bgpNetwork')}</label>[36m
+                <input class="input-base" bind:value={bgpNetworkDraft.network} placeholder="10.0.0.0/24" />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:2925:19
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                <div>
+                  [35m<label class="label-base">{$_('netops.generator.security.chain')}</label>[36m
+                  <select class="select-base" bind:value={firewallRuleDraft.chain}>[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:2933:19
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                <div>
+                  [35m<label class="label-base">{$_('netops.generator.security.protocol')}</label>[36m
+                  <select class="select-base" bind:value={firewallRuleDraft.protocol}>[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:2942:19
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                <div>
+                  [35m<label class="label-base">{$_('netops.generator.security.source')}</label>[36m
+                  <input class="input-base" bind:value={firewallRuleDraft.src} />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:2946:19
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                <div>
+                  [35m<label class="label-base">{$_('netops.generator.security.destination')}</label>[36m
+                  <input class="input-base" bind:value={firewallRuleDraft.dst} />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:2950:19
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                <div>
+                  [35m<label class="label-base">{$_('netops.generator.security.port')}</label>[36m
+                  <input class="input-base" bind:value={firewallRuleDraft.dstPort} />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:2954:19
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                <div>
+                  [35m<label class="label-base">{$_('netops.generator.security.action')}</label>[36m
+                  <select class="select-base" bind:value={firewallRuleDraft.action}>[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:2963:19
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                <div class="md:col-span-2">
+                  [35m<label class="label-base">{$_('netops.generator.security.comment')}</label>[36m
+                  <input class="input-base" bind:value={firewallRuleDraft.comment} />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:2978:19
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                <div>
+                  [35m<label class="label-base">{$_('netops.generator.security.natType')}</label>[36m
+                  <select class="select-base" bind:value={natRuleDraft.type}>[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:2986:19
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                <div>
+                  [35m<label class="label-base">{$_('netops.generator.security.protocol')}</label>[36m
+                  <select class="select-base" bind:value={natRuleDraft.protocol}>[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:2995:19
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                <div>
+                  [35m<label class="label-base">{$_('netops.generator.security.interface')}</label>[36m
+                  <input class="input-base" bind:value={natRuleDraft.outInterface} />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:2999:19
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                <div>
+                  [35m<label class="label-base">{$_('netops.generator.security.source')}</label>[36m
+                  <input class="input-base" bind:value={natRuleDraft.src} />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:3003:19
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                <div>
+                  [35m<label class="label-base">{$_('netops.generator.security.destination')}</label>[36m
+                  <input class="input-base" bind:value={natRuleDraft.dst} />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:3007:19
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                <div>
+                  [35m<label class="label-base">{$_('netops.generator.security.translate')}</label>[36m
+                  <input class="input-base" bind:value={natRuleDraft.toAddress} />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:3011:19
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                <div>
+                  [35m<label class="label-base">{$_('netops.generator.security.port')}</label>[36m
+                  <input class="input-base" bind:value={natRuleDraft.dstPort} />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:3015:19
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                <div class="md:col-span-2">
+                  [35m<label class="label-base">{$_('netops.generator.security.comment')}</label>[36m
+                  <input class="input-base" bind:value={natRuleDraft.comment} />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:3030:19
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                <div>
+                  [35m<label class="label-base">{$_('netops.generator.vpn.tunnelName')}</label>[36m
+                  <input class="input-base" bind:value={ipsecDraft.name} />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:3034:19
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                <div>
+                  [35m<label class="label-base">{$_('netops.generator.vpn.ikeVersion')}</label>[36m
+                  <select class="select-base" bind:value={ipsecDraft.ikeVersion}>[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:3041:19
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                <div>
+                  [35m<label class="label-base">{$_('netops.generator.vpn.local')}</label>[36m
+                  <input class="input-base" bind:value={ipsecDraft.localAddress} />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:3045:19
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                <div>
+                  [35m<label class="label-base">{$_('netops.generator.vpn.remote')}</label>[36m
+                  <input class="input-base" bind:value={ipsecDraft.remoteAddress} />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:3049:19
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                <div>
+                  [35m<label class="label-base">{$_('netops.generator.vpn.localSubnet')}</label>[36m
+                  <input class="input-base" bind:value={ipsecDraft.localSubnet} />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:3053:19
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                <div>
+                  [35m<label class="label-base">{$_('netops.generator.vpn.remoteSubnet')}</label>[36m
+                  <input class="input-base" bind:value={ipsecDraft.remoteSubnet} />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:3057:19
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                <div class="md:col-span-2">
+                  [35m<label class="label-base">{$_('netops.generator.vpn.psk')}</label>[36m
+                  <input class="input-base" bind:value={ipsecDraft.preSharedKey} />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:3072:19
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                <div>
+                  [35m<label class="label-base">{$_('netops.generator.vpn.tunnelName')}</label>[36m
+                  <input class="input-base" bind:value={wireguardDraft.name} />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:3076:19
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                <div>
+                  [35m<label class="label-base">{$_('netops.generator.vpn.interfaceAddress')}</label>[36m
+                  <input class="input-base" bind:value={wireguardDraft.interfaceAddress} placeholder="10.10.0.1/24" />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:3080:19
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                <div>
+                  [35m<label class="label-base">{$_('netops.generator.vpn.listenPort')}</label>[36m
+                  <input class="input-base" type="number" bind:value={wireguardDraft.listenPort} />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:3084:19
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                <div>
+                  [35m<label class="label-base">{$_('netops.generator.vpn.privateKey')}</label>[36m
+                  <input class="input-base" bind:value={wireguardDraft.privateKey} />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:3088:19
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                <div>
+                  [35m<label class="label-base">{$_('netops.generator.vpn.peerPublicKey')}</label>[36m
+                  <input class="input-base" bind:value={wireguardDraft.peerPublicKey} />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:3092:19
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                <div>
+                  [35m<label class="label-base">{$_('netops.generator.vpn.peerAllowedIps')}</label>[36m
+                  <input class="input-base" bind:value={wireguardDraft.peerAllowedIps} placeholder="10.10.1.0/24" />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:3096:19
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                <div class="md:col-span-2">
+                  [35m<label class="label-base">{$_('netops.generator.vpn.peerEndpoint')}</label>[36m
+                  <input class="input-base" bind:value={wireguardDraft.peerEndpoint} placeholder="198.51.100.10:51820" />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:3111:19
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                <div>
+                  [35m<label class="label-base">{$_('netops.generator.vpn.tunnelName')}</label>[36m
+                  <input class="input-base" bind:value={l2tpDraft.name} />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:3115:19
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                <div>
+                  [35m<label class="label-base">{$_('netops.generator.vpn.local')}</label>[36m
+                  <input class="input-base" bind:value={l2tpDraft.localAddress} />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:3119:19
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                <div>
+                  [35m<label class="label-base">{$_('netops.generator.vpn.pool')}</label>[36m
+                  <input class="input-base" bind:value={l2tpDraft.pool} />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:3123:19
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                <div>
+                  [35m<label class="label-base">{$_('netops.generator.vpn.psk')}</label>[36m
+                  <input class="input-base" bind:value={l2tpDraft.preSharedKey} />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:3138:19
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                <div>
+                  [35m<label class="label-base">{$_('netops.generator.qos.name')}</label>[36m
+                  <input class="input-base" bind:value={qosDraft.name} />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:3142:19
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                <div>
+                  [35m<label class="label-base">{$_('netops.generator.qos.target')}</label>[36m
+                  <input class="input-base" bind:value={qosDraft.target} placeholder="10.0.0.0/24" />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:3146:19
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                <div>
+                  [35m<label class="label-base">{$_('netops.generator.qos.limit')}</label>[36m
+                  <input class="input-base" bind:value={qosDraft.maxLimit} placeholder="10M/10M" />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:3150:19
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                <div>
+                  [35m<label class="label-base">{$_('netops.generator.qos.priority')}</label>[36m
+                  <input class="input-base" type="number" bind:value={qosDraft.priority} />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:3154:19
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                <div class="md:col-span-2">
+                  [35m<label class="label-base">{$_('netops.generator.qos.comment')}</label>[36m
+                  <input class="input-base" bind:value={qosDraft.comment} />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:3169:19
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                <div>
+                  [35m<label class="label-base">{$_('netops.generator.monitoring.snmpUser')}</label>[36m
+                  <input class="input-base" bind:value={snmpUserDraft.username} />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:3173:19
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                <div>
+                  [35m<label class="label-base">{$_('netops.generator.monitoring.snmpAuth')}</label>[36m
+                  <select class="select-base" bind:value={snmpUserDraft.authProtocol}>[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:3180:19
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                <div>
+                  [35m<label class="label-base">{$_('netops.generator.monitoring.snmpAuthPass')}</label>[36m
+                  <input class="input-base" bind:value={snmpUserDraft.authPassword} />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:3184:19
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                <div>
+                  [35m<label class="label-base">{$_('netops.generator.monitoring.snmpPriv')}</label>[36m
+                  <select class="select-base" bind:value={snmpUserDraft.privProtocol}>[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:3191:19
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                <div class="md:col-span-2">
+                  [35m<label class="label-base">{$_('netops.generator.monitoring.snmpPrivPass')}</label>[36m
+                  <input class="input-base" bind:value={snmpUserDraft.privPassword} />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:3220:17
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m              <div class="card space-y-2">
+                [35m<label class="label-base">{$_('netops.ssh.searchDevices')}</label>[36m
+                <input class="input-base" bind:value={sshSearch} placeholder={$_('common.search')} />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:3236:17
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m              <div class="card space-y-2">
+                [35m<label class="label-base">{$_('netops.ssh.sessions')}</label>[36m
+                <div class="space-y-2 max-h-64 overflow-y-auto">[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:3263:17
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m              <div class="card space-y-2">
+                [35m<label class="label-base">{$_('netops.ssh.commandPolicy')}</label>[36m
+                <textarea[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:3373:15
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m            <div class="space-y-2">
+              [35m<label class="label-base">{$isLoading ? 'Mermaid definition' : $_('tools.mermaidDefinition')}</label>[36m
+              <textarea class="textarea-base font-mono text-xs" rows={10} bind:value={mermaidInput}></textarea>[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:16:30
+[31mError[39m: Cannot find module '$lib/netops/api/netopsApi' or its corresponding type declarations. (ts)
+[36m  import { _, isLoading } from '$lib/i18n';
+  import { devicesApi } from [35m'$lib/netops/api/netopsApi'[36m;
+  import type { Device } from '$lib/netops/types';[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:17:31
+[31mError[39m: Cannot find module '$lib/netops/types' or its corresponding type declarations. (ts)
+[36m  import { devicesApi } from '$lib/netops/api/netopsApi';
+  import type { Device } from [35m'$lib/netops/types'[36m;
+  import FieldKitPanel from '$lib/components/tools/FieldKitPanel.svelte';[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:26:42
+[31mError[39m: Cannot find module '$lib/tools/config/schema' or its corresponding type declarations. (ts)
+[36m  import EmptyState from '$lib/components/tools/EmptyState.svelte';
+  import { defaultCanonicalConfig } from [35m'$lib/tools/config/schema'[36m;
+  import { diffCommandsDetailed, type DiffLine } from '$lib/tools/config/diff';[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:27:55
+[31mError[39m: Cannot find module '$lib/tools/config/diff' or its corresponding type declarations. (ts)
+[36m  import { defaultCanonicalConfig } from '$lib/tools/config/schema';
+  import { diffCommandsDetailed, type DiffLine } from [35m'$lib/tools/config/diff'[36m;
+  import { evaluateRisk } from '$lib/tools/config/risk';[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:28:32
+[31mError[39m: Cannot find module '$lib/tools/config/risk' or its corresponding type declarations. (ts)
+[36m  import { diffCommandsDetailed, type DiffLine } from '$lib/tools/config/diff';
+  import { evaluateRisk } from [35m'$lib/tools/config/risk'[36m;
+  import { buildPlaybook, type PlaybookType } from '$lib/tools/config/playbook';[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:29:52
+[31mError[39m: Cannot find module '$lib/tools/config/playbook' or its corresponding type declarations. (ts)
+[36m  import { evaluateRisk } from '$lib/tools/config/risk';
+  import { buildPlaybook, type PlaybookType } from [35m'$lib/tools/config/playbook'[36m;
+  import { evaluateGuardrails } from '$lib/tools/config/guardrails';[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:30:38
+[31mError[39m: Cannot find module '$lib/tools/config/guardrails' or its corresponding type declarations. (ts)
+[36m  import { buildPlaybook, type PlaybookType } from '$lib/tools/config/playbook';
+  import { evaluateGuardrails } from [35m'$lib/tools/config/guardrails'[36m;
+  import { validateConfig, type ValidationFinding } from '$lib/tools/config/validation';[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:31:58
+[31mError[39m: Cannot find module '$lib/tools/config/validation' or its corresponding type declarations. (ts)
+[36m  import { evaluateGuardrails } from '$lib/tools/config/guardrails';
+  import { validateConfig, type ValidationFinding } from [35m'$lib/tools/config/validation'[36m;
+  import { createApprovalRequest, decideApproval, loadApprovals, hashConfig, type ApprovalRecord } from '$lib/tools/config/approval';[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:32:105
+[31mError[39m: Cannot find module '$lib/tools/config/approval' or its corresponding type declarations. (ts)
+[36m  import { validateConfig, type ValidationFinding } from '$lib/tools/config/validation';
+  import { createApprovalRequest, decideApproval, loadApprovals, hashConfig, type ApprovalRecord } from [35m'$lib/tools/config/approval'[36m;
+  import { syncConfigToCmdb } from '$lib/tools/config/cmdb';[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:33:36
+[31mError[39m: Cannot find module '$lib/tools/config/cmdb' or its corresponding type declarations. (ts)
+[36m  import { createApprovalRequest, decideApproval, loadApprovals, hashConfig, type ApprovalRecord } from '$lib/tools/config/approval';
+  import { syncConfigToCmdb } from [35m'$lib/tools/config/cmdb'[36m;
+  import { buildProfileFromConfig, applyProfileToConfig, loadProfiles, saveProfiles, getActiveProfileId, setActiveProfileId, type CliProfile } from '$lib/tools/config/profiles';[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:34:149
+[31mError[39m: Cannot find module '$lib/tools/config/profiles' or its corresponding type declarations. (ts)
+[36m  import { syncConfigToCmdb } from '$lib/tools/config/cmdb';
+  import { buildProfileFromConfig, applyProfileToConfig, loadProfiles, saveProfiles, getActiveProfileId, setActiveProfileId, type CliProfile } from [35m'$lib/tools/config/profiles'[36m;
+  import { generateConfigPipeline, lintConfig, pushConfig } from '$lib/tools/config/service';[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:35:66
+[31mError[39m: Cannot find module '$lib/tools/config/service' or its corresponding type declarations. (ts)
+[36m  import { buildProfileFromConfig, applyProfileToConfig, loadProfiles, saveProfiles, getActiveProfileId, setActiveProfileId, type CliProfile } from '$lib/tools/config/profiles';
+  import { generateConfigPipeline, lintConfig, pushConfig } from [35m'$lib/tools/config/service'[36m;
+  import type {[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:47:10
+[31mError[39m: Cannot find module '$lib/tools/config/types' or its corresponding type declarations. (ts)
+[36m    Vendor
+  } from [35m'$lib/tools/config/types'[36m;
+  import type { SshCommandPolicy, SshLogEvent, SshSession } from '$lib/tools/ssh/types';[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:48:66
+[31mError[39m: Cannot find module '$lib/tools/ssh/types' or its corresponding type declarations. (ts)
+[36m  } from '$lib/tools/config/types';
+  import type { SshCommandPolicy, SshLogEvent, SshSession } from [35m'$lib/tools/ssh/types'[36m;
+  import {[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:57:10
+[31mError[39m: Cannot find module '$lib/tools/ssh/service' or its corresponding type declarations. (ts)
+[36m    purgeIdleSessions
+  } from [35m'$lib/tools/ssh/service'[36m;[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:351:32
+[31mError[39m: Parameter 'block' implicitly has an 'any' type. (ts)
+[36m    if (!playbookMode) return generateResult.commands.join('\\n');
+    return playbookBlocks.map(([35mblock[36m) => block.commands.join('\\n')).join('\\n\\n');
+  });[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:428:35
+[31mError[39m: Parameter '_' implicitly has an 'any' type. (ts)
+[36m      ...config,
+      vlans: config.vlans.filter(([35m_[36m, i) => i !== index)
+    };[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:428:38
+[31mError[39m: Parameter 'i' implicitly has an 'any' type. (ts)
+[36m      ...config,
+      vlans: config.vlans.filter((_, [35mi[36m) => i !== index)
+    };[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:454:45
+[31mError[39m: Parameter '_' implicitly has an 'any' type. (ts)
+[36m      ...config,
+      interfaces: config.interfaces.filter(([35m_[36m, i) => i !== index)
+    };[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:454:48
+[31mError[39m: Parameter 'i' implicitly has an 'any' type. (ts)
+[36m      ...config,
+      interfaces: config.interfaces.filter((_, [35mi[36m) => i !== index)
+    };[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:479:59
+[31mError[39m: Parameter '_' implicitly has an 'any' type. (ts)
+[36m        ...config.routing,
+        staticRoutes: config.routing.staticRoutes.filter(([35m_[36m, i) => i !== index)
+      }[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:479:62
+[31mError[39m: Parameter 'i' implicitly has an 'any' type. (ts)
+[36m        ...config.routing,
+        staticRoutes: config.routing.staticRoutes.filter((_, [35mi[36m) => i !== index)
+      }[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:525:52
+[31mError[39m: Parameter '_' implicitly has an 'any' type. (ts)
+[36m          ...config.routing.ospf,
+          areas: config.routing.ospf.areas.filter(([35m_[36m, i) => i !== index)
+        }[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:525:55
+[31mError[39m: Parameter 'i' implicitly has an 'any' type. (ts)
+[36m          ...config.routing.ospf,
+          areas: config.routing.ospf.areas.filter((_, [35mi[36m) => i !== index)
+        }[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:557:59
+[31mError[39m: Parameter '_' implicitly has an 'any' type. (ts)
+[36m          ...config.routing.bgp,
+          neighbors: config.routing.bgp.neighbors.filter(([35m_[36m, i) => i !== index)
+        }[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:557:62
+[31mError[39m: Parameter 'i' implicitly has an 'any' type. (ts)
+[36m          ...config.routing.bgp,
+          neighbors: config.routing.bgp.neighbors.filter((_, [35mi[36m) => i !== index)
+        }[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:589:57
+[31mError[39m: Parameter '_' implicitly has an 'any' type. (ts)
+[36m          ...config.routing.bgp,
+          networks: config.routing.bgp.networks.filter(([35m_[36m, i) => i !== index)
+        }[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:589:60
+[31mError[39m: Parameter 'i' implicitly has an 'any' type. (ts)
+[36m          ...config.routing.bgp,
+          networks: config.routing.bgp.networks.filter((_, [35mi[36m) => i !== index)
+        }[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:618:57
+[31mError[39m: Parameter '_' implicitly has an 'any' type. (ts)
+[36m          ...config.routing.rip,
+          networks: config.routing.rip.networks.filter(([35m_[36m, i) => i !== index)
+        }[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:618:60
+[31mError[39m: Parameter 'i' implicitly has an 'any' type. (ts)
+[36m          ...config.routing.rip,
+          networks: config.routing.rip.networks.filter((_, [35mi[36m) => i !== index)
+        }[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:655:46
+[31mError[39m: Parameter '_' implicitly has an 'any' type. (ts)
+[36m        ...config.firewall,
+        rules: config.firewall.rules.filter(([35m_[36m, i) => i !== index)
+      }[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:655:49
+[31mError[39m: Parameter 'i' implicitly has an 'any' type. (ts)
+[36m        ...config.firewall,
+        rules: config.firewall.rules.filter((_, [35mi[36m) => i !== index)
+      }[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:691:41
+[31mError[39m: Parameter '_' implicitly has an 'any' type. (ts)
+[36m      nat: {
+        rules: config.nat.rules.filter(([35m_[36m, i) => i !== index)
+      }[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:691:44
+[31mError[39m: Parameter 'i' implicitly has an 'any' type. (ts)
+[36m      nat: {
+        rules: config.nat.rules.filter((_, [35mi[36m) => i !== index)
+      }[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:726:55
+[31mError[39m: Parameter '_' implicitly has an 'any' type. (ts)
+[36m        ...config.vpn,
+        ipsecTunnels: config.vpn.ipsecTunnels.filter(([35m_[36m, i) => i !== index)
+      }[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:726:58
+[31mError[39m: Parameter 'i' implicitly has an 'any' type. (ts)
+[36m        ...config.vpn,
+        ipsecTunnels: config.vpn.ipsecTunnels.filter((_, [35mi[36m) => i !== index)
+      }[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:779:63
+[31mError[39m: Parameter '_' implicitly has an 'any' type. (ts)
+[36m        ...config.vpn,
+        wireguardTunnels: config.vpn.wireguardTunnels.filter(([35m_[36m, i) => i !== index)
+      }[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:779:66
+[31mError[39m: Parameter 'i' implicitly has an 'any' type. (ts)
+[36m        ...config.vpn,
+        wireguardTunnels: config.vpn.wireguardTunnels.filter((_, [35mi[36m) => i !== index)
+      }[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:811:53
+[31mError[39m: Parameter '_' implicitly has an 'any' type. (ts)
+[36m        ...config.vpn,
+        l2tpServers: config.vpn.l2tpServers.filter(([35m_[36m, i) => i !== index)
+      }[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:811:56
+[31mError[39m: Parameter 'i' implicitly has an 'any' type. (ts)
+[36m        ...config.vpn,
+        l2tpServers: config.vpn.l2tpServers.filter((_, [35mi[36m) => i !== index)
+      }[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:842:43
+[31mError[39m: Parameter '_' implicitly has an 'any' type. (ts)
+[36m      qos: {
+        queues: config.qos.queues.filter(([35m_[36m, i) => i !== index)
+      }[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:842:46
+[31mError[39m: Parameter 'i' implicitly has an 'any' type. (ts)
+[36m      qos: {
+        queues: config.qos.queues.filter((_, [35mi[36m) => i !== index)
+      }[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:865:62
+[31mError[39m: Parameter '_' implicitly has an 'any' type. (ts)
+[36m        ...config.services,
+        syslogServers: config.services.syslogServers.filter(([35m_[36m, i) => i !== index)
+      }[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:865:65
+[31mError[39m: Parameter 'i' implicitly has an 'any' type. (ts)
+[36m        ...config.services,
+        syslogServers: config.services.syslogServers.filter((_, [35mi[36m) => i !== index)
+      }[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:898:66
+[31mError[39m: Parameter '_' implicitly has an 'any' type. (ts)
+[36m        ...config.services,
+        snmpV3Users: (config.services.snmpV3Users ?? []).filter(([35m_[36m, i) => i !== index)
+      }[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:898:69
+[31mError[39m: Parameter 'i' implicitly has an 'any' type. (ts)
+[36m        ...config.services,
+        snmpV3Users: (config.services.snmpV3Users ?? []).filter((_, [35mi[36m) => i !== index)
+      }[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:930:53
+[31mError[39m: Parameter '_' implicitly has an 'any' type. (ts)
+[36m        ...config.services,
+        [listKey]: config.services[listKey].filter(([35m_[36m, i) => i !== index)
+      }[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:930:56
+[31mError[39m: Parameter 'i' implicitly has an 'any' type. (ts)
+[36m        ...config.services,
+        [listKey]: config.services[listKey].filter((_, [35mi[36m) => i !== index)
+      }[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:948:41
+[31mError[39m: Parameter 'vlan' implicitly has an 'any' type. (ts)
+[36m      const gateway = gatewayMatch?.[1] ?? '';
+      const exists = config.vlans.some(([35mvlan[36m) => vlan.id === id);
+      if (!exists) {[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:1205:52
+[31mError[39m: Parameter 'cmd' implicitly has an 'any' type. (ts)
+[36m    if (sshPolicy.environment === 'prod') {
+      const danger = generateResult.commands.find(([35mcmd[36m) =>
+        sshPolicy.dangerousList.some((rule) => cmd.toLowerCase().includes(rule.toLowerCase()))[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\lib\components\tools\ToolsHub.svelte[39m:1206:39
+[31mError[39m: Parameter 'rule' implicitly has an 'any' type. (ts)
+[36m      const danger = generateResult.commands.find((cmd) =>
+        sshPolicy.dangerousList.some(([35mrule[36m) => cmd.toLowerCase().includes(rule.toLowerCase()))
+      );[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\routes\(assets)\assets\[id]\+page.svelte[39m:653:17
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m              <div>
+                [35m<label class="label-base mb-2">{$_('assets.depreciation.cost')}</label>[36m
+                <input class="input-base" bind:value={purchaseCost} placeholder="12000000" />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\routes\(assets)\assets\[id]\+page.svelte[39m:657:17
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m              <div>
+                [35m<label class="label-base mb-2">{$_('assets.depreciation.years')}</label>[36m
+                <select class="select-base" bind:value={usefulLifeYears}>[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\routes\(assets)\assets\[id]\+page.svelte[39m:682:17
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m              <div class="md:col-span-2">
+                [35m<label class="label-base mb-2">{$_('assets.inventory.sessionName')}</label>[36m
+                <input class="input-base" bind:value={newSessionName} placeholder={$_('assets.inventory.sessionNamePlaceholder')} />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\routes\(assets)\assets\[id]\+page.svelte[39m:686:17
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m              <div>
+                [35m<label class="label-base mb-2">{$_('assets.inventory.sessionLocation')}</label>[36m
+                <select class="select-base" bind:value={newSessionLocationId}>[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\routes\(assets)\assets\[id]\+page.svelte[39m:704:15
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m            <div class="mt-4">
+              [35m<label class="label-base mb-2">{$_('assets.inventory.sessionSelect')}</label>[36m
+              <select class="select-base" bind:value={activeInventorySessionId}>[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\routes\(assets)\assets\[id]\+page.svelte[39m:820:9
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m      <div>
+        [35m<label class="label-base mb-2">{$isLoading ? 'Return Note' : $_('assets.returnNote')}</label>[36m
+        <input class="input-base" bind:value={returnNote} placeholder={$isLoading ? 'Optional note' : $_('assets.placeholders.returnNote')} />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\routes\(assets)\automation\+page.svelte[39m:189:26
+[31mError[39m: Type '"gray" | "green"' is not assignable to type '"none" | "primary" | "red" | "yellow" | "green" | "indigo" | "purple" | "pink" | "blue" | "dark" | undefined'.
+  Type '"gray"' is not assignable to type '"none" | "primary" | "red" | "yellow" | "green" | "indigo" | "purple" | "pink" | "blue" | "dark" | undefined'. (ts)
+[36m                <TableBodyCell>
+                  <Badge [35mcolor[36m={rule.isActive ? 'green' : 'gray'}>{rule.isActive ? 'Active' : 'Inactive'}</Badge>
+                </TableBodyCell>[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\routes\(assets)\automation\+page.svelte[39m:203:44
+[31mError[39m: Type 'string' is not assignable to type 'number'. (ts)
+[36m            {:else}
+              <TableBodyRow><TableBodyCell [35mcolspan[36m="5" class="text-center text-gray-500">No automation rules yet</TableBodyCell></TableBodyRow>
+            {/each}[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\routes\(assets)\automation\+page.svelte[39m:254:24
+[31mError[39m: Type '"gray" | "green"' is not assignable to type '"none" | "primary" | "red" | "yellow" | "green" | "indigo" | "purple" | "pink" | "blue" | "dark" | undefined'.
+  Type '"gray"' is not assignable to type '"none" | "primary" | "red" | "yellow" | "green" | "indigo" | "purple" | "pink" | "blue" | "dark" | undefined'. (ts)
+[36m              <TableBodyCell>
+                <Badge [35mcolor[36m={task.isActive ? 'green' : 'gray'}>{task.isActive ? 'Active' : 'Inactive'}</Badge>
+              </TableBodyCell>[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\routes\(assets)\automation\+page.svelte[39m:264:42
+[31mError[39m: Type 'string' is not assignable to type 'number'. (ts)
+[36m          {:else}
+            <TableBodyRow><TableBodyCell [35mcolspan[36m="6" class="text-center text-gray-500">No scheduled tasks</TableBodyCell></TableBodyRow>
+          {/each}[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\routes\(assets)\integrations\+page.svelte[39m:175:26
+[31mError[39m: Type '"gray" | "green"' is not assignable to type '"none" | "primary" | "red" | "yellow" | "green" | "indigo" | "purple" | "pink" | "blue" | "dark" | undefined'.
+  Type '"gray"' is not assignable to type '"none" | "primary" | "red" | "yellow" | "green" | "indigo" | "purple" | "pink" | "blue" | "dark" | undefined'. (ts)
+[36m                <TableBodyCell>
+                  <Badge [35mcolor[36m={conn.isActive ? 'green' : 'gray'}>{conn.isActive ? 'Active' : 'Inactive'}</Badge>
+                </TableBodyCell>[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\routes\(assets)\integrations\+page.svelte[39m:195:44
+[31mError[39m: Type 'string' is not assignable to type 'number'. (ts)
+[36m            {:else}
+              <TableBodyRow><TableBodyCell [35mcolspan[36m="6" class="text-center text-gray-500">No connectors configured</TableBodyCell></TableBodyRow>
+            {/each}[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\routes\(assets)\integrations\+page.svelte[39m:226:26
+[31mError[39m: Type '"gray"' is not assignable to type '"none" | "primary" | "red" | "yellow" | "green" | "indigo" | "purple" | "pink" | "blue" | "dark" | undefined'. (ts)
+[36m                {#if wh.events.length > 3}
+                  <Badge [35mcolor[36m="gray">+{wh.events.length - 3}</Badge>
+                {/if}[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\routes\(assets)\integrations\+page.svelte[39m:230:24
+[31mError[39m: Type '"gray" | "green"' is not assignable to type '"none" | "primary" | "red" | "yellow" | "green" | "indigo" | "purple" | "pink" | "blue" | "dark" | undefined'.
+  Type '"gray"' is not assignable to type '"none" | "primary" | "red" | "yellow" | "green" | "indigo" | "purple" | "pink" | "blue" | "dark" | undefined'. (ts)
+[36m              <TableBodyCell>
+                <Badge [35mcolor[36m={wh.isActive ? 'green' : 'gray'}>{wh.isActive ? 'Active' : 'Inactive'}</Badge>
+              </TableBodyCell>[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\routes\(assets)\integrations\+page.svelte[39m:239:42
+[31mError[39m: Type 'string' is not assignable to type 'number'. (ts)
+[36m          {:else}
+            <TableBodyRow><TableBodyCell [35mcolspan[36m="5" class="text-center text-gray-500">No webhooks configured</TableBodyCell></TableBodyRow>
+          {/each}[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\routes\(assets)\inventory\[id]\+page.svelte[39m:158:13
+[33mWarn[39m: Avoid using autofocus
+https://svelte.dev/e/a11y_autofocus (svelte)
+[36m            disabled={scanning || session.status === 'closed'}
+            [35mautofocus[36m
+          />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\routes\(assets)\requests\[id]\+page.svelte[39m:529:15
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m            <div>
+              [35m<label class="label-base mb-2">{$isLoading ? 'Reject Reason' : $_('requests.rejectReason')}</label>[36m
+              <input class="input-base" bind:value={rejectReason} placeholder={$isLoading ? 'Optional reason' : $_('requests.placeholders.rejectReason')} />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\routes\(assets)\requests\[id]\+page.svelte[39m:573:21
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                  <div>
+                    [35m<label class="label-base mb-2">Round Note (optional)</label>[36m
+                    <input class="input-base" bind:value={issueRemainingNote} placeholder="Ghi chu cho dot cap phat nay" />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\routes\(assets)\requests\[id]\+page.svelte[39m:663:19
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                <div>
+                  [35m<label class="label-base mb-2">Handover Note</label>[36m
+                  <input class="input-base" bind:value={handoverNote} placeholder="Optional handover note" />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\routes\(assets)\requests\[id]\+page.svelte[39m:667:19
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                <div>
+                  [35m<label class="label-base mb-2">Assignee Type (optional)</label>[36m
+                  <select class="select-base" bind:value={handoverAssigneeType}>[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\routes\(assets)\requests\[id]\+page.svelte[39m:675:19
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                <div>
+                  [35m<label class="label-base mb-2">Assignee ID (optional)</label>[36m
+                  <input class="input-base" bind:value={handoverAssigneeId} placeholder="user-123 / dept-01" />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\routes\(assets)\requests\[id]\+page.svelte[39m:679:19
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                <div>
+                  [35m<label class="label-base mb-2">Assignee Name (optional)</label>[36m
+                  <input class="input-base" bind:value={handoverAssigneeName} placeholder="Nguyen Van A / Phong CNTT" />[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\routes\(assets)\security\+page.svelte[39m:180:46
+[31mError[39m: Type 'string' is not assignable to type 'number'. (ts)
+[36m              {:else}
+                <TableBodyRow><TableBodyCell [35mcolspan[36m="4" class="text-center text-gray-500">No permissions configured</TableBodyCell></TableBodyRow>
+              {/each}[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\routes\(assets)\security\+page.svelte[39m:229:44
+[31mError[39m: Type 'string' is not assignable to type 'number'. (ts)
+[36m            {:else}
+              <TableBodyRow><TableBodyCell [35mcolspan[36m="6" class="text-center text-gray-500">No audit logs</TableBodyCell></TableBodyRow>
+            {/each}[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\routes\(assets)\security\+page.svelte[39m:245:24
+[31mError[39m: Type '"gray" | "green"' is not assignable to type '"none" | "primary" | "red" | "yellow" | "green" | "indigo" | "purple" | "pink" | "blue" | "dark" | undefined'.
+  Type '"gray"' is not assignable to type '"none" | "primary" | "red" | "yellow" | "green" | "indigo" | "purple" | "pink" | "blue" | "dark" | undefined'. (ts)
+[36m                <p class="text-sm text-gray-600 mt-1">{fw.description || ''}</p>
+                <Badge [35mcolor[36m={fw.isActive ? 'green' : 'gray'} class="mt-2">{fw.isActive ? 'Active' : 'Inactive'}</Badge>
+              </Card>[39m
+
+e:\GitHub\QuanLyThietBi\apps\web-ui\[32msrc\routes\(assets)\security\+page.svelte[39m:279:48
+[31mError[39m: Type 'string' is not assignable to type 'number'. (ts)
+[36m                {:else}
+                  <TableBodyRow><TableBodyCell [35mcolspan[36m="4" class="text-center text-gray-500">No controls</TableBodyCell></TableBodyRow>
+                {/each}[39m
+
+====================================
+[31msvelte-check found 113 errors and 305 warnings in 41 files
+[39m

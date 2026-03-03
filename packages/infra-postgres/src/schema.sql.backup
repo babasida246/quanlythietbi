@@ -1,0 +1,1012 @@
+-- Enable UUID extension
+CREATE EXTENSION
+IF NOT EXISTS "uuid-ossp";
+
+-- Conversations
+CREATE TABLE
+IF NOT EXISTS conversations
+(
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4
+(),
+  user_id VARCHAR
+(255) NOT NULL,
+  title VARCHAR
+(255) NOT NULL,
+  model VARCHAR(255) NOT NULL DEFAULT 'openai/gpt-4o-mini',
+  status VARCHAR(20) NOT NULL DEFAULT 'active',
+  message_count INT NOT NULL DEFAULT 0,
+  metadata JSONB DEFAULT '{}',
+  created_at TIMESTAMPTZ DEFAULT NOW
+(),
+  updated_at TIMESTAMPTZ DEFAULT NOW
+()
+);
+
+CREATE INDEX IF NOT EXISTS idx_conversations_user_id ON conversations(user_id);
+CREATE INDEX IF NOT EXISTS idx_conversations_created_at ON conversations(created_at DESC);
+ALTER TABLE conversations ADD COLUMN IF NOT EXISTS model VARCHAR(255) DEFAULT 'openai/gpt-4o-mini';
+ALTER TABLE conversations ADD COLUMN IF NOT EXISTS status VARCHAR(20) DEFAULT 'active';
+ALTER TABLE conversations ADD COLUMN IF NOT EXISTS message_count INT DEFAULT 0;
+ALTER TABLE conversations ALTER COLUMN model SET NOT NULL;
+ALTER TABLE conversations ALTER COLUMN status SET NOT NULL;
+ALTER TABLE conversations ALTER COLUMN message_count SET NOT NULL;
+
+-- Messages
+CREATE TABLE
+IF NOT EXISTS messages
+(
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4
+(),
+  conversation_id UUID NOT NULL REFERENCES conversations
+(id) ON
+DELETE CASCADE,
+  role VARCHAR(20)
+NOT NULL CHECK
+(role IN
+('user', 'assistant', 'system', 'tool')),
+  content TEXT NOT NULL,
+  model VARCHAR(255),
+  provider VARCHAR(50),
+  prompt_tokens INT DEFAULT 0,
+  completion_tokens INT DEFAULT 0,
+  cost DECIMAL(12,4),
+  latency_ms INT,
+  metadata JSONB DEFAULT '{}',
+  tool_calls JSONB,
+  tool_call_id VARCHAR
+(255),
+  token_count INT DEFAULT 0,
+  created_at TIMESTAMPTZ DEFAULT NOW
+()
+);
+
+CREATE INDEX IF NOT EXISTS idx_messages_conversation_id ON messages(conversation_id, created_at);
+ALTER TABLE messages ADD COLUMN IF NOT EXISTS model VARCHAR(255);
+ALTER TABLE messages ADD COLUMN IF NOT EXISTS provider VARCHAR(50);
+ALTER TABLE messages ADD COLUMN IF NOT EXISTS prompt_tokens INT DEFAULT 0;
+ALTER TABLE messages ADD COLUMN IF NOT EXISTS completion_tokens INT DEFAULT 0;
+ALTER TABLE messages ADD COLUMN IF NOT EXISTS cost DECIMAL(12,4);
+ALTER TABLE messages ADD COLUMN IF NOT EXISTS latency_ms INT;
+ALTER TABLE messages ADD COLUMN IF NOT EXISTS metadata JSONB DEFAULT '{}';
+
+-- Model Configs
+CREATE TABLE
+IF NOT EXISTS model_configs
+(
+  id VARCHAR
+(100) PRIMARY KEY,
+  provider VARCHAR
+(50) NOT NULL,
+  tier INT NOT NULL CHECK
+(tier BETWEEN 0 AND 3),
+  context_window INT,
+  max_tokens INT,
+  cost_per_1k_input DECIMAL
+(10,6),
+  cost_per_1k_output DECIMAL
+(10,6),
+  capabilities JSONB DEFAULT '{}',
+  enabled BOOLEAN DEFAULT true,
+  created_at TIMESTAMPTZ DEFAULT NOW
+()
+);
+
+CREATE INDEX IF NOT EXISTS idx_model_configs_tier ON model_configs(tier, enabled);
+
+-- Ensure new model metadata columns exist
+ALTER TABLE model_configs ADD COLUMN IF NOT EXISTS supports_streaming BOOLEAN DEFAULT false;
+ALTER TABLE model_configs ADD COLUMN IF NOT EXISTS supports_functions BOOLEAN DEFAULT false;
+ALTER TABLE model_configs ADD COLUMN IF NOT EXISTS supports_vision BOOLEAN DEFAULT false;
+ALTER TABLE model_configs ADD COLUMN IF NOT EXISTS description TEXT;
+ALTER TABLE model_configs ADD COLUMN IF NOT EXISTS priority INT DEFAULT 100;
+ALTER TABLE model_configs ADD COLUMN IF NOT EXISTS status VARCHAR
+(20) DEFAULT 'active';
+ALTER TABLE model_configs ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ DEFAULT NOW
+();
+ALTER TABLE model_configs ADD COLUMN IF NOT EXISTS display_name VARCHAR
+(255);
+
+-- Usage Logs
+CREATE TABLE
+IF NOT EXISTS usage_logs
+(
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4
+(),
+  user_id VARCHAR
+(255) NOT NULL,
+  model_id VARCHAR
+(100),
+  tier INT NOT NULL,
+  prompt_tokens INT,
+  completion_tokens INT,
+  total_tokens INT,
+  total_cost DECIMAL
+(10,6),
+  quality_score DECIMAL
+(3,2),
+  escalated BOOLEAN DEFAULT false,
+  created_at TIMESTAMPTZ DEFAULT NOW
+()
+);
+
+CREATE INDEX IF NOT EXISTS idx_usage_logs_user_date ON usage_logs(user_id, created_at DESC);
+
+-- Audit Logs
+CREATE TABLE
+IF NOT EXISTS audit_logs
+(
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4
+(),
+  correlation_id VARCHAR
+(100),
+  user_id VARCHAR
+(255),
+  action VARCHAR
+(100) NOT NULL,
+  resource VARCHAR
+(255),
+  details JSONB DEFAULT '{}',
+  created_at TIMESTAMPTZ DEFAULT NOW
+()
+);
+
+CREATE INDEX IF NOT EXISTS idx_audit_logs_correlation ON audit_logs(correlation_id);
+CREATE INDEX IF NOT EXISTS idx_audit_logs_user_action ON audit_logs(user_id, action, created_at DESC);
+
+-- Users table
+CREATE TABLE
+IF NOT EXISTS users
+(
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4
+(),
+    email VARCHAR
+(255) UNIQUE NOT NULL,
+    name VARCHAR
+(255) NOT NULL,
+    username VARCHAR
+(255) UNIQUE,
+    password_hash VARCHAR
+(255) NOT NULL,
+    role VARCHAR
+(50) NOT NULL DEFAULT 'user',
+    is_active BOOLEAN NOT NULL DEFAULT true,
+    tier VARCHAR
+(50) NOT NULL DEFAULT 'free',
+    status VARCHAR
+(20) NOT NULL DEFAULT 'active',
+    last_login_at TIMESTAMPTZ,
+    created_at TIMESTAMPTZ DEFAULT NOW
+(),
+    updated_at TIMESTAMPTZ DEFAULT NOW
+()
+);
+
+CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
+CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);
+CREATE INDEX IF NOT EXISTS idx_users_status ON users(status);
+
+-- Sessions table
+CREATE TABLE
+IF NOT EXISTS sessions
+(
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4
+(),
+    user_id UUID NOT NULL REFERENCES users
+(id) ON
+DELETE CASCADE,
+    token VARCHAR(500)
+NOT NULL UNIQUE,
+    refresh_token VARCHAR
+(500) NOT NULL UNIQUE,
+    expires_at TIMESTAMPTZ NOT NULL,
+    refresh_expires_at TIMESTAMPTZ NOT NULL,
+    ip_address VARCHAR
+(45),
+    user_agent TEXT,
+    is_revoked BOOLEAN DEFAULT false,
+    last_activity_at TIMESTAMPTZ DEFAULT NOW
+(),
+    created_at TIMESTAMPTZ DEFAULT NOW
+(),
+    updated_at TIMESTAMPTZ DEFAULT NOW
+()
+);
+
+CREATE INDEX IF NOT EXISTS idx_sessions_user_id ON sessions(user_id);
+CREATE INDEX IF NOT EXISTS idx_sessions_token ON sessions(token);
+CREATE INDEX IF NOT EXISTS idx_sessions_refresh_token ON sessions(refresh_token);
+CREATE INDEX IF NOT EXISTS idx_sessions_expires_at ON sessions(expires_at);
+
+-- AI Providers
+CREATE TABLE
+IF NOT EXISTS ai_providers
+(
+    id VARCHAR
+(100) PRIMARY KEY,
+    name VARCHAR
+(255) NOT NULL,
+    description TEXT,
+    api_endpoint TEXT,
+    auth_type VARCHAR
+(50),
+    api_key TEXT,
+    capabilities JSONB DEFAULT '{}',
+    status VARCHAR
+(20) DEFAULT 'active',
+    rate_limit_per_minute INT,
+    credits_remaining DECIMAL
+(12,4),
+    tokens_used BIGINT,
+    last_usage_at TIMESTAMPTZ,
+    metadata JSONB DEFAULT '{}',
+    created_at TIMESTAMPTZ DEFAULT NOW
+(),
+    updated_at TIMESTAMPTZ DEFAULT NOW
+()
+);
+
+-- Orchestration rules
+CREATE TABLE
+IF NOT EXISTS orchestration_rules
+(
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4
+(),
+    name VARCHAR
+(255) NOT NULL,
+    description TEXT,
+    strategy VARCHAR
+(50) NOT NULL,
+    model_sequence JSONB NOT NULL,
+    conditions JSONB DEFAULT '{}',
+    enabled BOOLEAN DEFAULT true,
+    priority INT DEFAULT 100,
+    metadata JSONB DEFAULT '{}',
+    created_at TIMESTAMPTZ DEFAULT NOW
+(),
+    updated_at TIMESTAMPTZ DEFAULT NOW
+()
+);
+ALTER TABLE orchestration_rules ALTER COLUMN model_sequence TYPE JSONB USING to_jsonb(model_sequence);
+
+-- Conversation token usage
+CREATE TABLE
+IF NOT EXISTS conversation_token_usage
+(
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4
+(),
+    conversation_id UUID NOT NULL,
+    model VARCHAR
+(150) NOT NULL,
+    provider VARCHAR
+(100) NOT NULL,
+    prompt_tokens INT DEFAULT 0,
+    completion_tokens INT DEFAULT 0,
+    total_tokens INT DEFAULT 0,
+    cost DECIMAL
+(12,6) DEFAULT 0,
+    message_count INT DEFAULT 0,
+    created_at TIMESTAMPTZ DEFAULT NOW
+()
+);
+
+CREATE INDEX IF NOT EXISTS idx_conversation_usage_conversation ON conversation_token_usage(conversation_id, created_at DESC);
+
+-- User token stats (daily aggregates)
+CREATE TABLE
+IF NOT EXISTS user_token_stats
+(
+    user_id VARCHAR
+(255) NOT NULL,
+    date DATE NOT NULL,
+    model VARCHAR
+(150) NOT NULL,
+    provider VARCHAR
+(100) NOT NULL,
+    total_tokens INT DEFAULT 0,
+    total_cost DECIMAL
+(12,6) DEFAULT 0,
+    message_count INT DEFAULT 0,
+    conversation_count INT DEFAULT 0,
+    PRIMARY KEY (user_id, date, model, provider)
+);
+
+-- Model usage history (per day)
+CREATE TABLE
+IF NOT EXISTS model_usage_history
+(
+    model VARCHAR
+(150) NOT NULL,
+    usage_date DATE NOT NULL,
+    total_tokens INT DEFAULT 0,
+    total_cost DECIMAL
+(12,6) DEFAULT 0,
+    message_count INT DEFAULT 0,
+    PRIMARY KEY (model, usage_date)
+);
+
+-- Provider usage history (per day)
+CREATE TABLE
+IF NOT EXISTS provider_usage_history
+(
+    provider VARCHAR
+(100) NOT NULL,
+    usage_date DATE NOT NULL,
+    total_tokens INT DEFAULT 0,
+    total_cost DECIMAL
+(12,6) DEFAULT 0,
+    credits_used DECIMAL
+(12,6) DEFAULT 0,
+    PRIMARY KEY (provider, usage_date)
+);
+
+-- Chat contexts
+CREATE TABLE
+IF NOT EXISTS chat_contexts
+(
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4
+(),
+    conversation_id UUID NOT NULL,
+    context_type VARCHAR
+(50) NOT NULL,
+    content TEXT NOT NULL,
+    tokens INT DEFAULT 0,
+    priority INT DEFAULT 100,
+    metadata JSONB DEFAULT '{}',
+    created_at TIMESTAMPTZ DEFAULT NOW
+(),
+    updated_at TIMESTAMPTZ DEFAULT NOW
+()
+);
+
+-- Model performance metrics
+CREATE TABLE
+IF NOT EXISTS model_performance
+(
+    model VARCHAR
+(150) NOT NULL,
+    provider VARCHAR
+(100) NOT NULL,
+    date DATE NOT NULL,
+    total_requests INT DEFAULT 0,
+    successful_requests INT DEFAULT 0,
+    failed_requests INT DEFAULT 0,
+    avg_latency_ms DECIMAL
+(10,2) DEFAULT 0,
+    avg_tokens_per_request DECIMAL
+(10,2) DEFAULT 0,
+    total_cost DECIMAL
+(12,6) DEFAULT 0,
+    quality_score DECIMAL
+(5,2),
+    PRIMARY KEY (model, provider, date)
+);
+
+-- Assets
+CREATE TABLE
+IF NOT EXISTS vendors
+(
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    name VARCHAR(255) NOT NULL,
+    tax_code VARCHAR(100),
+    phone VARCHAR(50),
+    email VARCHAR(255),
+    address TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_vendors_name ON vendors(name);
+
+CREATE TABLE
+IF NOT EXISTS locations
+(
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    name VARCHAR(255) NOT NULL,
+    parent_id UUID REFERENCES locations(id) ON DELETE SET NULL,
+    path TEXT NOT NULL DEFAULT '/',
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+ALTER TABLE locations ADD COLUMN IF NOT EXISTS path TEXT;
+DO $$
+BEGIN
+    IF EXISTS (
+        SELECT 1
+        FROM information_schema.columns
+        WHERE table_schema = 'public'
+          AND table_name = 'locations'
+          AND column_name = 'path'
+    ) THEN
+        UPDATE locations SET path = COALESCE(path, '/' || id::text) WHERE path IS NULL;
+        ALTER TABLE locations ALTER COLUMN path SET DEFAULT '/';
+        ALTER TABLE locations ALTER COLUMN path SET NOT NULL;
+    END IF;
+END $$;
+
+CREATE INDEX IF NOT EXISTS idx_locations_parent_id ON locations(parent_id);
+CREATE INDEX IF NOT EXISTS idx_locations_path ON locations(path);
+
+CREATE TABLE
+IF NOT EXISTS asset_categories
+(
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    name VARCHAR(255) NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_asset_categories_name ON asset_categories(name);
+
+CREATE TABLE
+IF NOT EXISTS asset_category_spec_versions
+(
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    category_id UUID NOT NULL REFERENCES asset_categories(id) ON DELETE CASCADE,
+    version INT NOT NULL,
+    status TEXT NOT NULL CHECK (status IN ('draft','active','retired')),
+    created_by TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    UNIQUE (category_id, version)
+);
+
+CREATE INDEX IF NOT EXISTS idx_spec_versions_category_status ON asset_category_spec_versions(category_id, status);
+
+CREATE TABLE
+IF NOT EXISTS asset_category_spec_defs
+(
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    version_id UUID NOT NULL REFERENCES asset_category_spec_versions(id) ON DELETE CASCADE,
+    key TEXT NOT NULL,
+    label TEXT NOT NULL,
+    field_type TEXT NOT NULL CHECK (field_type IN ('string','number','boolean','enum','date','ip','mac','hostname','cidr','port','regex','json','multi_enum')),
+    unit TEXT,
+    required BOOLEAN NOT NULL DEFAULT false,
+    enum_values JSONB,
+    pattern TEXT,
+    min_len INT,
+    max_len INT,
+    min_value NUMERIC,
+    max_value NUMERIC,
+    step_value NUMERIC,
+    precision INT,
+    scale INT,
+    normalize TEXT,
+    default_value JSONB,
+    help_text TEXT,
+    sort_order INT NOT NULL DEFAULT 0,
+    is_active BOOLEAN NOT NULL DEFAULT true,
+    is_readonly BOOLEAN NOT NULL DEFAULT false,
+    computed_expr TEXT,
+    is_searchable BOOLEAN NOT NULL DEFAULT false,
+    is_filterable BOOLEAN NOT NULL DEFAULT false,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW(),
+    UNIQUE (version_id, key)
+);
+
+CREATE INDEX IF NOT EXISTS idx_category_spec_defs_version ON asset_category_spec_defs(version_id, sort_order);
+
+CREATE TABLE
+IF NOT EXISTS asset_models
+(
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    category_id UUID REFERENCES asset_categories(id) ON DELETE SET NULL,
+    spec_version_id UUID REFERENCES asset_category_spec_versions(id) ON DELETE SET NULL,
+    vendor_id UUID REFERENCES vendors(id) ON DELETE SET NULL,
+    brand VARCHAR(255),
+    model VARCHAR(255) NOT NULL,
+    spec JSONB DEFAULT '{}',
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Ensure spec_version_id column exists for existing tables
+ALTER TABLE asset_models ADD COLUMN IF NOT EXISTS spec_version_id UUID REFERENCES asset_category_spec_versions(id) ON DELETE SET NULL;
+
+CREATE INDEX IF NOT EXISTS idx_asset_models_category_id ON asset_models(category_id);
+CREATE INDEX IF NOT EXISTS idx_asset_models_spec_version_id ON asset_models(spec_version_id);
+CREATE INDEX IF NOT EXISTS idx_asset_models_vendor_id ON asset_models(vendor_id);
+CREATE INDEX IF NOT EXISTS idx_asset_models_spec_gin ON asset_models USING GIN (spec);
+
+CREATE TABLE
+IF NOT EXISTS assets
+(
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    asset_code VARCHAR(100) UNIQUE NOT NULL,
+    model_id UUID NOT NULL REFERENCES asset_models(id) ON DELETE SET NULL,
+    serial_no VARCHAR(255),
+    mac_address VARCHAR(50),
+    mgmt_ip INET,
+    hostname VARCHAR(255),
+    vlan_id INT,
+    switch_name VARCHAR(255),
+    switch_port VARCHAR(100),
+    location_id UUID REFERENCES locations(id) ON DELETE SET NULL,
+    status VARCHAR(20) NOT NULL DEFAULT 'in_stock' CHECK (status IN ('in_stock','in_use','in_repair','retired','disposed','lost')),
+    purchase_date DATE,
+    warranty_end DATE,
+    vendor_id UUID REFERENCES vendors(id) ON DELETE SET NULL,
+    notes TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_assets_status ON assets(status);
+CREATE INDEX IF NOT EXISTS idx_assets_location_id ON assets(location_id);
+CREATE INDEX IF NOT EXISTS idx_assets_mgmt_ip ON assets(mgmt_ip);
+CREATE INDEX IF NOT EXISTS idx_assets_warranty_end ON assets(warranty_end);
+
+CREATE TABLE
+IF NOT EXISTS asset_assignments
+(
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    asset_id UUID NOT NULL REFERENCES assets(id) ON DELETE CASCADE,
+    assignee_type VARCHAR(20) NOT NULL CHECK (assignee_type IN ('person','department','system')),
+    assignee_id VARCHAR(255) NOT NULL,
+    assignee_name VARCHAR(255) NOT NULL,
+    assigned_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    returned_at TIMESTAMPTZ,
+    note TEXT
+);
+
+CREATE INDEX IF NOT EXISTS idx_asset_assignments_asset ON asset_assignments(asset_id, assigned_at DESC);
+
+CREATE TABLE
+IF NOT EXISTS maintenance_tickets
+(
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    asset_id UUID NOT NULL REFERENCES assets(id) ON DELETE CASCADE,
+    title VARCHAR(255) NOT NULL,
+    severity VARCHAR(20) NOT NULL CHECK (severity IN ('low','medium','high','critical')),
+    status VARCHAR(20) NOT NULL DEFAULT 'open' CHECK (status IN ('open','in_progress','closed','canceled')),
+    opened_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    closed_at TIMESTAMPTZ,
+    diagnosis TEXT,
+    resolution TEXT,
+    created_by VARCHAR(255),
+    correlation_id VARCHAR(100)
+);
+
+CREATE INDEX IF NOT EXISTS idx_maintenance_tickets_asset ON maintenance_tickets(asset_id, opened_at DESC);
+
+CREATE TABLE
+IF NOT EXISTS asset_events
+(
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    asset_id UUID NOT NULL REFERENCES assets(id) ON DELETE CASCADE,
+    event_type VARCHAR(50) NOT NULL,
+    payload JSONB DEFAULT '{}',
+    actor_user_id VARCHAR(255),
+    correlation_id VARCHAR(100),
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_asset_events_asset ON asset_events(asset_id, created_at DESC);
+
+-- Attachments
+CREATE TABLE
+IF NOT EXISTS asset_attachments
+(
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    asset_id UUID NOT NULL REFERENCES assets(id) ON DELETE CASCADE,
+    file_name TEXT,
+    mime_type TEXT,
+    storage_key TEXT,
+    size_bytes BIGINT,
+    version INT NOT NULL,
+    uploaded_by TEXT,
+    correlation_id TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_asset_attachments_asset ON asset_attachments(asset_id, created_at DESC);
+
+-- Inventory
+CREATE TABLE
+IF NOT EXISTS inventory_sessions
+(
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    name TEXT NOT NULL,
+    location_id UUID REFERENCES locations(id) ON DELETE SET NULL,
+    status TEXT NOT NULL CHECK (status IN ('draft','in_progress','closed','canceled')),
+    started_at TIMESTAMPTZ,
+    closed_at TIMESTAMPTZ,
+    created_by TEXT,
+    correlation_id TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_inventory_sessions_status ON inventory_sessions(status);
+CREATE INDEX IF NOT EXISTS idx_inventory_sessions_created ON inventory_sessions(created_at DESC);
+
+CREATE TABLE
+IF NOT EXISTS inventory_items
+(
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    session_id UUID NOT NULL REFERENCES inventory_sessions(id) ON DELETE CASCADE,
+    asset_id UUID REFERENCES assets(id) ON DELETE SET NULL,
+    expected_location_id UUID REFERENCES locations(id) ON DELETE SET NULL,
+    scanned_location_id UUID REFERENCES locations(id) ON DELETE SET NULL,
+    scanned_at TIMESTAMPTZ,
+    status TEXT NOT NULL CHECK (status IN ('found','missing','moved','unknown')),
+    note TEXT
+);
+
+CREATE INDEX IF NOT EXISTS idx_inventory_items_session ON inventory_items(session_id);
+
+-- Workflow requests
+CREATE TABLE
+IF NOT EXISTS workflow_requests
+(
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    request_type TEXT NOT NULL CHECK (request_type IN ('assign','return','move','repair','dispose')),
+    asset_id UUID REFERENCES assets(id) ON DELETE SET NULL,
+    from_dept TEXT,
+    to_dept TEXT,
+    requested_by TEXT,
+    approved_by TEXT,
+    status TEXT NOT NULL CHECK (status IN ('submitted','approved','rejected','in_progress','done','canceled')),
+    payload JSONB DEFAULT '{}',
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW(),
+    correlation_id TEXT
+);
+
+CREATE INDEX IF NOT EXISTS idx_workflow_requests_status ON workflow_requests(status, created_at DESC);
+
+-- Reminders
+CREATE TABLE
+IF NOT EXISTS reminders
+(
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    reminder_type TEXT NOT NULL CHECK (reminder_type IN ('warranty_expiring','maintenance_due')),
+    asset_id UUID REFERENCES assets(id) ON DELETE CASCADE,
+    due_at TIMESTAMPTZ NOT NULL,
+    status TEXT NOT NULL CHECK (status IN ('pending','sent','canceled')),
+    channel TEXT NOT NULL DEFAULT 'ui',
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    sent_at TIMESTAMPTZ,
+    correlation_id TEXT
+);
+
+CREATE INDEX IF NOT EXISTS idx_reminders_status ON reminders(status, due_at);
+
+-- CMDB
+CREATE TABLE
+IF NOT EXISTS cmdb_ci_types
+(
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    code TEXT UNIQUE NOT NULL,
+    name TEXT NOT NULL,
+    description TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_cmdb_ci_types_code ON cmdb_ci_types(code);
+
+CREATE TABLE
+IF NOT EXISTS cmdb_ci_type_versions
+(
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    type_id UUID NOT NULL REFERENCES cmdb_ci_types(id) ON DELETE CASCADE,
+    version INT NOT NULL,
+    status TEXT NOT NULL CHECK (status IN ('draft','active','retired')),
+    created_by TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    UNIQUE (type_id, version)
+);
+
+CREATE INDEX IF NOT EXISTS idx_cmdb_ci_type_versions_status ON cmdb_ci_type_versions(type_id, status);
+
+CREATE TABLE
+IF NOT EXISTS cmdb_ci_type_attr_defs
+(
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    version_id UUID NOT NULL REFERENCES cmdb_ci_type_versions(id) ON DELETE CASCADE,
+    key TEXT NOT NULL,
+    label TEXT NOT NULL,
+    field_type TEXT NOT NULL CHECK (field_type IN ('string','number','boolean','enum','date','ip','mac','cidr','hostname','port','regex','json','multi_enum')),
+    required BOOLEAN NOT NULL DEFAULT false,
+    unit TEXT,
+    enum_values JSONB,
+    pattern TEXT,
+    min_value NUMERIC,
+    max_value NUMERIC,
+    step_value NUMERIC,
+    min_len INT,
+    max_len INT,
+    default_value JSONB,
+    is_searchable BOOLEAN NOT NULL DEFAULT false,
+    is_filterable BOOLEAN NOT NULL DEFAULT false,
+    sort_order INT NOT NULL DEFAULT 0,
+    is_active BOOLEAN NOT NULL DEFAULT true,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW(),
+    UNIQUE (version_id, key)
+);
+
+CREATE INDEX IF NOT EXISTS idx_cmdb_ci_type_attr_defs_version ON cmdb_ci_type_attr_defs(version_id, sort_order);
+
+CREATE TABLE
+IF NOT EXISTS cmdb_cis
+(
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    type_id UUID NOT NULL REFERENCES cmdb_ci_types(id) ON DELETE RESTRICT,
+    name TEXT NOT NULL,
+    ci_code TEXT UNIQUE NOT NULL,
+    status TEXT NOT NULL CHECK (status IN ('active','planned','maintenance','retired')) DEFAULT 'active',
+    environment TEXT NOT NULL CHECK (environment IN ('prod','uat','dev')) DEFAULT 'prod',
+    asset_id UUID REFERENCES assets(id) ON DELETE SET NULL,
+    location_id UUID REFERENCES locations(id) ON DELETE SET NULL,
+    owner_team TEXT,
+    notes TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_cmdb_cis_type ON cmdb_cis(type_id);
+CREATE INDEX IF NOT EXISTS idx_cmdb_cis_asset ON cmdb_cis(asset_id);
+CREATE INDEX IF NOT EXISTS idx_cmdb_cis_location ON cmdb_cis(location_id);
+
+CREATE TABLE
+IF NOT EXISTS cmdb_ci_attr_values
+(
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    ci_id UUID NOT NULL REFERENCES cmdb_cis(id) ON DELETE CASCADE,
+    version_id UUID NOT NULL REFERENCES cmdb_ci_type_versions(id) ON DELETE RESTRICT,
+    key TEXT NOT NULL,
+    value JSONB,
+    updated_at TIMESTAMPTZ DEFAULT NOW(),
+    UNIQUE (ci_id, key)
+);
+
+CREATE INDEX IF NOT EXISTS idx_cmdb_ci_attr_values_ci ON cmdb_ci_attr_values(ci_id);
+
+CREATE TABLE
+IF NOT EXISTS cmdb_relationship_types
+(
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    code TEXT UNIQUE NOT NULL,
+    name TEXT NOT NULL,
+    reverse_name TEXT,
+    allowed_from_type_id UUID REFERENCES cmdb_ci_types(id) ON DELETE SET NULL,
+    allowed_to_type_id UUID REFERENCES cmdb_ci_types(id) ON DELETE SET NULL
+);
+
+CREATE TABLE
+IF NOT EXISTS cmdb_relationships
+(
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    rel_type_id UUID NOT NULL REFERENCES cmdb_relationship_types(id) ON DELETE CASCADE,
+    from_ci_id UUID NOT NULL REFERENCES cmdb_cis(id) ON DELETE CASCADE,
+    to_ci_id UUID NOT NULL REFERENCES cmdb_cis(id) ON DELETE CASCADE,
+    status TEXT NOT NULL CHECK (status IN ('active','retired')) DEFAULT 'active',
+    since_date DATE,
+    note TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_cmdb_relationships_from ON cmdb_relationships(from_ci_id);
+CREATE INDEX IF NOT EXISTS idx_cmdb_relationships_to ON cmdb_relationships(to_ci_id);
+
+CREATE TABLE
+IF NOT EXISTS cmdb_services
+(
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    code TEXT UNIQUE NOT NULL,
+    name TEXT NOT NULL,
+    criticality TEXT,
+    owner TEXT,
+    sla TEXT,
+    status TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE
+IF NOT EXISTS cmdb_service_members
+(
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    service_id UUID NOT NULL REFERENCES cmdb_services(id) ON DELETE CASCADE,
+    ci_id UUID NOT NULL REFERENCES cmdb_cis(id) ON DELETE CASCADE,
+    role TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_cmdb_service_members_service ON cmdb_service_members(service_id);
+CREATE INDEX IF NOT EXISTS idx_cmdb_service_members_ci ON cmdb_service_members(ci_id);
+
+-- Maintenance & Warehouse
+CREATE TABLE
+IF NOT EXISTS warehouses
+(
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    code TEXT UNIQUE NOT NULL,
+    name TEXT NOT NULL,
+    location_id UUID REFERENCES locations(id) ON DELETE SET NULL,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_warehouses_code ON warehouses(code);
+CREATE INDEX IF NOT EXISTS idx_warehouses_location ON warehouses(location_id);
+
+CREATE TABLE
+IF NOT EXISTS spare_parts
+(
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    part_code TEXT UNIQUE NOT NULL,
+    name TEXT NOT NULL,
+    category TEXT,
+    uom TEXT DEFAULT 'pcs',
+    manufacturer TEXT,
+    model TEXT,
+    spec JSONB DEFAULT '{}',
+    min_level INT DEFAULT 0,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_spare_parts_code ON spare_parts(part_code);
+CREATE INDEX IF NOT EXISTS idx_spare_parts_name ON spare_parts(name);
+
+CREATE TABLE
+IF NOT EXISTS spare_part_stock
+(
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    warehouse_id UUID NOT NULL REFERENCES warehouses(id) ON DELETE CASCADE,
+    part_id UUID NOT NULL REFERENCES spare_parts(id) ON DELETE CASCADE,
+    on_hand INT NOT NULL DEFAULT 0,
+    reserved INT NOT NULL DEFAULT 0,
+    updated_at TIMESTAMPTZ DEFAULT NOW(),
+    UNIQUE (warehouse_id, part_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_spare_part_stock_lookup ON spare_part_stock(warehouse_id, part_id);
+
+CREATE TABLE
+IF NOT EXISTS stock_documents
+(
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    doc_type TEXT NOT NULL CHECK (doc_type IN ('receipt','issue','adjust','transfer')),
+    code TEXT UNIQUE NOT NULL,
+    status TEXT NOT NULL CHECK (status IN ('draft','posted','canceled')),
+    warehouse_id UUID REFERENCES warehouses(id) ON DELETE SET NULL,
+    target_warehouse_id UUID REFERENCES warehouses(id) ON DELETE SET NULL,
+    doc_date DATE NOT NULL DEFAULT CURRENT_DATE,
+    ref_type TEXT,
+    ref_id UUID,
+    note TEXT,
+    created_by TEXT,
+    approved_by TEXT,
+    correlation_id TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_stock_documents_status ON stock_documents(status, doc_date DESC);
+
+CREATE TABLE
+IF NOT EXISTS stock_document_lines
+(
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    document_id UUID NOT NULL REFERENCES stock_documents(id) ON DELETE CASCADE,
+    part_id UUID NOT NULL REFERENCES spare_parts(id),
+    qty INT NOT NULL CHECK (qty > 0),
+    unit_cost NUMERIC(12,2),
+    serial_no TEXT,
+    note TEXT,
+    adjust_direction TEXT,
+    CONSTRAINT stock_document_lines_adjust_direction_check CHECK (adjust_direction IN ('plus','minus'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_stock_document_lines_doc ON stock_document_lines(document_id);
+
+ALTER TABLE stock_document_lines
+    ADD COLUMN IF NOT EXISTS adjust_direction TEXT;
+
+ALTER TABLE stock_document_lines
+    DROP CONSTRAINT IF EXISTS stock_document_lines_adjust_direction_check;
+
+ALTER TABLE stock_document_lines
+    ADD CONSTRAINT stock_document_lines_adjust_direction_check
+    CHECK (adjust_direction IS NULL OR adjust_direction IN ('plus','minus'));
+
+CREATE TABLE
+IF NOT EXISTS spare_part_movements
+(
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    warehouse_id UUID NOT NULL REFERENCES warehouses(id) ON DELETE CASCADE,
+    part_id UUID NOT NULL REFERENCES spare_parts(id) ON DELETE CASCADE,
+    movement_type TEXT NOT NULL CHECK (movement_type IN ('in','out','adjust_in','adjust_out','transfer_in','transfer_out','reserve','release')),
+    qty INT NOT NULL CHECK (qty > 0),
+    unit_cost NUMERIC(12,2),
+    ref_type TEXT,
+    ref_id UUID,
+    actor_user_id TEXT,
+    correlation_id TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_spare_part_movements_part ON spare_part_movements(part_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_spare_part_movements_warehouse ON spare_part_movements(warehouse_id, created_at DESC);
+
+CREATE TABLE
+IF NOT EXISTS repair_orders
+(
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    asset_id UUID NOT NULL REFERENCES assets(id) ON DELETE CASCADE,
+    ci_id UUID REFERENCES cmdb_cis(id) ON DELETE SET NULL,
+    code TEXT UNIQUE NOT NULL,
+    title TEXT NOT NULL,
+    description TEXT,
+    severity TEXT NOT NULL CHECK (severity IN ('low','medium','high','critical')),
+    status TEXT NOT NULL CHECK (status IN ('open','diagnosing','waiting_parts','repaired','closed','canceled')),
+    opened_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    closed_at TIMESTAMPTZ,
+    diagnosis TEXT,
+    resolution TEXT,
+    repair_type TEXT NOT NULL CHECK (repair_type IN ('internal','vendor')),
+    technician_name TEXT,
+    vendor_id UUID REFERENCES vendors(id) ON DELETE SET NULL,
+    labor_cost NUMERIC(12,2) DEFAULT 0,
+    parts_cost NUMERIC(12,2) DEFAULT 0,
+    downtime_minutes INT,
+    created_by TEXT,
+    correlation_id TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+ALTER TABLE repair_orders
+    ADD COLUMN IF NOT EXISTS ci_id UUID REFERENCES cmdb_cis(id) ON DELETE SET NULL;
+
+CREATE INDEX IF NOT EXISTS idx_repair_orders_asset ON repair_orders(asset_id, opened_at DESC);
+CREATE INDEX IF NOT EXISTS idx_repair_orders_status ON repair_orders(status, opened_at DESC);
+CREATE INDEX IF NOT EXISTS idx_repair_orders_ci ON repair_orders(ci_id, opened_at DESC);
+
+CREATE TABLE
+IF NOT EXISTS repair_order_parts
+(
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    repair_order_id UUID NOT NULL REFERENCES repair_orders(id) ON DELETE CASCADE,
+    part_id UUID REFERENCES spare_parts(id) ON DELETE SET NULL,
+    part_name TEXT,
+    warehouse_id UUID REFERENCES warehouses(id) ON DELETE SET NULL,
+    action TEXT NOT NULL CHECK (action IN ('replace','add','remove','upgrade')),
+    qty INT NOT NULL CHECK (qty > 0),
+    unit_cost NUMERIC(12,2),
+    serial_no TEXT,
+    note TEXT,
+    stock_document_id UUID REFERENCES stock_documents(id) ON DELETE SET NULL,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_repair_order_parts_order ON repair_order_parts(repair_order_id, created_at ASC);
+
+CREATE TABLE
+IF NOT EXISTS attachments
+(
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    entity_type TEXT NOT NULL CHECK (entity_type IN ('repair_order','stock_document')),
+    entity_id UUID NOT NULL,
+    file_name TEXT NOT NULL,
+    mime_type TEXT NOT NULL,
+    storage_key TEXT NOT NULL,
+    size_bytes BIGINT,
+    version INT NOT NULL DEFAULT 1,
+    uploaded_by TEXT,
+    correlation_id TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_attachments_entity ON attachments(entity_type, entity_id, created_at DESC);
+
+CREATE TABLE
+IF NOT EXISTS ops_events
+(
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    entity_type TEXT NOT NULL CHECK (entity_type IN ('repair_order','stock_document','spare_part','warehouse','asset_category','cmdb_ci','cmdb_rel','cmdb_service','cmdb_type','cmdb_schema')),
+    entity_id UUID NOT NULL,
+    event_type TEXT NOT NULL,
+    payload JSONB DEFAULT '{}',
+    actor_user_id TEXT,
+    correlation_id TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_ops_events_entity ON ops_events(entity_type, entity_id, created_at DESC);

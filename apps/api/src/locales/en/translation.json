@@ -1,0 +1,102 @@
+{
+    "common": {
+        "success": "Success",
+        "error": "Error",
+        "loading": "Loading...",
+        "save": "Save",
+        "cancel": "Cancel",
+        "delete": "Delete",
+        "edit": "Edit",
+        "create": "Create",
+        "update": "Update",
+        "search": "Search",
+        "filter": "Filter",
+        "export": "Export",
+        "import": "Import",
+        "refresh": "Refresh",
+        "back": "Back",
+        "next": "Next",
+        "previous": "Previous",
+        "close": "Close",
+        "confirm": "Confirm",
+        "yes": "Yes",
+        "no": "No"
+    },
+    "auth": {
+        "login": "Login",
+        "logout": "Logout",
+        "register": "Register",
+        "email": "Email",
+        "password": "Password",
+        "username": "Username",
+        "forgotPassword": "Forgot Password?",
+        "rememberMe": "Remember Me",
+        "invalidCredentials": "Invalid email or password",
+        "unauthorized": "Unauthorized access",
+        "sessionExpired": "Your session has expired. Please login again."
+    },
+    "errors": {
+        "notFound": "Resource not found",
+        "serverError": "Internal server error",
+        "badRequest": "Bad request",
+        "forbidden": "Access forbidden",
+        "validation": "Validation error",
+        "networkError": "Network error. Please check your connection.",
+        "unknownError": "An unknown error occurred"
+    },
+    "cmdb": {
+        "title": "Configuration Management Database",
+        "types": "CI Types",
+        "cis": "Configuration Items",
+        "services": "Services",
+        "relationships": "Relationships",
+        "createCI": "Create Configuration Item",
+        "editCI": "Edit Configuration Item",
+        "deleteCI": "Delete Configuration Item",
+        "ciCode": "CI Code",
+        "ciName": "CI Name",
+        "status": "Status",
+        "environment": "Environment",
+        "owner": "Owner",
+        "location": "Location"
+    },
+    "assets": {
+        "title": "Asset Management",
+        "asset": "Asset",
+        "assets": "Assets",
+        "categories": "Categories",
+        "vendors": "Vendors",
+        "models": "Models",
+        "serialNumber": "Serial Number",
+        "assetTag": "Asset Tag",
+        "purchaseDate": "Purchase Date",
+        "warrantyExpiry": "Warranty Expiry"
+    },
+    "maintenance": {
+        "title": "Maintenance Management",
+        "tickets": "Tickets",
+        "createTicket": "Create Ticket",
+        "priority": "Priority",
+        "assignee": "Assignee",
+        "dueDate": "Due Date",
+        "description": "Description"
+    },
+    "inventory": {
+        "title": "Inventory Management",
+        "warehouses": "Warehouses",
+        "items": "Items",
+        "stock": "Stock",
+        "movements": "Movements",
+        "onHand": "On Hand",
+        "reserved": "Reserved",
+        "available": "Available"
+    },
+    "pagination": {
+        "page": "Page",
+        "of": "of",
+        "items": "items",
+        "rowsPerPage": "Rows per page",
+        "showing": "Showing",
+        "to": "to"
+    }
+}

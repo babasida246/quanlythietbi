@@ -1,0 +1,102 @@
+{
+    "common": {
+        "success": "Thành công",
+        "error": "Lỗi",
+        "loading": "Đang tải...",
+        "save": "Lưu",
+        "cancel": "Hủy",
+        "delete": "Xóa",
+        "edit": "Sửa",
+        "create": "Tạo mới",
+        "update": "Cập nhật",
+        "search": "Tìm kiếm",
+        "filter": "Lọc",
+        "export": "Xuất",
+        "import": "Nhập",
+        "refresh": "Làm mới",
+        "back": "Quay lại",
+        "next": "Tiếp theo",
+        "previous": "Trước",
+        "close": "Đóng",
+        "confirm": "Xác nhận",
+        "yes": "Có",
+        "no": "Không"
+    },
+    "auth": {
+        "login": "Đăng nhập",
+        "logout": "Đăng xuất",
+        "register": "Đăng ký",
+        "email": "Email",
+        "password": "Mật khẩu",
+        "username": "Tên đăng nhập",
+        "forgotPassword": "Quên mật khẩu?",
+        "rememberMe": "Ghi nhớ đăng nhập",
+        "invalidCredentials": "Email hoặc mật khẩu không đúng",
+        "unauthorized": "Truy cập không được phép",
+        "sessionExpired": "Phiên làm việc đã hết hạn. Vui lòng đăng nhập lại."
+    },
+    "errors": {
+        "notFound": "Không tìm thấy tài nguyên",
+        "serverError": "Lỗi máy chủ nội bộ",
+        "badRequest": "Yêu cầu không hợp lệ",
+        "forbidden": "Truy cập bị từ chối",
+        "validation": "Lỗi xác thực",
+        "networkError": "Lỗi mạng. Vui lòng kiểm tra kết nối.",
+        "unknownError": "Đã xảy ra lỗi không xác định"
+    },
+    "cmdb": {
+        "title": "Cơ sở dữ liệu quản lý cấu hình",
+        "types": "Loại CI",
+        "cis": "Mục cấu hình",
+        "services": "Dịch vụ",
+        "relationships": "Mối quan hệ",
+        "createCI": "Tạo mục cấu hình",
+        "editCI": "Sửa mục cấu hình",
+        "deleteCI": "Xóa mục cấu hình",
+        "ciCode": "Mã CI",
+        "ciName": "Tên CI",
+        "status": "Trạng thái",
+        "environment": "Môi trường",
+        "owner": "Người sở hữu",
+        "location": "Vị trí"
+    },
+    "assets": {
+        "title": "Quản lý tài sản",
+        "asset": "Tài sản",
+        "assets": "Tài sản",
+        "categories": "Danh mục",
+        "vendors": "Nhà cung cấp",
+        "models": "Mẫu mã",
+        "serialNumber": "Số serial",
+        "assetTag": "Mã tài sản",
+        "purchaseDate": "Ngày mua",
+        "warrantyExpiry": "Hết hạn bảo hành"
+    },
+    "maintenance": {
+        "title": "Quản lý bảo trì",
+        "tickets": "Phiếu yêu cầu",
+        "createTicket": "Tạo phiếu",
+        "priority": "Độ ưu tiên",
+        "assignee": "Người xử lý",
+        "dueDate": "Hạn xử lý",
+        "description": "Mô tả"
+    },
+    "inventory": {
+        "title": "Quản lý kho",
+        "warehouses": "Kho hàng",
+        "items": "Mặt hàng",
+        "stock": "Tồn kho",
+        "movements": "Biến động",
+        "onHand": "Tồn kho",
+        "reserved": "Đã đặt",
+        "available": "Có sẵn"
+    },
+    "pagination": {
+        "page": "Trang",
+        "of": "trên",
+        "items": "mục",
+        "rowsPerPage": "Số hàng mỗi trang",
+        "showing": "Hiển thị",
+        "to": "đến"
+    }
+}

@@ -1,0 +1,9 @@
+# Auth state (auto-generated, contains JWT tokens)
+.auth-state.json
+
+# Screenshots output (regenerated on each run)
+screenshots/
+
+# Test results & report
+test-results/
+report/

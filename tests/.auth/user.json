@@ -1,0 +1,22 @@
+{
+  "cookies": [],
+  "origins": [
+    {
+      "origin": "http://localhost:3001",
+      "localStorage": [
+        {
+          "name": "auth_token",
+          "value": "mock-admin-token-12345"
+        },
+        {
+          "name": "user_role",
+          "value": "admin"
+        },
+        {
+          "name": "user_email",
+          "value": "admin@test.com"
+        }
+      ]
+    }
+  ]
+}

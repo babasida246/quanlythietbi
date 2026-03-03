@@ -1,0 +1,170 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: qltb_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/qltb_test
+      NODE_ENV: test
+      CI: true
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4  
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Enable Corepack
+        run: |
+          corepack enable
+          corepack prepare pnpm@latest --activate
+
+      - name: Get pnpm store directory
+        id: pnpm-cache
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
+
+      - name: Setup pnpm cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Create artifacts directory
+        run: mkdir -p artifacts/test-report
+
+      - name: Make scripts executable
+        run: |
+          chmod +x scripts/ci/*.sh
+          chmod +x scripts/*.sh || true
+
+      - name: Run CI Pipeline
+        run: ./scripts/ci/run-all.sh --skip-docker
+        timeout-minutes: 25
+
+      - name: Upload test artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-reports-${{ github.run_number }}
+          path: |
+            artifacts/test-report/
+            coverage/
+          retention-days: 7
+
+      - name: Upload JUnit results
+        uses: dorny/test-reporter@v1
+        if: always()
+        with:
+          name: Test Results
+          path: 'artifacts/test-report/*.xml'
+          reporter: java-junit
+          only-summary: false
+          fail-on-error: false
+
+  docker-build:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    needs: ci
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Enable Corepack
+        run: |
+          corepack enable
+          corepack prepare pnpm@latest --activate
+
+      - name: Create artifacts directory
+        run: mkdir -p artifacts/test-report
+
+      - name: Make scripts executable
+        run: chmod +x scripts/ci/*.sh
+
+      - name: Run Docker Pipeline
+        run: ./scripts/ci/run-all.sh --skip-tests --no-cache
+        timeout-minutes: 15
+
+      - name: Upload Docker artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: docker-reports-${{ github.run_number }}
+          path: artifacts/test-report/
+          retention-days: 3
+
+  security-scan:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout code  
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Enable Corepack
+        run: |
+          corepack enable
+          corepack prepare pnpm@latest --activate
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run security audit
+        run: |
+          pnpm audit --audit-level=moderate || echo "Security vulnerabilities found"
+          pnpm audit --json > artifacts/security-audit.json || true
+
+      - name: Upload security results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: security-scan-${{ github.run_number }}
+          path: artifacts/security-audit.json
+          retention-days: 30

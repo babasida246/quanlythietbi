@@ -1,0 +1,104 @@
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: qltb_assets_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${ASSETS_DB_NAME:-qltb_assets}
+      POSTGRES_USER: ${ASSETS_DB_USER:-qltb}
+      POSTGRES_PASSWORD: ${ASSETS_DB_PASS:-qltb}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "${ASSETS_DB_PORT_HOST:-5434}:5432"
+    volumes:
+      - qltb_assets_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${ASSETS_DB_USER:-qltb} -d ${ASSETS_DB_NAME:-qltb_assets}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - qltb_assets_net
+
+  api:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.api
+    container_name: qltb_assets_api
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      NODE_ENV: ${NODE_ENV:-development}
+      PORT: 3000
+      HOST: 0.0.0.0
+      DATABASE_URL: ${ASSETS_DATABASE_URL}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      ASSETS_DB_SEED: ${ASSETS_DB_SEED:-true}
+      ASSETS_DB_HOST: ${ASSETS_DB_HOST:-db}
+      ASSETS_DB_PORT: ${ASSETS_DB_PORT:-5432}
+      ASSETS_DB_NAME: ${ASSETS_DB_NAME:-qltb_assets}
+      ASSETS_DB_USER: ${ASSETS_DB_USER:-qltb}
+    ports:
+      - "${PORT_API:-3100}:3000"
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://0.0.0.0:3000/health/ready"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    volumes:
+      - ../logs:/app/logs
+    networks:
+      - qltb_assets_net
+
+  web:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.web
+    container_name: qltb_assets_web
+    restart: unless-stopped
+    depends_on:
+      - api
+    environment:
+      NODE_ENV: ${NODE_ENV:-production}
+      PORT: 3000
+      BACKEND_BASE_URL: ${BACKEND_BASE_URL:-http://qltb_assets_api:3000}
+    ports:
+      - "${PORT_WEB:-3103}:3000"
+    networks:
+      - qltb_assets_net
+    profiles:
+      - web
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: qltb_assets_pgadmin
+    restart: unless-stopped
+    profiles:
+      - dev
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-admin@example.com}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-admin}
+      PGADMIN_CONFIG_SERVER_MODE: "True"
+      PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: "False"
+    ports:
+      - "${PGADMIN_PORT:-5054}:80"
+    volumes:
+      - qltb_assets_pgadmin_data:/var/lib/pgadmin
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - qltb_assets_net
+
+volumes:
+  qltb_assets_pgdata:
+    driver: local
+  qltb_assets_pgadmin_data:
+    driver: local
+
+networks:
+  qltb_assets_net:
+    driver: bridge

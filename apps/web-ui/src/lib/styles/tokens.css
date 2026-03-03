@@ -1,0 +1,87 @@
+/* =================================================================
+   DESIGN TOKENS — Single Source of Truth
+   =================================================================
+   All color, shadow, radius, and spacing tokens live here.
+   Components must reference these variables — never hardcode hex.
+   
+   Contrast targets (WCAG 2.1 AA):
+     --text       on --bg        ≈ 16 : 1  ✅
+     --text       on --surface   ≈ 14 : 1  ✅
+     --text-muted on --surface   ≈  7 : 1  ✅  (body text ≥ 4.5)
+     --text-dim   on --surface-2 ≈  4.6: 1 ✅  (placeholder ≥ 4.5)
+     --primary    on --bg        ≈  5.2: 1 ✅  (large text ≥ 3)
+   ================================================================= */
+
+:root {
+  /* ── Neutrals: dark layered surfaces ───────────────────────
+     Channel-only (R G B) — enables Tailwind alpha modifiers like bg-surface/60
+     Resolved colors use rgb(var(--color-X) / alpha)
+  */
+  --color-bg:            11 18 32;              /* #0B1220 — App background */
+  --color-surface:       18 27 46;              /* #121B2E — Card surface */
+  --color-surface-2:     15 23 42;              /* #0F172A — Inner surface (input bg) */
+  --color-elevated:      26 37 64;              /* #1A2540 — Elevated layer */
+
+  /* ── Borders ───────────────────────────────────────────────── */
+  --color-border:        rgba(148, 163, 184, 0.18);  /* Default border */
+  --color-border-strong: rgba(148, 163, 184, 0.35);  /* Hover / emphasis border */
+
+  /* ── Text ──────────────────────────────────────────────────── */
+  --color-text:          rgba(248, 250, 252, 0.95);  /* Primary text */
+  --color-text-muted:    rgba(226, 232, 240, 0.72);  /* Secondary / label text */
+  --color-text-dim:      rgba(226, 232, 240, 0.50);  /* Placeholder / hint */
+
+  /* ── Brand / Primary ───────────────────────────────────────── */
+  --color-primary:          #3B82F6;
+  --color-primary-hover:    #60A5FA;
+  --color-primary-active:   #2563EB;
+  --color-primary-contrast: #FFFFFF;
+  --color-primary-muted:    rgba(59, 130, 246, 0.15); /* bg tint for active nav */
+
+  /* ── Danger / Error ────────────────────────────────────────── */
+  --color-danger:        #EF4444;
+  --color-danger-hover:  #DC2626;
+  --color-danger-bg:     rgba(239, 68, 68, 0.10);
+  --color-danger-border: rgba(239, 68, 68, 0.55);
+
+  /* ── Success ───────────────────────────────────────────────── */
+  --color-success:       #10B981;
+  --color-success-bg:    rgba(16, 185, 129, 0.10);
+  --color-success-border:rgba(16, 185, 129, 0.55);
+
+  /* ── Warning ───────────────────────────────────────────────── */
+  --color-warning:       #F59E0B;
+  --color-warning-bg:    rgba(245, 158, 11, 0.10);
+  --color-warning-border:rgba(245, 158, 11, 0.55);
+
+  /* ── Focus ─────────────────────────────────────────────────── */
+  --color-focus:         rgba(59, 130, 246, 0.55);
+  --shadow-focus-ring:   0 0 0 3px rgba(59, 130, 246, 0.35);
+
+  /* ── Radius ────────────────────────────────────────────────── */
+  --radius-sm:  4px;
+  --radius-md:  8px;
+  --radius-lg:  12px;
+  --radius-xl:  16px;
+
+  /* ── Shadows ───────────────────────────────────────────────── */
+  --shadow-xs:    0 1px 2px rgba(0, 0, 0, 0.12);
+  --shadow-sm:    0 2px 6px rgba(0, 0, 0, 0.14), 0 1px 2px rgba(0, 0, 0, 0.10);
+  --shadow-md:    0 4px 14px rgba(0, 0, 0, 0.18), 0 2px 4px rgba(0, 0, 0, 0.12);
+  --shadow-lg:    0 8px 28px rgba(0, 0, 0, 0.22), 0 4px 8px rgba(0, 0, 0, 0.14);
+  --shadow-card:  0 4px 24px rgba(0, 0, 0, 0.18), 0 1px 4px rgba(0, 0, 0, 0.12);
+  --shadow-modal: 0 24px 48px rgba(0, 0, 0, 0.30), 0 8px 16px rgba(0, 0, 0, 0.18);
+
+  /* ── Transition ────────────────────────────────────────────── */
+  --transition-fast: 150ms ease;
+  --transition-base: 200ms ease;
+
+  /* ── Spacing (mirrors Tailwind 8pt) ────────────────────────── */
+  --space-1:  4px;
+  --space-2:  8px;
+  --space-3:  12px;
+  --space-4:  16px;
+  --space-5:  20px;
+  --space-6:  24px;
+  --space-8:  32px;
+}

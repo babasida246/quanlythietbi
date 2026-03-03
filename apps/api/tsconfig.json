@@ -1,0 +1,32 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "rootDir": "../..",
+    "composite": false,
+    "baseUrl": ".",
+    "typeRoots": ["./src/types", "../../node_modules/@types"],
+    "paths": {
+      "@/*": ["./src/*"],
+      "@qltb/domain": ["../../packages/domain/src/index.ts"],
+      "@qltb/contracts": ["../../packages/contracts/src/index.ts"],
+      "@qltb/application": ["../../packages/application/src/index.ts"],
+      "@qltb/infra-postgres": ["../../packages/infra-postgres/src/index.ts"]
+    }
+  },
+  "include": ["src/**/*", "../../packages/*/src/**/*"],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "**/*.test.ts",
+    "**/*.spec.ts",
+    "**/*.integration.test.ts",
+    "**/*.e2e.ts",
+    "**/__tests__/**",
+    "../../packages/**/src/**/*.test.ts",
+    "../../packages/**/src/**/*.spec.ts",
+    "../../packages/**/src/**/*.integration.test.ts",
+    "../../packages/**/src/**/*.e2e.ts",
+    "../../packages/**/src/**/__tests__/**"
+  ]
+}

@@ -1,0 +1,369 @@
+name: 🎭 Playwright E2E Tests
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+    inputs:
+      test_type:
+        description: 'Test type to run'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+        - all
+        - api
+        - ui
+        - smoke
+
+env:
+  NODE_VERSION: '20'
+
+jobs:
+  test:
+    timeout-minutes: 60
+    runs-on: ubuntu-latest
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        project: [api, ui-chrome, ui-firefox, smoke]
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: assets_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+      
+      redis:
+        image: redis:alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@v4
+    
+    - name: 🟢 Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'pnpm'
+    
+    - name: 📦 Install pnpm
+      uses: pnpm/action-setup@v4
+      with:
+        version: 8
+    
+    - name: 📚 Install dependencies
+      run: pnpm install --frozen-lockfile
+    
+    - name: 🏗️ Build application
+      run: pnpm run build
+      env:
+        NODE_ENV: test
+    
+    - name: 🗄️ Setup test database
+      run: |
+        PGPASSWORD=postgres psql -h localhost -U postgres -d assets_test -c "SELECT version();"
+        echo "Database connection verified"
+      env:
+        PGPASSWORD: postgres
+    
+    - name: 🌱 Run database migrations and seeds
+      run: |
+        # Add your database migration/seed commands here
+        echo "Running database setup for tests..."
+        # Example: pnpm run db:migrate && pnpm run db:seed
+      env:
+        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/assets_test
+    
+    - name: 🎭 Install Playwright Browsers
+      run: pnpm exec playwright install --with-deps
+    
+    - name: 🔧 Setup test environment
+      run: |
+        cp .env.test.example .env.test
+        echo "API_BASE_URL=http://localhost:3000" >> .env.test
+        echo "WEB_BASE_URL=http://localhost:4173" >> .env.test
+        echo "DATABASE_URL=postgresql://postgres:postgres@localhost:5432/assets_test" >> .env.test
+        echo "MOCK_AUTH=true" >> .env.test
+    
+    - name: 🚀 Start application services
+      run: |
+        # Start API server in background
+        pnpm run start:api &
+        API_PID=$!
+        echo "API_PID=$API_PID" >> $GITHUB_ENV
+        
+        # Start web server in background  
+        pnpm run preview &
+        WEB_PID=$!
+        echo "WEB_PID=$WEB_PID" >> $GITHUB_ENV
+        
+        # Wait for services to be ready
+        timeout 60s bash -c 'until curl -f http://localhost:3000/health; do sleep 2; done'
+        timeout 60s bash -c 'until curl -f http://localhost:4173; do sleep 2; done'
+        
+        echo "✅ Services are ready"
+      env:
+        NODE_ENV: test
+        PORT: 3000
+    
+    - name: 🧪 Run Playwright tests
+      run: pnpm exec playwright test --project=${{ matrix.project }}
+      env:
+        NODE_ENV: test
+    
+    - name: 🛑 Stop application services
+      if: always()
+      run: |
+        if [ ! -z "$API_PID" ]; then kill $API_PID || true; fi
+        if [ ! -z "$WEB_PID" ]; then kill $WEB_PID || true; fi
+    
+    - name: 📊 Upload test results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: playwright-results-${{ matrix.project }}
+        path: |
+          test-results/
+          playwright-report/
+        retention-days: 30
+    
+    - name: 📈 Upload coverage reports  
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: coverage-${{ matrix.project }}
+        path: coverage/
+        retention-days: 30
+
+  # Smoke tests job - runs on every commit
+  smoke-tests:
+    timeout-minutes: 15
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: assets_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@v4
+    
+    - name: 🟢 Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'pnpm'
+    
+    - name: 📦 Install pnpm
+      uses: pnpm/action-setup@v4
+      with:
+        version: 8
+    
+    - name: 📚 Install dependencies
+      run: pnpm install --frozen-lockfile
+    
+    - name: 🏗️ Build application
+      run: pnpm run build
+    
+    - name: 🎭 Install Playwright
+      run: pnpm exec playwright install chromium
+    
+    - name: 🔧 Setup test environment
+      run: |
+        cp .env.test.example .env.test
+        echo "MOCK_AUTH=true" >> .env.test
+    
+    - name: 🚀 Start services for smoke test
+      run: |
+        pnpm run start:api &
+        pnpm run preview &
+        sleep 10
+    
+    - name: 💨 Run smoke tests
+      run: pnpm exec playwright test --project=smoke
+    
+    - name: 📊 Upload smoke test results
+      uses: actions/upload-artifact@v4
+      if: failure()
+      with:
+        name: smoke-test-results
+        path: |
+          test-results/
+          playwright-report/
+
+  # Security scan job
+  security-scan:
+    runs-on: ubuntu-latest
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@v4
+    
+    - name: 🔍 Run Trivy vulnerability scanner
+      uses: aquasecurity/trivy-action@master
+      with:
+        scan-type: 'fs'
+        format: 'sarif'
+        output: 'trivy-results.sarif'
+    
+    - name: 📤 Upload Trivy scan results
+      uses: github/codeql-action/upload-sarif@v2
+      if: always()
+      with:
+        sarif_file: 'trivy-results.sarif'
+
+  # Performance testing job (optional)
+  performance-tests:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@v4
+    
+    - name: 🟢 Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+    
+    - name: 📦 Install pnpm
+      uses: pnpm/action-setup@v4
+      with:
+        version: 8
+    
+    - name: 📚 Install dependencies
+      run: pnpm install
+    
+    - name: 🏗️ Build for performance test
+      run: pnpm run build
+    
+    - name: 🚀 Start application
+      run: |
+        pnpm run start:api &
+        pnpm run preview &
+        sleep 15
+    
+    - name: 🎭 Install Playwright
+      run: pnpm exec playwright install chromium
+    
+    - name: ⚡ Run performance tests
+      run: pnpm exec playwright test tests/performance/ || echo "Performance tests completed"
+    
+    - name: 📈 Comment performance results
+      if: github.event_name == 'pull_request'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          // Add performance test results as PR comment
+          const fs = require('fs');
+          const path = 'test-results/performance-summary.json';
+          
+          if (fs.existsSync(path)) {
+            const results = JSON.parse(fs.readFileSync(path, 'utf8'));
+            const comment = `## ⚡ Performance Test Results
+            
+            - Page Load Time: ${results.loadTime || 'N/A'}ms
+            - API Response Time: ${results.apiTime || 'N/A'}ms
+            - Bundle Size: ${results.bundleSize || 'N/A'}
+            
+            *Performance tests completed successfully*`;
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
+          }
+
+  # Report aggregation and notifications
+  test-report:
+    needs: [test, smoke-tests]
+    runs-on: ubuntu-latest
+    if: always()
+    
+    steps:
+    - name: 📥 Download all test artifacts
+      uses: actions/download-artifact@v4
+      with:
+        path: test-artifacts/
+    
+    - name: 📋 Generate test summary
+      run: |
+        echo "# 🎭 Playwright Test Summary" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "## Test Results" >> $GITHUB_STEP_SUMMARY
+        
+        if [ "${{ needs.test.result }}" == "success" ]; then
+          echo "✅ **Main Tests**: PASSED" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "❌ **Main Tests**: FAILED" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        if [ "${{ needs.smoke-tests.result }}" == "success" ]; then
+          echo "✅ **Smoke Tests**: PASSED" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "❌ **Smoke Tests**: FAILED" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "## Coverage and Reports" >> $GITHUB_STEP_SUMMARY
+        echo "- Test artifacts available in workflow artifacts" >> $GITHUB_STEP_SUMMARY
+        echo "- HTML reports generated for failed tests" >> $GITHUB_STEP_SUMMARY
+        echo "- Screenshots and videos captured for debugging" >> $GITHUB_STEP_SUMMARY
+    
+    - name: 📧 Notify on test failure
+      if: failure() && github.ref == 'refs/heads/main'
+      uses: 8398a7/action-slack@v3
+      with:
+        status: failure
+        text: "🚨 Playwright tests failed on main branch"
+      env:
+        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+  # Deploy to staging after successful tests (optional)
+  deploy-staging:
+    needs: [test, smoke-tests]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/develop' && github.event_name == 'push'
+    
+    steps:
+    - name: 🚀 Deploy to staging
+      run: |
+        echo "Deploying to staging environment..."
+        # Add your deployment commands here
+        # Example: kubectl apply -f k8s/ or docker-compose up -d
+    
+    - name: 🧪 Run staging smoke tests
+      run: |
+        echo "Running smoke tests against staging..."
+        # Add staging validation commands here

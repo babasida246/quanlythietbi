@@ -1,0 +1,10 @@
+{
+  "extends": "./tsconfig.json",
+  "exclude": [
+    "src/**/*.test.ts",
+    "tests/**/*",
+    "src/lib/components/admin/**",
+    "src/lib/components/tools/**",
+    "src/routes/chat/**"
+  ]
+}

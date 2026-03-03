@@ -1,0 +1,41 @@
+FROM node:20-alpine AS base
+RUN corepack enable && corepack prepare pnpm@latest --activate
+WORKDIR /app
+
+FROM base AS deps
+COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
+COPY packages/domain/package.json packages/domain/
+COPY packages/contracts/package.json packages/contracts/
+COPY packages/application/package.json packages/application/
+COPY packages/infra-postgres/package.json packages/infra-postgres/
+COPY apps/api/package.json apps/api/
+RUN CI=true pnpm install --frozen-lockfile || CI=true pnpm install --no-frozen-lockfile
+
+FROM base AS build
+COPY . .
+COPY --from=deps /app/node_modules ./node_modules
+COPY --from=deps /app/apps/api/node_modules ./apps/api/node_modules
+COPY --from=deps /app/packages/domain/node_modules ./packages/domain/node_modules
+COPY --from=deps /app/packages/contracts/node_modules ./packages/contracts/node_modules
+COPY --from=deps /app/packages/application/node_modules ./packages/application/node_modules
+COPY --from=deps /app/packages/infra-postgres/node_modules ./packages/infra-postgres/node_modules
+RUN pnpm --filter @qltb/domain build \
+ && pnpm --filter @qltb/contracts build \
+ && pnpm --filter @qltb/application build \
+ && pnpm --filter @qltb/infra-postgres build \
+ && pnpm --filter @qltb/api build
+
+FROM node:20-alpine AS runtime
+RUN apk add --no-cache postgresql-client wget
+WORKDIR /app
+COPY --from=build /app/apps/api/dist ./apps/api/dist
+COPY --from=build /app/apps/api/node_modules ./apps/api/node_modules
+COPY --from=build /app/node_modules ./node_modules
+COPY --from=build /app/packages/application/node_modules ./packages/application/node_modules
+COPY --from=build /app/packages/infra-postgres/node_modules ./packages/infra-postgres/node_modules
+COPY --from=build /app/docker ./docker
+COPY --from=build /app/db ./db
+COPY --from=build /app/packages/infra-postgres/src ./packages/infra-postgres/src
+ENV NODE_ENV=production
+EXPOSE 3000
+CMD ["sh", "-c", "/app/docker/scripts/wait-for-db.sh && /app/docker/scripts/migrate-assets.sh && /app/docker/scripts/seed-assets.sh && node apps/api/dist/main.js"]
