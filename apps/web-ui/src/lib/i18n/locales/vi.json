@@ -3122,18 +3122,30 @@
   "me": {
     "assets": {
       "title": "Tài sản của tôi",
-      "subtitle": "Tìm tài sản theo mã, hostname, serial hoặc IP quản trị.",
-      "searchLabel": "Tìm kiếm",
+      "subtitle": "Xem và theo dõi tài sản trong hệ thống.",
+      "greeting": "Xin chào, {name}",
       "searchPlaceholder": "Mã tài sản, hostname, serial…",
-      "searchHelp": "Tìm theo thông tin bạn đã biết (mã/hostname/serial/IP).",
-      "statusLabel": "Trạng thái",
-      "allStatuses": "Tất cả trạng thái",
-      "statusHelp": "Lọc theo trạng thái vòng đời.",
-      "emptyTitle": "Bắt đầu bằng tìm kiếm",
-      "emptySubtitle": "Nhập mã tài sản hoặc hostname để tìm nhanh.",
-      "noMatches": "Không có kết quả",
+      "statsTotal": "Tổng tài sản",
+      "statsInUse": "Đang sử dụng",
+      "statsInRepair": "Đang sửa chữa",
+      "statsWarrantyExpiring": "Sắp hết bảo hành",
+      "statsCurrentPage": "trang hiện tại",
+      "tabAll": "Tất cả",
+      "tabInUse": "Đang dùng",
+      "tabInRepair": "Đang sửa",
+      "tabInStock": "Trong kho",
+      "tabRetired": "Thanh lý",
+      "sortCode": "Mã A→Z",
+      "sortNewest": "Mới nhất",
+      "sortWarranty": "Bảo hành ↑",
+      "warrantyExpired": "Hết bảo hành",
+      "noData": "Không có tài sản nào",
+      "noDataSub": "Không có mục nào khớp với bộ lọc hiện tại.",
+      "reportIssue": "Báo sự cố",
+      "issueReported": "Đã tạo phiếu bảo trì",
       "errors": {
-        "loadFailed": "Tải danh sách tài sản thất bại"
+        "loadFailed": "Tải danh sách tài sản thất bại",
+        "reportFailed": "Gửi báo cáo sự cố thất bại"
       }
     },
     "requests": {

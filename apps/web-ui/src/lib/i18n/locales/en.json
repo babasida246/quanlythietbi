@@ -3122,18 +3122,30 @@
   "me": {
     "assets": {
       "title": "My Assets",
-      "subtitle": "Search assets by code, hostname, serial, or management IP.",
-      "searchLabel": "Search",
+      "subtitle": "View and track assets in the system.",
+      "greeting": "Hello, {name}",
       "searchPlaceholder": "Asset code, hostname, serial…",
-      "searchHelp": "Search is restricted to what you already know (code/hostname/etc).",
-      "statusLabel": "Status",
-      "allStatuses": "All statuses",
-      "statusHelp": "Filter by lifecycle status.",
-      "emptyTitle": "Start with a search",
-      "emptySubtitle": "Enter an asset code or hostname to find what you need.",
-      "noMatches": "No matches",
+      "statsTotal": "Total assets",
+      "statsInUse": "In use",
+      "statsInRepair": "In repair",
+      "statsWarrantyExpiring": "Warranty expiring",
+      "statsCurrentPage": "on current page",
+      "tabAll": "All",
+      "tabInUse": "In Use",
+      "tabInRepair": "In Repair",
+      "tabInStock": "In Stock",
+      "tabRetired": "Retired",
+      "sortCode": "Code A→Z",
+      "sortNewest": "Newest",
+      "sortWarranty": "Warranty ↑",
+      "warrantyExpired": "Expired",
+      "noData": "No assets found",
+      "noDataSub": "No items match the current filter.",
+      "reportIssue": "Report",
+      "issueReported": "Maintenance ticket opened",
       "errors": {
-        "loadFailed": "Failed to load assets"
+        "loadFailed": "Failed to load assets",
+        "reportFailed": "Failed to submit issue report"
       }
     },
     "requests": {
