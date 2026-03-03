@@ -1,19 +1,41 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
+  import { _ } from '$lib/i18n';
+  import Button from '$lib/components/ui/Button.svelte';
+  import PageHeader from '$lib/components/PageHeader.svelte';
+  import Skeleton from '$lib/components/Skeleton.svelte';
+  import EmptyState from '$lib/components/EmptyState.svelte';
+  import Table from '$lib/components/ui/Table.svelte';
+  import TableHeader from '$lib/components/ui/TableHeader.svelte';
+  import TableRow from '$lib/components/ui/TableRow.svelte';
+  import TableCell from '$lib/components/ui/TableCell.svelte';
+  import CreateEditModal from '$lib/components/crud/CreateEditModal.svelte';
+  import DeleteConfirmModal from '$lib/components/crud/DeleteConfirmModal.svelte';
+  import TextField from '$lib/components/TextField.svelte';
+  import SelectField from '$lib/components/SelectField.svelte';
+  import TextareaField from '$lib/components/TextareaField.svelte';
   import {
-    Alert, Badge, Button, Card, Input, Label, Modal, Select, Spinner,
-    Table, TableBody, TableBodyCell, TableBodyRow, TableHead, TableHeadCell,
-    Toggle, Textarea, Tabs, TabItem
-  } from 'flowbite-svelte';
-  import { Plus, Trash2, Edit, Zap, Bell, Clock } from 'lucide-svelte';
+    GitBranch, Plus, Trash2, Edit, Bell, Clock, Play, Eye,
+    EyeOff, RefreshCw, ShieldCheck, Workflow, ArrowRight
+  } from 'lucide-svelte';
   import {
     listRules, createRule, updateRule, deleteRule,
     listNotifications, listTasks, createTask, deleteTask,
     type AutomationRule, type Notification, type ScheduledTask
   } from '$lib/api/automation';
+  import { z } from 'zod';
+  import { toast } from '$lib/components/toast';
 
-  let activeTab = $state<'rules' | 'notifications' | 'tasks'>('rules');
+  type TabKey = 'workflows' | 'rules' | 'notifications' | 'tasks';
+  let activeTab = $state<TabKey>('workflows');
+  const tabs: { key: TabKey; icon: typeof GitBranch }[] = [
+    { key: 'workflows', icon: Workflow },
+    { key: 'rules', icon: ShieldCheck },
+    { key: 'notifications', icon: Bell },
+    { key: 'tasks', icon: Clock }
+  ];
 
-  // Rules state
+  // Data state
   let rules = $state<AutomationRule[]>([]);
   let notifications = $state<Notification[]>([]);
   let tasks = $state<ScheduledTask[]>([]);
@@ -23,22 +45,137 @@
   // Rule form
   let showRuleModal = $state(false);
   let editingRule = $state<AutomationRule | null>(null);
-  let ruleName = $state('');
-  let ruleEventType = $state('asset_status_change');
-  let ruleConditions = $state('{}');
-  let ruleActions = $state('{}');
-  let ruleIsActive = $state(true);
-  let rulePriority = $state(1);
-  let saving = $state(false);
+  let ruleForm = $state({ name: '', eventType: 'asset_status_change', conditions: '{}', actions: '{}', isActive: true, priority: 1 });
 
   // Task form
   let showTaskModal = $state(false);
-  let taskName = $state('');
-  let taskType = $state('maintenance_check');
-  let taskSchedule = $state('0 9 * * 1');
-  let taskConfig = $state('{}');
-  let taskIsActive = $state(true);
+  let taskForm = $state({ name: '', taskType: 'maintenance_check', schedule: '0 9 * * 1', config: '{}', isActive: true });
 
+  // Delete confirmation
+  let showDeleteModal = $state(false);
+  let deleteTarget = $state<{ type: 'rule' | 'task'; id: string; name: string } | null>(null);
+
+  // Mermaid diagrams for business workflows
+  type WorkflowDef = { key: string; code: string };
+  const workflows: WorkflowDef[] = [
+    {
+      key: 'assetLifecycle',
+      code: `flowchart LR
+    A[📦 Tiếp nhận] --> B[✅ Kiểm tra]
+    B --> C{Đạt?}
+    C -->|Có| D[🏷️ Gán mã TS]
+    C -->|Không| E[↩️ Trả lại NCC]
+    D --> F[📋 Phân bổ sử dụng]
+    F --> G[🔄 Đang sử dụng]
+    G --> H{Hỏng?}
+    H -->|Có| I[🔧 Sửa chữa]
+    I --> J{Sửa được?}
+    J -->|Có| G
+    J -->|Không| K[📤 Thanh lý]
+    H -->|Không| L{Hết HSD?}
+    L -->|Có| K
+    L -->|Không| G`
+    },
+    {
+      key: 'repairWorkflow',
+      code: `flowchart TD
+    A[🔧 Yêu cầu sửa chữa] --> B[📋 Tạo phiếu SC]
+    B --> C[👨‍🔧 Phân công KTV]
+    C --> D[🔍 Chẩn đoán]
+    D --> E{Cần vật tư?}
+    E -->|Có| F[📦 Xuất kho vật tư]
+    E -->|Không| G[🛠️ Thực hiện SC]
+    F --> G
+    G --> H[✅ Kiểm tra kết quả]
+    H --> I{Đạt?}
+    I -->|Có| J[📝 Hoàn thành phiếu]
+    I -->|Không| D
+    J --> K[💰 Tính chi phí]
+    K --> L[📊 Cập nhật lịch sử TS]`
+    },
+    {
+      key: 'procurement',
+      code: `flowchart LR
+    A[📊 Kiểm tra tồn kho] --> B{Dưới mức?}
+    B -->|Có| C[📝 Lập kế hoạch mua]
+    B -->|Không| A
+    C --> D[✍️ Duyệt đề xuất]
+    D --> E{Được duyệt?}
+    E -->|Có| F[📄 Tạo đơn đặt hàng]
+    E -->|Không| G[🔄 Chỉnh sửa]
+    G --> D
+    F --> H[📦 Nhận hàng]
+    H --> I[🔍 Kiểm tra chất lượng]
+    I --> J[📥 Nhập kho]
+    J --> K[💳 Xử lý thanh toán]`
+    },
+    {
+      key: 'inventoryMgmt',
+      code: `flowchart TD
+    A[📥 Nhập kho] --> B[📋 Tạo phiếu nhập]
+    B --> C[🏷️ Gán lô / HSD]
+    C --> D[📍 Xếp vị trí kho]
+    D --> E[📊 Cập nhật tồn kho]
+    E --> F{Loại yêu cầu?}
+    F -->|Xuất| G[📤 Phiếu xuất kho]
+    F -->|Kiểm kê| H[🔢 Kiểm kê]
+    F -->|Điều chuyển| I[🔄 Phiếu điều chuyển]
+    G --> J[✅ Xác nhận xuất]
+    H --> K[📝 Biên bản kiểm kê]
+    I --> L[📦 Chuyển kho đích]
+    J --> E
+    K --> E
+    L --> E`
+    }
+  ];
+
+  let diagramContainers: (HTMLDivElement | null)[] = $state(new Array(workflows.length).fill(null));
+  let diagramRendered: boolean[] = $state(new Array(workflows.length).fill(false));
+  let expandedDiagram = $state<number | null>(null);
+  let mermaidCounter = 0;
+
+  async function renderDiagram(idx: number) {
+    const el = diagramContainers[idx];
+    if (!el || diagramRendered[idx]) return;
+    try {
+      const mermaid = await import('mermaid');
+      mermaid.default.initialize({
+        startOnLoad: false,
+        theme: 'dark',
+        darkMode: true,
+        themeVariables: {
+          primaryColor: '#3b82f6',
+          primaryTextColor: '#e2e8f0',
+          primaryBorderColor: '#60a5fa',
+          lineColor: '#64748b',
+          secondaryColor: '#1e293b',
+          tertiaryColor: '#0f172a',
+          background: '#0f172a',
+          mainBkg: '#1e293b',
+          nodeBorder: '#3b82f6',
+          clusterBkg: '#1e293b',
+          clusterBorder: '#334155',
+          titleColor: '#e2e8f0',
+          edgeLabelBackground: '#1e293b'
+        },
+        flowchart: { htmlLabels: true, curve: 'basis' }
+      });
+      const uid = `wf-${Date.now()}-${++mermaidCounter}`;
+      const { svg } = await mermaid.default.render(uid, workflows[idx].code);
+      el.innerHTML = svg;
+      diagramRendered[idx] = true;
+    } catch (e) {
+      if (el) el.innerHTML = `<p class="text-red-400 text-sm">Render error: ${e instanceof Error ? e.message : String(e)}</p>`;
+    }
+  }
+
+  $effect(() => {
+    if (activeTab === 'workflows' && expandedDiagram !== null) {
+      setTimeout(() => renderDiagram(expandedDiagram!), 20);
+    }
+  });
+
+  // Data loading
   async function loadData() {
     try {
       loading = true;
@@ -58,302 +195,388 @@
     }
   }
 
+  // Rule CRUD
+  const ruleSchema = z.object({
+    name: z.string().min(1),
+    eventType: z.string(),
+    conditions: z.string().refine(s => { try { JSON.parse(s); return true; } catch { return false; } }),
+    actions: z.string().refine(s => { try { JSON.parse(s); return true; } catch { return false; } }),
+    priority: z.string(),
+    isActive: z.any()
+  });
+
+  const taskSchema = z.object({
+    name: z.string().min(1),
+    taskType: z.string(),
+    schedule: z.string().min(1),
+    config: z.string().refine(s => { try { JSON.parse(s); return true; } catch { return false; } }),
+    isActive: z.any()
+  });
+
   function openNewRule() {
     editingRule = null;
-    ruleName = '';
-    ruleEventType = 'asset_status_change';
-    ruleConditions = '{}';
-    ruleActions = '{}';
-    ruleIsActive = true;
-    rulePriority = 1;
+    ruleForm = { name: '', eventType: 'asset_status_change', conditions: '{}', actions: '{}', isActive: true, priority: 1 };
     showRuleModal = true;
   }
 
   function openEditRule(rule: AutomationRule) {
     editingRule = rule;
-    ruleName = rule.name;
-    ruleEventType = rule.eventType;
-    ruleConditions = JSON.stringify(rule.conditions, null, 2);
-    ruleActions = JSON.stringify(rule.actions, null, 2);
-    ruleIsActive = rule.isActive;
-    rulePriority = rule.priority;
+    ruleForm = {
+      name: rule.name,
+      eventType: rule.eventType,
+      conditions: JSON.stringify(rule.conditions, null, 2),
+      actions: JSON.stringify(rule.actions, null, 2),
+      isActive: rule.isActive,
+      priority: rule.priority
+    };
     showRuleModal = true;
   }
 
-  async function handleSaveRule() {
-    if (!ruleName) return;
+  async function handleSaveRuleSubmit(values: Record<string, unknown>) {
     try {
-      saving = true;
-      let conditions: Record<string, unknown>, actions: Record<string, unknown>;
-      try { conditions = JSON.parse(ruleConditions); } catch { error = 'Invalid JSON for conditions'; return; }
-      try { actions = JSON.parse(ruleActions); } catch { error = 'Invalid JSON for actions'; return; }
-
-      const data = { name: ruleName, eventType: ruleEventType, conditions, actions, isActive: ruleIsActive, priority: rulePriority };
+      const data = {
+        name: String(values.name),
+        eventType: String(values.eventType),
+        conditions: JSON.parse(String(values.conditions)),
+        actions: JSON.parse(String(values.actions)),
+        isActive: !!values.isActive,
+        priority: Number(values.priority) || 1
+      };
       if (editingRule) {
         await updateRule(editingRule.id, data);
       } else {
         await createRule(data);
       }
       showRuleModal = false;
+      toast.success($_('workflow.toast.ruleSaved'));
       await loadData();
     } catch (err) {
       error = err instanceof Error ? err.message : 'Save failed';
-    } finally {
-      saving = false;
     }
   }
 
-  async function handleDeleteRule(id: string) {
-    if (!confirm('Delete this rule?')) return;
-    try {
-      await deleteRule(id);
-      await loadData();
-    } catch (err) {
-      error = err instanceof Error ? err.message : 'Delete failed';
-    }
+  function confirmDeleteRule(rule: AutomationRule) {
+    deleteTarget = { type: 'rule', id: rule.id, name: rule.name };
+    showDeleteModal = true;
   }
 
+  // Task CRUD
   function openNewTask() {
-    taskName = '';
-    taskType = 'maintenance_check';
-    taskSchedule = '0 9 * * 1';
-    taskConfig = '{}';
-    taskIsActive = true;
+    taskForm = { name: '', taskType: 'maintenance_check', schedule: '0 9 * * 1', config: '{}', isActive: true };
     showTaskModal = true;
   }
 
-  async function handleSaveTask() {
-    if (!taskName) return;
+  async function handleSaveTaskSubmit(values: Record<string, unknown>) {
     try {
-      saving = true;
-      let config: Record<string, unknown>;
-      try { config = JSON.parse(taskConfig); } catch { error = 'Invalid JSON'; return; }
-      await createTask({ name: taskName, taskType: taskType, schedule: taskSchedule, config, isActive: taskIsActive });
+      const config = JSON.parse(String(values.config ?? '{}'));
+      await createTask({
+        name: String(values.name),
+        taskType: String(values.taskType),
+        schedule: String(values.schedule),
+        config,
+        isActive: !!values.isActive
+      });
       showTaskModal = false;
+      toast.success($_('workflow.toast.taskCreated'));
       await loadData();
     } catch (err) {
       error = err instanceof Error ? err.message : 'Failed';
-    } finally {
-      saving = false;
     }
   }
 
-  async function handleDeleteTask(id: string) {
-    if (!confirm('Delete this task?')) return;
+  function confirmDeleteTask(task: ScheduledTask) {
+    deleteTarget = { type: 'task', id: task.id, name: task.name };
+    showDeleteModal = true;
+  }
+
+  async function handleConfirmDelete() {
+    if (!deleteTarget) return;
     try {
-      await deleteTask(id);
+      if (deleteTarget.type === 'rule') {
+        await deleteRule(deleteTarget.id);
+      } else {
+        await deleteTask(deleteTarget.id);
+      }
+      showDeleteModal = false;
+      deleteTarget = null;
+      toast.success($_('workflow.toast.deleted'));
       await loadData();
     } catch (err) {
       error = err instanceof Error ? err.message : 'Delete failed';
     }
   }
+
+  const eventTypeOptions = [
+    { value: 'asset_status_change', label: 'Asset Status Change' },
+    { value: 'maintenance_created', label: 'Maintenance Created' },
+    { value: 'warranty_expiring', label: 'Warranty Expiring' },
+    { value: 'inventory_low', label: 'Inventory Low' },
+    { value: 'cost_threshold', label: 'Cost Threshold' }
+  ];
+
+  const taskTypeOptions = [
+    { value: 'maintenance_check', label: 'Maintenance Check' },
+    { value: 'warranty_check', label: 'Warranty Check' },
+    { value: 'inventory_audit', label: 'Inventory Audit' },
+    { value: 'report_generation', label: 'Report Generation' },
+    { value: 'data_cleanup', label: 'Data Cleanup' }
+  ];
 
   $effect(() => { void loadData(); });
 </script>
 
-<div class="page-shell page-content">
-  <div class="mb-6">
-    <h1 class="text-2xl font-semibold flex items-center gap-2">
-      <Zap class="w-6 h-6 text-yellow-500" /> Workflow Automation
-    </h1>
-    <p class="text-sm text-gray-500 mt-1">Manage automation rules, notifications, and scheduled tasks</p>
-  </div>
+<div class="page-shell page-content space-y-6">
+  <!-- Header -->
+  <PageHeader
+    title={$_('workflow.pageTitle')}
+    subtitle={$_('workflow.pageSubtitle')}
+  >
+    {#snippet actions()}
+      <Button variant="secondary" onclick={loadData}>
+        <RefreshCw class="w-4 h-4 mr-2" />{$_('common.refresh')}
+      </Button>
+    {/snippet}
+  </PageHeader>
 
   {#if error}
-    <Alert color="red" class="mb-4" dismissable>{error}</Alert>
+    <div class="alert-error px-4 py-3 rounded-lg text-sm">{error}</div>
   {/if}
 
-  <Tabs style="underline">
-    <TabItem open={activeTab === 'rules'} title="Automation Rules" on:click={() => activeTab = 'rules'}>
-      <div class="flex justify-end mb-4">
-        <Button data-testid="btn-new-rule" onclick={openNewRule}><Plus class="w-4 h-4 mr-2" /> New Rule</Button>
-      </div>
-      {#if loading}
-        <div class="flex justify-center py-10"><Spinner size="8" /></div>
-      {:else}
-        <Table>
-          <TableHead>
-            <TableHeadCell>Name</TableHeadCell>
-            <TableHeadCell>Event</TableHeadCell>
-            <TableHeadCell>Priority</TableHeadCell>
-            <TableHeadCell>Status</TableHeadCell>
-            <TableHeadCell>Actions</TableHeadCell>
-          </TableHead>
-          <TableBody>
-            {#each rules as rule}
-              <TableBodyRow data-testid="rule-row">
-                <TableBodyCell>{rule.name}</TableBodyCell>
-                <TableBodyCell><Badge>{rule.eventType}</Badge></TableBodyCell>
-                <TableBodyCell>{rule.priority}</TableBodyCell>
-                <TableBodyCell>
-                  <Badge color={rule.isActive ? 'green' : 'dark'}>{rule.isActive ? 'Active' : 'Inactive'}</Badge>
-                </TableBodyCell>
-                <TableBodyCell>
-                  <div class="flex gap-2">
-                    <Button size="xs" color="light" data-testid="btn-edit-rule" onclick={() => openEditRule(rule)}>
-                      <Edit class="w-3 h-3" />
-                    </Button>
-                    <Button size="xs" color="red" data-testid="btn-delete-rule" onclick={() => handleDeleteRule(rule.id)}>
-                      <Trash2 class="w-3 h-3" />
-                    </Button>
-                  </div>
-                </TableBodyCell>
-              </TableBodyRow>
-            {:else}
-              <TableBodyRow><TableBodyCell colspan={5} class="text-center text-gray-500">No automation rules yet</TableBodyCell></TableBodyRow>
-            {/each}
-          </TableBody>
-        </Table>
-      {/if}
-    </TabItem>
+  <!-- Tabs -->
+  <div class="border-b border-white/10">
+    <nav class="flex gap-1 -mb-px">
+      {#each tabs as tab}
+        <button
+          class="flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors
+            {activeTab === tab.key
+              ? 'border-blue-500 text-blue-400'
+              : 'border-transparent text-gray-400 hover:text-gray-200 hover:border-gray-600'}"
+          onclick={() => (activeTab = tab.key)}
+        >
+          <tab.icon class="w-4 h-4" />
+          {$_(`workflow.tabs.${tab.key}`)}
+        </button>
+      {/each}
+    </nav>
+  </div>
 
-    <TabItem title="Notifications" on:click={() => activeTab = 'notifications'}>
-      <div class="space-y-3 mt-4">
-        {#if notifications.length === 0}
-          <p class="text-center text-gray-500 py-8">No notifications</p>
-        {:else}
-          {#each notifications as notif}
-            <Card class="p-4">
-              <div class="flex items-start gap-3">
-                <Bell class={`w-5 h-5 ${notif.isRead ? 'text-gray-400' : 'text-blue-600'}`} />
-                <div class="flex-1">
-                  <p class="font-semibold text-sm">{notif.title}</p>
-                  <p class="text-sm text-gray-500">{notif.message}</p>
-                  <p class="text-xs text-gray-400 mt-1">{new Date(notif.createdAt).toLocaleString()}</p>
+  <!-- TAB: Workflows (Mermaid diagrams) -->
+  {#if activeTab === 'workflows'}
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {#each workflows as wf, i}
+        <button
+          class="bg-surface-2 rounded-xl border border-white/10 p-4 text-left hover:border-blue-500/40 transition-colors
+            {expandedDiagram === i ? 'md:col-span-2 border-blue-500/60' : ''}"
+          onclick={() => { expandedDiagram = expandedDiagram === i ? null : i; }}
+        >
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="font-semibold text-white flex items-center gap-2">
+              <Workflow class="w-5 h-5 text-blue-400" />
+              {$_(`workflow.diagrams.${wf.key}`)}
+            </h3>
+            <span class="text-xs text-gray-400">
+              {expandedDiagram === i ? $_('workflow.clickCollapse') : $_('workflow.clickExpand')}
+            </span>
+          </div>
+          <p class="text-sm text-gray-400 mb-3">{$_(`workflow.diagramDesc.${wf.key}`)}</p>
+          {#if expandedDiagram === i}
+            <div
+              bind:this={diagramContainers[i]}
+              class="p-4 overflow-x-auto bg-slate-900/60 rounded-lg min-h-[200px]"
+            >
+              {#if !diagramRendered[i]}
+                <div class="flex items-center gap-2 text-gray-400 text-sm py-8 justify-center">
+                  <RefreshCw class="w-4 h-4 animate-spin" /> {$_('workflow.rendering')}
                 </div>
-                {#if !notif.isRead}
-                  <Badge color="blue">New</Badge>
-                {/if}
-              </div>
-            </Card>
-          {/each}
-        {/if}
-      </div>
-    </TabItem>
+              {/if}
+            </div>
+          {/if}
+        </button>
+      {/each}
+    </div>
 
-    <TabItem title="Scheduled Tasks" on:click={() => activeTab = 'tasks'}>
-      <div class="flex justify-end mb-4 mt-4">
-        <Button data-testid="btn-new-task" onclick={openNewTask}><Plus class="w-4 h-4 mr-2" /> New Task</Button>
+    <!-- Process steps summary -->
+    <div class="bg-surface-2 rounded-xl border border-white/10 p-6 mt-4">
+      <h3 class="font-semibold text-white mb-4 flex items-center gap-2">
+        <ArrowRight class="w-5 h-5 text-green-400" />
+        {$_('workflow.keySteps')}
+      </h3>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {#each ['receive', 'inspect', 'assign', 'track'] as step}
+          <div class="bg-slate-800/50 rounded-lg p-4 border border-white/5">
+            <div class="text-2xl mb-2">
+              {step === 'receive' ? '📦' : step === 'inspect' ? '🔍' : step === 'assign' ? '🏷️' : '📊'}
+            </div>
+            <h4 class="text-sm font-semibold text-white">{$_(`workflow.steps.${step}`)}</h4>
+            <p class="text-xs text-gray-400 mt-1">{$_(`workflow.stepDesc.${step}`)}</p>
+          </div>
+        {/each}
       </div>
+    </div>
+
+  <!-- TAB: Automation Rules -->
+  {:else if activeTab === 'rules'}
+    <div class="flex justify-end mb-2">
+      <Button data-testid="btn-new-rule" onclick={openNewRule}>
+        <Plus class="w-4 h-4 mr-2" />{$_('workflow.newRule')}
+      </Button>
+    </div>
+    {#if loading}
+      <Skeleton rows={5} />
+    {:else if rules.length === 0}
+      <EmptyState title={$_('workflow.noRules')} />
+    {:else}
       <Table>
-        <TableHead>
-          <TableHeadCell>Name</TableHeadCell>
-          <TableHeadCell>Type</TableHeadCell>
-          <TableHeadCell>Schedule</TableHeadCell>
-          <TableHeadCell>Status</TableHeadCell>
-          <TableHeadCell>Last Run</TableHeadCell>
-          <TableHeadCell>Actions</TableHeadCell>
-        </TableHead>
-        <TableBody>
-          {#each tasks as task}
-            <TableBodyRow data-testid="task-row">
-              <TableBodyCell>{task.name}</TableBodyCell>
-              <TableBodyCell><Badge color="purple">{task.taskType}</Badge></TableBodyCell>
-              <TableBodyCell><code class="text-xs">{task.schedule}</code></TableBodyCell>
-              <TableBodyCell>
-                <Badge color={task.isActive ? 'green' : 'dark'}>{task.isActive ? 'Active' : 'Inactive'}</Badge>
-              </TableBodyCell>
-              <TableBodyCell>{task.lastRunAt ? new Date(task.lastRunAt).toLocaleString() : 'Never'}</TableBodyCell>
-              <TableBodyCell>
-                <Button size="xs" color="red" data-testid="btn-delete-task" onclick={() => handleDeleteTask(task.id)}>
+        <TableHeader>
+          <th class="px-4 py-3">{$_('workflow.ruleCols.name')}</th>
+          <th class="px-4 py-3">{$_('workflow.ruleCols.event')}</th>
+          <th class="px-4 py-3">{$_('workflow.ruleCols.priority')}</th>
+          <th class="px-4 py-3">{$_('workflow.ruleCols.status')}</th>
+          <th class="px-4 py-3">{$_('common.actions')}</th>
+        </TableHeader>
+        {#each rules as rule}
+          <TableRow data-testid="rule-row">
+            <TableCell>{rule.name}</TableCell>
+            <TableCell><span class="badge-info">{rule.eventType}</span></TableCell>
+            <TableCell>{rule.priority}</TableCell>
+            <TableCell>
+              {#if rule.isActive}
+                <span class="badge-success flex items-center gap-1 w-fit"><Eye class="w-3 h-3" />{$_('common.active')}</span>
+              {:else}
+                <span class="badge-secondary flex items-center gap-1 w-fit"><EyeOff class="w-3 h-3" />{$_('common.inactive')}</span>
+              {/if}
+            </TableCell>
+            <TableCell>
+              <div class="flex gap-2">
+                <Button variant="secondary" size="sm" data-testid="btn-edit-rule" onclick={() => openEditRule(rule)}>
+                  <Edit class="w-3 h-3" />
+                </Button>
+                <Button variant="danger" size="sm" data-testid="btn-delete-rule" onclick={() => confirmDeleteRule(rule)}>
                   <Trash2 class="w-3 h-3" />
                 </Button>
-              </TableBodyCell>
-            </TableBodyRow>
-          {:else}
-            <TableBodyRow><TableBodyCell colspan={6} class="text-center text-gray-500">No scheduled tasks</TableBodyCell></TableBodyRow>
-          {/each}
-        </TableBody>
+              </div>
+            </TableCell>
+          </TableRow>
+        {/each}
       </Table>
-    </TabItem>
-  </Tabs>
+    {/if}
+
+  <!-- TAB: Notifications -->
+  {:else if activeTab === 'notifications'}
+    {#if notifications.length === 0}
+      <EmptyState title={$_('workflow.noNotifications')} />
+    {:else}
+      <div class="space-y-3">
+        {#each notifications as notif}
+          <div class="bg-surface-2 rounded-lg border border-white/10 p-4 flex items-start gap-3">
+            <Bell class="w-5 h-5 {notif.isRead ? 'text-gray-500' : 'text-blue-400'} mt-0.5" />
+            <div class="flex-1 min-w-0">
+              <p class="font-semibold text-sm text-white">{notif.title}</p>
+              <p class="text-sm text-gray-400 mt-0.5">{notif.message}</p>
+              <p class="text-xs text-gray-500 mt-1">{new Date(notif.createdAt).toLocaleString()}</p>
+            </div>
+            {#if !notif.isRead}
+              <span class="badge-info text-xs">New</span>
+            {/if}
+          </div>
+        {/each}
+      </div>
+    {/if}
+
+  <!-- TAB: Scheduled Tasks -->
+  {:else if activeTab === 'tasks'}
+    <div class="flex justify-end mb-2">
+      <Button data-testid="btn-new-task" onclick={openNewTask}>
+        <Plus class="w-4 h-4 mr-2" />{$_('workflow.newTask')}
+      </Button>
+    </div>
+    {#if loading}
+      <Skeleton rows={5} />
+    {:else if tasks.length === 0}
+      <EmptyState title={$_('workflow.noTasks')} />
+    {:else}
+      <Table>
+        <TableHeader>
+          <th class="px-4 py-3">{$_('workflow.taskCols.name')}</th>
+          <th class="px-4 py-3">{$_('workflow.taskCols.type')}</th>
+          <th class="px-4 py-3">{$_('workflow.taskCols.schedule')}</th>
+          <th class="px-4 py-3">{$_('workflow.taskCols.status')}</th>
+          <th class="px-4 py-3">{$_('workflow.taskCols.lastRun')}</th>
+          <th class="px-4 py-3">{$_('common.actions')}</th>
+        </TableHeader>
+        {#each tasks as task}
+          <TableRow data-testid="task-row">
+            <TableCell>{task.name}</TableCell>
+            <TableCell><span class="badge-purple">{task.taskType}</span></TableCell>
+            <TableCell><code class="code-inline">{task.schedule}</code></TableCell>
+            <TableCell>
+              {#if task.isActive}
+                <span class="badge-success flex items-center gap-1 w-fit"><Play class="w-3 h-3" />{$_('common.active')}</span>
+              {:else}
+                <span class="badge-secondary">{$_('common.inactive')}</span>
+              {/if}
+            </TableCell>
+            <TableCell>{task.lastRunAt ? new Date(task.lastRunAt).toLocaleString() : $_('workflow.never')}</TableCell>
+            <TableCell>
+              <Button variant="danger" size="sm" data-testid="btn-delete-task" onclick={() => confirmDeleteTask(task)}>
+                <Trash2 class="w-3 h-3" />
+              </Button>
+            </TableCell>
+          </TableRow>
+        {/each}
+      </Table>
+    {/if}
+  {/if}
 </div>
 
 <!-- Rule Modal -->
-<Modal bind:open={showRuleModal} size="lg">
-  <svelte:fragment slot="header">
-    <h3 class="text-lg font-semibold">{editingRule ? 'Edit Rule' : 'New Automation Rule'}</h3>
-  </svelte:fragment>
-  <div class="space-y-4">
-    <div>
-      <Label class="mb-2">Rule Name</Label>
-      <Input data-testid="input-rule-name" bind:value={ruleName} placeholder="e.g. Auto-assign maintenance" />
-    </div>
-    <div>
-      <Label class="mb-2">Event Type</Label>
-      <Select data-testid="select-event-type" bind:value={ruleEventType}>
-        <option value="asset_status_change">Asset Status Change</option>
-        <option value="maintenance_created">Maintenance Created</option>
-        <option value="warranty_expiring">Warranty Expiring</option>
-        <option value="inventory_low">Inventory Low</option>
-        <option value="cost_threshold">Cost Threshold</option>
-      </Select>
-    </div>
-    <div>
-      <Label class="mb-2">Priority (1-10)</Label>
-      <Input data-testid="input-priority" type="number" min="1" max="10" bind:value={rulePriority} />
-    </div>
-    <div>
-      <Label class="mb-2">Conditions (JSON)</Label>
-      <Textarea data-testid="input-conditions" bind:value={ruleConditions} rows={3} placeholder={'{"status": "in_repair"}'} />
-    </div>
-    <div>
-      <Label class="mb-2">Actions (JSON)</Label>
-      <Textarea data-testid="input-actions" bind:value={ruleActions} rows={3} placeholder={'{"notify": true, "assignTo": "team-a"}'} />
-    </div>
-    <div class="flex items-center gap-2">
-      <Toggle bind:checked={ruleIsActive} /> <span>Active</span>
-    </div>
-  </div>
-  <svelte:fragment slot="footer">
-    <div class="flex justify-end gap-2">
-      <Button color="alternative" onclick={() => showRuleModal = false}>Cancel</Button>
-      <Button data-testid="btn-save-rule" onclick={handleSaveRule} disabled={saving || !ruleName}>
-        {saving ? 'Saving...' : 'Save'}
-      </Button>
-    </div>
-  </svelte:fragment>
-</Modal>
+<CreateEditModal
+  bind:open={showRuleModal}
+  mode={editingRule ? 'edit' : 'create'}
+  title={editingRule ? $_('workflow.modal.editRule') : $_('workflow.modal.newRule')}
+  schema={ruleSchema}
+  initialValues={{ name: ruleForm.name, eventType: ruleForm.eventType, conditions: ruleForm.conditions, actions: ruleForm.actions, priority: String(ruleForm.priority), isActive: ruleForm.isActive }}
+  onSubmit={handleSaveRuleSubmit}
+>
+  {#snippet fields({ values, errors, setValue, disabled })}
+    <TextField id="wf-rule-name" label={$_('workflow.field.ruleName')} required value={String(values.name ?? '')} error={errors.name} onValueChange={(v) => setValue('name', v)} {disabled} dataTestid="input-rule-name" />
+    <SelectField id="wf-rule-event" label={$_('workflow.field.eventType')} value={String(values.eventType ?? 'asset_status_change')} options={eventTypeOptions} onValueChange={(v) => setValue('eventType', v)} {disabled} dataTestid="select-event-type" />
+    <TextField id="wf-rule-priority" label={$_('workflow.field.priority')} type="number" value={String(values.priority ?? '1')} onValueChange={(v) => setValue('priority', v)} {disabled} dataTestid="input-priority" />
+    <TextareaField id="wf-rule-conditions" label={$_('workflow.field.conditions')} rows={3} value={String(values.conditions ?? '{}')} onValueChange={(v) => setValue('conditions', v)} {disabled} dataTestid="input-conditions" />
+    <TextareaField id="wf-rule-actions" label={$_('workflow.field.actions')} rows={3} value={String(values.actions ?? '{}')} onValueChange={(v) => setValue('actions', v)} {disabled} dataTestid="input-actions" />
+    <label class="flex items-center gap-2 text-sm text-gray-300 cursor-pointer">
+      <input type="checkbox" checked={!!values.isActive} onchange={(e) => setValue('isActive', (e.currentTarget as HTMLInputElement).checked)} class="rounded border-gray-600 bg-gray-700 text-blue-500" />
+      {$_('common.active')}
+    </label>
+  {/snippet}
+</CreateEditModal>
 
 <!-- Task Modal -->
-<Modal bind:open={showTaskModal} size="lg">
-  <svelte:fragment slot="header">
-    <h3 class="text-lg font-semibold">New Scheduled Task</h3>
-  </svelte:fragment>
-  <div class="space-y-4">
-    <div>
-      <Label class="mb-2">Task Name</Label>
-      <Input data-testid="input-task-name" bind:value={taskName} placeholder="e.g. Weekly maintenance check" />
-    </div>
-    <div>
-      <Label class="mb-2">Task Type</Label>
-      <Select data-testid="select-task-type" bind:value={taskType}>
-        <option value="maintenance_check">Maintenance Check</option>
-        <option value="warranty_check">Warranty Check</option>
-        <option value="inventory_audit">Inventory Audit</option>
-        <option value="report_generation">Report Generation</option>
-        <option value="data_cleanup">Data Cleanup</option>
-      </Select>
-    </div>
-    <div>
-      <Label class="mb-2">Cron Schedule</Label>
-      <Input data-testid="input-schedule" bind:value={taskSchedule} placeholder="0 9 * * 1" />
-      <p class="text-xs text-gray-400 mt-1">Example: 0 9 * * 1 = every Monday at 9am</p>
-    </div>
-    <div>
-      <Label class="mb-2">Configuration (JSON)</Label>
-      <Textarea data-testid="input-task-config" bind:value={taskConfig} rows={3} />
-    </div>
-    <div class="flex items-center gap-2">
-      <Toggle bind:checked={taskIsActive} /> <span>Active</span>
-    </div>
-  </div>
-  <svelte:fragment slot="footer">
-    <div class="flex justify-end gap-2">
-      <Button color="alternative" onclick={() => showTaskModal = false}>Cancel</Button>
-      <Button data-testid="btn-save-task" onclick={handleSaveTask} disabled={saving || !taskName}>
-        {saving ? 'Saving...' : 'Create'}
-      </Button>
-    </div>
-  </svelte:fragment>
-</Modal>
+<CreateEditModal
+  bind:open={showTaskModal}
+  mode="create"
+  title={$_('workflow.modal.newTask')}
+  schema={taskSchema}
+  initialValues={{ name: taskForm.name, taskType: taskForm.taskType, schedule: taskForm.schedule, config: taskForm.config, isActive: taskForm.isActive }}
+  onSubmit={handleSaveTaskSubmit}
+>
+  {#snippet fields({ values, errors, setValue, disabled })}
+    <TextField id="wf-task-name" label={$_('workflow.field.taskName')} required value={String(values.name ?? '')} error={errors.name} onValueChange={(v) => setValue('name', v)} {disabled} dataTestid="input-task-name" />
+    <SelectField id="wf-task-type" label={$_('workflow.field.taskType')} value={String(values.taskType ?? 'maintenance_check')} options={taskTypeOptions} onValueChange={(v) => setValue('taskType', v)} {disabled} dataTestid="select-task-type" />
+    <TextField id="wf-task-schedule" label={$_('workflow.field.schedule')} value={String(values.schedule ?? '0 9 * * 1')} onValueChange={(v) => setValue('schedule', v)} {disabled} dataTestid="input-schedule" />
+    <p class="text-xs text-gray-400 -mt-2">{$_('workflow.scheduleTip')}</p>
+    <TextareaField id="wf-task-config" label={$_('workflow.field.config')} rows={3} value={String(values.config ?? '{}')} onValueChange={(v) => setValue('config', v)} {disabled} dataTestid="input-task-config" />
+    <label class="flex items-center gap-2 text-sm text-gray-300 cursor-pointer">
+      <input type="checkbox" checked={!!values.isActive} onchange={(e) => setValue('isActive', (e.currentTarget as HTMLInputElement).checked)} class="rounded border-gray-600 bg-gray-700 text-blue-500" />
+      {$_('common.active')}
+    </label>
+  {/snippet}
+</CreateEditModal>
+
+<!-- Delete Confirm -->
+<DeleteConfirmModal
+  bind:open={showDeleteModal}
+  entityName={deleteTarget?.name ?? ''}
+  description={$_('workflow.deleteConfirm', { values: { name: deleteTarget?.name ?? '' } })}
+  onConfirm={handleConfirmDelete}
+/>

@@ -82,8 +82,13 @@ export type ReportKey =
     | 'workflow-summary'
     | 'cmdb-overview'
     | 'cmdb-data-quality'
+    | 'warehouse-stock-on-hand'
+    | 'warehouse-valuation'
+    | 'warehouse-reorder-alerts'
+    | 'warehouse-fefo-lots'
+    | 'warehouse-stock-available'
 
-export type ReportModule = 'assets' | 'inventory' | 'maintenance' | 'workflow' | 'cmdb'
+export type ReportModule = 'assets' | 'inventory' | 'maintenance' | 'workflow' | 'cmdb' | 'warehouse'
 
 export type ReportDefinition = {
     key: ReportKey
@@ -202,6 +207,47 @@ export const REPORT_REGISTRY: ReportDefinition[] = [
         icon: '🔍',
         description: 'CI thiếu thuộc tính, quan hệ lỗi (orphan)',
         filterFields: []
+    },
+    // Warehouse
+    {
+        key: 'warehouse-stock-on-hand',
+        title: 'Tồn kho theo kho hàng',
+        module: 'warehouse',
+        icon: '📦',
+        description: 'Số lượng tồn kho hiện tại theo từng kho hàng, nhóm vật tư',
+        filterFields: ['warehouseId']
+    },
+    {
+        key: 'warehouse-valuation',
+        title: 'Giá trị kho hàng',
+        module: 'warehouse',
+        icon: '💰',
+        description: 'Tổng giá trị tồn kho, phân bố theo nhóm vật tư và kho',
+        filterFields: ['warehouseId']
+    },
+    {
+        key: 'warehouse-reorder-alerts',
+        title: 'Cảnh báo đặt hàng lại',
+        module: 'warehouse',
+        icon: '🔴',
+        description: 'Vật tư dưới mức tồn tối thiểu, cần đặt hàng bổ sung',
+        filterFields: ['warehouseId']
+    },
+    {
+        key: 'warehouse-fefo-lots',
+        title: 'Hạn sử dụng (FEFO)',
+        module: 'warehouse',
+        icon: '📅',
+        description: 'Lô hàng sắp hết hạn sử dụng, quản lý theo FEFO',
+        filterFields: ['warehouseId', 'dateRange']
+    },
+    {
+        key: 'warehouse-stock-available',
+        title: 'Tồn khả dụng',
+        module: 'warehouse',
+        icon: '✅',
+        description: 'Tồn hiện có trừ đã đặt trước, sẵn sàng xuất kho',
+        filterFields: ['warehouseId']
     }
 ]
 
@@ -210,7 +256,8 @@ export const MODULE_LABELS: Record<ReportModule, string> = {
     inventory: 'Kho hàng',
     maintenance: 'Bảo trì',
     workflow: 'Yêu cầu',
-    cmdb: 'CMDB'
+    cmdb: 'CMDB',
+    warehouse: 'Kho vật tư'
 }
 
 export const MODULE_ICONS: Record<ReportModule, string> = {
@@ -218,7 +265,8 @@ export const MODULE_ICONS: Record<ReportModule, string> = {
     inventory: '🏪',
     maintenance: '🛠️',
     workflow: '✅',
-    cmdb: '🔗'
+    cmdb: '🔗',
+    warehouse: '🏭'
 }
 
 // ─── API functions ──────────────────────────────────────────────────────────

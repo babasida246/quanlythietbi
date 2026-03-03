@@ -18,7 +18,8 @@
     Zap,
     Link,
     ShieldCheck,
-    HelpCircle
+    HelpCircle,
+    GitBranch
   } from 'lucide-svelte';
 
   type NavItem = {
@@ -66,12 +67,11 @@
     { href: '/cmdb', labelKey: 'nav.cmdb', icon: Database, testId: 'nav-cmdb', requires: (caps) => caps.canViewAssets },
     { href: '/inventory', labelKey: 'nav.inventory', icon: ClipboardList, testId: 'nav-inventory', requires: (caps) => caps.canViewAssets },
     { href: '/warehouse/stock', labelKey: 'nav.warehouse', icon: Warehouse, testId: 'nav-warehouse', requires: (caps) => caps.canViewAssets },
-    { href: '/maintenance', labelKey: 'nav.maintenance', icon: Wrench, testId: 'nav-maintenance', requires: (caps) => caps.canViewAssets },
+    { href: '/maintenance', labelKey: 'nav.maintenance', icon: Wrench, testId: 'nav-maintenance', requires: (caps) => caps.canViewAssets, match: (path) => path === '/maintenance' || path.startsWith('/maintenance/') || path.startsWith('/warehouse/repairs') },
     { href: '/requests', labelKey: 'nav.requests', icon: ClipboardList, testId: 'nav-requests', requires: (caps) => caps.canViewRequests },
-    { href: '/reports/assets', labelKey: 'nav.reports', icon: BarChart3, testId: 'nav-asset-reports', requires: (caps) => caps.canViewAssets, match: (path) => path === '/reports' || path.startsWith('/reports') },
-    { href: '/warehouse/reports', labelKey: 'nav.warehouseReports', icon: BarChart3, testId: 'nav-warehouse-reports', requires: (caps) => caps.canViewAssets },
+    { href: '/reports', labelKey: 'nav.reports', icon: BarChart3, testId: 'nav-reports', requires: (caps) => caps.canViewAssets, match: (path) => path.startsWith('/reports') },
     { href: '/analytics', labelKey: 'nav.analytics', icon: TrendingUp, testId: 'nav-analytics', requires: (caps) => caps.canViewAssets },
-    { href: '/automation', labelKey: 'nav.automation', icon: Zap, testId: 'nav-automation', requires: (caps) => caps.isAdmin },
+    { href: '/automation', labelKey: 'nav.automation', icon: GitBranch, testId: 'nav-automation', requires: (caps) => caps.isAdmin },
     { href: '/integrations', labelKey: 'nav.integrations', icon: Link, testId: 'nav-integrations', requires: (caps) => caps.isAdmin },
     { href: '/security', labelKey: 'nav.security', icon: ShieldCheck, testId: 'nav-security', requires: (caps) => caps.isAdmin },
     { href: '/admin', labelKey: 'nav.admin', icon: Shield, testId: 'nav-admin', requires: (caps) => caps.isAdmin }

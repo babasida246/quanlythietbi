@@ -9,11 +9,9 @@
     { href: '/warehouse/warehouses', labelKey: 'warehouse.tabs.warehouses' },
     { href: '/warehouse/documents', labelKey: 'warehouse.tabs.documents' },
     { href: '/warehouse/ledger', labelKey: 'warehouse.tabs.ledger' },
-    { href: '/warehouse/repairs', labelKey: 'warehouse.tabs.repairs' },
     { href: '/warehouse/parts', labelKey: 'warehouse.tabs.spareParts' },
     { href: '/warehouse/reconciliation', labelKey: 'warehouse.tabs.reconciliation' },
-    { href: '/warehouse/purchase-plans', labelKey: 'warehouse.tabs.purchasePlans' },
-    { href: '/warehouse/reports', labelKey: 'warehouse.tabs.reports' }
+    { href: '/warehouse/purchase-plans', labelKey: 'warehouse.tabs.purchasePlans' }
   ];
 
   function isActive(href: string, exact = false) {

@@ -33,7 +33,7 @@
     "profile": "Profile",
     "navigation": "Navigation",
     "analytics": "Analytics",
-    "automation": "Automation",
+    "automation": "Workflows",
     "integrations": "Integrations",
     "security": "Security",
     "groupMy": "MY",
@@ -772,7 +772,10 @@
     "noSpecsDefined": "No specifications defined"
   },
   "maintenance": {
-    "pageTitle": "Maintenance",
+    "pageTitle": "Maintenance & Repairs",
+    "pageSubtitle": "Maintenance tickets and repair orders",
+    "tabTickets": "Maintenance Tickets",
+    "tabRepairs": "Repair Orders",
     "validation": {
       "titleRequired": "Title is required"
     },
@@ -786,9 +789,15 @@
       "deleteSuccess": "Maintenance ticket deleted successfully"
     },
     "actions": {
-      "create": "Create",
+      "create": "Create ticket",
       "edit": "Edit",
-      "delete": "Delete"
+      "delete": "Delete",
+      "goRepairs": "Repair Orders"
+    },
+    "stats": {
+      "totalTickets": "Total tickets",
+      "repairOrders": "Repair Orders",
+      "totalCost": "Total cost"
     },
     "empty": {
       "title": "No maintenance tickets",
@@ -828,6 +837,27 @@
       "inProgress": "In Progress",
       "closed": "Closed",
       "canceled": "Canceled"
+    },
+    "repairSearch": "Search repair orders...",
+    "allStatuses": "All statuses",
+    "repairStatuses": {
+      "open": "Open",
+      "diagnosing": "Diagnosing",
+      "waitingParts": "Waiting for parts",
+      "repairing": "Repairing",
+      "done": "Done",
+      "closed": "Closed",
+      "canceled": "Canceled"
+    },
+    "repairEmpty": "No repair orders",
+    "repairEmptyDesc": "Create repair orders from Warehouse > Repairs.",
+    "repairTable": {
+      "code": "Code",
+      "title": "Title",
+      "status": "Status",
+      "severity": "Severity",
+      "type": "Type",
+      "cost": "Cost"
     }
   },
   "inventory": {
@@ -1006,7 +1036,7 @@
     "tabs": {
       "dashboard": "Dashboard",
       "stock": "Stock",
-      "documents": "Documents",
+      "documents": "Vouchers",
       "ledger": "Ledger",
       "repairs": "Repairs",
       "reconciliation": "Reconciliation",
@@ -1148,6 +1178,19 @@
       "toOrder": "To order"
     },
     "viewAllAlerts": "View all {count} alerts →",
+    "stockValue": "Stock Value",
+    "totalValue": "Total value",
+    "totalQuantity": "Total quantity",
+    "quickActionsTitle": "Quick Actions",
+    "quickActions": {
+      "newReceipt": "New Receipt",
+      "newIssue": "New Issue",
+      "reconciliation": "Reconciliation",
+      "purchasePlans": "Purchase Plans"
+    },
+    "recentDocs": "Recent Documents",
+    "topItems": "Top Items by Stock",
+    "fullReport": "Full report →",
     "parts": "Parts",
     "repairs": "Repairs",
     "belowMinimum": "Below minimum",
@@ -2846,6 +2889,164 @@
       "notConnected": "Not connected"
     }
   },
+  "analytics": {
+    "pageTitle": "Analytics",
+    "pageSubtitle": "Asset analytics, cost tracking, and anomaly insights",
+    "validation": {
+      "assetRequired": "Asset is required",
+      "amountPositive": "Amount must be > 0"
+    },
+    "toast": {
+      "snapshotCreated": "Snapshot created successfully",
+      "costAdded": "Cost record added successfully"
+    },
+    "actions": {
+      "snapshot": "Take Snapshot",
+      "addCost": "Add Cost"
+    },
+    "stats": {
+      "totalAssets": "Total Assets",
+      "active": "Active",
+      "inRepair": "In Repair",
+      "retired": "Retired",
+      "totalCost": "Total Cost"
+    },
+    "tabs": {
+      "overview": "Overview",
+      "snapshots": "Snapshots",
+      "costs": "Costs",
+      "anomalies": "Anomalies"
+    },
+    "costBreakdown": "Cost Breakdown",
+    "noCostData": "No cost data available",
+    "anomalySummary": "Anomaly Summary",
+    "noAnomalies": "No anomalies detected",
+    "assetTrend": "Asset Trend (30 days)",
+    "noSnapshots": "No snapshots yet",
+    "createFirstSnapshot": "Create first snapshot",
+    "noCosts": "No cost records yet",
+    "addFirstCost": "Add first cost record",
+    "severity": {
+      "critical": "Critical",
+      "high": "High",
+      "medium": "Medium",
+      "low": "Low"
+    },
+    "snapshotCols": {
+      "date": "Date",
+      "total": "Total",
+      "active": "Active",
+      "inRepair": "In Repair",
+      "retired": "Retired",
+      "totalCost": "Total Cost"
+    },
+    "costCols": {
+      "asset": "Asset",
+      "type": "Type",
+      "amount": "Amount",
+      "currency": "Currency",
+      "date": "Date",
+      "description": "Description"
+    },
+    "modal": {
+      "addCostTitle": "Add Cost Record"
+    },
+    "field": {
+      "assetId": "Asset ID",
+      "costType": "Cost Type",
+      "amount": "Amount",
+      "currency": "Currency",
+      "description": "Description"
+    },
+    "costTypes": {
+      "purchase": "Purchase",
+      "maintenance": "Maintenance",
+      "license": "License",
+      "insurance": "Insurance",
+      "depreciation": "Depreciation",
+      "other": "Other"
+    }
+  },
+  "workflow": {
+    "pageTitle": "Business Workflows",
+    "pageSubtitle": "Manage processes, automation rules, and scheduled tasks",
+    "tabs": {
+      "workflows": "Workflows",
+      "rules": "Automation Rules",
+      "notifications": "Notifications",
+      "tasks": "Scheduled Tasks"
+    },
+    "diagrams": {
+      "assetLifecycle": "Asset Lifecycle",
+      "repairWorkflow": "Repair Workflow",
+      "procurement": "Procurement Process",
+      "inventoryMgmt": "Inventory Management"
+    },
+    "diagramDesc": {
+      "assetLifecycle": "Flow from receiving, inspecting, assigning to retiring assets",
+      "repairWorkflow": "Repair request flow from ticket creation to completion",
+      "procurement": "Procurement from stock check to warehouse receipt and payment",
+      "inventoryMgmt": "Manage receipts, issues, stock counts and transfers"
+    },
+    "clickExpand": "Click to expand",
+    "clickCollapse": "Click to collapse",
+    "rendering": "Rendering diagram...",
+    "keySteps": "Key Steps in Asset Management",
+    "steps": {
+      "receive": "Receive",
+      "inspect": "Inspect",
+      "assign": "Assign",
+      "track": "Track"
+    },
+    "stepDesc": {
+      "receive": "Receive assets from suppliers, verify quantities and documents",
+      "inspect": "Check quality, specifications and condition",
+      "assign": "Tag assets, assign to departments or users",
+      "track": "Monitor status, schedule maintenance and track costs"
+    },
+    "newRule": "New Rule",
+    "noRules": "No automation rules yet",
+    "noNotifications": "No notifications",
+    "newTask": "New Task",
+    "noTasks": "No scheduled tasks yet",
+    "never": "Never",
+    "scheduleTip": "Example: 0 9 * * 1 = every Monday at 9am",
+    "deleteConfirm": "Are you sure you want to delete \"{name}\"?",
+    "ruleCols": {
+      "name": "Rule Name",
+      "event": "Event",
+      "priority": "Priority",
+      "status": "Status"
+    },
+    "taskCols": {
+      "name": "Task Name",
+      "type": "Type",
+      "schedule": "Schedule",
+      "status": "Status",
+      "lastRun": "Last Run"
+    },
+    "modal": {
+      "newRule": "New Automation Rule",
+      "editRule": "Edit Rule",
+      "newTask": "New Scheduled Task"
+    },
+    "field": {
+      "ruleName": "Rule Name",
+      "eventType": "Event Type",
+      "priority": "Priority (1-10)",
+      "conditions": "Conditions (JSON)",
+      "actions": "Actions (JSON)",
+      "taskName": "Task Name",
+      "taskType": "Task Type",
+      "schedule": "Cron Schedule",
+      "config": "Configuration (JSON)"
+    },
+    "toast": {
+      "ruleSaved": "Rule saved successfully",
+      "taskCreated": "Task created successfully",
+      "deleted": "Deleted successfully"
+    }
+  },
   "reports": {
     "noData": "No data",
     "unknownError": "Unknown error",
@@ -2900,7 +3101,17 @@
       "active": "Active",
       "ciName": "CI Name",
       "type": "Type",
-      "attrCount": "Attribute Count"
+      "attrCount": "Attribute Count",
+      "materialGroup": "Material Group",
+      "unit": "Unit",
+      "totalQty": "Total Qty",
+      "unitCost": "Unit Cost",
+      "totalValue": "Total Value",
+      "reorderPoint": "Reorder Point",
+      "lotNumber": "Lot Number",
+      "expiryDate": "Expiry Date",
+      "quantity": "Quantity",
+      "available": "Available"
     },
     "chart": {
       "byStatus": "By Status",
@@ -2918,7 +3129,14 @@
       "requestsByStatus": "Requests by Status",
       "byRequestType": "By Request Type",
       "cisByType": "CIs by Type",
-      "activeVsOther": "Active vs Other"
+      "activeVsOther": "Active vs Other",
+      "stockByWarehouse": "Stock by Warehouse",
+      "stockByMaterialGroup": "Stock by Material Group",
+      "valuationByWarehouse": "Valuation by Warehouse",
+      "valuationByGroup": "Valuation by Material Group",
+      "shortfallTop10": "Shortfall (Top 10)",
+      "expiringByMonth": "Expiring by Month",
+      "availableByWarehouse": "Available by Warehouse"
     },
     "filter": {
       "savedFilter": "Saved filter: ",

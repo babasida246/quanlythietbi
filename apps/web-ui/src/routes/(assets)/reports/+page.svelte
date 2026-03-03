@@ -41,7 +41,7 @@
   const activeReport = $derived(REPORT_REGISTRY.find(r => r.key === activeKey)!)
 
   const moduleGroups = $derived.by(() => {
-    const mods = ['assets', 'inventory', 'maintenance', 'workflow', 'cmdb'] as ReportModule[]
+    const mods = ['assets', 'inventory', 'warehouse', 'maintenance', 'workflow', 'cmdb'] as ReportModule[]
     return mods.map(mod => ({
       mod,
       label: MODULE_LABELS[mod],
@@ -222,6 +222,44 @@
       { key: 'name', label: $_('reports.col.ciName'), sortable: true },
       { key: 'type', label: $_('reports.col.type'), sortable: true },
       { key: 'attrCount', label: $_('reports.col.attrCount'), sortable: true, align: 'right' }
+    ],
+    'warehouse-stock-on-hand': [
+      { key: 'partCode', label: $_('reports.col.code'), sortable: true },
+      { key: 'partName', label: $_('reports.col.partName'), sortable: true },
+      { key: 'warehouse', label: $_('reports.col.warehouse'), sortable: true },
+      { key: 'materialGroup', label: $_('reports.col.materialGroup'), sortable: true },
+      { key: 'onHand', label: $_('reports.col.onHand'), sortable: true, align: 'right' },
+      { key: 'unit', label: $_('reports.col.unit'), sortable: true }
+    ],
+    'warehouse-valuation': [
+      { key: 'warehouse', label: $_('reports.col.warehouse'), sortable: true },
+      { key: 'materialGroup', label: $_('reports.col.materialGroup'), sortable: true },
+      { key: 'totalQty', label: $_('reports.col.totalQty'), sortable: true, align: 'right' },
+      { key: 'unitCost', label: $_('reports.col.unitCost'), sortable: true, align: 'right', format: (v) => v ? Number(v).toLocaleString('vi-VN') + ' ₫' : '-' },
+      { key: 'totalValue', label: $_('reports.col.totalValue'), sortable: true, align: 'right', format: (v) => v ? Number(v).toLocaleString('vi-VN') + ' ₫' : '-' }
+    ],
+    'warehouse-reorder-alerts': [
+      { key: 'partCode', label: $_('reports.col.code'), sortable: true },
+      { key: 'partName', label: $_('reports.col.partName'), sortable: true },
+      { key: 'warehouse', label: $_('reports.col.warehouse'), sortable: true },
+      { key: 'onHand', label: $_('reports.col.onHand'), sortable: true, align: 'right' },
+      { key: 'reorderPoint', label: $_('reports.col.reorderPoint'), sortable: true, align: 'right' },
+      { key: 'shortfall', label: $_('reports.col.shortfall'), sortable: true, align: 'right' }
+    ],
+    'warehouse-fefo-lots': [
+      { key: 'lotNumber', label: $_('reports.col.lotNumber'), sortable: true },
+      { key: 'partName', label: $_('reports.col.partName'), sortable: true },
+      { key: 'warehouse', label: $_('reports.col.warehouse'), sortable: true },
+      { key: 'expiryDate', label: $_('reports.col.expiryDate'), sortable: true, format: (v) => v ? new Date(v as string).toLocaleDateString('vi-VN') : '-' },
+      { key: 'qty', label: $_('reports.col.quantity'), sortable: true, align: 'right' }
+    ],
+    'warehouse-stock-available': [
+      { key: 'partCode', label: $_('reports.col.code'), sortable: true },
+      { key: 'partName', label: $_('reports.col.partName'), sortable: true },
+      { key: 'warehouse', label: $_('reports.col.warehouse'), sortable: true },
+      { key: 'onHand', label: $_('reports.col.onHand'), sortable: true, align: 'right' },
+      { key: 'reserved', label: $_('reports.col.reserved'), sortable: true, align: 'right' },
+      { key: 'available', label: $_('reports.col.available'), sortable: true, align: 'right' }
     ]
   })
 
@@ -274,7 +312,24 @@
       { chartKey: 'byType',      title: $_('reports.chart.cisByType'),       type: 'pie' },
       { chartKey: 'activeByType', title: $_('reports.chart.activeVsOther'), type: 'stacked-bar' }
     ],
-    'cmdb-data-quality': []
+    'cmdb-data-quality': [],
+    'warehouse-stock-on-hand': [
+      { chartKey: 'byWarehouse', title: $_('reports.chart.stockByWarehouse'), type: 'bar', drillDimension: 'warehouse' },
+      { chartKey: 'byMaterialGroup', title: $_('reports.chart.stockByMaterialGroup'), type: 'pie', drillDimension: 'materialGroup' }
+    ],
+    'warehouse-valuation': [
+      { chartKey: 'valuationByWarehouse', title: $_('reports.chart.valuationByWarehouse'), type: 'stacked-bar' },
+      { chartKey: 'valuationByGroup', title: $_('reports.chart.valuationByGroup'), type: 'pie' }
+    ],
+    'warehouse-reorder-alerts': [
+      { chartKey: 'shortfallTop10', title: $_('reports.chart.shortfallTop10'), type: 'bar' }
+    ],
+    'warehouse-fefo-lots': [
+      { chartKey: 'expiringByMonth', title: $_('reports.chart.expiringByMonth'), type: 'bar' }
+    ],
+    'warehouse-stock-available': [
+      { chartKey: 'availableByWarehouse', title: $_('reports.chart.availableByWarehouse'), type: 'bar' }
+    ]
   })
 
   const effectiveCharts = $derived(CHART_LAYOUT[activeKey] ?? [])

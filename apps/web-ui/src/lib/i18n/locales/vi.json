@@ -33,7 +33,7 @@
     "profile": "Hồ sơ",
     "navigation": "Điều hướng",
     "analytics": "Phân tích",
-    "automation": "Tự động hóa",
+    "automation": "Quy trình nghiệp vụ",
     "integrations": "Tích hợp",
     "security": "Bảo mật",
     "groupMy": "CỦA TÔI",
@@ -772,7 +772,10 @@
     "noSpecsDefined": "Chưa có thông số kỹ thuật"
   },
   "maintenance": {
-    "pageTitle": "Bảo trì",
+    "pageTitle": "Bảo trì & Sửa chữa",
+    "pageSubtitle": "Quản lý phiếu bảo trì và đơn sửa chữa",
+    "tabTickets": "Phiếu bảo trì",
+    "tabRepairs": "Đơn sửa chữa",
     "validation": {
       "titleRequired": "Tiêu đề là bắt buộc"
     },
@@ -786,9 +789,15 @@
       "deleteSuccess": "Xóa ticket bảo trì thành công"
     },
     "actions": {
-      "create": "Tạo mới",
+      "create": "Tạo phiếu",
       "edit": "Sửa",
-      "delete": "Xóa"
+      "delete": "Xóa",
+      "goRepairs": "Đơn sửa chữa"
+    },
+    "stats": {
+      "totalTickets": "Tổng phiếu",
+      "repairOrders": "Đơn sửa chữa",
+      "totalCost": "Tổng chi phí"
     },
     "empty": {
       "title": "Không có ticket bảo trì",
@@ -828,6 +837,27 @@
       "inProgress": "Đang xử lý",
       "closed": "Đóng",
       "canceled": "Hủy"
+    },
+    "repairSearch": "Tìm đơn sửa chữa...",
+    "allStatuses": "Tất cả trạng thái",
+    "repairStatuses": {
+      "open": "Mở",
+      "diagnosing": "Chẩn đoán",
+      "waitingParts": "Chờ linh kiện",
+      "repairing": "Đang sửa",
+      "done": "Hoàn thành",
+      "closed": "Đóng",
+      "canceled": "Hủy"
+    },
+    "repairEmpty": "Không có đơn sửa chữa",
+    "repairEmptyDesc": "Tạo đơn sửa chữa từ trang Kho hàng > Sửa chữa.",
+    "repairTable": {
+      "code": "Mã",
+      "title": "Tiêu đề",
+      "status": "Trạng thái",
+      "severity": "Mức độ",
+      "type": "Loại",
+      "cost": "Chi phí"
     }
   },
   "inventory": {
@@ -997,7 +1027,7 @@
     "tabs": {
       "dashboard": "Tổng quan",
       "stock": "Hàng tồn kho",
-      "documents": "Tài liệu",
+      "documents": "Chứng từ",
       "ledger": "Sổ cái",
       "repairs": "Sửa chữa",
       "reconciliation": "Kiểm kê",
@@ -1148,6 +1178,19 @@
       "toOrder": "Cần nhập"
     },
     "viewAllAlerts": "Xem tất cả {count} cảnh báo →",
+    "stockValue": "Giá trị kho",
+    "totalValue": "Tổng giá trị",
+    "totalQuantity": "Tổng số lượng",
+    "quickActionsTitle": "Thao tác nhanh",
+    "quickActions": {
+      "newReceipt": "Phiếu nhập",
+      "newIssue": "Phiếu xuất",
+      "reconciliation": "Kiểm kê",
+      "purchasePlans": "Kế hoạch mua"
+    },
+    "recentDocs": "Chứng từ gần đây",
+    "topItems": "Mặt hàng tồn kho cao",
+    "fullReport": "Báo cáo đầy đủ →",
     "parts": "Linh kiện",
     "repairs": "Sửa chữa",
     "belowMinimum": "Dưới mức tối thiểu",
@@ -2846,12 +2889,165 @@
       "notConnected": "Chưa kết nối"
     }
   },
+  "analytics": {
+    "pageTitle": "Phân tích",
+    "pageSubtitle": "Phân tích tài sản, chi phí và nhận diện bất thường",
+    "validation": {
+      "assetRequired": "Tài sản là bắt buộc",
+      "amountPositive": "Số tiền phải > 0"
+    },
+    "toast": {
+      "snapshotCreated": "Đã tạo snapshot thành công",
+      "costAdded": "Đã thêm chi phí thành công"
+    },
+    "actions": {
+      "snapshot": "Tạo Snapshot",
+      "addCost": "Thêm chi phí"
+    },
+    "stats": {
+      "totalAssets": "Tổng tài sản",
+      "active": "Đang sử dụng",
+      "inRepair": "Đang sửa chữa",
+      "retired": "Đã thanh lý",
+      "totalCost": "Tổng chi phí"
+    },
+    "tabs": {
+      "overview": "Tổng quan",
+      "snapshots": "Lịch sử chụp",
+      "costs": "Chi phí",
+      "anomalies": "Bất thường"
+    },
+    "costBreakdown": "Phân tích chi phí",
+    "noCostData": "Chưa có dữ liệu chi phí",
+    "anomalySummary": "Tổng hợp bất thường",
+    "noAnomalies": "Không phát hiện bất thường",
+    "assetTrend": "Xu hướng tài sản (30 ngày)",
+    "noSnapshots": "Chưa có snapshot nào",
+    "createFirstSnapshot": "Tạo snapshot đầu tiên",
+    "noCosts": "Chưa có bản ghi chi phí",
+    "addFirstCost": "Thêm chi phí đầu tiên",
+    "severity": {
+      "critical": "Nghiêm trọng",
+      "high": "Cao",
+      "medium": "Trung bình",
+      "low": "Thấp"
+    },
+    "snapshotCols": {
+      "date": "Ngày",
+      "total": "Tổng",
+      "active": "Đang dùng",
+      "inRepair": "Sửa chữa",
+      "retired": "Thanh lý",
+      "totalCost": "Tổng chi phí"
+    },
+    "costCols": {
+      "asset": "Tài sản",
+      "type": "Loại",
+      "amount": "Số tiền",
+      "currency": "Tiền tệ",
+      "date": "Ngày",
+      "description": "Mô tả"
+    },
+    "modal": {
+      "addCostTitle": "Thêm bản ghi chi phí"
+    },
+    "field": {
+      "assetId": "Mã tài sản",
+      "costType": "Loại chi phí",
+      "amount": "Số tiền",
+      "currency": "Tiền tệ",
+      "description": "Mô tả"
+    },
+    "costTypes": {
+      "purchase": "Mua sắm",
+      "maintenance": "Bảo trì",
+      "license": "Bản quyền",
+      "insurance": "Bảo hiểm",
+      "depreciation": "Khấu hao",
+      "other": "Khác"
+    }
+  },
+  "workflow": {
+    "pageTitle": "Quy trình nghiệp vụ",
+    "pageSubtitle": "Quản lý quy trình, quy tắc tự động và lập lịch tác vụ",
+    "tabs": {
+      "workflows": "Quy trình",
+      "rules": "Quy tắc tự động",
+      "notifications": "Thông báo",
+      "tasks": "Tác vụ lập lịch"
+    },
+    "diagrams": {
+      "assetLifecycle": "Vòng đời tài sản",
+      "repairWorkflow": "Quy trình sửa chữa",
+      "procurement": "Quy trình mua sắm",
+      "inventoryMgmt": "Quy trình kho vật tư"
+    },
+    "diagramDesc": {
+      "assetLifecycle": "Luồng xử lý từ tiếp nhận, kiểm tra, phân bổ đến thanh lý tài sản",
+      "repairWorkflow": "Luồng xử lý yêu cầu sửa chữa từ tạo phiếu đến hoàn thành",
+      "procurement": "Luồng mua sắm từ kiểm tra tồn kho đến nhập kho và thanh toán",
+      "inventoryMgmt": "Quản lý nhập, xuất, kiểm kê và điều chuyển kho vật tư"
+    },
+    "clickExpand": "Nhấn để mở",
+    "clickCollapse": "Nhấn để thu gọn",
+    "rendering": "Đang render sơ đồ...",
+    "keySteps": "Các bước chính trong quản lý tài sản",
+    "steps": {
+      "receive": "Tiếp nhận",
+      "inspect": "Kiểm tra",
+      "assign": "Phân bổ",
+      "track": "Theo dõi"
+    },
+    "stepDesc": {
+      "receive": "Nhận tài sản từ nhà cung cấp, kiểm tra số lượng và chứng từ",
+      "inspect": "Kiểm tra chất lượng, thông số kỹ thuật và tình trạng",
+      "assign": "Gán mã tài sản, phân bổ đến đơn vị sử dụng",
+      "track": "Theo dõi trạng thái, bảo trì định kỳ và chi phí vận hành"
+    },
+    "newRule": "Thêm quy tắc",
+    "noRules": "Chưa có quy tắc tự động",
+    "noNotifications": "Không có thông báo",
+    "newTask": "Thêm tác vụ",
+    "noTasks": "Chưa có tác vụ lập lịch",
+    "never": "Chưa chạy",
+    "scheduleTip": "Ví dụ: 0 9 * * 1 = mỗi thứ Hai lúc 9h sáng",
+    "deleteConfirm": "Bạn có chắc chắn muốn xóa \"{name}\"?",
+    "ruleCols": {
+      "name": "Tên quy tắc",
+      "event": "Sự kiện",
+      "priority": "Ưu tiên",
+      "status": "Trạng thái"
+    },
+    "taskCols": {
+      "name": "Tên tác vụ",
+      "type": "Loại",
+      "schedule": "Lịch trình",
+      "status": "Trạng thái",
+      "lastRun": "Lần chạy cuối"
+    },
+    "modal": {
+      "newRule": "Thêm quy tắc mới",
+      "editRule": "Sửa quy tắc",
+      "newTask": "Thêm tác vụ lập lịch"
+    },
+    "field": {
+      "ruleName": "Tên quy tắc",
+      "eventType": "Loại sự kiện",
+      "priority": "Độ ưu tiên (1-10)",
+      "conditions": "Điều kiện (JSON)",
+      "actions": "Hành động (JSON)",
+      "taskName": "Tên tác vụ",
+      "taskType": "Loại tác vụ",
+      "schedule": "Lịch trình Cron",
+      "config": "Cấu hình (JSON)"
+    },
+    "toast": {
+      "ruleSaved": "Đã lưu quy tắc thành công",
+      "taskCreated": "Đã tạo tác vụ thành công",
+      "deleted": "Đã xóa thành công"
+    }
+  },
   "reports": {
-    "noData": "Không có dữ liệu",
-    "unknownError": "Lỗi không xác định",
-    "results": "{count} kết quả",
-    "exportCsv": "Export CSV",
-    "showingOfTotal": "Hiển thị {shown} / {total} —",
     "forAll": "để lấy tất cả",
     "vsPreviousPeriod": "so với kỳ trước",
     "showingResults": "Hiển thị {from}–{to} / {total} kết quả",
@@ -2900,7 +3096,17 @@
       "active": "Đang hoạt động",
       "ciName": "Tên CI",
       "type": "Loại",
-      "attrCount": "Số thuộc tính"
+      "attrCount": "Số thuộc tính",
+      "materialGroup": "Nhóm vật tư",
+      "unit": "Đơn vị",
+      "totalQty": "Tổng SL",
+      "unitCost": "Đơn giá",
+      "totalValue": "Tổng giá trị",
+      "reorderPoint": "Điểm đặt lại",
+      "lotNumber": "Số lô",
+      "expiryDate": "Hạn sử dụng",
+      "quantity": "Số lượng",
+      "available": "Khả dụng"
     },
     "chart": {
       "byStatus": "Theo trạng thái",
@@ -2918,7 +3124,14 @@
       "requestsByStatus": "Yêu cầu theo trạng thái",
       "byRequestType": "Theo loại yêu cầu",
       "cisByType": "CI theo loại",
-      "activeVsOther": "Hoạt động vs Khác"
+      "activeVsOther": "Hoạt động vs Khác",
+      "stockByWarehouse": "Tồn kho theo kho hàng",
+      "stockByMaterialGroup": "Tồn kho theo nhóm vật tư",
+      "valuationByWarehouse": "Giá trị theo kho hàng",
+      "valuationByGroup": "Giá trị theo nhóm vật tư",
+      "shortfallTop10": "Thiếu hụt (Top 10)",
+      "expiringByMonth": "Hết hạn theo tháng",
+      "availableByWarehouse": "Khả dụng theo kho hàng"
     },
     "filter": {
       "savedFilter": "Đã lưu bộ lọc: ",
