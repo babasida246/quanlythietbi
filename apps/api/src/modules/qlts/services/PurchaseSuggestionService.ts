@@ -42,7 +42,7 @@ export class PurchaseSuggestionService {
         const result = await this.pg.query(
             `SELECT 
                 am.id as model_id,
-                am.name as model_name,
+                am.model as model_name,
                 am.category_id,
                 ac.name as category_name,
                 COALESCE(am.current_stock_qty, 0) as current_stock_qty,
@@ -53,7 +53,7 @@ export class PurchaseSuggestionService {
             FROM asset_models am
             JOIN asset_categories ac ON am.category_id = ac.id
             WHERE ${conditions.join(' AND ')}
-            ORDER BY am.category_id, am.name`,
+            ORDER BY am.category_id, am.model`,
             params
         )
 
@@ -128,7 +128,7 @@ export class PurchaseSuggestionService {
                 COALESCE(SUM(quantity)::numeric / NULLIF($2 / 7.0, 0), 0) as weekly
             FROM asset_consumption_logs
             WHERE model_id = $1 
-              AND consumed_at >= CURRENT_DATE - INTERVAL '1 day' * $2`,
+              AND consumption_date >= CURRENT_DATE - INTERVAL '1 day' * $2`,
             [modelId, days]
         )
 
@@ -136,8 +136,7 @@ export class PurchaseSuggestionService {
             await this.pg.query(
                 `UPDATE asset_models 
                  SET avg_daily_consumption = $1,
-                     avg_weekly_consumption = $2,
-                     updated_at = NOW()
+                     avg_weekly_consumption = $2
                  WHERE id = $3`,
                 [result.rows[0].daily, result.rows[0].weekly, modelId]
             )
@@ -147,15 +146,14 @@ export class PurchaseSuggestionService {
     async recordConsumption(modelId: string, quantity: number, consumedBy: string, note?: string): Promise<void> {
         await this.pg.transaction(async (client: any) => {
             await client.query(
-                `INSERT INTO asset_consumption_logs (model_id, quantity, consumed_by, note)
-                 VALUES ($1, $2, $3, $4)`,
+                `INSERT INTO asset_consumption_logs (model_id, consumption_date, quantity, created_by, note)
+                 VALUES ($1, CURRENT_DATE, $2, $3, $4)`,
                 [modelId, quantity, consumedBy, note ?? null]
             )
 
             await client.query(
                 `UPDATE asset_models 
-                 SET current_stock_qty = GREATEST(0, COALESCE(current_stock_qty, 0) - $1),
-                     updated_at = NOW()
+                 SET current_stock_qty = GREATEST(0, COALESCE(current_stock_qty, 0) - $1)
                  WHERE id = $2`,
                 [quantity, modelId]
             )

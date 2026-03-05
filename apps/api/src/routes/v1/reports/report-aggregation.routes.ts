@@ -31,7 +31,12 @@ const VALID_KEYS = [
     'maintenance-status',
     'workflow-summary',
     'cmdb-overview',
-    'cmdb-data-quality'
+    'cmdb-data-quality',
+    'warehouse-stock-on-hand',
+    'warehouse-valuation',
+    'warehouse-reorder-alerts',
+    'warehouse-fefo-lots',
+    'warehouse-stock-available'
 ] as const
 
 type ReportKey = typeof VALID_KEYS[number]
@@ -144,6 +149,11 @@ const REPORT_TITLES: Record<ReportKey, string> = {
     'workflow-summary': 'Tổng quan yêu cầu / phê duyệt',
     'cmdb-overview': 'CI theo loại (CMDB)',
     'cmdb-data-quality': 'Chất lượng dữ liệu CMDB',
+    'warehouse-stock-on-hand': 'Tồn kho hiện tại theo kho',
+    'warehouse-valuation': 'Định giá tồn kho',
+    'warehouse-reorder-alerts': 'Cảnh báo cần đặt hàng',
+    'warehouse-fefo-lots': 'Quản lý lô hàng theo FEFO',
+    'warehouse-stock-available': 'Hàng tồn có thể sử dụng',
 }
 
 // ─── Report runners ─────────────────────────────────────────────────────────
@@ -162,6 +172,11 @@ async function runReport(pool: import('pg').Pool, key: ReportKey, f: FilterParam
         case 'workflow-summary': return workflowSummary(pool, f)
         case 'cmdb-overview': return cmdbOverview(pool, f)
         case 'cmdb-data-quality': return cmdbDataQuality(pool, f)
+        case 'warehouse-stock-on-hand': return warehouseStockOnHand(pool, f)
+        case 'warehouse-valuation': return warehouseValuation(pool, f)
+        case 'warehouse-reorder-alerts': return warehouseReorderAlerts(pool, f)
+        case 'warehouse-fefo-lots': return warehouseFEFOLots(pool, f)
+        case 'warehouse-stock-available': return warehouseStockAvailable(pool, f)
     }
 }
 
@@ -228,7 +243,6 @@ async function assetsOverview(pool: import('pg').Pool, f: FilterParams) {
     const offset = (f.page - 1) * f.pageSize
     const tableParams: Params = [...params]
     tableParams.push(f.pageSize)
-    tableParams.push(offset)
     const tableRows = await pool.query<{
         id: string; asset_code: string; model_name: string | null; category_name: string | null;
         location_name: string | null; status: string; created_at: Date
@@ -242,8 +256,8 @@ async function assetsOverview(pool: import('pg').Pool, f: FilterParams) {
         LEFT JOIN locations l ON a.location_id = l.id
         WHERE 1=1 ${dateCond} ${locCond} ${catCond}
         ORDER BY a.created_at DESC
-        LIMIT ${p(tableParams, f.pageSize)} OFFSET ${p(tableParams, offset)}
-    `, tableParams)
+        LIMIT ${f.pageSize} OFFSET ${offset}
+    `, params)
 
     return {
         kpis: [
@@ -628,7 +642,6 @@ async function maintenanceStatus(pool: import('pg').Pool, f: FilterParams) {
         ORDER BY cnt DESC
     `, params)
 
-    const tableParams: Params = [...params]
     const tableRows = await pool.query<{ id: string; title: string; status: string; severity: string; opened_at: Date; asset_code: string | null }>(`
         SELECT mt.id, mt.title, mt.status, mt.severity, mt.opened_at,
                a.asset_code
@@ -636,8 +649,8 @@ async function maintenanceStatus(pool: import('pg').Pool, f: FilterParams) {
         LEFT JOIN assets a ON a.id = mt.asset_id
         ${dateCond}
         ORDER BY mt.opened_at DESC
-        LIMIT ${p(tableParams, f.pageSize)} OFFSET ${p(tableParams, (f.page - 1) * f.pageSize)}
-    `, tableParams)
+        LIMIT ${f.pageSize} OFFSET ${(f.page - 1) * f.pageSize}
+    `, params)
 
     const total = statusRows.rows.reduce((s, r) => s + Number(r.cnt), 0)
     return {
@@ -695,7 +708,7 @@ async function workflowSummary(pool: import('pg').Pool, f: FilterParams) {
         FROM wf_requests wr
         ${dateCond}
         ORDER BY wr.created_at DESC
-        LIMIT ${p(params, f.pageSize)} OFFSET ${p(params, (f.page - 1) * f.pageSize)}
+        LIMIT ${f.pageSize} OFFSET ${(f.page - 1) * f.pageSize}
     `, params)
 
     const approvedCount = Number(statusRows.rows.find(r => r.status === 'approved')?.cnt ?? 0)
@@ -736,7 +749,7 @@ async function cmdbOverview(pool: import('pg').Pool, _f: FilterParams) {
             SELECT COUNT(*) AS total_ci, COUNT(*) FILTER (WHERE status='active') AS active_ci
             FROM cmdb_cis
         `),
-        pool.query<{ total_rel: string }>(`SELECT COUNT(*) AS total_rel FROM cmdb_relationships WHERE status='active'`)
+        pool.query<{ total_rel: string }>(`SELECT COUNT(*) AS total_rel FROM cmdb_relationships`)
     ])
 
     const k = kpiRow.rows[0]
@@ -781,7 +794,7 @@ async function cmdbDataQuality(pool: import('pg').Pool, f: FilterParams) {
         GROUP BY c.id, c.ci_code, c.name, t.name
         HAVING COUNT(v.id) = 0
         ORDER BY c.ci_code
-        LIMIT ${p(params, f.pageSize)} OFFSET ${p(params, (f.page - 1) * f.pageSize)}
+        LIMIT ${f.pageSize} OFFSET ${(f.page - 1) * f.pageSize}
     `, params)
 
     const countRow = await pool.query<{ cnt: string }>(`
@@ -794,9 +807,8 @@ async function cmdbDataQuality(pool: import('pg').Pool, f: FilterParams) {
 
     const orphanedRels = await pool.query<{ cnt: string }>(`
         SELECT COUNT(*) AS cnt FROM cmdb_relationships cr
-        WHERE cr.status = 'active'
-          AND (NOT EXISTS (SELECT 1 FROM cmdb_cis c1 WHERE c1.id = cr.from_ci_id)
-            OR NOT EXISTS (SELECT 1 FROM cmdb_cis c2 WHERE c2.id = cr.to_ci_id))
+        WHERE NOT EXISTS (SELECT 1 FROM cmdb_cis c1 WHERE c1.id = cr.from_ci_id)
+           OR NOT EXISTS (SELECT 1 FROM cmdb_cis c2 WHERE c2.id = cr.to_ci_id)
     `)
 
     return {
@@ -851,4 +863,166 @@ async function runDrilldown(pool: import('pg').Pool, key: ReportKey, p_: z.infer
     }
 
     return { rows: [], total: 0, dimension, value }
+}
+
+// ─── Warehouse Reports ───────────────────────────────────────────────────────
+
+async function warehouseStockOnHand(pool: import('pg').Pool, f: FilterParams) {
+    const params: Params = []
+    const whCond = f.warehouseId ? `AND sps.warehouse_id = ${p(params, f.warehouseId)}` : ''
+
+    const [kpiRow, rows] = await Promise.all([
+        pool.query<{ lines: string; total_qty: string; wh_count: string }>(`
+            SELECT COUNT(*) AS lines, COALESCE(SUM(sps.on_hand),0) AS total_qty,
+                   COUNT(DISTINCT sps.warehouse_id) AS wh_count
+            FROM spare_part_stock sps WHERE sps.on_hand > 0 ${whCond}
+        `, params),
+        pool.query<{ part_name: string; part_code: string; warehouse_name: string; on_hand: string; reserved: string }>(`
+            SELECT sp.part_name, sp.part_code, COALESCE(w.name,'?') AS warehouse_name,
+                   sps.on_hand, sps.reserved
+            FROM spare_part_stock sps
+            JOIN spare_parts sp ON sp.id = sps.part_id
+            LEFT JOIN warehouses w ON w.id = sps.warehouse_id
+            WHERE sps.on_hand > 0 ${whCond}
+            ORDER BY sps.on_hand DESC
+            LIMIT ${f.pageSize} OFFSET ${(f.page - 1) * f.pageSize}
+        `, params)
+    ])
+    const k = kpiRow.rows[0]
+    return {
+        kpis: [
+            { key: 'lines', label: 'Mặt hàng tồn', value: Number(k?.lines ?? 0), unit: '' },
+            { key: 'total_qty', label: 'Tổng số lượng', value: Number(k?.total_qty ?? 0), unit: '' },
+            { key: 'wh_count', label: 'Kho có hàng', value: Number(k?.wh_count ?? 0), unit: '' },
+        ],
+        charts: { topItems: { labels: rows.rows.slice(0, 10).map(r => r.part_name), series: rows.rows.slice(0, 10).map(r => Number(r.on_hand)) } },
+        table: {
+            rows: rows.rows.map(r => ({ partName: r.part_name, partCode: r.part_code, warehouse: r.warehouse_name, onHand: Number(r.on_hand), reserved: Number(r.reserved ?? 0) })),
+            total: Number(k?.lines ?? 0), page: f.page, pageSize: f.pageSize
+        }
+    }
+}
+
+async function warehouseValuation(pool: import('pg').Pool, f: FilterParams) {
+    const params: Params = []
+    const whCond = f.warehouseId ? `AND sps.warehouse_id = ${p(params, f.warehouseId)}` : ''
+
+    const [kpiRow, rows] = await Promise.all([
+        pool.query<{ total_value: string; lines: string }>(`
+            SELECT COALESCE(SUM(sps.on_hand * COALESCE(sp.unit_cost, 0)), 0) AS total_value,
+                   COUNT(*) AS lines
+            FROM spare_part_stock sps
+            JOIN spare_parts sp ON sp.id = sps.part_id
+            WHERE sps.on_hand > 0 ${whCond}
+        `, params),
+        pool.query<{ part_name: string; warehouse_name: string; on_hand: string; unit_cost: string; total_value: string }>(`
+            SELECT sp.part_name, COALESCE(w.name,'?') AS warehouse_name,
+                   sps.on_hand, COALESCE(sp.unit_cost,0) AS unit_cost,
+                   (sps.on_hand * COALESCE(sp.unit_cost, 0)) AS total_value
+            FROM spare_part_stock sps
+            JOIN spare_parts sp ON sp.id = sps.part_id
+            LEFT JOIN warehouses w ON w.id = sps.warehouse_id
+            WHERE sps.on_hand > 0 ${whCond}
+            ORDER BY (sps.on_hand * COALESCE(sp.unit_cost, 0)) DESC
+            LIMIT ${f.pageSize} OFFSET ${(f.page - 1) * f.pageSize}
+        `, params)
+    ])
+    const k = kpiRow.rows[0]
+    return {
+        kpis: [
+            { key: 'total_value', label: 'Tổng giá trị tồn kho', value: Number(k?.total_value ?? 0), unit: 'VNĐ' },
+            { key: 'lines', label: 'Số mặt hàng', value: Number(k?.lines ?? 0), unit: '' },
+        ],
+        charts: { topValue: { labels: rows.rows.slice(0, 10).map(r => r.part_name), series: rows.rows.slice(0, 10).map(r => Number(r.total_value)) } },
+        table: {
+            rows: rows.rows.map(r => ({ partName: r.part_name, warehouse: r.warehouse_name, onHand: Number(r.on_hand), unitCost: Number(r.unit_cost), totalValue: Number(r.total_value) })),
+            total: Number(k?.lines ?? 0), page: f.page, pageSize: f.pageSize
+        }
+    }
+}
+
+async function warehouseReorderAlerts(pool: import('pg').Pool, f: FilterParams) {
+    const params: Params = []
+    const whCond = f.warehouseId ? `AND sps.warehouse_id = ${p(params, f.warehouseId)}` : ''
+
+    const rows = await pool.query<{ part_name: string; part_code: string; warehouse_name: string; on_hand: string; min_level: string; shortfall: string }>(`
+        SELECT sp.part_name, sp.part_code, COALESCE(w.name,'?') AS warehouse_name,
+               sps.on_hand, sp.min_level, (sp.min_level - sps.on_hand) AS shortfall
+        FROM spare_part_stock sps
+        JOIN spare_parts sp ON sp.id = sps.part_id
+        LEFT JOIN warehouses w ON w.id = sps.warehouse_id
+        WHERE sp.min_level IS NOT NULL AND sps.on_hand < sp.min_level ${whCond}
+        ORDER BY shortfall DESC
+        LIMIT ${f.pageSize} OFFSET ${(f.page - 1) * f.pageSize}
+    `, params)
+
+    return {
+        kpis: [{ key: 'alert_count', label: 'Mặt hàng cần đặt hàng', value: rows.rowCount ?? 0, unit: '' }],
+        charts: { alerts: { labels: rows.rows.slice(0, 10).map(r => r.part_name), series: rows.rows.slice(0, 10).map(r => Number(r.shortfall)) } },
+        table: {
+            rows: rows.rows.map(r => ({ partName: r.part_name, partCode: r.part_code, warehouse: r.warehouse_name, onHand: Number(r.on_hand), minLevel: Number(r.min_level), shortfall: Number(r.shortfall) })),
+            total: rows.rowCount ?? 0, page: f.page, pageSize: f.pageSize
+        }
+    }
+}
+
+async function warehouseFEFOLots(pool: import('pg').Pool, f: FilterParams) {
+    const params: Params = []
+    const whCond = f.warehouseId ? `AND sl.warehouse_id = ${p(params, f.warehouseId)}` : ''
+
+    const rows = await pool.query<{ part_name: string; lot_number: string; warehouse_name: string; qty: string; expiry_date: string | null }>(`
+        SELECT sp.part_name, sl.lot_number, COALESCE(w.name,'?') AS warehouse_name,
+               sl.qty, sl.expiry_date
+        FROM stock_lots sl
+        JOIN spare_parts sp ON sp.id = sl.part_id
+        LEFT JOIN warehouses w ON w.id = sl.warehouse_id
+        WHERE sl.qty > 0 ${whCond}
+        ORDER BY sl.expiry_date ASC NULLS LAST
+        LIMIT ${f.pageSize} OFFSET ${(f.page - 1) * f.pageSize}
+    `, params)
+
+    return {
+        kpis: [{ key: 'active_lots', label: 'Lô hàng đang hoạt động', value: rows.rowCount ?? 0, unit: '' }],
+        charts: {},
+        table: {
+            rows: rows.rows.map(r => ({ partName: r.part_name, lotNumber: r.lot_number, warehouse: r.warehouse_name, qty: Number(r.qty), expiryDate: r.expiry_date })),
+            total: rows.rowCount ?? 0, page: f.page, pageSize: f.pageSize
+        }
+    }
+}
+
+async function warehouseStockAvailable(pool: import('pg').Pool, f: FilterParams) {
+    const params: Params = []
+    const whCond = f.warehouseId ? `AND sps.warehouse_id = ${p(params, f.warehouseId)}` : ''
+
+    const [kpiRow, rows] = await Promise.all([
+        pool.query<{ total_available: string; lines: string }>(`
+            SELECT COALESCE(SUM(GREATEST(sps.on_hand - COALESCE(sps.reserved, 0), 0)), 0) AS total_available,
+                   COUNT(*) FILTER (WHERE sps.on_hand > COALESCE(sps.reserved, 0)) AS lines
+            FROM spare_part_stock sps WHERE 1=1 ${whCond}
+        `, params),
+        pool.query<{ part_name: string; part_code: string; warehouse_name: string; on_hand: string; reserved: string; available: string }>(`
+            SELECT sp.part_name, sp.part_code, COALESCE(w.name,'?') AS warehouse_name,
+                   sps.on_hand, COALESCE(sps.reserved,0) AS reserved,
+                   GREATEST(sps.on_hand - COALESCE(sps.reserved,0), 0) AS available
+            FROM spare_part_stock sps
+            JOIN spare_parts sp ON sp.id = sps.part_id
+            LEFT JOIN warehouses w ON w.id = sps.warehouse_id
+            WHERE sps.on_hand > COALESCE(sps.reserved, 0) ${whCond}
+            ORDER BY available DESC
+            LIMIT ${f.pageSize} OFFSET ${(f.page - 1) * f.pageSize}
+        `, params)
+    ])
+    const k = kpiRow.rows[0]
+    return {
+        kpis: [
+            { key: 'total_available', label: 'Tổng có thể sử dụng', value: Number(k?.total_available ?? 0), unit: '' },
+            { key: 'lines', label: 'Số mặt hàng khả dụng', value: Number(k?.lines ?? 0), unit: '' },
+        ],
+        charts: { available: { labels: rows.rows.slice(0, 10).map(r => r.part_name), series: rows.rows.slice(0, 10).map(r => Number(r.available)) } },
+        table: {
+            rows: rows.rows.map(r => ({ partName: r.part_name, partCode: r.part_code, warehouse: r.warehouse_name, onHand: Number(r.on_hand), reserved: Number(r.reserved), available: Number(r.available) })),
+            total: Number(k?.lines ?? 0), page: f.page, pageSize: f.pageSize
+        }
+    }
 }

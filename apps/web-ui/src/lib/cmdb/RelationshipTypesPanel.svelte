@@ -72,7 +72,7 @@
   }
 
   async function handleDelete(rows: RelationshipTypeRecord[]) {
-    if (!confirm(`Delete ${rows.length} relationship type(s)?`)) return;
+    if (!confirm($_('cmdb.relTypePanel.deleteConfirm', { values: { count: rows.length } }))) return;
     
     try {
       for (const row of rows) {
@@ -115,7 +115,7 @@
   }
 
   function getCiTypeName(typeId: string | null | undefined): string {
-    if (!typeId) return 'Any';
+    if (!typeId) return $isLoading ? 'Any' : $_('cmdb.relTypePanel.any');
     return ciTypes.find(t => t.id === typeId)?.name ?? typeId;
   }
 
@@ -205,10 +205,10 @@
           id="rel-code"
           class="input-base"
           bind:value={code}
-          placeholder="depends_on"
+          placeholder={$isLoading ? 'depends_on' : $_('cmdb.relTypePanel.codePlaceholder')}
           disabled={!!editingId}
         />
-        <p class="text-xs text-slate-500 mt-1">Unique identifier (lowercase, underscores)</p>
+        <p class="text-xs text-slate-500 mt-1">{$isLoading ? 'Unique identifier (lowercase, underscores)' : $_('cmdb.relTypePanel.codeHint')}</p>
       </div>
 
       <div>
@@ -219,9 +219,9 @@
           id="rel-name"
           class="input-base"
           bind:value={name}
-          placeholder="Depends on"
+          placeholder={$isLoading ? 'Depends on' : $_('cmdb.relTypePanel.namePlaceholder')}
         />
-        <p class="text-xs text-slate-500 mt-1">Display name (e.g., "Depends on")</p>
+        <p class="text-xs text-slate-500 mt-1">{$isLoading ? 'Display name (e.g., "Depends on")' : $_('cmdb.relTypePanel.nameHint')}</p>
       </div>
     </div>
 
@@ -233,9 +233,9 @@
         id="rel-reverse"
         class="input-base"
         bind:value={reverseName}
-        placeholder="Required by"
+        placeholder={$isLoading ? 'Required by' : $_('cmdb.relTypePanel.reversePlaceholder')}
       />
-      <p class="text-xs text-slate-500 mt-1">Optional: How relationship appears from opposite direction</p>
+      <p class="text-xs text-slate-500 mt-1">{$isLoading ? 'Optional: How relationship appears from opposite direction' : $_('cmdb.relTypePanel.reverseHint')}</p>
     </div>
 
     <div class="border-t border-slate-700 pt-4">
@@ -258,7 +258,7 @@
               <option value={ciType.id}>{ciType.name}</option>
             {/each}
           </select>
-          <p class="text-xs text-slate-500 mt-1">Leave empty to allow any type</p>
+          <p class="text-xs text-slate-500 mt-1">{$isLoading ? 'Leave empty to allow any type' : $_('cmdb.relTypePanel.leaveEmpty')}</p>
         </div>
 
         <div>
@@ -275,7 +275,7 @@
               <option value={ciType.id}>{ciType.name}</option>
             {/each}
           </select>
-          <p class="text-xs text-slate-500 mt-1">Leave empty to allow any type</p>
+          <p class="text-xs text-slate-500 mt-1">{$isLoading ? 'Leave empty to allow any type' : $_('cmdb.relTypePanel.leaveEmpty')}</p>
         </div>
       </div>
     </div>
@@ -285,9 +285,9 @@
         {$isLoading ? 'Examples:' : $_('cmdb.examples')}
       </p>
       <ul class="text-blue-300 space-y-1 text-xs">
-        <li>• <code class="bg-blue-800 px-1 rounded">depends_on</code> → App depends on Database</li>
-        <li>• <code class="bg-blue-800 px-1 rounded">hosts</code> → Server hosts Application</li>
-        <li>• <code class="bg-blue-800 px-1 rounded">connects_to</code> → Switch connects to Router</li>
+        <li>• <code class="bg-blue-800 px-1 rounded">depends_on</code> → {$isLoading ? 'App depends on Database' : $_('cmdb.relTypePanel.example1')}</li>
+        <li>• <code class="bg-blue-800 px-1 rounded">hosts</code> → {$isLoading ? 'Server hosts Application' : $_('cmdb.relTypePanel.example2')}</li>
+        <li>• <code class="bg-blue-800 px-1 rounded">connects_to</code> → {$isLoading ? 'Switch connects to Router' : $_('cmdb.relTypePanel.example3')}</li>
       </ul>
     </div>
   </div>

@@ -183,14 +183,14 @@
     <div class="flex items-center justify-between text-sm text-slate-500">
       <span>Page {meta.page}</span>
       <div class="flex gap-2">
-        <Button variant="secondary" size="sm" disabled={meta.page <= 1} onclick={() => loadCis(meta.page - 1)}>Prev</Button>
+        <Button variant="secondary" size="sm" disabled={meta.page <= 1} onclick={() => loadCis(meta.page - 1)}>{$isLoading ? 'Prev' : $_('common.prev')}</Button>
         <Button
           variant="secondary"
           size="sm"
           disabled={meta.page * meta.limit >= meta.total}
           onclick={() => loadCis(meta.page + 1)}
         >
-          Next
+          {$isLoading ? 'Next' : $_('common.next')}
         </Button>
       </div>
     </div>

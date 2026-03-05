@@ -26,6 +26,7 @@
       id: p.id,
       label: `${p.partCode} – ${p.name}`,
       uom: p.uom ?? '—',
+      category: p.category ?? '—',
       spec: p.spec
     }))
   );
@@ -40,7 +41,7 @@
 
   // colspan for empty-state row
   const colCount = $derived(
-    3 + (showPrice ? 2 : 0) + (showAdjDir ? 1 : 0) + (readonly ? 0 : 1)
+    4 + (showPrice ? 2 : 0) + (showAdjDir ? 1 : 0) + (readonly ? 0 : 1)
   );
 
   async function checkStock(partId: string) {
@@ -53,6 +54,10 @@
 
   function getPartUom(partId: string) {
     return partOptions.find((p: { id: string }) => p.id === partId)?.uom ?? '—';
+  }
+
+  function getPartCategory(partId: string) {
+    return partOptions.find((p: { id: string }) => p.id === partId)?.category ?? '—';
   }
 
   function getPartLabel(partId: string) {
@@ -123,6 +128,7 @@
       <tr>
         <th class="border-b border-slate-700 px-2 py-2.5 text-center w-9">#</th>
         <th class="border-b border-slate-700 px-3 py-2.5 text-left">{$isLoading ? 'Part Name' : $_('stockDoc.header.partName')}</th>
+        <th class="border-b border-slate-700 px-2 py-2.5 text-left w-28">{$isLoading ? 'Category' : $_('stockDoc.header.category')}</th>
         <th class="border-b border-slate-700 px-2 py-2.5 text-center w-14">{$isLoading ? 'Unit' : $_('stockDoc.header.unit')}</th>
         {#if showAdjDir}
           <th class="border-b border-slate-700 px-2 py-2.5 text-center w-28">{$isLoading ? 'Direction' : $_('stockDoc.header.direction')}</th>
@@ -211,6 +217,9 @@
                 </div>
               {/if}
             </td>
+
+            <!-- Category -->
+            <td class="px-2 py-1.5 text-xs text-slate-400">{getPartCategory(line.partId)}</td>
 
             <!-- ĐVT -->
             <td class="px-2 py-1.5 text-center text-slate-400 text-xs">{getPartUom(line.partId)}</td>
@@ -351,7 +360,7 @@
       <tfoot>
         <tr class="border-t-2 border-slate-600 bg-slate-800/70">
           <td
-            colspan={showAdjDir ? 5 : 4}
+            colspan={showAdjDir ? 6 : 5}
             class="px-3 py-2.5 text-right text-xs font-semibold uppercase tracking-wide text-slate-400"
           >
             {$isLoading ? 'Total' : $_('stockDoc.total')} ({lines.length}):

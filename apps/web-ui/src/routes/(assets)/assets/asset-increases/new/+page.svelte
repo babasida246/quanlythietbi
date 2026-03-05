@@ -2,7 +2,9 @@
   import { _ } from 'svelte-i18n'
   import { goto } from '$app/navigation'
   import { API_BASE, apiJson } from '$lib/api/httpClient'
+  import { getAssetCatalogs, type Vendor } from '$lib/api/assetCatalogs'
   import type { AssetIncreaseLine, IncreaseType } from '$lib/types/qlts.js'
+  import { onMount } from 'svelte'
 
   let docDate = $state(new Date().toISOString().split('T')[0])
   let increaseType = $state<IncreaseType>('purchase')
@@ -12,6 +14,7 @@
   let invoiceDate = $state('')
   let purchasePlanDocId = $state('')
   let note = $state('')
+  let vendors = $state<Vendor[]>([])
   let lines = $state<AssetIncreaseLine[]>([{
     lineNo: 1,
     assetName: '',
@@ -28,6 +31,13 @@
   let errorMessage = $state('')
 
   const increaseTypes: IncreaseType[] = ['purchase', 'donation', 'transfer_in', 'found', 'other']
+
+  onMount(async () => {
+    try {
+      const catalogs = await getAssetCatalogs()
+      vendors = catalogs.data?.vendors ?? []
+    } catch { /* non-critical */ }
+  })
 
   function addLine() {
     lines.push({
@@ -172,6 +182,22 @@
               bind:value={orgUnitName}
               class="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
             />
+          </div>
+
+          <div>
+            <label for="aiVendor" class="block text-sm font-medium mb-1">
+              {$_('qlts.assetIncrease.form.vendor')}
+            </label>
+            <select
+              id="aiVendor"
+              bind:value={vendorId}
+              class="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+            >
+              <option value="">-- {$_('qlts.assetIncrease.form.selectVendor')} --</option>
+              {#each vendors as v}
+                <option value={v.id}>{v.name}</option>
+              {/each}
+            </select>
           </div>
 
           <div>

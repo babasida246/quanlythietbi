@@ -23,7 +23,7 @@
 
   // ── Form state ───────────────────────────────────────────────────────────
   let title       = $state('');
-  let requestType = $state<WfRequestType>('assign');
+  let requestType = $state<WfRequestType>('asset_request');
   let priority    = $state<WfPriority>('normal');
   let dueAt       = $state('');
   let noteText    = $state('');
@@ -60,7 +60,7 @@
         title: title.trim(),
         requestType,
         priority,
-        dueAt:   dueAt  || undefined,
+        dueAt:   dueAt ? new Date(dueAt + 'T23:59:59').toISOString() : undefined,
         payload,
         lines:   lines.length > 0 ? lines : undefined,
       });
@@ -71,10 +71,10 @@
         // Auto-submit is handled server-side or via separate call — navigate to detail
         const { submitWfRequest } = await import('$lib/api/wf');
         await submitWfRequest(res.data.id);
-        toast.success($_('requests.toast.submitSuccess'));
+        toast.success($_('requests.toast.submitted'));
       }
 
-      await goto('/me/requests');
+      await goto('/requests?tab=mine');
     } catch (e) {
       error = e instanceof Error ? e.message : $_('requests.toast.createFailed');
     } finally {
@@ -150,23 +150,23 @@
       </div>
 
       <!-- Asset model (assign / return only) -->
-      {#if requestType === 'assign' || requestType === 'return'}
+      {#if requestType === 'asset_request'}
         <div>
           <label for="req-model" class="mb-1 block text-xs font-medium text-slate-400">
-            {requestType === 'assign' ? ($isLoading ? 'Device model to assign' : $_('requests.field.assignModel')) : ($isLoading ? 'Device code/name to reclaim' : $_('requests.field.reclaimDevice'))}
+            {$isLoading ? 'Device model to assign' : $_('requests.field.assignModel')}
           </label>
           <input
             id="req-model"
             class="input-base text-sm"
             type="text"
             bind:value={assetModel}
-            placeholder={requestType === 'assign' ? 'VD: Dell XPS 15' : 'VD: HP-001'}
+            placeholder="VD: Dell XPS 15"
           />
         </div>
       {/if}
 
       <!-- Ghi chú (takes remaining span) -->
-      <div class="col-span-2 md:col-span-{requestType === 'assign' || requestType === 'return' ? '3' : '4'}"
+      <div class="col-span-2 md:col-span-{requestType === 'asset_request' ? '3' : '4'}"
            style="grid-column: span 2">
         <label for="req-note" class="mb-1 block text-xs font-medium text-slate-400">{$isLoading ? 'Notes' : $_('requests.field.notes')}</label>
         <input

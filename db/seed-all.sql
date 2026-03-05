@@ -1,20 +1,38 @@
 -- ============================================================================
--- seed-all.sql — Chạy toàn bộ seed data theo thứ tự phụ thuộc
--- Sử dụng:
---   docker cp db/ qltb-postgres:/tmp/db/
---   docker exec -i qltb-postgres psql -U postgres -d qltb -f /tmp/db/seed-all.sql
--- Hoặc chạy từng file:
---   docker cp db/seed-data.sql qltb-postgres:/tmp/
---   docker exec -i qltb-postgres psql -U postgres -d qltb -f /tmp/seed-data.sql
+-- seed-all.sql — Docker psql orchestrator
+-- Usage: psql -U postgres -d qltb -f /tmp/seed-all.sql
+-- Run order matters due to FK dependencies
 -- ============================================================================
 
-\echo '=== [1/3] Seeding foundation data (users, CMDB types) ==='
-\i /tmp/seed-data.sql
+-- 1. Foundation: users, locations, vendors, orgs, categories
+\i seed-data.sql
 
-\echo '=== [2/3] Seeding assets management (vendors, assets, warehouse, repairs, licenses, accessories, components) ==='
-\i /tmp/seed-assets-management.sql
+-- 2. Asset catalog: models, warehouses, spare parts catalog, categories
+\i seed-assets-management.sql
 
-\echo '=== [3/3] Seeding CMDB CIs, services, purchase plans, workflows ==='
-\i /tmp/seed-qlts-demo.sql
+-- 3. Assets (50 units) + transactions: assignments, checkouts, maintenance, requests
+\i seed-assets.sql
 
-\echo '=== DONE — All seed data loaded successfully ==='
+-- 4. Accessories, consumables, components, licenses
+\i seed-accessories.sql
+
+-- 5. Warehouse stock, purchase plans
+\i seed-warehouse.sql
+
+-- 6. Inventory audit, depreciation, CMDB extras, compliance, documents
+\i seed-inventory-audit.sql
+
+-- 7. Analytics: reports, dashboards, labels, print jobs, asset metrics
+\i seed-analytics.sql
+
+-- 8. AI/Chat: providers, models, channels, conversations, usage
+\i seed-chat-ai.sql
+
+-- 9. Workflows: WF definitions, automation rules, events, attachments
+\i seed-workflows.sql
+
+-- 10. Ops: alerts, notifications, integrations, sessions, RBAC
+\i seed-ops.sql
+
+-- 11. CMDB & WF demo data (depends on assets existing)
+\i seed-qlts-demo.sql

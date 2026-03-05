@@ -40,7 +40,12 @@ export const createWfRequestSchema = z.object({
     requestType: wfRequestTypeSchema,
     priority: wfPrioritySchema.optional(),
     requesterOuId: z.string().uuid().optional(),
-    dueAt: z.string().datetime({ offset: true }).optional(),
+    dueAt: z.string().optional().transform((v) => {
+        if (!v) return undefined;
+        // Accept both ISO datetime and date-only (YYYY-MM-DD)
+        if (/^\d{4}-\d{2}-\d{2}$/.test(v)) return new Date(v + 'T23:59:59Z').toISOString();
+        return v;
+    }),
     payload: z.record(z.unknown()).optional().default({}),
     lines: z.array(wfRequestLineSchema).optional(),
 });
@@ -48,7 +53,11 @@ export const createWfRequestSchema = z.object({
 export const updateWfRequestSchema = z.object({
     title: z.string().min(3).max(500).optional(),
     priority: wfPrioritySchema.optional(),
-    dueAt: z.string().datetime({ offset: true }).optional().nullable(),
+    dueAt: z.string().optional().nullable().transform((v) => {
+        if (!v) return v;
+        if (/^\d{4}-\d{2}-\d{2}$/.test(v)) return new Date(v + 'T23:59:59Z').toISOString();
+        return v;
+    }),
     payload: z.record(z.unknown()).optional(),
 });
 

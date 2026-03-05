@@ -288,22 +288,6 @@ CREATE TRIGGER trg_component_assignments_updated_at
     EXECUTE FUNCTION update_components_updated_at();
 
 -- =====================================================
--- 8. SEED DATA - Default Categories
--- =====================================================
-
-INSERT INTO component_categories (id, code, name, description, created_by)
-VALUES 
-    (uuid_generate_v4(), 'MEMORY', 'Memory', 'RAM modules and memory sticks', '00000000-0000-0000-0000-000000000000'),
-    (uuid_generate_v4(), 'STORAGE', 'Storage', 'SSDs, HDDs, and storage devices', '00000000-0000-0000-0000-000000000000'),
-    (uuid_generate_v4(), 'PROCESSOR', 'Processors', 'CPUs and processors', '00000000-0000-0000-0000-000000000000'),
-    (uuid_generate_v4(), 'GRAPHICS', 'Graphics Cards', 'GPUs and graphics cards', '00000000-0000-0000-0000-000000000000'),
-    (uuid_generate_v4(), 'POWER', 'Power Supplies', 'PSUs and power components', '00000000-0000-0000-0000-000000000000'),
-    (uuid_generate_v4(), 'NETWORK', 'Network Cards', 'NICs and network adapters', '00000000-0000-0000-0000-000000000000'),
-    (uuid_generate_v4(), 'MAINBOARD', 'Motherboards', 'Motherboards and mainboards', '00000000-0000-0000-0000-000000000000'),
-    (uuid_generate_v4(), 'OTHER', 'Other Components', 'Miscellaneous components', '00000000-0000-0000-0000-000000000000')
-ON CONFLICT (code) DO NOTHING;
-
--- =====================================================
 -- 9. COMMENTS
 -- =====================================================
 

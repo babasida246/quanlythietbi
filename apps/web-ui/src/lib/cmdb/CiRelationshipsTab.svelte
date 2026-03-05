@@ -10,6 +10,7 @@
     listCis
   } from '$lib/api/cmdb';
   import type { RelationshipRecord, RelationshipTypeRecord, CiRecord } from '$lib/api/cmdb';
+  import { _, isLoading } from '$lib/i18n';
 
   interface Props {
     ciId: string;
@@ -41,7 +42,7 @@
       const response = await listCiRelationships(ciId);
       relationships = response.data;
     } catch (err) {
-      error = err instanceof Error ? err.message : 'Failed to load relationships';
+      error = err instanceof Error ? err.message : $_('cmdb.rel.failedLoad');
       console.error('Error loading relationships:', err);
     } finally {
       loading = false;
@@ -104,7 +105,7 @@
 
   async function handleCreate() {
     if (!selectedRelTypeId || !selectedTargetCiId) {
-      error = 'Please select relationship type and target CI';
+      error = $_('cmdb.rel.selectRequired');
       return;
     }
 
@@ -123,14 +124,14 @@
       showModal = false;
       await loadRelationships();
     } catch (err) {
-      error = err instanceof Error ? err.message : 'Failed to create relationship';
+      error = err instanceof Error ? err.message : $_('cmdb.rel.failedCreate');
     } finally {
       saving = false;
     }
   }
 
   async function handleDelete(relationshipId: string) {
-    if (!confirm('Are you sure you want to delete this relationship?')) {
+    if (!confirm($_('cmdb.rel.confirmDelete'))) {
       return;
     }
 
@@ -138,7 +139,7 @@
       await deleteRelationship(relationshipId);
       await loadRelationships();
     } catch (err) {
-      error = err instanceof Error ? err.message : 'Failed to delete relationship';
+      error = err instanceof Error ? err.message : $_('cmdb.rel.failedDelete');
       console.error('Delete error:', err);
     }
   }
@@ -163,14 +164,14 @@
   <!-- Header -->
   <div class="mb-4 flex items-center justify-between">
     <div>
-      <h3 class="text-lg font-semibold">Relationships for {ciName}</h3>
+      <h3 class="text-lg font-semibold">{$isLoading ? `Relationships for ${ciName}` : $_('cmdb.rel.heading', { values: { name: ciName } })}</h3>
       <p class="text-sm text-slate-500">
-        {relationships.length} relationship{relationships.length !== 1 ? 's' : ''}
+        {$isLoading ? `${relationships.length} relationship(s)` : $_('cmdb.rel.count', { values: { count: relationships.length } })}
       </p>
     </div>
     <Button size="sm" onclick={openCreateModal}>
       <Plus class="mr-2 h-4 w-4" />
-      New Relationship
+      {$isLoading ? 'New Relationship' : $_('cmdb.rel.new')}
     </Button>
   </div>
 
@@ -183,26 +184,26 @@
 
   <!-- Relationships Table -->
   {#if loading}
-    <div class="py-8 text-center text-slate-500">Loading relationships...</div>
+    <div class="py-8 text-center text-slate-500">{$isLoading ? 'Loading relationships...' : $_('cmdb.rel.loading')}</div>
   {:else if relationships.length === 0}
     <div class="rounded-lg border border-dashed border-slate-600 py-12 text-center">
-      <p class="text-slate-500">No relationships defined</p>
-      <Button class="mt-4" size="sm" onclick={openCreateModal}>Create First Relationship</Button>
+      <p class="text-slate-500">{$isLoading ? 'No relationships defined' : $_('cmdb.rel.empty')}</p>
+      <Button class="mt-4" size="sm" onclick={openCreateModal}>{$isLoading ? 'Create First Relationship' : $_('cmdb.rel.createFirst')}</Button>
     </div>
   {:else}
     <Table>
       <TableHeader>
-        <TableHeaderCell>Direction</TableHeaderCell>
-        <TableHeaderCell>Type</TableHeaderCell>
-        <TableHeaderCell>Related CI</TableHeaderCell>
-        <TableHeaderCell>Note</TableHeaderCell>
-        <TableHeaderCell>Created</TableHeaderCell>
-        <TableHeaderCell>Actions</TableHeaderCell>
+        <TableHeaderCell>{$isLoading ? 'Direction' : $_('cmdb.rel.direction')}</TableHeaderCell>
+        <TableHeaderCell>{$isLoading ? 'Type' : $_('cmdb.rel.type')}</TableHeaderCell>
+        <TableHeaderCell>{$isLoading ? 'Related CI' : $_('cmdb.rel.relatedCi')}</TableHeaderCell>
+        <TableHeaderCell>{$isLoading ? 'Note' : $_('cmdb.rel.note')}</TableHeaderCell>
+        <TableHeaderCell>{$isLoading ? 'Created' : $_('cmdb.rel.created')}</TableHeaderCell>
+        <TableHeaderCell>{$isLoading ? 'Actions' : $_('cmdb.rel.actions')}</TableHeaderCell>
       </TableHeader>
       <tbody>
         {#each relationships as rel}
           {@const isSource = rel.fromCiId === ciId}
-          {@const direction = isSource ? 'Outgoing →' : 'Incoming ←'}
+          {@const direction = isSource ? ($isLoading ? 'Outgoing →' : $_('cmdb.rel.outgoing')) : ($isLoading ? 'Incoming ←' : $_('cmdb.rel.incoming'))}
           {@const typeName = isSource ? getRelTypeName(rel.relTypeId) : getRelTypeReverseName(rel.relTypeId)}
           {@const targetCiId = isSource ? rel.toCiId : rel.fromCiId}
           {@const targetCiName = getCiName(targetCiId)}
@@ -231,11 +232,11 @@
   {/if}
 
   <!-- Create Relationship Modal -->
-  <Modal title="Create Relationship" bind:open={showModal} size="md">
+  <Modal title={$isLoading ? 'Create Relationship' : $_('cmdb.rel.createTitle')} bind:open={showModal} size="md">
     <div class="space-y-4">
       <!-- Direction Selection -->
       <div>
-        <label class="label-base">Direction</label>
+        <label class="label-base">{$isLoading ? 'Direction' : $_('cmdb.rel.directionLabel')}</label>
         <div class="mt-2 flex gap-4">
           <label class="flex items-center text-slate-300">
             <input
@@ -244,7 +245,7 @@
               value={true}
               class="mr-2"
             />
-            Outgoing (this CI → target)
+            {$isLoading ? 'Outgoing (this CI → target)' : $_('cmdb.rel.outgoingDesc')}
           </label>
           <label class="flex items-center text-slate-300">
             <input
@@ -253,20 +254,20 @@
               value={false}
               class="mr-2"
             />
-            Incoming (target → this CI)
+            {$isLoading ? 'Incoming (target → this CI)' : $_('cmdb.rel.incomingDesc')}
           </label>
         </div>
       </div>
 
       <!-- Relationship Type -->
       <div>
-        <label for="relType" class="label-base">Relationship Type</label>
+        <label for="relType" class="label-base">{$isLoading ? 'Relationship Type' : $_('cmdb.rel.relType')}</label>
         <select
           id="relType"
           bind:value={selectedRelTypeId}
           class="select-base mt-2"
         >
-          <option value="">Select type...</option>
+          <option value="">{$isLoading ? 'Select type...' : $_('cmdb.rel.selectType')}</option>
           {#each relTypeOptions as opt}
             <option value={opt.value}>{opt.name}</option>
           {/each}
@@ -283,13 +284,13 @@
 
       <!-- Target CI -->
       <div>
-        <label for="targetCi" class="label-base">Related CI</label>
+        <label for="targetCi" class="label-base">{$isLoading ? 'Related CI' : $_('cmdb.rel.relatedCi')}</label>
         <select
           id="targetCi"
           bind:value={selectedTargetCiId}
           class="select-base mt-2"
         >
-          <option value="">Select CI...</option>
+          <option value="">{$isLoading ? 'Select CI...' : $_('cmdb.rel.selectCi')}</option>
           {#each ciOptions as opt}
             <option value={opt.value}>{opt.name}</option>
           {/each}
@@ -298,13 +299,13 @@
 
       <!-- Note -->
       <div>
-        <label for="note" class="label-base">Note (optional)</label>
+        <label for="note" class="label-base">{$isLoading ? 'Note (optional)' : $_('cmdb.rel.noteOptional')}</label>
         <textarea
           id="note"
           bind:value={relationshipNote}
           rows="3"
           class="textarea-base mt-2"
-          placeholder="Add context about this relationship..."
+          placeholder={$isLoading ? 'Add context about this relationship...' : $_('cmdb.rel.notePlaceholder')}
         ></textarea>
       </div>
 
@@ -314,9 +315,9 @@
     </div>
 
     {#snippet footer()}
-      <Button variant="secondary" onclick={() => (showModal = false)}>Cancel</Button>
+      <Button variant="secondary" onclick={() => (showModal = false)}>{$isLoading ? 'Cancel' : $_('cmdb.rel.cancel')}</Button>
       <Button onclick={handleCreate} disabled={saving}>
-        {saving ? 'Creating...' : 'Create'}
+        {saving ? ($isLoading ? 'Creating...' : $_('cmdb.rel.creating')) : ($isLoading ? 'Create' : $_('cmdb.rel.create'))}
       </Button>
     {/snippet}
   </Modal>

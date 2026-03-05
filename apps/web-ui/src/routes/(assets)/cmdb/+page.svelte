@@ -79,10 +79,32 @@
   let activeTab = $state<CmdbTab>('types');
   const isCrudTab = $derived(crudTabs.includes(activeTab as CrudTab));
 
+  // ── Pagination ──────────────────────────────────────────────────────────────
+  const PAGE_SIZE = 20;
+  let typesPage = $state(1);
+  let cisPage = $state(1);
+  let cisTotal = $state(0);
+  let relPage = $state(1);
+
+  function goToPage(nextPage: number) {
+    if (activeTab === 'cis') { void loadCisPage(nextPage); }
+    else if (activeTab === 'types') { typesPage = nextPage; }
+    else if (activeTab === 'relationships') { relPage = nextPage; }
+  }
+
   let ciTypes = $state<CmdbType[]>([]);
-  let cis = $state<CiRecord[]>([]);
+  let cis = $state<CiRecord[]>([]);  // paginated CIs for table display
+  let allCis = $state<CiRecord[]>([]);  // all CIs for dropdown options
   let relationships = $state<RelationshipRecord[]>([]);
   let relationshipTypes = $state<RelationshipTypeRecord[]>([]);
+
+  // Pagination counts — declared after state arrays to avoid TDZ errors
+  const typesTotalPages = $derived(Math.max(1, Math.ceil(ciTypes.length / PAGE_SIZE)));
+  const cisTotalPages = $derived(Math.max(1, Math.ceil(cisTotal / PAGE_SIZE)));
+  const relTotalPages = $derived(Math.max(1, Math.ceil(relationships.length / PAGE_SIZE)));
+  const currentTabPage = $derived(activeTab === 'types' ? typesPage : activeTab === 'cis' ? cisPage : relPage);
+  const currentTabTotalPages = $derived(activeTab === 'types' ? typesTotalPages : activeTab === 'cis' ? cisTotalPages : relTotalPages);
+  const currentTabTotal = $derived(activeTab === 'types' ? ciTypes.length : activeTab === 'cis' ? cisTotal : relationships.length);
 
   let createOpen = $state(false);
   let editOpen = $state(false);
@@ -91,9 +113,9 @@
   let deletingItem = $state<Record<string, unknown> | null>(null);
 
   const currentRows = $derived.by(() => {
-    if (activeTab === 'types') return ciTypes;
+    if (activeTab === 'types') return ciTypes.slice((typesPage - 1) * PAGE_SIZE, typesPage * PAGE_SIZE);
     if (activeTab === 'cis') return cis;
-    if (activeTab === 'relationships') return relationships;
+    if (activeTab === 'relationships') return relationships.slice((relPage - 1) * PAGE_SIZE, relPage * PAGE_SIZE);
     return [];
   });
 
@@ -104,7 +126,7 @@
   });
 
   const ciTypeOptions = $derived(ciTypes.map((item) => ({ value: item.id, label: item.name })));
-  const ciOptions = $derived(cis.map((item) => ({ value: item.id, label: item.name })));
+  const ciOptions = $derived(allCis.map((item) => ({ value: item.id, label: item.name })));
 
   function sanitizeCode(value: string): string {
     return value.trim().toUpperCase().replace(/\s+/g, '_').replace(/[^A-Z0-9_]/g, '') || 'REL';
@@ -176,8 +198,8 @@
     if (activeTab === 'types') return String(row.name ?? '');
     if (activeTab === 'cis') return String(row.name ?? '');
     // Resolve CI names and relationship type name for delete confirmation
-    const fromName = cis.find(c => c.id === row.fromCiId)?.name ?? String(row.fromCiId ?? '');
-    const toName = cis.find(c => c.id === row.toCiId)?.name ?? String(row.toCiId ?? '');
+    const fromName = allCis.find(c => c.id === row.fromCiId)?.name ?? String(row.fromCiId ?? '');
+    const toName = allCis.find(c => c.id === row.toCiId)?.name ?? String(row.toCiId ?? '');
     const relTypeName = relationshipTypes.find(t => t.id === row.relTypeId)?.name ?? '';
     return relTypeName ? `${fromName} —[${relTypeName}]→ ${toName}` : `${fromName} → ${toName}`;
   }
@@ -186,16 +208,38 @@
     try {
       loading = true;
       error = '';
-      const [typesResponse, cisResponse, relationshipResponse, relationshipTypeResponse] = await Promise.all([
+      const [typesResponse, cisResponse, allCisResponse, relationshipResponse, relationshipTypeResponse] = await Promise.all([
         listCmdbTypes(),
-        listCis({ limit: 200 }),
+        listCis({ limit: PAGE_SIZE, page: 1 }),
+        listCis({ limit: 500, page: 1 }),
         listRelationships(),
         listRelationshipTypes()
       ]);
       ciTypes = typesResponse.data ?? [];
       cis = cisResponse.data ?? [];
+      allCis = allCisResponse.data ?? [];
+      cisTotal = cisResponse.meta?.total ?? cis.length;
+      cisPage = cisResponse.meta?.page ?? 1;
+      typesPage = 1;
+      relPage = 1;
       relationships = relationshipResponse.data ?? [];
       relationshipTypes = relationshipTypeResponse.data ?? [];
+    } catch (err) {
+      error = err instanceof Error ? err.message : ($isLoading ? 'Failed to load CMDB data' : $_('cmdb.errors.loadFailed'));
+      toast.error(error);
+    } finally {
+      loading = false;
+    }
+  }
+
+  async function loadCisPage(page: number) {
+    try {
+      loading = true;
+      error = '';
+      const cisResponse = await listCis({ limit: PAGE_SIZE, page });
+      cis = cisResponse.data ?? [];
+      cisTotal = cisResponse.meta?.total ?? cis.length;
+      cisPage = page;
     } catch (err) {
       error = err instanceof Error ? err.message : ($isLoading ? 'Failed to load CMDB data' : $_('cmdb.errors.loadFailed'));
       toast.error(error);
@@ -291,6 +335,10 @@
     activeTab = tab;
     editingItem = null;
     deletingItem = null;
+    // Reset page when switching tabs
+    typesPage = 1;
+    cisPage = 1;
+    relPage = 1;
     const params = new URLSearchParams(page.url.searchParams);
     params.set('tab', tab);
     goto(`/cmdb?${params.toString()}`, { replaceState: true, noScroll: true });
@@ -307,10 +355,10 @@
 </script>
 
 <div class="page-shell page-content">
-  <PageHeader title="CMDB" subtitle={isCrudTab ? ($isLoading ? `${currentRows.length} records` : $_('cmdb.recordCount', { values: { count: currentRows.length } })) : tabLabels[activeTab]}>
+  <PageHeader title="CMDB" subtitle={isCrudTab ? $_('cmdb.recordCount', { values: { count: currentTabTotal } }) : tabLabels[activeTab]}>
     {#snippet actions()}
-      <Button variant="secondary" size="sm" onclick={() => goto('/cmdb/changes')}>{$isLoading ? 'CI Changes' : $_('cmdb.changes')}</Button>
-      <Button variant="secondary" size="sm" onclick={() => goto('/cmdb/reports')}>{$isLoading ? 'Report' : $_('cmdb.report')}</Button>
+      <Button variant="secondary" size="sm" onclick={() => goto('/cmdb/changes')}>{$isLoading ? 'CI Changes' : $_('cmdb.changes.title')}</Button>
+      <Button variant="secondary" size="sm" onclick={() => goto('/cmdb/reports')}>{$isLoading ? 'Report' : $_('cmdb.report.pageTitle')}</Button>
       {#if isCrudTab}
         <Button variant="secondary" size="sm" onclick={() => goto('/cmdb/relationships/import')}>{$isLoading ? 'Import relationships' : $_('cmdb.importRelation')}</Button>
         <Button variant="primary" size="sm" data-testid="btn-create" onclick={() => (createOpen = true)}>
@@ -386,8 +434,8 @@
                 <TableCell>{rowAny.ownerTeam ?? '-'}</TableCell>
                 <TableCell>{rowAny.environment}</TableCell>
               {:else}
-                <TableCell>{cis.find((ci) => ci.id === rowAny.fromCiId)?.name ?? rowAny.fromCiId}</TableCell>
-                <TableCell>{cis.find((ci) => ci.id === rowAny.toCiId)?.name ?? rowAny.toCiId}</TableCell>
+                <TableCell>{allCis.find((ci) => ci.id === rowAny.fromCiId)?.name ?? rowAny.fromCiId}</TableCell>
+                <TableCell>{allCis.find((ci) => ci.id === rowAny.toCiId)?.name ?? rowAny.toCiId}</TableCell>
                 <TableCell>{relationshipTypes.find((item) => item.id === rowAny.relTypeId)?.name ?? rowAny.relTypeId}</TableCell>
               {/if}
               <TableCell align="right">
@@ -409,6 +457,20 @@
         {/if}
       </tbody>
     </Table>
+
+  <!-- ─── Pagination ────────────────────────────────────────────────────────── -->
+  {#if isCrudTab && currentTabTotalPages > 1}
+    <div class="flex items-center justify-between text-sm text-slate-400 mt-3">
+      <span>{$isLoading ? `Page ${currentTabPage} / ${currentTabTotalPages} · ${currentTabTotal} records` : $_('cmdb.pagination.page', { values: { current: currentTabPage, total: currentTabTotalPages, count: currentTabTotal } })}</span>
+      <div class="flex gap-2">
+        <Button size="sm" variant="secondary" disabled={currentTabPage <= 1}
+          onclick={() => goToPage(currentTabPage - 1)}>{$isLoading ? '← Previous' : $_('cmdb.pagination.prev')}</Button>
+        <Button size="sm" variant="secondary" disabled={currentTabPage >= currentTabTotalPages}
+          onclick={() => goToPage(currentTabPage + 1)}>{$isLoading ? 'Next →' : $_('cmdb.pagination.next')}</Button>
+      </div>
+    </div>
+  {/if}
+
   {/if}
   {/if}
 </div>

@@ -36,7 +36,7 @@
   async function loadCiDetail() {
     if (!ciId) {
       loading = false;
-      error = 'Missing CI id';
+      error = $_('cmdb.detail.missingId');
       ciDetail = null;
       return;
     }
@@ -47,7 +47,7 @@
       const response = await getCiDetail(ciId);
       ciDetail = response.data ?? null;
     } catch (err) {
-      error = err instanceof Error ? err.message : 'Failed to load CI details';
+      error = err instanceof Error ? err.message : $_('cmdb.detail.failedLoad');
       console.error('Error loading CI:', err);
     } finally {
       loading = false;
@@ -133,7 +133,7 @@
     </div>
 
     {#if loading}
-      <div class="text-slate-500">Loading CI details...</div>
+      <div class="text-slate-500">{$isLoading ? 'Loading CI details...' : $_('cmdb.detail.loadingCi')}</div>
     {:else if error}
       <div class="alert alert-error">
         {error}
@@ -143,7 +143,7 @@
         <div>
           <h1 class="text-2xl font-semibold">{ciDetail.ci.name}</h1>
           <p class="text-sm text-slate-500">
-            {ciDetail.ci.ciCode} • {ciDetail.version.status} version
+            {ciDetail.ci.ciCode} • {ciDetail.version.status} {$isLoading ? 'version' : $_('cmdb.detail.version')}
           </p>
         </div>
         <div class="flex gap-2">
@@ -182,14 +182,14 @@
         <div class="space-y-6">
           <!-- Basic Info Card -->
           <div class="card">
-            <h3 class="mb-4 text-lg font-semibold">Basic Information</h3>
+            <h3 class="mb-4 text-lg font-semibold">{$isLoading ? 'Basic Information' : $_('cmdb.detail.basicInfo')}</h3>
             <dl class="grid grid-cols-2 gap-4">
               <div>
-                <dt class="text-sm font-medium text-slate-500">CI Code</dt>
+                <dt class="text-sm font-medium text-slate-500">{$isLoading ? 'CI Code' : $_('cmdb.detail.ciCode')}</dt>
                 <dd class="mt-1 text-sm text-slate-200">{ciDetail.ci.ciCode}</dd>
               </div>
               <div>
-                <dt class="text-sm font-medium text-slate-500">Status</dt>
+                <dt class="text-sm font-medium text-slate-500">{$isLoading ? 'Status' : $_('cmdb.detail.status')}</dt>
                 <dd class="mt-1 text-sm text-slate-200">
                   <span class={statusBadges[ciDetail.ci.status] ?? 'badge-info'}>
                     {ciDetail.ci.status}
@@ -198,24 +198,24 @@
               </div>
               {#if ciDetail.ci.environment}
                 <div>
-                  <dt class="text-sm font-medium text-slate-500">Environment</dt>
+                  <dt class="text-sm font-medium text-slate-500">{$isLoading ? 'Environment' : $_('cmdb.detail.environment')}</dt>
                   <dd class="mt-1 text-sm text-slate-200">{ciDetail.ci.environment}</dd>
                 </div>
               {/if}
               {#if ciDetail.ci.ownerTeam}
                 <div>
-                  <dt class="text-sm font-medium text-slate-500">Owner Team</dt>
+                  <dt class="text-sm font-medium text-slate-500">{$isLoading ? 'Owner Team' : $_('cmdb.detail.ownerTeam')}</dt>
                   <dd class="mt-1 text-sm text-slate-200">{ciDetail.ci.ownerTeam}</dd>
                 </div>
               {/if}
               <div>
-                <dt class="text-sm font-medium text-slate-500">Created</dt>
+                <dt class="text-sm font-medium text-slate-500">{$isLoading ? 'Created' : $_('cmdb.detail.created')}</dt>
                 <dd class="mt-1 text-sm text-slate-200">
                   {ciDetail.ci.createdAt ? new Date(ciDetail.ci.createdAt).toLocaleString() : '-'}
                 </dd>
               </div>
               <div>
-                <dt class="text-sm font-medium text-slate-500">Last Updated</dt>
+                <dt class="text-sm font-medium text-slate-500">{$isLoading ? 'Last Updated' : $_('cmdb.detail.lastUpdated')}</dt>
                 <dd class="mt-1 text-sm text-slate-200">
                   {ciDetail.ci.updatedAt ? new Date(ciDetail.ci.updatedAt).toLocaleString() : '-'}
                 </dd>
@@ -224,7 +224,7 @@
 
             {#if ciDetail.ci.notes}
               <div class="mt-4 border-t pt-4">
-                <dt class="text-sm font-medium text-slate-500">Notes</dt>
+                <dt class="text-sm font-medium text-slate-500">{$isLoading ? 'Notes' : $_('cmdb.detail.notes')}</dt>
                 <dd class="mt-1 text-sm text-slate-200">{ciDetail.ci.notes}</dd>
               </div>
             {/if}
@@ -233,7 +233,7 @@
           <!-- Attributes Card -->
           {#if ciDetail.attributes.length > 0}
             <div class="card">
-              <h3 class="mb-4 text-lg font-semibold">Attributes</h3>
+              <h3 class="mb-4 text-lg font-semibold">{$isLoading ? 'Attributes' : $_('cmdb.detail.attributes')}</h3>
               <dl class="grid grid-cols-2 gap-4">
                 {#each ciDetail.attributes as attr}
                   <div>

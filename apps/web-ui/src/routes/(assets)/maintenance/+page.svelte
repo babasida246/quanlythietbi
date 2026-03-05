@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
-  import { Plus, RefreshCw, Wrench, Edit, Trash2, ArrowRight, FileText, AlertTriangle } from 'lucide-svelte';
+  import { Plus, RefreshCw, Wrench, Edit, Trash2, ArrowRight, FileText, AlertTriangle, Wrench as RepairIcon, Link2 } from 'lucide-svelte';
   import { _, isLoading } from '$lib/i18n';
   import { Button, StatsCard, MiniStat } from '$lib/components/ui';
   import { Table, TableHeader, TableHeaderCell, TableRow, TableCell } from '$lib/components/ui';
@@ -196,7 +196,7 @@
         {#snippet leftIcon()}<Plus class="h-3.5 w-3.5" />{/snippet}
         {$isLoading ? 'Create ticket' : $_('maintenance.actions.create')}
       </Button>
-      <Button variant="secondary" size="sm" onclick={() => goto('/warehouse/repairs')}>
+      <Button variant="secondary" size="sm" onclick={() => goto('/maintenance/repairs')}>
         {#snippet leftIcon()}<FileText class="h-3.5 w-3.5" />{/snippet}
         {$isLoading ? 'Repair Orders' : $_('maintenance.actions.goRepairs')}
       </Button>
@@ -273,6 +273,7 @@
             <TableHeaderCell>{$isLoading ? 'Asset' : $_('maintenance.table.asset')}</TableHeaderCell>
             <TableHeaderCell>{$isLoading ? 'Priority' : $_('maintenance.table.priority')}</TableHeaderCell>
             <TableHeaderCell>{$isLoading ? 'Status' : $_('maintenance.table.status')}</TableHeaderCell>
+            <TableHeaderCell>{$isLoading ? 'Repairs' : $_('maintenance.table.repairs')}</TableHeaderCell>
             <TableHeaderCell align="right">{$isLoading ? 'Actions' : $_('maintenance.table.actions')}</TableHeaderCell>
           </tr>
         </TableHeader>
@@ -292,6 +293,23 @@
                 <span class={`badge ${ticket.status === 'open' ? 'badge-blue' : ticket.status === 'in_progress' ? 'badge-yellow' : ticket.status === 'closed' ? 'badge-green' : 'badge-gray'}`}>
                   {ticket.status}
                 </span>
+              </TableCell>
+              <TableCell>
+                {@const relatedRepairs = repairs.filter(r => r.assetId === ticket.assetId)}
+                <div class="flex items-center gap-1">
+                  {#if relatedRepairs.length > 0}
+                    <span class="badge badge-orange flex items-center gap-1" title={$isLoading ? 'Related repair orders' : $_('maintenance.table.relatedRepairs')}>
+                      <Link2 class="h-3 w-3" />{relatedRepairs.length}
+                    </span>
+                  {/if}
+                  <button
+                    class="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-0.5"
+                    title={$isLoading ? 'Create repair order' : $_('maintenance.actions.createRepair')}
+                    onclick={() => goto(`/maintenance/repairs?fromTicket=${ticket.id}&assetId=${ticket.assetId}&title=${encodeURIComponent(ticket.title)}`)}
+                  >
+                    <Plus class="h-3 w-3" />{$isLoading ? 'SC' : $_('maintenance.actions.repair')}
+                  </button>
+                </div>
               </TableCell>
               <TableCell align="right">
                 <div class="cell-actions">
@@ -347,6 +365,7 @@
               <th class="px-4 py-3 text-left">{$isLoading ? 'Severity' : $_('maintenance.repairTable.severity')}</th>
               <th class="px-4 py-3 text-left hidden md:table-cell">{$isLoading ? 'Type' : $_('maintenance.repairTable.type')}</th>
               <th class="px-4 py-3 text-right hidden lg:table-cell">{$isLoading ? 'Cost' : $_('maintenance.repairTable.cost')}</th>
+              <th class="px-4 py-3 text-left">{$isLoading ? 'Ticket' : $_('maintenance.repairTable.ticket')}</th>
               <th class="px-4 py-3 text-right">{$isLoading ? 'Actions' : $_('common.actions')}</th>
             </tr>
           </thead>
@@ -359,8 +378,19 @@
                 <td class="px-4 py-3"><span class={repairSeverityBadge[ro.severity]}>{repairSeverityLabel[ro.severity]}</span></td>
                 <td class="px-4 py-3 hidden md:table-cell text-slate-400">{ro.repairType ?? '—'}</td>
                 <td class="px-4 py-3 text-right hidden lg:table-cell text-slate-300">{formatCurrencyVND((ro.laborCost ?? 0) + (ro.partsCost ?? 0))}</td>
+                <td class="px-4 py-3">
+                  {#each [tickets.find(t => t.assetId === ro.assetId)] as relatedTicket}
+                    {#if relatedTicket}
+                      <span class="badge badge-blue flex items-center gap-1 w-fit" title={relatedTicket.title}>
+                        <Link2 class="h-3 w-3" />{relatedTicket.title.slice(0, 20)}{relatedTicket.title.length > 20 ? '…' : ''}
+                      </span>
+                    {:else}
+                      <span class="text-slate-500 text-xs">—</span>
+                    {/if}
+                  {/each}
+                </td>
                 <td class="px-4 py-3 text-right">
-                  <a href="/warehouse/repairs/{ro.id}" class="inline-flex items-center gap-1 text-xs font-medium text-blue-400 hover:text-blue-300">
+                  <a href="/maintenance/repairs/{ro.id}" class="inline-flex items-center gap-1 text-xs font-medium text-blue-400 hover:text-blue-300">
                     {$isLoading ? 'View' : $_('common.view')} <ArrowRight class="h-3 w-3" />
                   </a>
                 </td>

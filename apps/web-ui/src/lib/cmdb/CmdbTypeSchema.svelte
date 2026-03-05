@@ -204,7 +204,7 @@
 
 {#if !type}
   <div class="rounded-lg border border-dashed border-slate-200 dark:border-slate-700 p-6 text-slate-500">
-    Select a CI type to manage its schema.
+    {$isLoading ? 'Select a CI type to manage its schema.' : $_('cmdb.typeSchema.selectHint')}
   </div>
 {:else}
   <div class="space-y-4">

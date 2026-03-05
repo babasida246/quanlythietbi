@@ -158,7 +158,8 @@
     "detail": "Chi tiết",
     "print": "In",
     "notePlaceholder": "Ghi chú...",
-    "note": "Ghi chú"
+    "note": "Ghi chú",
+    "appName": "AssetHub Gateway"
   },
   "auth": {
     "login": "Đăng nhập",
@@ -185,6 +186,95 @@
     }
   },
   "cmdb": {
+    "changes": {
+      "title": "Lịch sử thay đổi",
+      "viewAll": "Xem tất cả thay đổi",
+      "empty": "Không có thay đổi nào cho CI này.",
+      "create": "Tạo thay đổi mới",
+      "header": {
+        "title": "Tiêu đề",
+        "riskLevel": "Mức độ rủi ro",
+        "status": "Trạng thái",
+        "createdAt": "Ngày tạo",
+        "actions": "Thao tác"
+      },
+      "view": "Xem",
+      "createRequest": "Tạo yêu cầu thay đổi",
+      "editDraft": "Chỉnh sửa bản nháp",
+      "createRequestTitle": "Tạo yêu cầu thay đổi cấu hình",
+      "editDraftTitle": "Chỉnh sửa bản nháp",
+      "recordCount": "{count} bản ghi",
+      "importRel": "Nhập quan hệ",
+      "search": "Tìm kiếm",
+      "status": {
+        "draft": "Bản nháp",
+        "submitted": "Đã nộp",
+        "approved": "Đã phê duyệt",
+        "implemented": "Đã thực hiện",
+        "closed": "Đã đóng",
+        "canceled": "Đã hủy"
+      },
+      "risk": {
+        "low": "Thấp",
+        "medium": "Trung bình",
+        "high": "Cao",
+        "critical": "Nghiêm trọng"
+      },
+      "primaryCi": "Hạng mục cấu hình chính",
+      "apply": "Áp dụng",
+      "clearFilters": "Xóa bộ lọc",
+      "all": "Tất cả",
+      "selectToView": "Chọn một thay đổi để xem chi tiết",
+      "noChanges": "Không có thay đổi nào",
+      "reload": "Tải lại",
+      "titleRequired": "Tiêu đề là bắt buộc",
+      "invalidDateTime": "Ngày giờ không hợp lệ",
+      "invalidMetadataJson": "Metadata JSON không hợp lệ",
+      "metadataMustBeObject": "Metadata phải là JSON object",
+      "noChangeSelected": "Chưa chọn thay đổi",
+      "createSuccess": "Tạo yêu cầu thay đổi thành công",
+      "updateSuccess": "Cập nhật bản nháp thành công",
+      "actionSuccess": "{action} thành công",
+      "actionFailed": "Thao tác thất bại",
+      "loadFailed": "Không thể tải dữ liệu thay đổi cấu hình",
+      "detailLoadFailed": "Không thể tải chi tiết thay đổi",
+      "action": {
+        "submit": "Nộp",
+        "approve": "Phê duyệt",
+        "implement": "Thực hiện",
+        "close": "Đóng",
+        "cancel": "Hủy"
+      },
+      "code": "Mã",
+      "detailTitle": "Tiêu đề",
+      "requestedBy": "Người yêu cầu",
+      "approvedBy": "Người phê duyệt",
+      "implementedBy": "Người thực hiện",
+      "plannedStart": "Thời gian dự kiến bắt đầu",
+      "plannedEnd": "Thời gian dự kiến kết thúc",
+      "implementedAt": "Thực hiện lúc",
+      "closedAt": "Đóng lúc",
+      "description": "Mô tả",
+      "implPlan": "Kế hoạch triển khai / Hoàn nguyên",
+      "implementation": "Triển khai:",
+      "rollback": "Hoàn nguyên:",
+      "impactSnapshot": "Ảnh hưởng (Snapshot)",
+      "noSnapshot": "Chưa có snapshot",
+      "viewCiRelationships": "Xem quan hệ hạng mục cấu hình",
+      "additionalData": "Dữ liệu bổ sung",
+      "field": {
+        "title": "Tiêu đề",
+        "description": "Mô tả",
+        "risk": "Mức độ rủi ro",
+        "primaryCi": "Hạng mục cấu hình chính",
+        "optional": "(Tùy chọn)",
+        "plannedStart": "Thời gian bắt đầu",
+        "plannedEnd": "Thời gian kết thúc",
+        "implPlan": "Kế hoạch triển khai",
+        "rollbackPlan": "Kế hoạch hoàn nguyên",
+        "metadataJson": "Metadata JSON"
+      }
+    },
     "title": "Cơ sở dữ liệu quản lý cấu hình",
     "pageTitle": "CMDB",
     "subtitle": "Quản lý các mục cấu hình, loại schema và ánh xạ dịch vụ.",
@@ -343,20 +433,6 @@
       "typeApp": "Ứng dụng",
       "typeOther": "Khác"
     },
-    "changes": {
-      "title": "Lịch sử thay đổi",
-      "viewAll": "Xem tất cả thay đổi",
-      "empty": "Không có thay đổi nào cho CI này.",
-      "create": "Tạo thay đổi mới",
-      "header": {
-        "title": "Tiêu đề",
-        "riskLevel": "Mức độ rủi ro",
-        "status": "Trạng thái",
-        "createdAt": "Ngày tạo",
-        "actions": "Thao tác"
-      },
-      "view": "Xem"
-    },
     "importRel": "Import quan hệ",
     "errors": {
       "loadFailed": "Không thể tải dữ liệu CMDB",
@@ -387,7 +463,18 @@
     "createSuccess": "Tạo mới thành công",
     "updateSuccess": "Cập nhật thành công",
     "deleteSuccess": "Xóa thành công",
-    "report": "Báo cáo",
+    "report": {
+      "pageTitle": "Báo cáo quản lý cấu hình",
+      "subtitle": "Tổng quan hạng mục cấu hình và chất lượng dữ liệu",
+      "updated": "Cập nhật",
+      "exportCsv": "Xuất CSV",
+      "load": "Tải báo cáo",
+      "loading": "Đang tải báo cáo...",
+      "noData": "Không có dữ liệu",
+      "noDataHint": "Thử thay đổi bộ lọc hoặc kiểm tra dữ liệu quản lý cấu hình.",
+      "notLoaded": "Chưa tải báo cáo",
+      "notLoadedHint": "Nhấn \"Tải báo cáo\" để xem dữ liệu."
+    },
     "importRelation": "Import quan hệ",
     "noData": "Không có dữ liệu",
     "edit": "Sửa",
@@ -406,7 +493,9 @@
       "overview": "Tổng quan",
       "relationships": "Quan hệ",
       "impactAnalysis": "Phân tích tác động",
-      "changes": "Thay đổi"
+      "changes": "Thay đổi",
+      "impact": "Ảnh hưởng",
+      "history": "Lịch sử"
     },
     "impact": {
       "title": "Phân tích tác động",
@@ -423,6 +512,144 @@
         "actions": "Thao tác"
       },
       "viewDetail": "Xem chi tiết"
+    },
+    "rel": {
+      "heading": "Quan hệ của {name}",
+      "count": "{count} quan hệ",
+      "new": "Tạo quan hệ mới",
+      "loading": "Đang tải quan hệ...",
+      "empty": "Chưa có quan hệ nào",
+      "createFirst": "Tạo quan hệ đầu tiên",
+      "direction": "Chiều",
+      "type": "Loại",
+      "relatedCi": "Hạng mục cấu hình liên quan",
+      "note": "Ghi chú",
+      "created": "Ngày tạo",
+      "actions": "Thao tác",
+      "outgoing": "Đi ra →",
+      "incoming": "Đi vào ←",
+      "createTitle": "Tạo quan hệ",
+      "directionLabel": "Chiều quan hệ",
+      "outgoingDesc": "Đi ra (CI này → đích)",
+      "incomingDesc": "Đi vào (đích → CI này)",
+      "relType": "Loại quan hệ",
+      "selectType": "Chọn loại...",
+      "selectCi": "Chọn hạng mục...",
+      "noteOptional": "Ghi chú (tùy chọn)",
+      "notePlaceholder": "Thêm thông tin về quan hệ này...",
+      "cancel": "Hủy",
+      "creating": "Đang tạo...",
+      "create": "Tạo",
+      "failedLoad": "Không thể tải quan hệ",
+      "selectRequired": "Vui lòng chọn loại quan hệ và hạng mục cấu hình đích",
+      "failedCreate": "Không thể tạo quan hệ",
+      "confirmDelete": "Bạn có chắc chắn muốn xóa quan hệ này?",
+      "failedDelete": "Không thể xóa quan hệ"
+    },
+    "detail": {
+      "loadingCi": "Đang tải chi tiết hạng mục cấu hình...",
+      "missingId": "Thiếu mã hạng mục cấu hình",
+      "failedLoad": "Không thể tải chi tiết hạng mục cấu hình",
+      "version": "phiên bản",
+      "basicInfo": "Thông tin cơ bản",
+      "ciCode": "Mã hạng mục",
+      "status": "Trạng thái",
+      "environment": "Môi trường",
+      "ownerTeam": "Nhóm quản lý",
+      "created": "Ngày tạo",
+      "lastUpdated": "Cập nhật lần cuối",
+      "notes": "Ghi chú",
+      "attributes": "Thuộc tính",
+      "noAttributes": "Không có thuộc tính nào cho loại/phiên bản hạng mục cấu hình này.",
+      "importRelationship": "Nhập quan hệ"
+    },
+    "import": {
+      "title": "Nhập quan hệ hạng mục cấu hình",
+      "addRow": "Thêm dòng",
+      "backToCmdb": "Quay lại quản lý cấu hình",
+      "applyRelType": "Áp dụng loại quan hệ cho tất cả dòng",
+      "applyFromCi": "Áp dụng hạng mục nguồn cho tất cả dòng",
+      "allowCycles": "Cho phép vòng lặp",
+      "dryRun": "Chạy thử",
+      "running": "Đang chạy...",
+      "import": "Nhập",
+      "importing": "Đang nhập...",
+      "relType": "Loại quan hệ",
+      "fromCi": "Từ hạng mục",
+      "toCi": "Đến hạng mục",
+      "sinceDate": "Từ ngày",
+      "note": "Ghi chú",
+      "action": "Thao tác",
+      "result": "Kết quả nhập",
+      "total": "Tổng",
+      "created": "Đã tạo",
+      "errors": "Lỗi",
+      "mode": "Chế độ",
+      "dryRunMode": "Chạy thử",
+      "applyMode": "Áp dụng",
+      "createdRelationships": "Quan hệ đã tạo / đã xác thực",
+      "noRows": "Không có dòng nào được tạo/xác thực.",
+      "type": "Loại",
+      "from": "Từ",
+      "to": "Đến",
+      "selectRelType": "Chọn loại quan hệ...",
+      "selectCi": "Chọn hạng mục...",
+      "loadFailed": "Không thể tải dữ liệu quản lý cấu hình",
+      "selectRelTypeRequired": "Vui lòng chọn loại quan hệ",
+      "sameFromTo": "Hạng mục nguồn và đích không được trùng nhau",
+      "noValidRows": "Không có dòng hợp lệ để nhập",
+      "fixErrorsFirst": "Vui lòng sửa các dòng lỗi trước khi nhập",
+      "importFailed": "Nhập thất bại",
+      "importErrors": "Nhập có lỗi",
+      "dryRunComplete": "Chạy thử hoàn tất",
+      "importSuccess": "Nhập quan hệ thành công",
+      "rowCount": "{count} dòng",
+      "selectType": "Chọn loại",
+      "optionalNote": "Ghi chú (tùy chọn)",
+      "selectDefault": "-- Chọn --",
+      "dryRunBadge": "chạy thử",
+      "importedBadge": "đã nhập",
+      "rowLabel": "Dòng {index}:"
+    },
+    "svc": {
+      "code": "Mã",
+      "name": "Tên",
+      "criticality": "Mức độ quan trọng",
+      "criticalityPlaceholder": "thấp / trung bình / cao",
+      "cancel": "Hủy",
+      "saving": "Đang lưu...",
+      "create": "Tạo",
+      "ci": "Hạng mục cấu hình",
+      "status": "Trạng thái",
+      "statusPlaceholder": "active",
+      "owner": "Người quản lý",
+      "ownerPlaceholder": "Nhóm / người phụ trách",
+      "sla": "SLA",
+      "slaPlaceholder": "99.9%",
+      "save": "Lưu",
+      "dependencyPlaceholder": "chính / phụ thuộc"
+    },
+    "typeSchema": {
+      "selectHint": "Chọn loại hạng mục cấu hình để quản lý lược đồ."
+    },
+    "relTypePanel": {
+      "codePlaceholder": "depends_on",
+      "codeHint": "Mã định danh duy nhất (chữ thường, gạch dưới)",
+      "namePlaceholder": "Phụ thuộc",
+      "nameHint": "Tên hiển thị (ví dụ: \"Phụ thuộc\")",
+      "reversePlaceholder": "Được yêu cầu bởi",
+      "reverseHint": "Tùy chọn: tên quan hệ nhìn từ hướng ngược lại",
+      "leaveEmpty": "Để trống cho phép bất kỳ loại nào",
+      "deleteConfirm": "Xóa {count} loại quan hệ?",
+      "any": "Bất kỳ",
+      "example1": "Ứng dụng phụ thuộc Cơ sở dữ liệu",
+      "example2": "Máy chủ chạy Ứng dụng",
+      "example3": "Switch kết nối đến Router"
+    },
+    "pagination": {
+      "page": "Trang {current} / {total} · {count} bản ghi",
+      "prev": "← Trước",
+      "next": "Tiếp →"
     }
   },
   "assets": {
@@ -858,6 +1085,34 @@
       "severity": "Mức độ",
       "type": "Loại",
       "cost": "Chi phí"
+    },
+    "errors": {
+      "loadFailed": "Không thể tải danh sách bảo trì",
+      "noAsset": "Cần chọn tài sản hoặc CI hợp lệ"
+    },
+    "createdSuccess": "Tạo ticket bảo trì thành công",
+    "updatedSuccess": "Cập nhật ticket bảo trì thành công",
+    "deletedSuccess": "Xóa ticket bảo trì thành công",
+    "ticketCount": "{count} ticket",
+    "emptyTitle": "Không có ticket bảo trì",
+    "emptySubtitle": "Bắt đầu bằng cách tạo ticket bảo trì mới.",
+    "createTicketBtn": "Tạo ticket",
+    "fields": {
+      "title": "Tiêu đề",
+      "asset": "Tài sản",
+      "ci": "CI",
+      "priority": "Mức độ",
+      "status": "Trạng thái",
+      "assignee": "Người thực hiện",
+      "dueDate": "Ngày hết hạn",
+      "description": "Mô tả"
+    },
+    "tableHeaders": {
+      "title": "Tiêu đề",
+      "asset": "Tài sản",
+      "priority": "Mức độ",
+      "status": "Trạng thái",
+      "actions": "Thao tác"
     }
   },
   "inventory": {
@@ -1092,7 +1347,7 @@
     },
     "noReorderAlerts": "Không có cảnh báo.",
     "noLots": "Không có lô.",
-    "totalValue": "Giá trị tổng cộng:",
+    "totalValue": "Tổng giá trị",
     "noValuation": "Không có dữ liệu định giá.",
     "docTypes": {
       "receipt": "Nhập kho",
@@ -1179,7 +1434,6 @@
     },
     "viewAllAlerts": "Xem tất cả {count} cảnh báo →",
     "stockValue": "Giá trị kho",
-    "totalValue": "Tổng giá trị",
     "totalQuantity": "Tổng số lượng",
     "quickActionsTitle": "Thao tác nhanh",
     "quickActions": {
@@ -1262,6 +1516,7 @@
       "warehouseReceipt": "Kho nhập",
       "targetWarehouse": "Kho đích",
       "supplier": "Nhà cung cấp",
+      "selectSupplier": "-- Chọn nhà cung cấp --",
       "submitter": "Người nhập hàng",
       "receiver": "Người nhận",
       "department": "Phòng ban / Bộ phận",
@@ -1284,9 +1539,39 @@
     },
     "linesHeading": "Chi tiết hàng hóa / vật tư",
     "createdAtLabel": "Tạo:",
-    "pagination": "Trang {page} / {totalPages} · {total} chứng từ"
+    "pagination": "Trang {page} / {totalPages} · {total} chứng từ",
+    "purchasePlan": {
+      "title": "Kế hoạch mua sắm",
+      "subtitle": "Tự động đề xuất mua hàng dựa trên mức tồn kho tối thiểu",
+      "reload": "Tải lại",
+      "exportCsv": "Xuất CSV",
+      "statsItems": "Số mặt hàng cần mua",
+      "statsTotalQty": "Tổng số lượng cần mua",
+      "statsTotalCost": "Tổng chi phí dự kiến",
+      "emptyState": "Tất cả linh kiện đều đủ tồn kho. Không cần mua thêm.",
+      "loadError": "Không thể tải kế hoạch mua sắm",
+      "exportSuccess": "Đã xuất kế hoạch mua sắm",
+      "colPartCode": "Mã LK",
+      "colPartName": "Tên linh kiện",
+      "colUom": "ĐVT",
+      "colWarehouse": "Kho",
+      "colStock": "Tồn kho",
+      "colMin": "Min",
+      "colDeficit": "Thiếu",
+      "colOrderQty": "Cần mua",
+      "colEstCost": "Chi phí (VND)",
+      "totalLabel": "Tổng cộng:",
+      "csvHeader": "Mã LK,Tên linh kiện,ĐVT,Kho,Tồn kho,Mức tối thiểu,Cần mua,Chi phí dự kiến"
+    }
   },
   "requests": {
+    "pageTitle": "Yêu cầu",
+    "pageSubtitle": "Quản lý và theo dõi yêu cầu quy trình",
+    "tab": {
+      "mine": "Của tôi",
+      "inbox": "Hộp duyệt",
+      "all": "Tất cả"
+    },
     "title": "Yêu cầu quy trình",
     "total": "{{count}} yêu cầu",
     "new": "Yêu cầu mới",
@@ -1404,7 +1689,8 @@
       "requestInfo": "Thông tin yêu cầu",
       "loading": "Đang tải chi tiết...",
       "lineNo": "Dòng",
-      "saved": "Đã lưu"
+      "saved": "Đã lưu",
+      "lines": "Danh sách vật tư / thiết bị"
     },
     "newRequest": "Tạo yêu cầu mới",
     "newRequestHint": "Điền thông tin rồi nhấn \"Lưu nháp\" hoặc \"Tạo & Gửi ngay\"",
@@ -3144,7 +3430,11 @@
       "saveFilter": "Lưu bộ lọc",
       "savedView": "Đã lưu bộ lọc",
       "saveView": "Lưu bộ lọc"
-    }
+    },
+    "drilldownTitle": "Chi tiết: {dimension} = {value}",
+    "totalResults": "{total} kết quả",
+    "showingPartial": "Hiển thị {shown} / {total} — Export CSV để lấy tất cả",
+    "unknownError": "Lỗi không xác định"
   },
   "table": {
     "page": "Trang",
@@ -3653,6 +3943,42 @@
       "title": "Ghi tăng tài sản mới",
       "subtitle": "Đăng ký ghi tăng tài sản.",
       "empty": "Biểu mẫu sẽ được bổ sung."
+    },
+    "assetIncrease": {
+      "form": {
+        "createTitle": "Tạo phiếu ghi tăng tài sản",
+        "basicInfo": "Thông tin cơ bản",
+        "increaseType": "Loại ghi tăng",
+        "invoiceNo": "Số hóa đơn",
+        "invoiceDate": "Ngày hóa đơn",
+        "purchasePlanRef": "Kế hoạch mua sắm",
+        "assetLines": "Chi tiết tài sản",
+        "vendor": "Nhà cung cấp",
+        "selectVendor": "Chọn nhà cung cấp"
+      }
+    },
+    "common": {
+      "docDate": "Ngày chứng từ",
+      "orgUnit": "Đơn vị",
+      "note": "Ghi chú",
+      "addLine": "+ Thêm dòng",
+      "assetName": "Tên tài sản",
+      "serialNumber": "Số seri",
+      "quantity": "Số lượng",
+      "unit": "Đơn vị",
+      "originalCost": "Nguyên giá",
+      "location": "Vị trí",
+      "custodian": "Người phụ trách",
+      "total": "Tổng cộng",
+      "saveDraft": "Lưu nháp",
+      "saveAndSubmit": "Lưu & Gửi duyệt"
+    },
+    "increaseType": {
+      "purchase": "Mua mới",
+      "donation": "Được tặng / Tài trợ",
+      "transfer_in": "Điều chuyển đến",
+      "found": "Phát hiện / Kiểm kê",
+      "other": "Khác"
     }
   },
   "setup": {
@@ -3848,6 +4174,55 @@
       "creating": "Đang tạo...",
       "createAccount": "Tạo tài khoản",
       "namePlaceholder": "Nguyễn Văn Admin"
+    },
+    "pageTitle": "Thiết lập lần đầu",
+    "title": "Thiết lập lần đầu",
+    "appName": "NetOpsAI Gateway",
+    "checkingStatus": "Đang kiểm tra trạng thái hệ thống...",
+    "pleaseWait": "Vui lòng chờ trong giây lát",
+    "connectionError": "Lỗi kết nối",
+    "version": "Phiên bản:",
+    "environment": "Môi trường:",
+    "stepN": "Bước {n}: {title}",
+    "stepProgress": "Bước {current} / {total}",
+    "errors": {
+      "loadFailed": "Không thể tải trạng thái thiết lập"
+    },
+    "steps": {
+      "database": "Cơ sở dữ liệu",
+      "databaseDesc": "Kiểm tra và khởi tạo database",
+      "admin": "Tài khoản Admin",
+      "adminDesc": "Tạo tài khoản quản trị viên đầu tiên",
+      "system": "Cấu hình hệ thống",
+      "systemDesc": "Thiết lập thông tin công ty và hệ thống",
+      "aiProviders": "Nhà cung cấp AI",
+      "aiProvidersDesc": "Cấu hình các nhà cung cấp AI",
+      "seedData": "Dữ liệu mẫu",
+      "seedDataDesc": "Tải dữ liệu mẫu ban đầu",
+      "complete": "Hoàn thành",
+      "completeDesc": "Kết thúc quá trình thiết lập"
+    },
+    "seed": {
+      "title": "Tải dữ liệu mẫu",
+      "subtitle": "Tải dữ liệu demo để trải nghiệm hệ thống nhanh chóng.",
+      "includes": "Dữ liệu demo bao gồm:",
+      "items": {
+        "users": "10 người dùng với các vai trò khác nhau",
+        "locations": "Cấu trúc vị trí (tòa nhà, tầng, phòng)",
+        "assets": "Thiết bị mạng, máy chủ, trạm làm việc",
+        "warehouses": "Kho hàng và linh kiện dự phòng",
+        "tickets": "Ticket bảo trì mẫu",
+        "cmdb": "CMDB với dịch vụ và quan hệ"
+      },
+      "benefits": {
+        "quickStart": "Khởi động nhanh — khám phá workflow ngay",
+        "understand": "Hiểu workflow qua ví dụ thực tế",
+        "safe": "An toàn — xóa hoặc chỉnh sửa sau"
+      },
+      "warning": "Bạn có thể xóa hoặc chỉnh sửa sau này. Dữ liệu mẫu an toàn để trải nghiệm.",
+      "loadButton": "Tải dữ liệu mẫu",
+      "skip": "Bỏ qua",
+      "loading": "Đang tải dữ liệu mẫu..."
     }
   },
   "crud": {
@@ -3984,11 +4359,15 @@
     "lineCount": "{count} dòng",
     "header": {
       "item": "Vật tư / Hàng hóa",
+      "partName": "Vật tư / Hàng hóa",
+      "category": "Loại",
       "unit": "ĐVT",
       "direction": "Hướng",
       "quantity": "Số lượng",
+      "qty": "SL",
       "unitPrice": "Đơn giá (₫)",
-      "amount": "Thành tiền (₫)"
+      "amount": "Thành tiền (₫)",
+      "notes": "Ghi chú"
     },
     "emptyState": "Chưa có dòng hàng hóa nào.",
     "emptyHint": "Nhấn \"+ Thêm dòng\" để bắt đầu.",

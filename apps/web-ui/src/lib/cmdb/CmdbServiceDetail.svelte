@@ -110,7 +110,7 @@
   }
 
   const membersColumns = [
-    { key: 'ciId' as const, label: 'CI', sortable: true, filterable: true },
+    { key: 'ciId' as const, label: $isLoading ? 'CI' : $_('cmdb.svc.ci'), sortable: true, filterable: true },
     { key: 'role' as const, label: $isLoading ? 'Role' : $_('cmdb.role'), sortable: true, filterable: true, render: (_value: unknown, row: CmdbServiceMember) => row.role ?? '-' }
   ];
 
@@ -143,31 +143,31 @@
       <h3 class="text-sm font-semibold text-slate-300">{$isLoading ? 'Service Details' : $_('cmdb.serviceDetails')}</h3>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
         <div>
-          <label for="service-code" class="label-base">Code</label>
+          <label for="service-code" class="label-base">{$isLoading ? 'Code' : $_('cmdb.svc.code')}</label>
           <input id="service-code" class="input-base" value={service?.code ?? ''} disabled />
         </div>
         <div>
-          <label for="service-name" class="label-base">Name</label>
+          <label for="service-name" class="label-base">{$isLoading ? 'Name' : $_('cmdb.svc.name')}</label>
           <input id="service-name" class="input-base" bind:value={name} />
         </div>
         <div>
-          <label for="service-criticality" class="label-base">Criticality</label>
-          <input id="service-criticality" class="input-base" bind:value={criticality} placeholder="low / medium / high" />
+          <label for="service-criticality" class="label-base">{$isLoading ? 'Criticality' : $_('cmdb.svc.criticality')}</label>
+          <input id="service-criticality" class="input-base" bind:value={criticality} placeholder={$isLoading ? 'low / medium / high' : $_('cmdb.svc.criticalityPlaceholder')} />
         </div>
         <div>
-          <label for="service-status" class="label-base">Status</label>
-          <input id="service-status" class="input-base" bind:value={status} placeholder="active" />
+          <label for="service-status" class="label-base">{$isLoading ? 'Status' : $_('cmdb.svc.status')}</label>
+          <input id="service-status" class="input-base" bind:value={status} placeholder={$isLoading ? 'active' : $_('cmdb.svc.statusPlaceholder')} />
         </div>
         <div>
-          <label for="service-owner" class="label-base">Owner</label>
-          <input id="service-owner" class="input-base" bind:value={owner} placeholder="Team / person" />
+          <label for="service-owner" class="label-base">{$isLoading ? 'Owner' : $_('cmdb.svc.owner')}</label>
+          <input id="service-owner" class="input-base" bind:value={owner} placeholder={$isLoading ? 'Team / person' : $_('cmdb.svc.ownerPlaceholder')} />
         </div>
         <div>
-          <label for="service-sla" class="label-base">SLA</label>
-          <input id="service-sla" class="input-base" bind:value={sla} placeholder="99.9%" />
+          <label for="service-sla" class="label-base">{$isLoading ? 'SLA' : $_('cmdb.svc.sla')}</label>
+          <input id="service-sla" class="input-base" bind:value={sla} placeholder={$isLoading ? '99.9%' : $_('cmdb.svc.slaPlaceholder')} />
         </div>
       </div>
-      <Button disabled={saving} onclick={saveService}>{saving ? 'Saving...' : 'Save'}</Button>
+      <Button disabled={saving} onclick={saveService}>{saving ? ($isLoading ? 'Saving...' : $_('cmdb.svc.saving')) : ($isLoading ? 'Save' : $_('cmdb.svc.save'))}</Button>
     </div>
 
     <div class="space-y-2">
@@ -184,7 +184,7 @@
         </div>
         <div>
           <label for="member-role" class="label-base">{$isLoading ? 'Role' : $_('cmdb.role')}</label>
-          <input id="member-role" class="input-base" bind:value={memberRole} placeholder="primary / dependency" />
+          <input id="member-role" class="input-base" bind:value={memberRole} placeholder={$isLoading ? 'primary / dependency' : $_('cmdb.svc.dependencyPlaceholder')} />
         </div>
         <div>
           <Button disabled={!memberCiId || saving} onclick={addMember}>{$isLoading ? 'Add Member' : $_('cmdb.addMember')}</Button>

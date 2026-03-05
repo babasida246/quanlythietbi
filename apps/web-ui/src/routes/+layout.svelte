@@ -174,8 +174,8 @@
             <Menu class="w-4.5 h-4.5" />
           </button>
           <a href="/me/assets" class="flex items-center gap-2 font-semibold text-slate-100">
-            <div class="h-7 w-7 rounded-lg bg-primary text-white flex items-center justify-center font-bold text-xs shadow-xs">
-              AI
+            <div class="h-7 w-7 rounded-lg bg-emerald-600 text-white flex items-center justify-center font-bold text-[10px] shadow-xs">
+              AH
             </div>
             <span class="text-sm">{$isLoading ? '' : $_('common.brand')}</span>
           </a>

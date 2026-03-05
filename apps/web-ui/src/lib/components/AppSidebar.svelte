@@ -49,9 +49,15 @@
 
   const myItems: NavItem[] = [
     { href: '/me/assets', labelKey: 'nav.myAssets', icon: HardDrive, testId: 'nav-my-assets', requires: (caps) => caps.canViewAssets },
-    { href: '/me/requests', labelKey: 'nav.myRequests', icon: ClipboardList, testId: 'nav-my-requests', requires: (caps) => caps.canViewRequests },
+    {
+      href: '/requests',
+      labelKey: 'nav.requests',
+      icon: ClipboardList,
+      testId: 'nav-requests',
+      requires: (caps) => caps.canViewRequests,
+      match: (path) => path === '/requests' || path.startsWith('/requests?') || path === '/me/requests' || path === '/inbox'
+    },
     { href: '/notifications', labelKey: 'nav.notifications', icon: Bell, testId: 'nav-notifications', requires: (caps) => caps.canViewRequests || caps.canViewAssets },
-    { href: '/inbox', labelKey: 'nav.inbox', icon: Inbox, testId: 'nav-inbox', requires: (caps) => caps.canViewRequests }
   ];
 
   const assetItems: NavItem[] = [
@@ -67,8 +73,7 @@
     { href: '/cmdb', labelKey: 'nav.cmdb', icon: Database, testId: 'nav-cmdb', requires: (caps) => caps.canViewAssets },
     { href: '/inventory', labelKey: 'nav.inventory', icon: ClipboardList, testId: 'nav-inventory', requires: (caps) => caps.canViewAssets },
     { href: '/warehouse/stock', labelKey: 'nav.warehouse', icon: Warehouse, testId: 'nav-warehouse', requires: (caps) => caps.canViewAssets },
-    { href: '/maintenance', labelKey: 'nav.maintenance', icon: Wrench, testId: 'nav-maintenance', requires: (caps) => caps.canViewAssets, match: (path) => path === '/maintenance' || path.startsWith('/maintenance/') || path.startsWith('/warehouse/repairs') },
-    { href: '/requests', labelKey: 'nav.requests', icon: ClipboardList, testId: 'nav-requests', requires: (caps) => caps.canViewRequests },
+    { href: '/maintenance', labelKey: 'nav.maintenance', icon: Wrench, testId: 'nav-maintenance', requires: (caps) => caps.canViewAssets, match: (path) => path === '/maintenance' || path.startsWith('/maintenance/') },
     { href: '/reports', labelKey: 'nav.reports', icon: BarChart3, testId: 'nav-reports', requires: (caps) => caps.canViewAssets, match: (path) => path.startsWith('/reports') },
     { href: '/analytics', labelKey: 'nav.analytics', icon: TrendingUp, testId: 'nav-analytics', requires: (caps) => caps.canViewAssets },
     { href: '/automation', labelKey: 'nav.automation', icon: GitBranch, testId: 'nav-automation', requires: (caps) => caps.isAdmin },

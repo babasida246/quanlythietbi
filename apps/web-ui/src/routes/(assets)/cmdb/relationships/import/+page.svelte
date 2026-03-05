@@ -14,6 +14,7 @@
   } from '$lib/api/cmdb';
   import PageHeader from '$lib/components/PageHeader.svelte';
   import { toast } from '$lib/components/toast';
+  import { _, isLoading } from '$lib/i18n';
 
   type ImportRow = {
     localId: string;
@@ -67,7 +68,7 @@
       cis = cisRes.data ?? [];
       relationshipTypes = relTypesRes.data ?? [];
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Khong the tai du lieu CMDB');
+      toast.error(err instanceof Error ? err.message : $_('cmdb.import.loadFailed'));
     } finally {
       optionLoading = false;
     }
@@ -130,11 +131,11 @@
       if (isBlank) continue;
 
       if (!relTypeId || !fromCiId || !toCiId) {
-        errors[row.localId] = 'Can chon Relationship Type, From CI, To CI';
+        errors[row.localId] = $_('cmdb.import.selectRelTypeRequired');
         continue;
       }
       if (fromCiId === toCiId) {
-        errors[row.localId] = 'From CI va To CI khong duoc trung nhau';
+        errors[row.localId] = $_('cmdb.import.sameFromTo');
         continue;
       }
 
@@ -148,12 +149,12 @@
     }
 
     if (items.length === 0) {
-      throw new Error('Khong co dong hop le de import');
+      throw new Error($_('cmdb.import.noValidRows'));
     }
 
     rowErrors = errors;
     if (Object.keys(errors).length > 0) {
-      throw new Error('Vui long sua cac dong loi truoc khi thuc hien');
+      throw new Error($_('cmdb.import.fixErrorsFirst'));
     }
     return items;
   }
@@ -169,13 +170,13 @@
   }
 
   function parseImportError(err: unknown): { message: string; parsed: CmdbRelationshipImportResult | null } {
-    if (!(err instanceof Error)) return { message: 'Import that bai', parsed: null };
-    const message = err.message || 'Import that bai';
+    if (!(err instanceof Error)) return { message: $_('cmdb.import.importFailed'), parsed: null };
+    const message = err.message || $_('cmdb.import.importFailed');
     try {
       const payload = JSON.parse(message) as { data?: unknown; error?: { message?: string }; message?: string };
       const data = payload?.data as Partial<CmdbRelationshipImportResult> | undefined;
       if (data && typeof data.total === 'number' && Array.isArray(data.errors) && Array.isArray(data.created)) {
-        return { message: payload.error?.message ?? payload.message ?? 'Import co loi', parsed: data as CmdbRelationshipImportResult };
+        return { message: payload.error?.message ?? payload.message ?? $_('cmdb.import.importErrors'), parsed: data as CmdbRelationshipImportResult };
       }
     } catch {
       // ignore
@@ -193,7 +194,7 @@
       const items = validateRows();
       const res = await importRelationships({ dryRun, allowCycles, items });
       result = res.data ?? null;
-      toast.success(dryRun ? 'Dry-run hoan tat' : 'Import quan he thanh cong');
+      toast.success(dryRun ? $_('cmdb.import.dryRunComplete') : $_('cmdb.import.importSuccess'));
     } catch (err) {
       const parsed = parseImportError(err);
       submitError = parsed.message;
@@ -214,33 +215,33 @@
 </script>
 
 <div class="page-shell page-content">
-  <PageHeader title="CMDB Relationship Import" subtitle={`${rows.length} rows`}>
+  <PageHeader title={$_('cmdb.import.title')} subtitle={$_('cmdb.import.rowCount', { values: { count: rows.length } })}>
     {#snippet actions()}
       <Button variant="secondary" onclick={addRow}>
-        <Plus class="mr-2 h-4 w-4" /> Add row
+        <Plus class="mr-2 h-4 w-4" /> {$_('cmdb.import.addRow')}
       </Button>
       <Button variant="secondary" onclick={loadOptions}>
         <RefreshCw class="h-4 w-4" />
       </Button>
-      <a href="/cmdb" class="inline-flex items-center rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800">Back to CMDB</a>
+      <a href="/cmdb" class="inline-flex items-center rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800">{$_('cmdb.import.backToCmdb')}</a>
     {/snippet}
   </PageHeader>
 
   <div class="mb-4 rounded-xl border border-slate-800 bg-surface-1 p-4">
     <div class="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
       <div class="space-y-1">
-        <label for="bulk-reltype" class="block text-sm font-medium text-slate-700 dark:text-slate-300">Apply Relationship Type to all rows</label>
+        <label for="bulk-reltype" class="block text-sm font-medium text-slate-700 dark:text-slate-300">{$_('cmdb.import.applyRelType')}</label>
         <select id="bulk-reltype" class="w-full rounded-lg border border-slate-700 bg-surface-1 px-3 py-2 text-sm" onchange={(e) => fillAllRelType((e.currentTarget as HTMLSelectElement).value)}>
-          <option value="">-- Select --</option>
+          <option value="">{$_('cmdb.import.selectDefault')}</option>
           {#each relTypeOptions as option}
             <option value={option.value}>{option.label}</option>
           {/each}
         </select>
       </div>
       <div class="space-y-1">
-        <label for="bulk-from-ci" class="block text-sm font-medium text-slate-700 dark:text-slate-300">Apply From CI to all rows</label>
+        <label for="bulk-from-ci" class="block text-sm font-medium text-slate-700 dark:text-slate-300">{$_('cmdb.import.applyFromCi')}</label>
         <select id="bulk-from-ci" class="w-full rounded-lg border border-slate-700 bg-surface-1 px-3 py-2 text-sm" onchange={(e) => fillAllFromCi((e.currentTarget as HTMLSelectElement).value)}>
-          <option value="">-- Select --</option>
+          <option value="">{$_('cmdb.import.selectDefault')}</option>
           {#each ciOptions as option}
             <option value={option.value}>{option.label}</option>
           {/each}
@@ -248,14 +249,14 @@
       </div>
       <label class="flex items-end gap-2 pb-2 text-sm font-medium text-slate-700 dark:text-slate-300">
         <input type="checkbox" bind:checked={allowCycles} class="rounded border-slate-300" />
-        Allow cycles
+        {$_('cmdb.import.allowCycles')}
       </label>
       <div class="flex items-end gap-2">
         <Button variant="secondary" class="flex-1" disabled={submitting} onclick={() => runImport(true)}>
-          {submitMode === 'dry-run' ? 'Running...' : 'Dry run'}
+          {submitMode === 'dry-run' ? $_('cmdb.import.running') : $_('cmdb.import.dryRun')}
         </Button>
         <Button class="flex-1" disabled={submitting} onclick={() => runImport(false)}>
-          {submitMode === 'apply' ? 'Importing...' : 'Import'}
+          {submitMode === 'apply' ? $_('cmdb.import.importing') : $_('cmdb.import.import')}
         </Button>
       </div>
     </div>
@@ -273,12 +274,12 @@
           <thead class="bg-slate-100 text-left text-xs uppercase text-slate-600 dark:bg-slate-800 dark:text-slate-300">
             <tr>
               <th class="px-3 py-2">#</th>
-              <th class="px-3 py-2">Relationship Type</th>
-              <th class="px-3 py-2">From CI</th>
-              <th class="px-3 py-2">To CI</th>
-              <th class="px-3 py-2">Since Date</th>
-              <th class="px-3 py-2">Note</th>
-              <th class="px-3 py-2 text-right">Action</th>
+              <th class="px-3 py-2">{$_('cmdb.import.relType')}</th>
+              <th class="px-3 py-2">{$_('cmdb.import.fromCi')}</th>
+              <th class="px-3 py-2">{$_('cmdb.import.toCi')}</th>
+              <th class="px-3 py-2">{$_('cmdb.import.sinceDate')}</th>
+              <th class="px-3 py-2">{$_('cmdb.import.note')}</th>
+              <th class="px-3 py-2 text-right">{$_('cmdb.import.action')}</th>
             </tr>
           </thead>
           <tbody>
@@ -287,7 +288,7 @@
                 <td class="px-3 py-2 text-xs text-slate-500">{index + 1}</td>
                 <td class="px-3 py-2">
                   <select class="w-56 rounded-lg border border-slate-700 bg-surface-1 px-2 py-1.5 text-sm" value={row.relTypeId} onchange={(e) => updateRow(row.localId, { relTypeId: (e.currentTarget as HTMLSelectElement).value })}>
-                    <option value="">Select type</option>
+                    <option value="">{$_('cmdb.import.selectType')}</option>
                     {#each relTypeOptions as option}
                       <option value={option.value}>{option.label}</option>
                     {/each}
@@ -295,7 +296,7 @@
                 </td>
                 <td class="px-3 py-2">
                   <select class="w-56 rounded-lg border border-slate-700 bg-surface-1 px-2 py-1.5 text-sm" value={row.fromCiId} onchange={(e) => updateRow(row.localId, { fromCiId: (e.currentTarget as HTMLSelectElement).value })}>
-                    <option value="">Select CI</option>
+                    <option value="">{$_('cmdb.import.selectCi')}</option>
                     {#each ciOptions as option}
                       <option value={option.value}>{option.label}</option>
                     {/each}
@@ -303,7 +304,7 @@
                 </td>
                 <td class="px-3 py-2">
                   <select class="w-56 rounded-lg border border-slate-700 bg-surface-1 px-2 py-1.5 text-sm" value={row.toCiId} onchange={(e) => updateRow(row.localId, { toCiId: (e.currentTarget as HTMLSelectElement).value })}>
-                    <option value="">Select CI</option>
+                    <option value="">{$_('cmdb.import.selectCi')}</option>
                     {#each ciOptions as option}
                       <option value={option.value}>{option.label}</option>
                     {/each}
@@ -313,7 +314,7 @@
                   <input type="date" class="w-36 rounded-lg border border-slate-700 bg-surface-1 px-2 py-1.5 text-sm" value={row.sinceDate} onchange={(e) => updateRow(row.localId, { sinceDate: (e.currentTarget as HTMLInputElement).value })} />
                 </td>
                 <td class="px-3 py-2">
-                  <input type="text" class="w-64 rounded-lg border border-slate-700 bg-surface-1 px-2 py-1.5 text-sm" value={row.note} placeholder="Optional note" oninput={(e) => updateRow(row.localId, { note: (e.currentTarget as HTMLInputElement).value })} />
+                  <input type="text" class="w-64 rounded-lg border border-slate-700 bg-surface-1 px-2 py-1.5 text-sm" value={row.note} placeholder={$_('cmdb.import.optionalNote')} oninput={(e) => updateRow(row.localId, { note: (e.currentTarget as HTMLInputElement).value })} />
                   {#if rowErrors[row.localId]}
                     <div class="mt-1 text-xs text-red-600">{rowErrors[row.localId]}</div>
                   {/if}
@@ -335,23 +336,23 @@
     <div class="mt-4 grid gap-4 lg:grid-cols-2">
       <div class="rounded-xl border border-slate-800 bg-surface-1 p-4">
         <div class="mb-3 flex items-center gap-2">
-          <h2 class="text-lg font-semibold">Import Result</h2>
-          <span class={result.dryRun ? 'badge-info' : 'badge-success'}>{result.dryRun ? 'dry-run' : 'imported'}</span>
+          <h2 class="text-lg font-semibold">{$_('cmdb.import.result')}</h2>
+          <span class={result.dryRun ? 'badge-info' : 'badge-success'}>{result.dryRun ? $_('cmdb.import.dryRunBadge') : $_('cmdb.import.importedBadge')}</span>
         </div>
         <dl class="grid gap-3 sm:grid-cols-2">
-          <div><dt class="text-xs uppercase text-slate-500">Total</dt><dd class="mt-1 text-sm">{result.total}</dd></div>
-          <div><dt class="text-xs uppercase text-slate-500">Created</dt><dd class="mt-1 text-sm">{result.created.length}</dd></div>
-          <div><dt class="text-xs uppercase text-slate-500">Errors</dt><dd class="mt-1 text-sm">{result.errors.length}</dd></div>
-          <div><dt class="text-xs uppercase text-slate-500">Mode</dt><dd class="mt-1 text-sm">{result.dryRun ? 'Dry run' : 'Apply'}</dd></div>
+          <div><dt class="text-xs uppercase text-slate-500">{$_('cmdb.import.total')}</dt><dd class="mt-1 text-sm">{result.total}</dd></div>
+          <div><dt class="text-xs uppercase text-slate-500">{$_('cmdb.import.created')}</dt><dd class="mt-1 text-sm">{result.created.length}</dd></div>
+          <div><dt class="text-xs uppercase text-slate-500">{$_('cmdb.import.errors')}</dt><dd class="mt-1 text-sm">{result.errors.length}</dd></div>
+          <div><dt class="text-xs uppercase text-slate-500">{$_('cmdb.import.mode')}</dt><dd class="mt-1 text-sm">{result.dryRun ? $_('cmdb.import.dryRunMode') : $_('cmdb.import.applyMode')}</dd></div>
         </dl>
 
         {#if result.errors.length > 0}
           <div class="mt-4">
-            <h3 class="mb-2 text-sm font-semibold">Errors</h3>
+            <h3 class="mb-2 text-sm font-semibold">{$_('cmdb.import.errors')}</h3>
             <div class="max-h-56 overflow-auto rounded-lg border border-red-200 bg-red-50 p-2">
               {#each result.errors as item}
                 <div class="border-b border-red-100 px-2 py-1 text-sm text-red-700 last:border-b-0">
-                  <span class="font-semibold">Row {item.index + 1}:</span> {item.message}
+                  <span class="font-semibold">{$_('cmdb.import.rowLabel', { values: { index: item.index + 1 } })}</span> {item.message}
                 </div>
               {/each}
             </div>
@@ -360,20 +361,20 @@
       </div>
 
       <div class="rounded-xl border border-slate-800 bg-surface-1 p-4">
-        <h2 class="mb-3 text-lg font-semibold">Created / Validated Relationships</h2>
+        <h2 class="mb-3 text-lg font-semibold">{$_('cmdb.import.createdRelationships')}</h2>
         {#if result.created.length === 0}
           <div class="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-500 dark:border-slate-700 dark:bg-slate-800/70">
-            No rows created/validated.
+            {$_('cmdb.import.noRows')}
           </div>
         {:else}
           <div class="max-h-72 overflow-auto rounded-lg border border-slate-200 dark:border-slate-700">
             <table class="min-w-full text-sm">
               <thead class="bg-slate-100 text-left text-xs uppercase text-slate-600 dark:bg-slate-800 dark:text-slate-300">
                 <tr>
-                  <th class="px-3 py-2">Type</th>
-                  <th class="px-3 py-2">From</th>
-                  <th class="px-3 py-2">To</th>
-                  <th class="px-3 py-2">Note</th>
+                  <th class="px-3 py-2">{$_('cmdb.import.type')}</th>
+                  <th class="px-3 py-2">{$_('cmdb.import.from')}</th>
+                  <th class="px-3 py-2">{$_('cmdb.import.to')}</th>
+                  <th class="px-3 py-2">{$_('cmdb.import.note')}</th>
                 </tr>
               </thead>
               <tbody>

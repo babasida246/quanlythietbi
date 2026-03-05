@@ -11,9 +11,11 @@
     type StockDocumentLine,
     type WarehouseRecord
   } from '$lib/api/warehouse';
+  import { getAssetCatalogs, type Vendor } from '$lib/api/assetCatalogs';
 
   let warehouses = $state<WarehouseRecord[]>([]);
   let parts = $state<SparePartRecord[]>([]);
+  let vendors = $state<Vendor[]>([]);
   let lines = $state<StockDocumentLine[]>([]);
 
   let loading = $state(true);
@@ -35,12 +37,14 @@
   async function loadCatalogs() {
     try {
       loading = true;
-      const [warehousesResponse, partsResponse] = await Promise.all([
+      const [warehousesResponse, partsResponse, catalogsResponse] = await Promise.all([
         listWarehouses(),
-        listSpareParts({ page: 1, limit: 200 })
+        listSpareParts({ page: 1, limit: 200 }),
+        getAssetCatalogs()
       ]);
       warehouses = warehousesResponse.data ?? [];
       parts = partsResponse.data ?? [];
+      vendors = catalogsResponse.data?.vendors ?? [];
     } catch (err) {
       error = err instanceof Error ? err.message : $_('warehouse.errors.loadCatalogsFailed');
     } finally {
@@ -165,7 +169,12 @@
         {#if docType === 'receipt'}
           <div>
             <label for="new-doc-supplier" class="mb-1 block text-xs font-medium text-slate-400">{$isLoading ? 'Supplier' : $_('warehouse.field.supplier')}</label>
-            <input id="new-doc-supplier" class="input-base text-sm" bind:value={supplier} placeholder={$isLoading ? 'Supplier name...' : $_('warehouse.field.supplierPlaceholder')} />
+            <select id="new-doc-supplier" class="select-base text-sm" bind:value={supplier}>
+              <option value="">{$isLoading ? '-- Select Supplier --' : $_('warehouse.field.selectSupplier')}</option>
+              {#each vendors as v}
+                <option value={v.name}>{v.name}</option>
+              {/each}
+            </select>
           </div>
           <div>
             <label for="new-doc-submitter" class="mb-1 block text-xs font-medium text-slate-400">{$isLoading ? 'Submitter' : $_('warehouse.field.submitter')}</label>

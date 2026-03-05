@@ -69,7 +69,7 @@
       when: 'Khi phát hiện sự cố thiết bị, cần theo dõi quy trình sửa chữa đầu cuối.',
       role: 'Kỹ thuật / Quản lý',
       roleColor: 'badge-green',
-      href: '/warehouse/repairs',
+      href: '/maintenance/repairs',
       operations: [
         { action: 'Tạo Work Order', path: 'Kho → Sửa chữa → + Tạo đơn', who: 'Kỹ thuật', clicks: ['Vào Kho hàng → Đơn sửa chữa', 'Bấm "+ Tạo đơn"', 'Chọn tài sản, nhập tiêu đề mô tả sự cố', 'Chọn severity + loại → Tạo đơn'] },
         { action: 'Cập nhật trạng thái', path: 'Chi tiết WO → Dropdown trạng thái → Đổi', who: 'Kỹ thuật', clicks: ['Mở chi tiết WO', 'Chọn trạng thái mới (diagnosing/repaired/closed…)', 'Bấm "Đổi trạng thái"'] },

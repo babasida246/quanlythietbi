@@ -198,8 +198,7 @@ export const assetIncreaseRoutes: FastifyPluginAsync = async (fastify) => {
                 if (line.modelId) {
                     await client.query(
                         `UPDATE asset_models 
-                         SET current_stock_qty = COALESCE(current_stock_qty, 0) + $1,
-                             updated_at = NOW()
+                         SET current_stock_qty = COALESCE(current_stock_qty, 0) + $1
                          WHERE id = $2`,
                         [line.quantity, line.modelId]
                     )

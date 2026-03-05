@@ -49,6 +49,19 @@ Thumbs.db
 # Test artifacts
 artifacts/
 test-results/
+playwright-report/
+.last-run.json
+
+# Video recordings (generated)
+video-guide/
+video-output/
+*.webm
+*.mp4
+
+# Temp / analysis files
+check-output.txt
+PIPELINE_SUMMARY.md
+scripts/cols-out.txt
 
 # Docker
 .dockerignore

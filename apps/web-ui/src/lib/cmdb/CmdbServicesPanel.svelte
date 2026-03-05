@@ -140,23 +140,23 @@
 <Modal bind:open={showModal} title={$isLoading ? 'New Service' : $_('cmdb.newService')}>
   <div class="space-y-3">
     <div>
-      <label for="service-code" class="label-base">Code</label>
+      <label for="service-code" class="label-base">{$isLoading ? 'Code' : $_('cmdb.svc.code')}</label>
       <input id="service-code" class="input-base" bind:value={code} placeholder={$isLoading ? 'SVC-APP' : $_('cmdb.type.placeholders.serviceCode')} />
     </div>
     <div>
-      <label for="service-name" class="label-base">Name</label>
+      <label for="service-name" class="label-base">{$isLoading ? 'Name' : $_('cmdb.svc.name')}</label>
       <input id="service-name" class="input-base" bind:value={name} placeholder={$isLoading ? 'Hospital App' : $_('cmdb.type.placeholders.serviceName')} />
     </div>
     <div>
-      <label for="service-criticality" class="label-base">Criticality</label>
-      <input id="service-criticality" class="input-base" bind:value={criticality} placeholder="low / medium / high" />
+      <label for="service-criticality" class="label-base">{$isLoading ? 'Criticality' : $_('cmdb.svc.criticality')}</label>
+      <input id="service-criticality" class="input-base" bind:value={criticality} placeholder={$isLoading ? 'low / medium / high' : $_('cmdb.svc.criticalityPlaceholder')} />
     </div>
   </div>
   {#snippet footer()}
     <div class="flex justify-end gap-2">
-      <Button variant="secondary" onclick={() => showModal = false}>Cancel</Button>
+      <Button variant="secondary" onclick={() => showModal = false}>{$isLoading ? 'Cancel' : $_('cmdb.svc.cancel')}</Button>
       <Button disabled={saving || !code || !name} onclick={saveService}>
-        {saving ? 'Saving...' : 'Create'}
+        {saving ? ($isLoading ? 'Saving...' : $_('cmdb.svc.saving')) : ($isLoading ? 'Create' : $_('cmdb.svc.create'))}
       </Button>
     </div>
   {/snippet}

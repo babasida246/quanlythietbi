@@ -28,17 +28,6 @@ CREATE TABLE IF NOT EXISTS public.license_categories (
     created_at timestamp with time zone DEFAULT now()
 );
 
--- Insert default categories
-INSERT INTO public.license_categories (name, description) VALUES
-    ('Operating System', 'OS licenses like Windows, Linux'),
-    ('Office Suite', 'Productivity software like MS Office'),
-    ('Development Tools', 'IDEs, compilers, development software'),
-    ('Security', 'Antivirus, firewall, security tools'),
-    ('Database', 'Database management systems'),
-    ('Cloud Services', 'SaaS, cloud subscriptions'),
-    ('Other', 'Other software licenses')
-ON CONFLICT (name) DO NOTHING;
-
 -- License types enum
 DO $$ BEGIN
     CREATE TYPE license_type AS ENUM (
@@ -222,15 +211,3 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Grant permissions
-DO $$
-BEGIN
-    IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'netops_app') THEN
-        GRANT SELECT, INSERT, UPDATE, DELETE ON public.licenses TO netops_app;
-        GRANT SELECT, INSERT, UPDATE, DELETE ON public.license_seats TO netops_app;
-        GRANT SELECT, INSERT ON public.license_audit_logs TO netops_app;
-        GRANT SELECT, INSERT, UPDATE, DELETE ON public.suppliers TO netops_app;
-        GRANT SELECT, INSERT, UPDATE, DELETE ON public.license_categories TO netops_app;
-        GRANT SELECT ON public.license_usage_summary TO netops_app;
-    END IF;
-END $$;

@@ -1,336 +1,175 @@
-<script lang="ts">
-    import { Button, Tabs, TabsList, TabsTrigger } from '$lib/components/ui'
-    import { Download, RefreshCw, FileJson, FileText } from 'lucide-svelte'
-    import { API_BASE, apiJson, authorizedFetch } from '$lib/api/httpClient'
-    
-    interface ReportStats {
-        totalCiCount: number
-        totalRelationshipCount: number
-        orphanedCiCount: number
-        brokenRelationshipCount: number
+﻿<script lang="ts">
+  import { onMount } from 'svelte'
+  import { goto } from '$app/navigation'
+  import { ArrowLeft, RefreshCw } from 'lucide-svelte'
+  import PageHeader from '$lib/components/PageHeader.svelte'
+  import { Button, Tabs, TabsList, TabsTrigger } from '$lib/components/ui'
+  import KpiCard from '$lib/reports/KpiCard.svelte'
+  import ChartCard from '$lib/reports/ChartCard.svelte'
+  import ReportFilterBar from '$lib/reports/ReportFilterBar.svelte'
+  import ReportTable from '$lib/reports/ReportTable.svelte'
+  import {
+    fetchReport,
+    exportToCsv,
+    REPORT_REGISTRY,
+    type ReportKey,
+    type ReportFilters,
+    type ReportResponse,
+    type ReportDefinition
+  } from '$lib/api/reports'
+  import { toast } from '$lib/components/toast'
+  import { _, isLoading } from '$lib/i18n'
+
+  //  Config 
+  const CMDB_KEYS: ReportKey[] = ['cmdb-overview', 'cmdb-data-quality']
+
+  //  State 
+  let activeKey = $state<ReportKey>('cmdb-overview')
+  let filters   = $state<ReportFilters>({})
+  let loading   = $state(false)
+  let error     = $state('')
+  let report    = $state<ReportResponse | null>(null)
+
+  //  Derived 
+  const activeReport = $derived(REPORT_REGISTRY.find(r => r.key === activeKey))
+
+  //  Data loading 
+  async function loadReport() {
+    try {
+      loading = true
+      error = ''
+      report = await fetchReport(activeKey, { ...filters, page: filters.page ?? 1, pageSize: filters.pageSize ?? 20 })
+    } catch (e) {
+      error = e instanceof Error ? e.message : ($isLoading ? 'Unknown error' : $_('common.unknownError'))
+      toast.error(error)
+    } finally {
+      loading = false
     }
+  }
 
-    interface GenerateState {
-        loading: boolean
-        error: string | null
-        success: boolean
-    }
+  function setKey(key: ReportKey) {
+    activeKey = key
+    filters = {}
+    report = null
+    void loadReport()
+  }
 
-    type ReportFormat = 'json' | 'csv' | 'pdf'
+  function handlePageChange(pg: number) {
+    filters = { ...filters, page: pg }
+    void loadReport()
+  }
 
-    type GeneratedReport = {
-        data?: {
-            totalCiCount?: number
-            totalRelationshipCount?: number
-            orphanedCiCount?: number
-            brokenRelationshipCount?: number
-            countByType?: Array<unknown>
-            complianceIssues?: Array<{ ciCode: string; ciName: string; missingAttributes: string[] }>
-            hubCis?: Array<{ ciCode: string; connectionCount: number }>
-            brokenRelationships?: Array<unknown>
-            totalEvents?: number
-            ciChangeHistory?: Array<{ ciCode: string; action: string; timestamp: string }>
-        }
-    }
+  function handleExport() {
+    if (!report?.table?.rows?.length) return
+    exportToCsv(report.table.rows, `${activeKey}-${new Date().toISOString().slice(0, 10)}.csv`)
+  }
 
-    let activeTab = $state<string>('ci-inventory')
-    let reportFormat = $state<ReportFormat>('json')
-    let generateState = $state<GenerateState>({ loading: false, error: null, success: false })
-    let stats = $state<ReportStats | null>(null)
-    let generatedReport = $state<GeneratedReport | null>(null)
-
-    $effect(() => {
-        // In real implementation, fetch initial stats
-        stats = {
-            totalCiCount: 0,
-            totalRelationshipCount: 0,
-            orphanedCiCount: 0,
-            brokenRelationshipCount: 0
-        }
-    })
-
-    async function generateReport(reportType: string) {
-        generateState.loading = true
-        generateState.error = null
-        generateState.success = false
-
-        try {
-            generatedReport = await apiJson<GeneratedReport>(`${API_BASE}/v1/cmdb/reports/${reportType}`)
-            generateState.success = true
-        } catch (err) {
-            generateState.error = err instanceof Error ? err.message : 'Unknown error'
-        } finally {
-            generateState.loading = false
-        }
-    }
-
-    async function exportReport(reportType: string, format: string) {
-        try {
-            const response = await authorizedFetch(`${API_BASE}/v1/cmdb/reports/export/${reportType}?format=${format}`)
-            if (!response.ok) throw new Error(`Failed to export report`)
-            
-            const blob = await response.blob()
-            const url = URL.createObjectURL(blob)
-            const a = document.createElement('a')
-            a.href = url
-            a.download = `${reportType}-${new Date().toISOString().split('T')[0]}.${format}`
-            a.click()
-            URL.revokeObjectURL(url)
-        } catch (err) {
-            generateState.error = err instanceof Error ? err.message : 'Export failed'
-        }
-    }
+  //  Init 
+  onMount(() => {
+    void loadReport()
+  })
 </script>
 
-<div class="p-6">
-    <div class="mb-8">
-        <h1 class="text-3xl font-bold mb-2">CMDB Reports</h1>
-        <p class="text-slate-400">Generate and export reports on Configuration Items, Relationships, and Audit Trail</p>
+<div class="page-shell page-content">
+  <PageHeader title={$isLoading ? 'Configuration Management Reports' : $_('cmdb.report.pageTitle')} subtitle={$isLoading ? 'Configuration item overview & data quality' : $_('cmdb.report.subtitle')}>
+    {#snippet actions()}
+      <Button variant="secondary" size="sm" onclick={() => goto('/cmdb')}>
+        <ArrowLeft class="h-3.5 w-3.5 mr-1" />{$isLoading ? 'Back' : $_('cmdb.backToCmdb')}
+      </Button>
+    {/snippet}
+  </PageHeader>
+
+  <!-- Tab navigation -->
+  <Tabs>
+    <TabsList>
+      {#each CMDB_KEYS as key}
+        {@const reg = REPORT_REGISTRY.find(r => r.key === key)}
+        <TabsTrigger active={activeKey === key} onclick={() => setKey(key)}>
+          {reg?.title ?? key}
+        </TabsTrigger>
+      {/each}
+    </TabsList>
+  </Tabs>
+
+  <!-- Filter bar -->
+  {#if activeReport?.filterFields?.length}
+    <ReportFilterBar
+      reportDef={activeReport as ReportDefinition}
+      bind:filters
+      onApply={() => { filters = { ...filters, page: 1 }; loadReport() }}
+    />
+  {/if}
+
+  <!-- Toolbar -->
+  <div class="flex items-center justify-between">
+    <div>
+      {#if report}
+        <p class="text-sm text-slate-400">
+          {$isLoading ? 'Updated' : $_('cmdb.report.updated')}: {new Date(report.meta?.generatedAt ?? '').toLocaleString()}
+        </p>
+      {/if}
     </div>
+    <div class="flex gap-2">
+      {#if report?.table?.rows?.length}
+        <Button variant="secondary" size="sm" onclick={handleExport}>{$isLoading ? 'Export CSV' : $_('cmdb.report.exportCsv')}</Button>
+      {/if}
+      <Button size="sm" onclick={() => loadReport()} disabled={loading}>
+        <RefreshCw class="h-3.5 w-3.5 {loading ? 'animate-spin' : ''}" />
+        {loading ? ($isLoading ? 'Loading...' : $_('common.processing')) : ($isLoading ? 'Load report' : $_('cmdb.report.load'))}
+      </Button>
+    </div>
+  </div>
 
-    {#if generateState.error}
-        <div class="alert alert-error mb-4">
-            <span>{generateState.error}</span>
-        </div>
+  <!-- Error -->
+  {#if error}
+    <div class="alert alert-error">{error}</div>
+  {/if}
+
+  {#if loading && !report}
+    <div class="flex items-center justify-center py-16 gap-3">
+      <div class="h-7 w-7 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
+      <span class="text-sm text-slate-400">{$isLoading ? 'Loading report...' : $_('cmdb.report.loading')}</span>
+    </div>
+  {:else if report}
+    <!-- KPI Cards -->
+    {#if report.kpis?.length}
+      <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+        {#each report.kpis as kpi}
+          <KpiCard {kpi} />
+        {/each}
+      </div>
     {/if}
 
-    {#if generateState.success}
-        <div class="alert alert-success mb-4">
-            <span>Report generated successfully</span>
-        </div>
+    <!-- Charts -->
+    {#if report.charts && Object.keys(report.charts).length > 0}
+      <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        {#each Object.entries(report.charts) as [chartKey, chartData]}
+          {#if chartData}
+            <ChartCard title={chartKey} labels={chartData.labels} series={chartData.series} />
+          {/if}
+        {/each}
+      </div>
     {/if}
 
-    <Tabs>
-        <TabsList>
-            <TabsTrigger active={activeTab === 'ci-inventory'} onclick={() => activeTab = 'ci-inventory'}>CI Inventory</TabsTrigger>
-            <TabsTrigger active={activeTab === 'relationship-analytics'} onclick={() => activeTab = 'relationship-analytics'}>Relationship Analytics</TabsTrigger>
-            <TabsTrigger active={activeTab === 'audit-trail'} onclick={() => activeTab = 'audit-trail'}>Audit Trail</TabsTrigger>
-        </TabsList>
-    </Tabs>
-
-    {#if activeTab === 'ci-inventory'}
-        <div class="space-y-4">
-            <div class="card">
-                    <h3 class="text-xl font-semibold mb-4">CI Inventory Report</h3>
-                    <p class="text-slate-400 mb-4">
-                        View comprehensive inventory statistics including CI count by type, status, environment,
-                        age distribution, and compliance issues.
-                    </p>
-
-                    <div class="flex gap-2 mb-4">
-                        <Button
-                            onclick={() => generateReport('ci-inventory')}
-                            disabled={generateState.loading}
-                        >
-                            {#if generateState.loading}
-                                <div class="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent"></div>
-                            {:else}
-                                <RefreshCw class="w-4 h-4" />
-                            {/if}
-                            Generate Report
-                        </Button>
-
-                        <select
-                            class="select-base w-32"
-                            bind:value={reportFormat}
-                        >
-                            <option value="json">JSON</option>
-                            <option value="csv">CSV</option>
-                            <option value="pdf">PDF</option>
-                        </select>
-
-                        <Button
-                            variant="secondary"
-                            onclick={() => exportReport('ci-inventory', reportFormat)}
-                            disabled={!generatedReport || generateState.loading}
-                        >
-                            <Download class="w-4 h-4" />
-                            Export
-                        </Button>
-                    </div>
-
-                    {#if generatedReport && generatedReport.data && generatedReport.data.totalCiCount !== undefined}
-                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                            <div class="bg-blue-900/30 p-4 rounded">
-                                <p class="text-slate-400 text-sm">Total CIs</p>
-                                <p class="text-2xl font-bold text-blue-400">{generatedReport.data.totalCiCount}</p>
-                            </div>
-                            <div class="bg-orange-900/30 p-4 rounded">
-                                <p class="text-slate-400 text-sm">Orphaned CIs</p>
-                                <p class="text-2xl font-bold text-orange-400">{generatedReport.data.orphanedCiCount}</p>
-                            </div>
-                            <div class="bg-green-900/30 p-4 rounded">
-                                <p class="text-slate-400 text-sm">CI Types</p>
-                                <p class="text-2xl font-bold text-green-400">{generatedReport.data.countByType?.length || 0}</p>
-                            </div>
-                            <div class="bg-red-900/30 p-4 rounded">
-                                <p class="text-slate-400 text-sm">Compliance Issues</p>
-                                <p class="text-2xl font-bold text-red-400">{generatedReport.data.complianceIssues?.length || 0}</p>
-                            </div>
-                        </div>
-
-                        {#if generatedReport.data.complianceIssues && generatedReport.data.complianceIssues.length > 0}
-                            <div class="mt-6">
-                                <h4 class="font-semibold mb-3">Compliance Issues</h4>
-                                <div class="space-y-2 max-h-80 overflow-y-auto">
-                                    {#each generatedReport.data.complianceIssues.slice(0, 10) as issue}
-                                        <div class="border border-slate-700 p-3 rounded flex justify-between items-start">
-                                            <div>
-                                                <p class="font-medium">{issue.ciCode} - {issue.ciName}</p>
-                                                <p class="text-sm text-slate-400">Missing: {issue.missingAttributes.join(', ')}</p>
-                                            </div>
-                                            <span class="badge-error">Issue</span>
-                                        </div>
-                                    {/each}
-                                </div>
-                            </div>
-                        {/if}
-                    {/if}
-                </div>
-            </div>
-    {:else if activeTab === 'relationship-analytics'}
-        <div class="space-y-4">
-            <div class="card">
-                    <h3 class="text-xl font-semibold mb-4">Relationship Analytics Report</h3>
-                    <p class="text-slate-400 mb-4">
-                        Analyze relationship patterns including density metrics, hub CIs, isolated clusters,
-                        and broken relationships.
-                    </p>
-
-                    <div class="flex gap-2 mb-4">
-                        <Button
-                            onclick={() => generateReport('relationship-analytics')}
-                            disabled={generateState.loading}
-                        >
-                            {#if generateState.loading}
-                                <div class="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent"></div>
-                            {:else}
-                                <RefreshCw class="w-4 h-4" />
-                            {/if}
-                            Generate Report
-                        </Button>
-
-                        <select
-                            class="select-base w-32"
-                            bind:value={reportFormat}
-                        >
-                            <option value="json">JSON</option>
-                            <option value="csv">CSV</option>
-                            <option value="pdf">PDF</option>
-                        </select>
-
-                        <Button
-                            variant="secondary"
-                            onclick={() => exportReport('relationship-analytics', reportFormat)}
-                            disabled={!generatedReport || generateState.loading}
-                        >
-                            <Download class="w-4 h-4" />
-                            Export
-                        </Button>
-                    </div>
-
-                    {#if generatedReport && generatedReport.data && generatedReport.data.totalRelationshipCount !== undefined}
-                        <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
-                            <div class="bg-blue-900/30 p-4 rounded">
-                                <p class="text-slate-400 text-sm">Total Relationships</p>
-                                <p class="text-2xl font-bold text-blue-400">{generatedReport.data.totalRelationshipCount}</p>
-                            </div>
-                            <div class="bg-purple-900/30 p-4 rounded">
-                                <p class="text-slate-400 text-sm">Hub CIs (Top)</p>
-                                <p class="text-2xl font-bold text-purple-400">{generatedReport.data.hubCis?.length || 0}</p>
-                            </div>
-                            <div class="bg-red-900/30 p-4 rounded">
-                                <p class="text-slate-400 text-sm">Broken Relationships</p>
-                                <p class="text-2xl font-bold text-red-400">{generatedReport.data.brokenRelationships?.length || 0}</p>
-                            </div>
-                        </div>
-
-                        {#if generatedReport.data.hubCis && generatedReport.data.hubCis.length > 0}
-                            <div class="mt-6">
-                                <h4 class="font-semibold mb-3">Most Connected CIs</h4>
-                                <div class="space-y-2 max-h-80 overflow-y-auto">
-                                    {#each generatedReport.data.hubCis as hub, idx}
-                                        <div class="border border-slate-700 p-3 rounded flex justify-between items-center">
-                                            <div>
-                                                <p class="font-medium">#{idx + 1} {hub.ciCode}</p>
-                                                <p class="text-sm text-slate-400">{hub.connectionCount} total connections</p>
-                                            </div>
-                                            <span class="badge-primary">{hub.connectionCount}</span>
-                                        </div>
-                                    {/each}
-                                </div>
-                            </div>
-                        {/if}
-                    {/if}
-                </div>
-            </div>
-    {:else if activeTab === 'audit-trail'}
-        <div class="space-y-4">
-            <div class="card">
-                    <h3 class="text-xl font-semibold mb-4">Audit Trail Report</h3>
-                    <p class="text-slate-400 mb-4">
-                        Review change history including CI modifications, relationship changes, and schema version history.
-                    </p>
-
-                    <div class="space-y-4 mb-4">
-                        <input class="input-base" placeholder="Filter by CI ID (optional)" type="text" />
-                        <div class="flex gap-2">
-                            <Button
-                                onclick={() => generateReport('audit-trail')}
-                                disabled={generateState.loading}
-                            >
-                                {#if generateState.loading}
-                                    <div class="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent"></div>
-                                {:else}
-                                    <RefreshCw class="w-4 h-4" />
-                                {/if}
-                                Generate Report
-                            </Button>
-
-                            <select
-                                class="select-base w-32"
-                                bind:value={reportFormat}
-                            >
-                                <option value="json">JSON</option>
-                                <option value="csv">CSV</option>
-                                <option value="pdf">PDF</option>
-                            </select>
-
-                            <Button
-                                variant="secondary"
-                                onclick={() => exportReport('audit-trail', reportFormat)}
-                                disabled={!generatedReport || generateState.loading}
-                            >
-                                <Download class="w-4 h-4" />
-                                Export
-                            </Button>
-                        </div>
-                    </div>
-
-                    {#if generatedReport && generatedReport.data && generatedReport.data.totalEvents !== undefined}
-                        <div class="bg-blue-900/30 p-4 rounded mb-4">
-                            <p class="text-slate-400 text-sm">Total Events</p>
-                            <p class="text-2xl font-bold text-blue-400">{generatedReport.data.totalEvents}</p>
-                        </div>
-
-                        {#if generatedReport.data.ciChangeHistory && generatedReport.data.ciChangeHistory.length > 0}
-                            <div>
-                                <h4 class="font-semibold mb-3">Recent CI Changes</h4>
-                                <div class="space-y-2 max-h-80 overflow-y-auto">
-                                    {#each generatedReport.data.ciChangeHistory.slice(0, 10) as change}
-                                        <div class="border border-slate-700 p-3 rounded">
-                                            <p class="font-medium">{change.ciCode}</p>
-                                            <p class="text-sm text-slate-400">
-                                                {change.action} at {new Date(change.timestamp).toLocaleString()}
-                                            </p>
-                                        </div>
-                                    {/each}
-                                </div>
-                            </div>
-                        {/if}
-                    {/if}
-                </div>
-            </div>
+    <!-- Table -->
+    {#if report.table}
+      <ReportTable
+        tableData={report.table}
+        onPageChange={handlePageChange}
+      />
     {/if}
+
+    <!-- Empty state -->
+    {#if !report.kpis?.length && !report.table?.rows?.length}
+      <div class="empty-state py-16">
+        <p class="empty-state-title">{$isLoading ? 'No data' : $_('cmdb.report.noData')}</p>
+        <p class="empty-state-desc">{$isLoading ? 'Try changing filters or check CMDB data.' : $_('cmdb.report.noDataHint')}</p>
+      </div>
+    {/if}
+  {:else}
+    <div class="empty-state py-16">
+      <p class="empty-state-title">{$isLoading ? 'Report not loaded' : $_('cmdb.report.notLoaded')}</p>
+      <p class="empty-state-desc">{$isLoading ? 'Click "Load report" to view data.' : $_('cmdb.report.notLoadedHint')}</p>
+    </div>
+  {/if}
 </div>
-

@@ -158,7 +158,8 @@
     "detail": "Detail",
     "print": "Print",
     "notePlaceholder": "Note...",
-    "note": "Note"
+    "note": "Note",
+    "appName": "AssetHub Gateway"
   },
   "auth": {
     "login": "Login",
@@ -185,6 +186,95 @@
     }
   },
   "cmdb": {
+    "changes": {
+      "title": "Change History",
+      "viewAll": "View All Changes",
+      "empty": "No changes for this CI.",
+      "create": "Create New Change",
+      "header": {
+        "title": "Title",
+        "riskLevel": "Risk Level",
+        "status": "Status",
+        "createdAt": "Created Date",
+        "actions": "Actions"
+      },
+      "view": "View",
+      "createRequest": "Create change request",
+      "editDraft": "Edit draft",
+      "createRequestTitle": "Create Configuration Change Request",
+      "editDraftTitle": "Edit Draft",
+      "recordCount": "{count} records",
+      "importRel": "Import relationships",
+      "search": "Search",
+      "status": {
+        "draft": "Draft",
+        "submitted": "Submitted",
+        "approved": "Approved",
+        "implemented": "Implemented",
+        "closed": "Closed",
+        "canceled": "Canceled"
+      },
+      "risk": {
+        "low": "Low",
+        "medium": "Medium",
+        "high": "High",
+        "critical": "Critical"
+      },
+      "primaryCi": "Primary configuration item",
+      "apply": "Apply",
+      "clearFilters": "Clear filters",
+      "all": "All",
+      "selectToView": "Select a change to view details",
+      "noChanges": "No changes found",
+      "reload": "Reload",
+      "titleRequired": "Title is required",
+      "invalidDateTime": "Invalid date/time",
+      "invalidMetadataJson": "Metadata JSON is invalid",
+      "metadataMustBeObject": "Metadata must be a JSON object",
+      "noChangeSelected": "No change selected",
+      "createSuccess": "Change request created successfully",
+      "updateSuccess": "Draft updated successfully",
+      "actionSuccess": "{action} successful",
+      "actionFailed": "Action failed",
+      "loadFailed": "Failed to load configuration changes",
+      "detailLoadFailed": "Failed to load change details",
+      "action": {
+        "submit": "Submit",
+        "approve": "Approve",
+        "implement": "Implement",
+        "close": "Close",
+        "cancel": "Cancel"
+      },
+      "code": "Code",
+      "detailTitle": "Title",
+      "requestedBy": "Requested by",
+      "approvedBy": "Approved by",
+      "implementedBy": "Implemented by",
+      "plannedStart": "Planned start",
+      "plannedEnd": "Planned end",
+      "implementedAt": "Implemented at",
+      "closedAt": "Closed at",
+      "description": "Description",
+      "implPlan": "Implementation / Rollback plan",
+      "implementation": "Implementation:",
+      "rollback": "Rollback:",
+      "impactSnapshot": "Impact (Snapshot)",
+      "noSnapshot": "No snapshot available",
+      "viewCiRelationships": "View CI relationships",
+      "additionalData": "Additional data",
+      "field": {
+        "title": "Title",
+        "description": "Description",
+        "risk": "Risk level",
+        "primaryCi": "Primary configuration item",
+        "optional": "(Optional)",
+        "plannedStart": "Start time",
+        "plannedEnd": "End time",
+        "implPlan": "Implementation plan",
+        "rollbackPlan": "Rollback plan",
+        "metadataJson": "Metadata JSON"
+      }
+    },
     "title": "Configuration Management Database",
     "pageTitle": "CMDB",
     "subtitle": "Manage configuration items, schema types, and service mappings.",
@@ -343,20 +433,6 @@
       "typeApp": "Application",
       "typeOther": "Other"
     },
-    "changes": {
-      "title": "Change History",
-      "viewAll": "View All Changes",
-      "empty": "No changes for this CI.",
-      "create": "Create New Change",
-      "header": {
-        "title": "Title",
-        "riskLevel": "Risk Level",
-        "status": "Status",
-        "createdAt": "Created Date",
-        "actions": "Actions"
-      },
-      "view": "View"
-    },
     "importRel": "Import Relationships",
     "errors": {
       "loadFailed": "Failed to load CMDB data",
@@ -387,7 +463,18 @@
     "createSuccess": "Created successfully",
     "updateSuccess": "Updated successfully",
     "deleteSuccess": "Deleted successfully",
-    "report": "Report",
+    "report": {
+      "pageTitle": "Configuration Management Reports",
+      "subtitle": "Configuration item overview & data quality",
+      "updated": "Updated",
+      "exportCsv": "Export CSV",
+      "load": "Load report",
+      "loading": "Loading report...",
+      "noData": "No data",
+      "noDataHint": "Try changing filters or check configuration management data.",
+      "notLoaded": "Report not loaded",
+      "notLoadedHint": "Click \"Load report\" to view data."
+    },
     "importRelation": "Import relationships",
     "noData": "No data",
     "edit": "Edit",
@@ -406,7 +493,9 @@
       "overview": "Overview",
       "relationships": "Relationships",
       "impactAnalysis": "Impact Analysis",
-      "changes": "Changes"
+      "changes": "Changes",
+      "impact": "Impact",
+      "history": "History"
     },
     "impact": {
       "title": "Impact Analysis",
@@ -423,6 +512,144 @@
         "actions": "Actions"
       },
       "viewDetail": "View Detail"
+    },
+    "rel": {
+      "heading": "Relationships for {name}",
+      "count": "{count} relationship(s)",
+      "new": "New Relationship",
+      "loading": "Loading relationships...",
+      "empty": "No relationships defined",
+      "createFirst": "Create First Relationship",
+      "direction": "Direction",
+      "type": "Type",
+      "relatedCi": "Related Configuration Item",
+      "note": "Note",
+      "created": "Created",
+      "actions": "Actions",
+      "outgoing": "Outgoing →",
+      "incoming": "Incoming ←",
+      "createTitle": "Create Relationship",
+      "directionLabel": "Direction",
+      "outgoingDesc": "Outgoing (this CI → target)",
+      "incomingDesc": "Incoming (target → this CI)",
+      "relType": "Relationship Type",
+      "selectType": "Select type...",
+      "selectCi": "Select CI...",
+      "noteOptional": "Note (optional)",
+      "notePlaceholder": "Add context about this relationship...",
+      "cancel": "Cancel",
+      "creating": "Creating...",
+      "create": "Create",
+      "failedLoad": "Failed to load relationships",
+      "selectRequired": "Please select relationship type and target CI",
+      "failedCreate": "Failed to create relationship",
+      "confirmDelete": "Are you sure you want to delete this relationship?",
+      "failedDelete": "Failed to delete relationship"
+    },
+    "detail": {
+      "loadingCi": "Loading CI details...",
+      "missingId": "Missing CI id",
+      "failedLoad": "Failed to load CI details",
+      "version": "version",
+      "basicInfo": "Basic Information",
+      "ciCode": "CI Code",
+      "status": "Status",
+      "environment": "Environment",
+      "ownerTeam": "Owner Team",
+      "created": "Created",
+      "lastUpdated": "Last Updated",
+      "notes": "Notes",
+      "attributes": "Attributes",
+      "noAttributes": "No attribute definitions for this CI type/version.",
+      "importRelationship": "Import Relationship"
+    },
+    "import": {
+      "title": "Configuration Item Relationship Import",
+      "addRow": "Add row",
+      "backToCmdb": "Back to Configuration Management",
+      "applyRelType": "Apply Relationship Type to all rows",
+      "applyFromCi": "Apply From CI to all rows",
+      "allowCycles": "Allow cycles",
+      "dryRun": "Dry run",
+      "running": "Running...",
+      "import": "Import",
+      "importing": "Importing...",
+      "relType": "Relationship Type",
+      "fromCi": "From CI",
+      "toCi": "To CI",
+      "sinceDate": "Since Date",
+      "note": "Note",
+      "action": "Action",
+      "result": "Import Result",
+      "total": "Total",
+      "created": "Created",
+      "errors": "Errors",
+      "mode": "Mode",
+      "dryRunMode": "Dry run",
+      "applyMode": "Apply",
+      "createdRelationships": "Created / Validated Relationships",
+      "noRows": "No rows created/validated.",
+      "type": "Type",
+      "from": "From",
+      "to": "To",
+      "selectRelType": "Select relationship type...",
+      "selectCi": "Select CI...",
+      "loadFailed": "Failed to load CMDB data",
+      "selectRelTypeRequired": "Please select Relationship Type",
+      "sameFromTo": "From CI and To CI must not be the same",
+      "noValidRows": "No valid rows to import",
+      "fixErrorsFirst": "Please fix error rows before importing",
+      "importFailed": "Import failed",
+      "importErrors": "Import has errors",
+      "dryRunComplete": "Dry-run complete",
+      "importSuccess": "Relationship import successful",
+      "rowCount": "{count} rows",
+      "selectType": "Select type",
+      "optionalNote": "Optional note",
+      "selectDefault": "-- Select --",
+      "dryRunBadge": "dry-run",
+      "importedBadge": "imported",
+      "rowLabel": "Row {index}:"
+    },
+    "svc": {
+      "code": "Code",
+      "name": "Name",
+      "criticality": "Criticality",
+      "criticalityPlaceholder": "low / medium / high",
+      "cancel": "Cancel",
+      "saving": "Saving...",
+      "create": "Create",
+      "ci": "Configuration Item",
+      "status": "Status",
+      "statusPlaceholder": "active",
+      "owner": "Owner",
+      "ownerPlaceholder": "Team / person",
+      "sla": "SLA",
+      "slaPlaceholder": "99.9%",
+      "save": "Save",
+      "dependencyPlaceholder": "primary / dependency"
+    },
+    "typeSchema": {
+      "selectHint": "Select a CI type to manage its schema."
+    },
+    "relTypePanel": {
+      "codePlaceholder": "depends_on",
+      "codeHint": "Unique identifier (lowercase, underscores)",
+      "namePlaceholder": "Depends on",
+      "nameHint": "Display name (e.g., \"Depends on\")",
+      "reversePlaceholder": "Required by",
+      "reverseHint": "Optional: How relationship appears from opposite direction",
+      "leaveEmpty": "Leave empty to allow any type",
+      "deleteConfirm": "Delete {count} relationship type(s)?",
+      "any": "Any",
+      "example1": "App depends on Database",
+      "example2": "Server hosts Application",
+      "example3": "Switch connects to Router"
+    },
+    "pagination": {
+      "page": "Page {current} / {total} · {count} records",
+      "prev": "← Previous",
+      "next": "Next →"
     }
   },
   "assets": {
@@ -858,6 +1085,34 @@
       "severity": "Severity",
       "type": "Type",
       "cost": "Cost"
+    },
+    "errors": {
+      "loadFailed": "Failed to load maintenance list",
+      "noAsset": "Must select a valid asset or CI"
+    },
+    "createdSuccess": "Maintenance ticket created",
+    "updatedSuccess": "Maintenance ticket updated",
+    "deletedSuccess": "Maintenance ticket deleted",
+    "ticketCount": "{count} tickets",
+    "emptyTitle": "No maintenance tickets",
+    "emptySubtitle": "Create a new maintenance ticket to get started.",
+    "createTicketBtn": "Create ticket",
+    "fields": {
+      "title": "Title",
+      "asset": "Asset",
+      "ci": "CI",
+      "priority": "Priority",
+      "status": "Status",
+      "assignee": "Assignee",
+      "dueDate": "Due date",
+      "description": "Description"
+    },
+    "tableHeaders": {
+      "title": "Title",
+      "asset": "Asset",
+      "priority": "Priority",
+      "status": "Status",
+      "actions": "Actions"
     }
   },
   "inventory": {
@@ -1101,7 +1356,7 @@
     },
     "noReorderAlerts": "No alerts.",
     "noLots": "No lots.",
-    "totalValue": "Total value:",
+    "totalValue": "Total value",
     "noValuation": "No valuation data.",
     "docTypes": {
       "receipt": "Receipt",
@@ -1179,7 +1434,6 @@
     },
     "viewAllAlerts": "View all {count} alerts →",
     "stockValue": "Stock Value",
-    "totalValue": "Total value",
     "totalQuantity": "Total quantity",
     "quickActionsTitle": "Quick Actions",
     "quickActions": {
@@ -1262,6 +1516,7 @@
       "warehouseReceipt": "Receipt Warehouse",
       "targetWarehouse": "Target Warehouse",
       "supplier": "Supplier",
+      "selectSupplier": "-- Select Supplier --",
       "submitter": "Submitter",
       "receiver": "Receiver",
       "department": "Department / Division",
@@ -1284,9 +1539,39 @@
     },
     "linesHeading": "Goods / Material Details",
     "createdAtLabel": "Created:",
-    "pagination": "Page {page} / {totalPages} · {total} documents"
+    "pagination": "Page {page} / {totalPages} · {total} documents",
+    "purchasePlan": {
+      "title": "Purchase Plans",
+      "subtitle": "Auto-suggest purchases based on minimum stock levels",
+      "reload": "Reload",
+      "exportCsv": "Export CSV",
+      "statsItems": "Items to purchase",
+      "statsTotalQty": "Total quantity to order",
+      "statsTotalCost": "Total estimated cost",
+      "emptyState": "All parts have sufficient stock. No purchases needed.",
+      "loadError": "Failed to load purchase plan",
+      "exportSuccess": "Purchase plan exported",
+      "colPartCode": "Part Code",
+      "colPartName": "Part Name",
+      "colUom": "UoM",
+      "colWarehouse": "Warehouse",
+      "colStock": "Stock",
+      "colMin": "Min",
+      "colDeficit": "Deficit",
+      "colOrderQty": "Order Qty",
+      "colEstCost": "Cost (VND)",
+      "totalLabel": "Total:",
+      "csvHeader": "Part Code,Part Name,UoM,Warehouse,Stock,Min Level,Order Qty,Est. Cost"
+    }
   },
   "requests": {
+    "pageTitle": "Requests",
+    "pageSubtitle": "Manage and track workflow requests",
+    "tab": {
+      "mine": "My Requests",
+      "inbox": "Approval Inbox",
+      "all": "All Requests"
+    },
     "title": "Workflow Requests",
     "total": "{{count}} requests",
     "new": "New Request",
@@ -1404,7 +1689,8 @@
       "requestInfo": "Request Info",
       "loading": "Loading details...",
       "lineNo": "Line",
-      "saved": "Saved"
+      "saved": "Saved",
+      "lines": "Request Lines"
     },
     "newRequest": "Create New Request",
     "newRequestHint": "Fill in information then click \"Save Draft\" or \"Create & Submit\"",
@@ -3149,7 +3435,10 @@
       "saveFilter": "Save filter",
       "savedView": "Saved filter",
       "saveView": "Save filter"
-    }
+    },
+    "drilldownTitle": "Drilldown: {dimension} = {value}",
+    "totalResults": "{total} results",
+    "showingPartial": "Showing {shown} / {total} — Export CSV for all"
   },
   "table": {
     "page": "Page",
@@ -3658,6 +3947,42 @@
       "title": "New Asset Increase",
       "subtitle": "Register a new asset increase.",
       "empty": "Form coming soon."
+    },
+    "assetIncrease": {
+      "form": {
+        "createTitle": "Create Asset Increase Document",
+        "basicInfo": "Basic Information",
+        "increaseType": "Increase Type",
+        "invoiceNo": "Invoice Number",
+        "invoiceDate": "Invoice Date",
+        "purchasePlanRef": "Purchase Plan Ref",
+        "assetLines": "Asset Lines",
+        "vendor": "Vendor",
+        "selectVendor": "Select vendor"
+      }
+    },
+    "common": {
+      "docDate": "Document Date",
+      "orgUnit": "Organization Unit",
+      "note": "Note",
+      "addLine": "+ Add Line",
+      "assetName": "Asset Name",
+      "serialNumber": "Serial Number",
+      "quantity": "Quantity",
+      "unit": "Unit",
+      "originalCost": "Original Cost",
+      "location": "Location",
+      "custodian": "Custodian",
+      "total": "Total",
+      "saveDraft": "Save Draft",
+      "saveAndSubmit": "Save & Submit"
+    },
+    "increaseType": {
+      "purchase": "Purchase",
+      "donation": "Donation / Sponsor",
+      "transfer_in": "Transfer In",
+      "found": "Found / Inventory",
+      "other": "Other"
     }
   },
   "setup": {
@@ -3853,6 +4178,55 @@
       "creating": "Creating...",
       "createAccount": "Create account",
       "namePlaceholder": "John Admin"
+    },
+    "pageTitle": "First Time Setup",
+    "title": "First Time Setup",
+    "appName": "NetOpsAI Gateway",
+    "checkingStatus": "Checking system status...",
+    "pleaseWait": "Please wait a moment",
+    "connectionError": "Connection error",
+    "version": "Version:",
+    "environment": "Environment:",
+    "stepN": "Step {n}: {title}",
+    "stepProgress": "Step {current} / {total}",
+    "errors": {
+      "loadFailed": "Failed to load setup status"
+    },
+    "steps": {
+      "database": "Database",
+      "databaseDesc": "Check and initialize database",
+      "admin": "Admin Account",
+      "adminDesc": "Create the first admin account",
+      "system": "System Config",
+      "systemDesc": "Configure company and system settings",
+      "aiProviders": "AI Providers",
+      "aiProvidersDesc": "Configure AI providers",
+      "seedData": "Sample Data",
+      "seedDataDesc": "Load initial sample data",
+      "complete": "Complete",
+      "completeDesc": "Finish the setup process"
+    },
+    "seed": {
+      "title": "Load Sample Data",
+      "subtitle": "Load demo data to explore the system quickly.",
+      "includes": "Demo data includes:",
+      "items": {
+        "users": "10 users with different roles",
+        "locations": "Location structure (buildings, floors, rooms)",
+        "assets": "Network devices, servers, workstations",
+        "warehouses": "Warehouses and spare parts",
+        "tickets": "Sample maintenance tickets",
+        "cmdb": "CMDB with services and relationships"
+      },
+      "benefits": {
+        "quickStart": "Quick start — explore workflows immediately",
+        "understand": "Understand the system with real examples",
+        "safe": "Safe to delete or edit later"
+      },
+      "warning": "You can delete or edit this data later. This is safe for evaluation.",
+      "loadButton": "Load sample data",
+      "skip": "Skip",
+      "loading": "Loading sample data..."
     }
   },
   "crud": {
@@ -3989,11 +4363,15 @@
     "lineCount": "{count} lines",
     "header": {
       "item": "Item / Material",
+      "partName": "Item / Material",
+      "category": "Category",
       "unit": "Unit",
       "direction": "Direction",
       "quantity": "Quantity",
+      "qty": "Qty",
       "unitPrice": "Unit Price (₫)",
-      "amount": "Amount (₫)"
+      "amount": "Amount (₫)",
+      "notes": "Notes"
     },
     "emptyState": "No items yet.",
     "emptyHint": "Click \"+ Add line\" to start.",

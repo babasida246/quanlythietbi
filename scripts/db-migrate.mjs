@@ -79,6 +79,8 @@ const MIGRATIONS = [
     { label: '055_stock_receipt_issue_enhancements.sql', path: join(DB_MIGRATIONS, '055_stock_receipt_issue_enhancements.sql') },
     { label: '056_wf_request_lines.sql', path: join(DB_MIGRATIONS, '056_wf_request_lines.sql') },
     { label: '057_wf_enhancements.sql', path: join(DB_MIGRATIONS, '057_wf_enhancements.sql') },
+    { label: '20260304_001_fix_wf_definitions_request_types.sql', path: join(DB_MIGRATIONS, '20260304_001_fix_wf_definitions_request_types.sql') },
+    { label: '20260304_002_business_integrity_constraints.sql', path: join(DB_MIGRATIONS, '20260304_002_business_integrity_constraints.sql') },
 ]
 
 const client = new pg.Client(DATABASE_URL)

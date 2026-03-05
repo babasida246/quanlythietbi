@@ -16,17 +16,6 @@ CREATE TABLE IF NOT EXISTS consumable_categories (
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Seed default categories
-INSERT INTO consumable_categories (code, name, description) VALUES
-    ('INK', 'Ink & Toner', 'Printer ink cartridges and toner'),
-    ('PAPER', 'Paper Products', 'Printing paper, notebooks, labels'),
-    ('CABLE', 'Cables & Connectors', 'Network cables, adapters, connectors'),
-    ('BATTERY', 'Batteries', 'Rechargeable and disposable batteries'),
-    ('CLEANING', 'Cleaning Supplies', 'Screen cleaners, wipes, compressed air'),
-    ('MEDIA', 'Storage Media', 'USB drives, DVDs, memory cards'),
-    ('OTHER', 'Other Consumables', 'Miscellaneous consumable items')
-ON CONFLICT (code) DO NOTHING;
-
 -- ==================== Consumable Manufacturers ====================
 CREATE TABLE IF NOT EXISTS consumable_manufacturers (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),

@@ -11,6 +11,7 @@
     type SparePartRecord
   } from '$lib/api/warehouse';
   import { toast } from '$lib/components/toast';
+  import { _, isLoading } from '$lib/i18n';
 
   interface PurchasePlanRow {
     partId: string;
@@ -60,7 +61,7 @@
         };
       });
     } catch {
-      toast.error('Khong the tai ke hoach mua sam');
+      toast.error($_('warehouse.purchasePlan.loadError'));
     } finally {
       loading = false;
     }
@@ -75,7 +76,7 @@
   }
 
   function exportPlan() {
-    const header = 'Ma LK,Ten linh kien,DVT,Kho,Ton kho,Muc toi thieu,Can mua,Chi phi du kien';
+    const header = $_('warehouse.purchasePlan.csvHeader');
     const csvRows = rows.map(r =>
       [r.partCode, r.partName, r.uom, r.warehouseName, r.currentStock, r.minLevel, r.orderQty, r.estimatedCost]
         .map(v => `"${String(v).replace(/"/g, '""')}"`)
@@ -89,7 +90,7 @@
     a.download = `purchase-plan-${new Date().toISOString().slice(0, 10)}.csv`;
     a.click();
     URL.revokeObjectURL(url);
-    toast.success('Da xuat ke hoach mua sam');
+    toast.success($_('warehouse.purchasePlan.exportSuccess'));
   }
 
   onMount(() => { void loadPlan(); });
@@ -98,15 +99,15 @@
 <div class="space-y-4">
   <div class="flex items-center justify-between">
     <div>
-      <h2 class="text-lg font-semibold">Ke hoach mua sam</h2>
-      <p class="text-sm text-slate-500">Tu dong de xuat mua hang dua tren muc ton kho toi thieu</p>
+      <h2 class="text-lg font-semibold">{$isLoading ? 'Purchase Plans' : $_('warehouse.purchasePlan.title')}</h2>
+      <p class="text-sm text-slate-500">{$isLoading ? 'Auto-suggest purchases...' : $_('warehouse.purchasePlan.subtitle')}</p>
     </div>
     <div class="flex gap-2">
       <Button variant="secondary" onclick={loadPlan}>
-        <RefreshCw class="h-4 w-4 mr-1" /> Tai lai
+        <RefreshCw class="h-4 w-4 mr-1" /> {$isLoading ? 'Reload' : $_('warehouse.purchasePlan.reload')}
       </Button>
       <Button variant="secondary" onclick={exportPlan} disabled={rows.length === 0}>
-        <Download class="h-4 w-4 mr-1" /> Xuat CSV
+        <Download class="h-4 w-4 mr-1" /> {$isLoading ? 'Export CSV' : $_('warehouse.purchasePlan.exportCsv')}
       </Button>
     </div>
   </div>
@@ -114,15 +115,15 @@
   {#if rows.length > 0}
     <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
       <div class="card">
-        <p class="text-xs text-slate-500">So mat hang can mua</p>
+        <p class="text-xs text-slate-500">{$isLoading ? 'Items to purchase' : $_('warehouse.purchasePlan.statsItems')}</p>
         <p class="text-xl font-bold">{rows.length}</p>
       </div>
       <div class="card">
-        <p class="text-xs text-slate-500">Tong so luong can mua</p>
+        <p class="text-xs text-slate-500">{$isLoading ? 'Total qty' : $_('warehouse.purchasePlan.statsTotalQty')}</p>
         <p class="text-xl font-bold">{rows.reduce((s, r) => s + r.orderQty, 0)}</p>
       </div>
       <div class="card">
-        <p class="text-xs text-slate-500">Tong chi phi du kien</p>
+        <p class="text-xs text-slate-500">{$isLoading ? 'Total estimated cost' : $_('warehouse.purchasePlan.statsTotalCost')}</p>
         <p class="text-xl font-bold">{new Intl.NumberFormat('vi-VN').format(totalCost)} VND</p>
       </div>
     </div>
@@ -135,22 +136,22 @@
   {:else if rows.length === 0}
     <div class="card text-center py-10">
       <ShoppingCart class="mx-auto h-10 w-10 text-slate-500 mb-3" />
-      <p class="text-slate-500">Tat ca linh kien deu du ton kho. Khong can mua them.</p>
+      <p class="text-slate-500">{$isLoading ? 'All parts have sufficient stock.' : $_('warehouse.purchasePlan.emptyState')}</p>
     </div>
   {:else}
     <div class="overflow-x-auto rounded-xl border border-slate-800 bg-slate-900">
       <table class="min-w-full text-sm">
         <thead class="bg-slate-800 text-left text-xs uppercase text-slate-300">
           <tr>
-            <th class="px-3 py-2">Ma LK</th>
-            <th class="px-3 py-2">Ten linh kien</th>
-            <th class="px-3 py-2">DVT</th>
-            <th class="px-3 py-2">Kho</th>
-            <th class="px-3 py-2 text-right">Ton kho</th>
-            <th class="px-3 py-2 text-right">Min</th>
-            <th class="px-3 py-2 text-right">Thieu</th>
-            <th class="px-3 py-2 text-right">Can mua</th>
-            <th class="px-3 py-2 text-right">Chi phi (VND)</th>
+            <th class="px-3 py-2">{$isLoading ? 'Part Code' : $_('warehouse.purchasePlan.colPartCode')}</th>
+            <th class="px-3 py-2">{$isLoading ? 'Part Name' : $_('warehouse.purchasePlan.colPartName')}</th>
+            <th class="px-3 py-2">{$isLoading ? 'UoM' : $_('warehouse.purchasePlan.colUom')}</th>
+            <th class="px-3 py-2">{$isLoading ? 'Warehouse' : $_('warehouse.purchasePlan.colWarehouse')}</th>
+            <th class="px-3 py-2 text-right">{$isLoading ? 'Stock' : $_('warehouse.purchasePlan.colStock')}</th>
+            <th class="px-3 py-2 text-right">{$isLoading ? 'Min' : $_('warehouse.purchasePlan.colMin')}</th>
+            <th class="px-3 py-2 text-right">{$isLoading ? 'Deficit' : $_('warehouse.purchasePlan.colDeficit')}</th>
+            <th class="px-3 py-2 text-right">{$isLoading ? 'Order Qty' : $_('warehouse.purchasePlan.colOrderQty')}</th>
+            <th class="px-3 py-2 text-right">{$isLoading ? 'Cost (VND)' : $_('warehouse.purchasePlan.colEstCost')}</th>
           </tr>
         </thead>
         <tbody>
@@ -189,7 +190,7 @@
         </tbody>
         <tfoot>
           <tr class="border-t-2 border-slate-600 bg-slate-800/50">
-            <td colspan="7" class="px-3 py-2 font-semibold text-right">Tong cong:</td>
+            <td colspan="7" class="px-3 py-2 font-semibold text-right">{$isLoading ? 'Total:' : $_('warehouse.purchasePlan.totalLabel')}</td>
             <td class="px-3 py-2 text-right font-bold">{rows.reduce((s, r) => s + r.orderQty, 0)}</td>
             <td class="px-3 py-2 text-right font-bold">{new Intl.NumberFormat('vi-VN').format(totalCost)}</td>
           </tr>
