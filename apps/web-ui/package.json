@@ -38,6 +38,7 @@
         "echarts": "^6.0.0",
         "flowbite-svelte": "^0.46.0",
         "intl-messageformat": "^11.1.1",
+        "jsqr": "^1.4.0",
         "lucide-svelte": "^0.460.0",
         "mermaid": "^11.12.3",
         "svelte-i18n": "^4.0.1",

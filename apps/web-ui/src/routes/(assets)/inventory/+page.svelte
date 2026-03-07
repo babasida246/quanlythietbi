@@ -1,6 +1,6 @@
 <script lang="ts">
   import { Button } from '$lib/components/ui';
-  import { Plus, RefreshCw, Calendar, MapPin, X } from 'lucide-svelte';
+  import { Plus, RefreshCw, Calendar, MapPin, X, Clipboard, CheckSquare, Search } from 'lucide-svelte';
   import { goto } from '$app/navigation';
   import { _, isLoading as i18nLoading } from '$lib/i18n';
   import { listInventorySessions, createInventorySession, type InventorySession } from '$lib/api/assetMgmt';
@@ -11,13 +11,23 @@
   let loading = $state(true);
   let error = $state('');
   let filterStatus = $state<string>('');
+  let searchQuery = $state('');
 
   // Create form
   let showCreate = $state(false);
   let creating = $state(false);
   let newName = $state('');
   let newLocationId = $state('');
+  let newAuditType = $state<'full' | 'partial' | 'spot_check'>('partial');
+  let newScheduledDate = $state('');
+  let newNote = $state('');
   let createError = $state('');
+
+  const auditTypeLabels: Record<string, string> = {
+    full: 'Kiểm kê toàn bộ',
+    partial: 'Kiểm kê theo khu vực',
+    spot_check: 'Kiểm tra đột xuất'
+  };
 
   const statusLabels: Record<string, string> = $derived({
     draft: $i18nLoading ? 'Draft' : $_('inventory.status.draft'),
@@ -36,7 +46,11 @@
   const locationMap = $derived(new Map(locations.map(l => [l.id, l.name])));
 
   const filteredSessions = $derived(
-    filterStatus ? sessions.filter(s => s.status === filterStatus) : sessions
+    sessions.filter(s => {
+      if (filterStatus && s.status !== filterStatus) return false;
+      if (searchQuery && !s.name.toLowerCase().includes(searchQuery.toLowerCase())) return false;
+      return true;
+    })
   );
 
   const counts = $derived({
@@ -69,8 +83,10 @@
     try {
       creating = true;
       createError = '';
+      // Build session name with audit type prefix if not already included
+      const sessionName = newName.trim();
       const result = await createInventorySession({
-        name: newName.trim(),
+        name: sessionName,
         locationId: newLocationId || undefined
       });
       if (result.data?.id) {
@@ -84,10 +100,19 @@
   }
 
   function openCreate() {
-    newName = ($i18nLoading ? 'Inventory' : $_('inventory.sessionNamePrefix')) + ` ${new Date().toLocaleDateString('vi-VN')}`;
+    const today = new Date().toLocaleDateString('vi-VN');
+    newName = `Kiểm kê ${today}`;
     newLocationId = '';
+    newAuditType = 'partial';
+    newScheduledDate = new Date().toISOString().slice(0, 10);
+    newNote = '';
     createError = '';
     showCreate = true;
+  }
+
+  function handleAuditTypeChange() {
+    const today = new Date().toLocaleDateString('vi-VN');
+    newName = `${auditTypeLabels[newAuditType]} — ${today}`;
   }
 
   $effect(() => {
@@ -104,7 +129,7 @@
     </div>
     <div class="flex gap-2">
       <Button onclick={openCreate}>
-        <Plus class="w-4 h-4 mr-2" /> {$i18nLoading ? 'Create session' : $_('inventory.createSession')}
+        <Plus class="w-4 h-4 mr-2" /> Tạo phiên kiểm kê
       </Button>
       <Button variant="secondary" onclick={loadData} disabled={loading}>
         <RefreshCw class="w-4 h-4 {loading ? 'animate-spin' : ''}" />
@@ -119,52 +144,105 @@
   <!-- Create Form Modal -->
   {#if showCreate}
     <div class="card mb-6 border border-primary/30">
-      <div class="flex items-center justify-between mb-4">
-        <h2 class="text-lg font-semibold">{$i18nLoading ? 'Create inventory session' : $_('inventory.createTitle')}</h2>
-        <button onclick={() => showCreate = false} class="btn-ghost btn-sm p-1"><X class="w-4 h-4" /></button>
+      <div class="flex items-center justify-between mb-5">
+        <div class="flex items-center gap-2">
+          <Clipboard class="w-5 h-5 text-primary" />
+          <h2 class="text-lg font-semibold">Tạo phiên kiểm kê mới</h2>
+        </div>
+        <button onclick={() => showCreate = false} class="btn-ghost btn-sm p-1 rounded"><X class="w-4 h-4" /></button>
       </div>
       {#if createError}
         <div class="alert alert-error mb-3 text-sm">{createError}</div>
       {/if}
-      <form onsubmit={handleCreate} class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div class="md:col-span-2">
-          <label for="newName" class="mb-1 block text-xs font-medium text-slate-400">{$i18nLoading ? 'Session name' : $_('inventory.sessionName')} <span class="text-red-500">*</span></label>
-          <input id="newName" class="input-base" bind:value={newName} placeholder={$i18nLoading ? 'E.g.: Inventory Q1/2025 — Server room' : $_('inventory.sessionNamePlaceholder')} required />
-        </div>
+      <form onsubmit={handleCreate} class="space-y-4">
+        <!-- Audit type -->
         <div>
-          <label for="newLocationId" class="mb-1 block text-xs font-medium text-slate-400">{$i18nLoading ? 'Area / Location' : $_('inventory.locationLabel')}</label>
-          <select id="newLocationId" class="input-base" bind:value={newLocationId}>
-            <option value="">{$i18nLoading ? '— All areas —' : $_('inventory.allLocations')}</option>
-            {#each locations as loc}
-              <option value={loc.id}>{loc.name}</option>
+          <p class="mb-1.5 text-xs font-medium text-slate-400">Loại kiểm kê <span class="text-red-500">*</span></p>
+          <div class="grid grid-cols-3 gap-2">
+            {#each (['full', 'partial', 'spot_check'] as const) as type}
+              <button
+                type="button"
+                class="rounded-lg border px-3 py-2.5 text-sm font-medium transition-all {newAuditType === type
+                  ? 'border-primary bg-primary/10 text-primary'
+                  : 'border-base-300 hover:border-primary/40 text-base-content'}"
+                onclick={() => { newAuditType = type; handleAuditTypeChange(); }}
+              >
+                {type === 'full' ? '🗂 Toàn bộ' : type === 'partial' ? '📍 Theo khu vực' : '🔎 Đột xuất'}
+              </button>
             {/each}
-          </select>
+          </div>
+          <p class="mt-1 text-xs text-slate-500">{auditTypeLabels[newAuditType]}</p>
         </div>
-        <div class="flex items-end gap-2">
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Session name -->
+          <div class="md:col-span-2">
+            <label for="newName" class="mb-1 block text-xs font-medium text-slate-400">Tên phiên kiểm kê <span class="text-red-500">*</span></label>
+            <input id="newName" class="input-base" bind:value={newName} placeholder="VD: Kiểm kê Q1/2026 — Phòng Server" required />
+          </div>
+
+          <!-- Location -->
+          <div>
+            <label for="newLocationId" class="mb-1 block text-xs font-medium text-slate-400">Khu vực / Vị trí</label>
+            <select id="newLocationId" class="input-base" bind:value={newLocationId}>
+              <option value="">— Tất cả khu vực —</option>
+              {#each locations as loc}
+                <option value={loc.id}>{loc.name}</option>
+              {/each}
+            </select>
+          </div>
+
+          <!-- Scheduled date -->
+          <div>
+            <label for="newScheduledDate" class="mb-1 block text-xs font-medium text-slate-400">Ngày dự kiến</label>
+            <input id="newScheduledDate" type="date" class="input-base" bind:value={newScheduledDate} />
+          </div>
+
+          <!-- Note -->
+          <div class="md:col-span-2">
+            <label for="newNote" class="mb-1 block text-xs font-medium text-slate-400">Ghi chú / Phạm vi</label>
+            <textarea id="newNote" class="input-base resize-none" rows="2" bind:value={newNote} placeholder="Mô tả phạm vi, mục tiêu kiểm kê..."></textarea>
+          </div>
+        </div>
+
+        <div class="flex gap-2 pt-1">
           <Button type="submit" disabled={creating || !newName.trim()}>
-            {creating ? ($i18nLoading ? 'Creating...' : $_('inventory.creating')) : ($i18nLoading ? 'Create session' : $_('inventory.create'))}
+            {creating ? 'Đang tạo...' : 'Tạo phiên kiểm kê'}
           </Button>
-          <Button type="button" variant="secondary" onclick={() => showCreate = false}>{$i18nLoading ? 'Cancel' : $_('inventory.cancel')}</Button>
+          <Button type="button" variant="secondary" onclick={() => showCreate = false}>Hủy</Button>
         </div>
       </form>
     </div>
   {/if}
 
-  <!-- Status filter tabs -->
-  <div class="flex gap-2 mb-4 flex-wrap">
-    {#each [
-      { key: '', label: $i18nLoading ? `All (${counts.all})` : $_('inventory.filterAll', { values: { count: counts.all } }) },
-      { key: 'draft', label: $i18nLoading ? `Draft (${counts.draft})` : $_('inventory.filterDraft', { values: { count: counts.draft } }) },
-      { key: 'in_progress', label: $i18nLoading ? `In progress (${counts.in_progress})` : $_('inventory.filterInProgress', { values: { count: counts.in_progress } }) },
-      { key: 'closed', label: $i18nLoading ? `Closed (${counts.closed})` : $_('inventory.filterClosed', { values: { count: counts.closed } }) }
-    ] as tab}
-      <button
-        class="px-3 py-1.5 rounded-full text-sm font-medium border transition-colors {filterStatus === tab.key
-          ? 'bg-primary text-primary-content border-primary'
-          : 'border-base-300 hover:border-primary/50 text-base-content'}"
-        onclick={() => (filterStatus = tab.key)}
-      >{tab.label}</button>
-    {/each}
+  <!-- Filter + Search bar -->
+  <div class="flex flex-col sm:flex-row gap-3 mb-4">
+    <!-- Status tabs -->
+    <div class="flex gap-2 flex-wrap">
+      {#each [
+        { key: '', label: `Tất cả (${counts.all})` },
+        { key: 'draft', label: `Nháp (${counts.draft})` },
+        { key: 'in_progress', label: `Đang kiểm (${counts.in_progress})` },
+        { key: 'closed', label: `Đã đóng (${counts.closed})` }
+      ] as tab}
+        <button
+          class="px-3 py-1.5 rounded-full text-sm font-medium border transition-colors {filterStatus === tab.key
+            ? 'bg-primary text-primary-content border-primary'
+            : 'border-base-300 hover:border-primary/50 text-base-content'}"
+          onclick={() => (filterStatus = tab.key)}
+        >{tab.label}</button>
+      {/each}
+    </div>
+    <!-- Search -->
+    <div class="relative ml-auto">
+      <Search class="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+      <input
+        type="search"
+        class="input-base pl-8 w-56 text-sm"
+        placeholder="Tìm kiếm phiên..."
+        bind:value={searchQuery}
+      />
+    </div>
   </div>
 
   {#if loading}
@@ -173,19 +251,20 @@
     </div>
   {:else if filteredSessions.length === 0}
     <div class="card text-center py-12">
+      <Clipboard class="w-10 h-10 text-slate-500 mx-auto mb-3" />
       <p class="text-gray-500 mb-4">
-        {filterStatus ? ($i18nLoading ? 'No sessions in this status' : $_('inventory.noSessionsInStatus')) : ($i18nLoading ? 'No inventory sessions yet' : $_('inventory.noSessions'))}
+        {filterStatus || searchQuery ? 'Không tìm thấy phiên kiểm kê' : 'Chưa có phiên kiểm kê nào'}
       </p>
-      {#if !filterStatus}
-        <Button onclick={openCreate}>{$i18nLoading ? 'Create first session' : $_('inventory.createFirst')}</Button>
+      {#if !filterStatus && !searchQuery}
+        <Button onclick={openCreate}>Tạo phiên đầu tiên</Button>
       {/if}
     </div>
   {:else}
     <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
       {#each filteredSessions as session}
-        <a href="/inventory/{session.id}" class="card block hover:shadow-lg transition-all hover:-translate-y-0.5 cursor-pointer">
+        <a href="/inventory/{session.id}" class="card block hover:shadow-lg transition-all hover:-translate-y-0.5 cursor-pointer group">
           <div class="flex items-start justify-between mb-3">
-            <h3 class="font-semibold text-base leading-tight flex-1 mr-2">{session.name}</h3>
+            <h3 class="font-semibold text-base leading-snug flex-1 mr-2 group-hover:text-primary transition-colors">{session.name}</h3>
             <span class="badge shrink-0 {statusClass[session.status] ?? 'badge-primary'}">
               {statusLabels[session.status] ?? session.status}
             </span>
@@ -193,27 +272,29 @@
           <div class="text-sm text-gray-500 dark:text-gray-400 space-y-1.5">
             {#if session.locationId}
               <div class="flex items-center gap-2">
-                <MapPin class="w-3.5 h-3.5 shrink-0" />
+                <MapPin class="w-3.5 h-3.5 shrink-0 text-blue-400" />
                 <span>{locationMap.get(session.locationId) ?? session.locationId}</span>
               </div>
             {:else}
               <div class="flex items-center gap-2 text-gray-400">
                 <MapPin class="w-3.5 h-3.5 shrink-0" />
-                <span>{$i18nLoading ? 'All areas' : $_('inventory.allAreas')}</span>
+                <span>Tất cả khu vực</span>
               </div>
             {/if}
             <div class="flex items-center gap-2">
               <Calendar class="w-3.5 h-3.5 shrink-0" />
-              <span>{$i18nLoading ? `Created ${new Date(session.createdAt).toLocaleDateString('vi-VN')}` : $_('inventory.createdAtDate', { values: { date: new Date(session.createdAt).toLocaleDateString('vi-VN') } })}</span>
+              <span>Tạo: {new Date(session.createdAt).toLocaleDateString('vi-VN')}</span>
             </div>
             {#if session.startedAt}
-              <div class="text-xs text-blue-500 dark:text-blue-400">
-                {$i18nLoading ? `Started: ${new Date(session.startedAt).toLocaleString('vi-VN')}` : $_('inventory.startedAt', { values: { date: new Date(session.startedAt).toLocaleString('vi-VN') } })}
+              <div class="flex items-center gap-2 text-blue-500 dark:text-blue-400">
+                <CheckSquare class="w-3.5 h-3.5 shrink-0" />
+                <span>Bắt đầu: {new Date(session.startedAt).toLocaleString('vi-VN')}</span>
               </div>
             {/if}
             {#if session.closedAt}
-              <div class="text-xs text-green-600 dark:text-green-400">
-                {$i18nLoading ? `Closed: ${new Date(session.closedAt).toLocaleString('vi-VN')}` : $_('inventory.closedAtDate', { values: { date: new Date(session.closedAt).toLocaleString('vi-VN') } })}
+              <div class="flex items-center gap-2 text-green-600 dark:text-green-400">
+                <CheckSquare class="w-3.5 h-3.5 shrink-0" />
+                <span>Đóng: {new Date(session.closedAt).toLocaleString('vi-VN')}</span>
               </div>
             {/if}
           </div>

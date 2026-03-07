@@ -53,11 +53,22 @@ export type InventoryItem = {
     id: string
     sessionId: string
     assetId?: string | null
+    assetCode?: string | null
+    assetName?: string | null
     expectedLocationId?: string | null
     scannedLocationId?: string | null
     scannedAt?: string | null
     status: 'found' | 'missing' | 'moved' | 'unknown'
     note?: string | null
+}
+
+export type MissingAsset = {
+    id: string
+    assetCode: string
+    name?: string | null
+    locationId?: string | null
+    locationName?: string | null
+    status: string
 }
 
 export type Reminder = {
@@ -168,8 +179,14 @@ export async function undoInventoryScan(sessionId: string, itemId: string): Prom
     })
 }
 
-export async function getInventoryReport(sessionId: string): Promise<ApiResponse<{ session: InventorySession; counts: Record<string, number> }>> {
-    return apiJson<ApiResponse<{ session: InventorySession; counts: Record<string, number> }>>(`${API_BASE}/v1/inventory/sessions/${sessionId}/report`, {
+export async function getInventoryReport(sessionId: string): Promise<ApiResponse<{ session: InventorySession; items: InventoryItem[]; counts: Record<string, number> }>> {
+    return apiJson<ApiResponse<{ session: InventorySession; items: InventoryItem[]; counts: Record<string, number> }>>(`${API_BASE}/v1/inventory/sessions/${sessionId}/report`, {
+        headers: getAssetHeaders()
+    })
+}
+
+export async function getMissingInventoryAssets(sessionId: string): Promise<ApiResponse<MissingAsset[]>> {
+    return apiJson<ApiResponse<MissingAsset[]>>(`${API_BASE}/v1/inventory/sessions/${sessionId}/missing`, {
         headers: getAssetHeaders()
     })
 }
