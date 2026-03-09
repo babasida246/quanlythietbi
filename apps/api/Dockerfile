@@ -59,11 +59,6 @@ RUN mkdir -p node_modules/@qltb && \
     ln -sf /app/packages/domain node_modules/@qltb/domain && \
     ln -sf /app/packages/infra-postgres node_modules/@qltb/infra-postgres
 
-# Install psql (migrations) + redis-cli (health/readiness check for Redis)
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends postgresql-client redis-tools && \
-    rm -rf /var/lib/apt/lists/*
-
 # Make entrypoint executable
 RUN chmod +x /app/docker/scripts/api-entrypoint.sh
 
