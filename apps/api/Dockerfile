@@ -32,32 +32,31 @@ WORKDIR /app
 ENV NODE_ENV=production
 RUN corepack enable
 
-# Copy workspace files to maintain pnpm workspace resolution
+# Copy workspace manifests để pnpm có thể resolve dependencies
 COPY --from=build /repo/package.json ./package.json
-COPY --from=build /repo/pnpm-workspace.yaml ./pnpm-workspace.yaml 
+COPY --from=build /repo/pnpm-workspace.yaml ./pnpm-workspace.yaml
 COPY --from=build /repo/pnpm-lock.yaml ./pnpm-lock.yaml
+COPY --from=build /repo/.npmrc ./.npmrc
 
-# Copy API app
-COPY --from=build /repo/apps/api/dist ./apps/api/dist
+# Copy app & packages manifests
 COPY --from=build /repo/apps/api/package.json ./apps/api/package.json
+COPY --from=build /repo/packages/application/package.json ./packages/application/package.json
+COPY --from=build /repo/packages/contracts/package.json ./packages/contracts/package.json
+COPY --from=build /repo/packages/domain/package.json ./packages/domain/package.json
+COPY --from=build /repo/packages/infra-postgres/package.json ./packages/infra-postgres/package.json
 
-# Copy runtime dependencies 
-COPY --from=build /repo/node_modules ./node_modules
-# Copy built workspace packages with their package.json and dist
+# Install production deps only (bỏ devDependencies, giảm image size đáng kể)
+RUN pnpm install --frozen-lockfile --prod
+
+# Copy compiled code
+COPY --from=build /repo/apps/api/dist ./apps/api/dist
+# Copy built workspace packages (includes dist compiled by tsc)
 COPY --from=build /repo/packages ./packages
 
-# Copy DB migrations, migration scripts, and docker scripts for runtime support
+# Copy DB migrations, scripts, docker scripts
 COPY --from=build /repo/db ./db
 COPY --from=build /repo/scripts ./scripts
-COPY --from=build /repo/packages/infra-postgres/src ./packages/infra-postgres/src
 COPY --from=build /repo/docker/scripts ./docker/scripts
-
-# Create symlinks in node_modules for workspace packages
-RUN mkdir -p node_modules/@qltb && \
-    ln -sf /app/packages/application node_modules/@qltb/application && \
-    ln -sf /app/packages/contracts node_modules/@qltb/contracts && \
-    ln -sf /app/packages/domain node_modules/@qltb/domain && \
-    ln -sf /app/packages/infra-postgres node_modules/@qltb/infra-postgres
 
 # Make entrypoint executable
 RUN chmod +x /app/docker/scripts/api-entrypoint.sh

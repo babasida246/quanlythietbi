@@ -144,10 +144,18 @@ def main():
     print("\n[6/8] Build Docker images (lần đầu có thể mất 5-10 phút)...")
     dc_cmd = f"cd {REPO_DIR} && docker compose"
 
-    # Pull base images mới nhất trước khi build (tránh lỗi GPG outdated keys)
+    # Kiểm tra disk space
+    run(ssh, "df -h /", timeout=10)
+
+    # Dọn dẹp Docker resources để giải phóng disk
+    print("      Dọn dẹp Docker cache...")
+    run(ssh, "docker system prune -af --volumes 2>/dev/null || true", timeout=120)
+    run(ssh, "df -h /", timeout=10)
+
+    # Pull base image mới nhất
     run(ssh, "docker pull node:20-bookworm-slim", timeout=300)
 
-    rc, _, _ = run(ssh, f"{dc_cmd} build --no-cache", timeout=900)
+    rc, _, _ = run(ssh, f"{dc_cmd} build --no-cache", timeout=1200)
     if rc != 0:
         print("      ✗ Build thất bại! Xem log bên trên.")
         ssh.close()
