@@ -441,7 +441,7 @@ async function inventoryStock(pool: import('pg').Pool, f: FilterParams) {
             WHERE sps.on_hand > 0 ${whCond}
         `, params),
         pool.query<{ part_name: string; part_code: string; warehouse_name: string; on_hand: string; reserved: string }>(`
-            SELECT p.part_name, p.part_code,
+            SELECT p.name AS part_name, p.part_code,
                    COALESCE(w.name,'?') AS warehouse_name,
                    sps.on_hand, sps.reserved
             FROM spare_part_stock sps
@@ -531,7 +531,7 @@ async function inventoryLowStock(pool: import('pg').Pool, f: FilterParams) {
         part_name: string; part_code: string; warehouse_name: string;
         on_hand: string; min_level: string; shortfall: string
     }>(`
-        SELECT p.part_name, p.part_code,
+        SELECT p.name AS part_name, p.part_code,
                COALESCE(w.name,'?') AS warehouse_name,
                sps.on_hand, p.min_level,
                (p.min_level - sps.on_hand) AS shortfall
@@ -878,7 +878,7 @@ async function warehouseStockOnHand(pool: import('pg').Pool, f: FilterParams) {
             FROM spare_part_stock sps WHERE sps.on_hand > 0 ${whCond}
         `, params),
         pool.query<{ part_name: string; part_code: string; warehouse_name: string; on_hand: string; reserved: string }>(`
-            SELECT sp.part_name, sp.part_code, COALESCE(w.name,'?') AS warehouse_name,
+            SELECT sp.name AS part_name, sp.part_code, COALESCE(w.name,'?') AS warehouse_name,
                    sps.on_hand, sps.reserved
             FROM spare_part_stock sps
             JOIN spare_parts sp ON sp.id = sps.part_id
@@ -916,7 +916,7 @@ async function warehouseValuation(pool: import('pg').Pool, f: FilterParams) {
             WHERE sps.on_hand > 0 ${whCond}
         `, params),
         pool.query<{ part_name: string; warehouse_name: string; on_hand: string; unit_cost: string; total_value: string }>(`
-            SELECT sp.part_name, COALESCE(w.name,'?') AS warehouse_name,
+            SELECT sp.name AS part_name, COALESCE(w.name,'?') AS warehouse_name,
                    sps.on_hand, COALESCE(sp.unit_cost,0) AS unit_cost,
                    (sps.on_hand * COALESCE(sp.unit_cost, 0)) AS total_value
             FROM spare_part_stock sps
@@ -946,7 +946,7 @@ async function warehouseReorderAlerts(pool: import('pg').Pool, f: FilterParams) 
     const whCond = f.warehouseId ? `AND sps.warehouse_id = ${p(params, f.warehouseId)}` : ''
 
     const rows = await pool.query<{ part_name: string; part_code: string; warehouse_name: string; on_hand: string; min_level: string; shortfall: string }>(`
-        SELECT sp.part_name, sp.part_code, COALESCE(w.name,'?') AS warehouse_name,
+        SELECT sp.name AS part_name, sp.part_code, COALESCE(w.name,'?') AS warehouse_name,
                sps.on_hand, sp.min_level, (sp.min_level - sps.on_hand) AS shortfall
         FROM spare_part_stock sps
         JOIN spare_parts sp ON sp.id = sps.part_id
@@ -971,12 +971,12 @@ async function warehouseFEFOLots(pool: import('pg').Pool, f: FilterParams) {
     const whCond = f.warehouseId ? `AND sl.warehouse_id = ${p(params, f.warehouseId)}` : ''
 
     const rows = await pool.query<{ part_name: string; lot_number: string; warehouse_name: string; qty: string; expiry_date: string | null }>(`
-        SELECT sp.part_name, sl.lot_number, COALESCE(w.name,'?') AS warehouse_name,
-               sl.qty, sl.expiry_date
-        FROM stock_lots sl
+        SELECT sp.name AS part_name, sl.lot_number, COALESCE(w.name,'?') AS warehouse_name,
+               sl.on_hand AS qty, sl.expiry_date
+        FROM spare_part_lots sl
         JOIN spare_parts sp ON sp.id = sl.part_id
         LEFT JOIN warehouses w ON w.id = sl.warehouse_id
-        WHERE sl.qty > 0 ${whCond}
+        WHERE sl.on_hand > 0 ${whCond}
         ORDER BY sl.expiry_date ASC NULLS LAST
         LIMIT ${f.pageSize} OFFSET ${(f.page - 1) * f.pageSize}
     `, params)
@@ -1002,7 +1002,7 @@ async function warehouseStockAvailable(pool: import('pg').Pool, f: FilterParams)
             FROM spare_part_stock sps WHERE 1=1 ${whCond}
         `, params),
         pool.query<{ part_name: string; part_code: string; warehouse_name: string; on_hand: string; reserved: string; available: string }>(`
-            SELECT sp.part_name, sp.part_code, COALESCE(w.name,'?') AS warehouse_name,
+            SELECT sp.name AS part_name, sp.part_code, COALESCE(w.name,'?') AS warehouse_name,
                    sps.on_hand, COALESCE(sps.reserved,0) AS reserved,
                    GREATEST(sps.on_hand - COALESCE(sps.reserved,0), 0) AS available
             FROM spare_part_stock sps

@@ -1,0 +1,74 @@
+# ==============================================================================
+# docker-compose.app.yml — Deploy chỉ App Services (API + Web UI)
+#
+# Dùng khi PostgreSQL và Redis chạy trên server riêng hoặc dịch vụ managed
+# (AWS RDS, Azure Database, ElastiCache, Redis Cloud, v.v.)
+#
+# Cách dùng:
+#   1. Tạo file .env (xem .env.example để biết các biến cần thiết)
+#   2. Đặt DATABASE_URL và REDIS_URL trỏ đến server ngoài
+#   3. docker-compose -f docker-compose.app.yml up -d
+#
+# Build image trước nếu chưa có:
+#   docker-compose -f docker-compose.app.yml build
+# ==============================================================================
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+      args:
+        NODE_ENV: production
+    image: qltb-api:latest
+    container_name: qltb-api
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      NODE_ENV: production
+    ports:
+      - "${PORT:-3000}:3000"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3000/health/ready || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  web-ui:
+    build:
+      context: .
+      dockerfile: apps/web-ui/Dockerfile
+      args:
+        # VITE_ vars phải được truyền vào lúc BUILD, không phải lúc runtime
+        VITE_API_BASE: ${VITE_API_BASE:-http://localhost:3000/api}
+        VITE_API_URL: ${VITE_API_URL:-http://localhost:3000/api}
+    image: qltb-web-ui:latest
+    container_name: qltb-web-ui
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      NODE_ENV: production
+      # BACKEND_BASE_URL dùng bởi SvelteKit server-side, có thể override lúc runtime
+      BACKEND_BASE_URL: ${BACKEND_BASE_URL:-http://api:3000/api}
+    ports:
+      - "${WEB_PORT:-3001}:3001"
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3001 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"

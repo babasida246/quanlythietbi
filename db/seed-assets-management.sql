@@ -6,8 +6,7 @@
 -- Tao >100 dong de test phan trang (pagination)
 -- Chay SAU seed-data.sql
 -- ============================================================================
-SET client_encoding
-= 'UTF8';
+SET client_encoding = 'UTF8';
 
 BEGIN;
 
@@ -109,8 +108,7 @@ BEGIN;
     INSERT INTO asset_categories
         (id, name)
     VALUES
-        ('e0000000-0000-0000-0000-000000000001', E
-    'M\u00E1y t\u00EDnh \u0111\u1EC3 b\u00E0n'),
+        ('e0000000-0000-0000-0000-000000000001', E'M\u00E1y t\u00EDnh \u0111\u1EC3 b\u00E0n'),
     ('e0000000-0000-0000-0000-000000000002', E'M\u00E1y t\u00EDnh x\u00E1ch tay'),
     ('e0000000-0000-0000-0000-000000000003', E'M\u00E0n h\u00ECnh'),
     ('e0000000-0000-0000-0000-000000000004', E'M\u00E1y in'),
@@ -163,8 +161,7 @@ ON CONFLICT
         -- PC (e1..01)
         ('e2000000-0000-0000-0000-000000000001', 'e1000000-0000-0000-0000-000000000001', 'cpu', 'CPU', 'string', NULL, true, 1),
         ('e2000000-0000-0000-0000-000000000002', 'e1000000-0000-0000-0000-000000000001', 'ram', 'RAM', 'number', 'GB', true, 2),
-        ('e2000000-0000-0000-0000-000000000003', 'e1000000-0000-0000-0000-000000000001', 'disk', E
-    '\u0110\u0129a c\u1EE9ng', 'number', 'GB', true, 3),
+        ('e2000000-0000-0000-0000-000000000003', 'e1000000-0000-0000-0000-000000000001', 'disk', E'\u0110\u0129a c\u1EE9ng', 'number', 'GB', true, 3),
     ('e2000000-0000-0000-0000-000000000004', 'e1000000-0000-0000-0000-000000000001', 'os', E'H\u1EC7 \u0111i\u1EC1u h\u00E0nh', 'string', NULL, false, 4),
     -- Laptop (e1..02)
     ('e2000000-0000-0000-0000-000000000011', 'e1000000-0000-0000-0000-000000000002', 'cpu', 'CPU', 'string', NULL, true, 1),
@@ -288,8 +285,7 @@ ON CONFLICT
     INSERT INTO warehouses
         (id, code, name, location_id)
     VALUES
-        ('d1000000-0000-0000-0000-000000000001', 'WH-MAIN', E
-    'Kho ch\u00EDnh - Tr\u1EE5 s\u1EDF',  'a0000000-0000-0000-0000-000000000008'),
+        ('d1000000-0000-0000-0000-000000000001', 'WH-MAIN', E'Kho ch\u00EDnh - Tr\u1EE5 s\u1EDF',  'a0000000-0000-0000-0000-000000000008'),
     ('d1000000-0000-0000-0000-000000000002', 'WH-DC',   E'Kho Data Center',       'a0000000-0000-0000-0000-000000000006'),
     ('d1000000-0000-0000-0000-000000000003', 'WH-HN',   E'Kho chi nh\u00E1nh HN',      'a0000000-0000-0000-0000-000000000007'),
     ('d1000000-0000-0000-0000-000000000004', 'WH-IT',   E'Kho IT ph\u00F2ng CNTT',    'a0000000-0000-0000-0000-000000000003'),
@@ -304,8 +300,7 @@ ON CONFLICT
     INSERT INTO spare_parts
         (id, part_code, name, category, uom, manufacturer, model, spec, min_level)
     VALUES
-        ('c1000000-0000-0000-0000-000000000001', 'SP-RAM-8G', 'RAM DDR4 8GB 3200MHz', E
-    'B\u1ED9 nh\u1EDB',    'pcs', 'Kingston',      'KVR32N22S8/8',  '{"speed":"3200MHz","type":"DDR4"}', 10),
+        ('c1000000-0000-0000-0000-000000000001', 'SP-RAM-8G', 'RAM DDR4 8GB 3200MHz', E'B\u1ED9 nh\u1EDB',    'pcs', 'Kingston',      'KVR32N22S8/8',  '{"speed":"3200MHz","type":"DDR4"}', 10),
     ('c1000000-0000-0000-0000-000000000002', 'SP-RAM-16G',   'RAM DDR4 16GB 3200MHz',   E'B\u1ED9 nh\u1EDB',    'pcs', 'Kingston',      'KVR32N22D8/16', '{"speed":"3200MHz","type":"DDR4"}', 5),
     ('c1000000-0000-0000-0000-000000000003', 'SP-RAM-32G',   'RAM DDR4 32GB 3200MHz',   E'B\u1ED9 nh\u1EDB',    'pcs', 'Kingston',      'KVR32N22D8/32', '{"speed":"3200MHz","type":"DDR4"}', 3),
     ('c1000000-0000-0000-0000-000000000004', 'SP-SSD-256',   'SSD NVMe 256GB',          E'\u0110\u0129a c\u1EE9ng',  'pcs', 'Samsung',       '980 PRO 256GB', '{"interface":"NVMe","form":"M.2"}', 10),
@@ -352,8 +347,7 @@ ON CONFLICT
     INSERT INTO license_categories
         (id, name, description)
     VALUES
-        ('c6000000-0000-0000-0000-000000000001', E
-    'H\u1EC7 \u0111i\u1EC1u h\u00E0nh',        E'License h\u1EC7 \u0111i\u1EC1u h\u00E0nh Windows, macOS, Linux'),
+        ('c6000000-0000-0000-0000-000000000001', E'H\u1EC7 \u0111i\u1EC1u h\u00E0nh',        E'License h\u1EC7 \u0111i\u1EC1u h\u00E0nh Windows, macOS, Linux'),
     ('c6000000-0000-0000-0000-000000000002', E'V\u0103n ph\u00F2ng',             E'License Office, Google Workspace'),
     ('c6000000-0000-0000-0000-000000000003', E'B\u1EA3o m\u1EADt',               E'Antivirus, Firewall, Endpoint Protection'),
     ('c6000000-0000-0000-0000-000000000004', E'Ph\u00E1t tri\u1EC3n',            E'IDE, Framework, Dev Tools'),
@@ -369,8 +363,7 @@ ON CONFLICT
     INSERT INTO accessory_categories
         (id, code, name, description, is_active, created_by)
     VALUES
-        ('ca000000-0000-0000-0000-000000000001', 'ACC-KB', E
-    'B\u00E0n ph\u00EDm',     E'B\u00E0n ph\u00EDm c\u00E1c lo\u1EA1i',          true, '00000000-0000-0000-0000-000000000001'),
+        ('ca000000-0000-0000-0000-000000000001', 'ACC-KB', E'B\u00E0n ph\u00EDm',     E'B\u00E0n ph\u00EDm c\u00E1c lo\u1EA1i',          true, '00000000-0000-0000-0000-000000000001'),
     ('ca000000-0000-0000-0000-000000000002', 'ACC-MOUSE', E'Chu\u1ED9t',         E'Chu\u1ED9t c\u00F3 d\u00E2y v\u00E0 kh\u00F4ng d\u00E2y',        true, '00000000-0000-0000-0000-000000000001'),
     ('ca000000-0000-0000-0000-000000000003', 'ACC-HEAD',  'Headset',     E'Tai nghe c\u00F3 mic',             true, '00000000-0000-0000-0000-000000000001'),
     ('ca000000-0000-0000-0000-000000000004', 'ACC-CABLE', E'C\u00E1p k\u1EBFt n\u1ED1i',  E'C\u00E1p HDMI, USB, DisplayPort',  true, '00000000-0000-0000-0000-000000000001'),
@@ -398,8 +391,7 @@ ON CONFLICT
     INSERT INTO consumable_categories
         (id, code, name, description, is_active)
     VALUES
-        ('cd000000-0000-0000-0000-000000000001', 'CON-TONER', E
-    'M\u1EF1c in laser',    E'H\u1ED9p m\u1EF1c m\u00E1y in laser',      true),
+        ('cd000000-0000-0000-0000-000000000001', 'CON-TONER', E'M\u1EF1c in laser',    E'H\u1ED9p m\u1EF1c m\u00E1y in laser',      true),
     ('cd000000-0000-0000-0000-000000000002', 'CON-PAPER', E'Gi\u1EA5y in',         E'Gi\u1EA5y in v\u0103n ph\u00F2ng',         true),
     ('cd000000-0000-0000-0000-000000000003', 'CON-TAPE',  E'B\u0103ng d\u00EDnh / Nh\u00E3n', E'B\u0103ng d\u00EDnh, nh\u00E3n m\u00E1y in',    true),
     ('cd000000-0000-0000-0000-000000000004', 'CON-INK',   E'M\u1EF1c in phun',     E'M\u1EF1c in m\u00E1y inkjet',          true),
@@ -425,8 +417,7 @@ ON CONFLICT
     INSERT INTO component_categories
         (id, code, name, description, is_active, created_by)
     VALUES
-        ('d2000000-0000-0000-0000-000000000001', 'COMP-RAM', 'RAM', E
-    'B\u1ED9 nh\u1EDB RAM',            true, '00000000-0000-0000-0000-000000000001'),
+        ('d2000000-0000-0000-0000-000000000001', 'COMP-RAM', 'RAM', E'B\u1ED9 nh\u1EDB RAM',            true, '00000000-0000-0000-0000-000000000001'),
     ('d2000000-0000-0000-0000-000000000002', 'COMP-SSD',  E'\u0110\u0129a SSD',   E'\u0110\u0129a c\u1EE9ng SSD',           true, '00000000-0000-0000-0000-000000000001'),
     ('d2000000-0000-0000-0000-000000000003', 'COMP-HDD',  E'\u0110\u0129a HDD',   E'\u0110\u0129a c\u1EE9ng HDD',           true, '00000000-0000-0000-0000-000000000001'),
     ('d2000000-0000-0000-0000-000000000004', 'COMP-GPU',  'Card VGA',   E'Card \u0111\u1ED3 h\u1ECDa',            true, '00000000-0000-0000-0000-000000000001'),

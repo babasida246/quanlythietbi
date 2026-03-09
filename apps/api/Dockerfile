@@ -46,8 +46,10 @@ COPY --from=build /repo/node_modules ./node_modules
 # Copy built workspace packages with their package.json and dist
 COPY --from=build /repo/packages ./packages
 
-# Copy DB migrations and docker scripts for runtime migration support
+# Copy DB migrations, migration scripts, and docker scripts for runtime support
 COPY --from=build /repo/db ./db
+COPY --from=build /repo/scripts ./scripts
+COPY --from=build /repo/packages/infra-postgres/src ./packages/infra-postgres/src
 COPY --from=build /repo/docker/scripts ./docker/scripts
 
 # Create symlinks in node_modules for workspace packages
@@ -57,8 +59,13 @@ RUN mkdir -p node_modules/@qltb && \
     ln -sf /app/packages/domain node_modules/@qltb/domain && \
     ln -sf /app/packages/infra-postgres node_modules/@qltb/infra-postgres
 
-# Install psql for running migrations
-RUN apt-get update && apt-get install -y --no-install-recommends postgresql-client && rm -rf /var/lib/apt/lists/*
+# Install psql (migrations) + redis-cli (health/readiness check for Redis)
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends postgresql-client redis-tools && \
+    rm -rf /var/lib/apt/lists/*
+
+# Make entrypoint executable
+RUN chmod +x /app/docker/scripts/api-entrypoint.sh
 
 EXPOSE 3000
-CMD ["node", "apps/api/dist/apps/api/src/main.js"]
+ENTRYPOINT ["/app/docker/scripts/api-entrypoint.sh"]

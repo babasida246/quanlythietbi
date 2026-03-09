@@ -75,6 +75,10 @@ import {
     CiInventoryReportService,
     RelationshipAnalyticsService,
     AuditTrailService,
+    ReportCachingService,
+    CachedCiInventoryReportService,
+    CachedRelationshipAnalyticsService,
+    CachedAuditTrailService,
     // Advanced feature services
     AutomationService,
     AnalyticsService,
@@ -120,6 +124,7 @@ import { createEntitlementService } from '../../../modules/entitlements/entitlem
 
 export interface AssetModuleDeps {
     pgClient: PgClient
+    cache?: ReportCachingService
 }
 
 export async function registerAssetModule(
@@ -225,13 +230,24 @@ export async function registerAssetModule(
     const relationshipAnalyticsService = new RelationshipAnalyticsService(relRepo, ciRepo)
     const auditTrailService = new AuditTrailService(opsEventRepo)
 
+    // Wrap report services with Redis cache nếu cache được cung cấp
+    const cachedCiInventoryReport = deps.cache
+        ? new CachedCiInventoryReportService(ciInventoryReportService, deps.cache)
+        : ciInventoryReportService
+    const cachedRelationshipAnalytics = deps.cache
+        ? new CachedRelationshipAnalyticsService(relationshipAnalyticsService, deps.cache)
+        : relationshipAnalyticsService
+    const cachedAuditTrail = deps.cache
+        ? new CachedAuditTrailService(auditTrailService, deps.cache)
+        : auditTrailService
+
     await fastify.register(assetsRoutes, { prefix: '/api/v1', assetService, pgClient: deps.pgClient })
     await fastify.register(maintenanceRoutes, { prefix: '/api/v1', maintenanceService })
     await fastify.register(catalogRoutes, { prefix: '/api/v1', catalogService, pgClient: deps.pgClient })
     await fastify.register(categorySpecRoutes, { prefix: '/api/v1', catalogService, categorySpecService })
     await fastify.register(assetImportRoutes, { prefix: '/api/v1', assetService })
     await fastify.register(attachmentRoutes, { prefix: '/api/v1', attachmentService })
-    await fastify.register(inventoryRoutes, { prefix: '/api/v1', inventoryService })
+    await fastify.register(inventoryRoutes, { prefix: '/api/v1', inventoryService, pgClient: deps.pgClient })
     await fastify.register(reminderRoutes, { prefix: '/api/v1', reminderService })
     await fastify.register(reportsRoutes, { prefix: '/api/v1', stockReportService })
     await fastify.register(reportAggregationRoutes, { prefix: '/api/v1', pgClient: deps.pgClient })
@@ -247,9 +263,12 @@ export async function registerAssetModule(
         relationshipService,
         changeManagementService,
         serviceMappingService,
-        ciInventoryReportService,
-        relationshipAnalyticsService,
-        auditTrailService,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        ciInventoryReportService: cachedCiInventoryReport as any,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        relationshipAnalyticsService: cachedRelationshipAnalytics as any,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        auditTrailService: cachedAuditTrail as any,
         pgClient: deps.pgClient
     })
 

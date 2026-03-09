@@ -20,6 +20,7 @@ import {
 import { createApiV1AuthHook } from './middleware/api-auth.hook.js'
 import { registerSecurity } from './plugins/security.plugin.js'
 import { registerDocs } from './plugins/docs.plugin.js'
+import { redisPlugin } from './plugins/redis.plugin.js'
 
 // Asset module
 import { registerAssetModule } from '../routes/v1/assets/assets.module.js'
@@ -61,6 +62,9 @@ export async function createApp(deps: AppDependencies): Promise<FastifyInstance>
 
     await fastify.register(multipart)
 
+    // ==================== Redis Cache ====================
+    await fastify.register(redisPlugin)
+
     await registerDocs(fastify, {
         title: 'QuanLyThietBi API',
         description: 'Hệ thống Quản lý Thiết bị - REST API',
@@ -98,7 +102,13 @@ export async function createApp(deps: AppDependencies): Promise<FastifyInstance>
     }, async () => {
         try {
             await deps.db.query('SELECT 1')
-            return { status: 'ready', db: 'ok', timestamp: new Date().toISOString() }
+            const cacheEnabled = fastify.cache?.isEnabled() ?? false
+            return {
+                status: 'ready',
+                db: 'ok',
+                cache: cacheEnabled ? 'ok' : 'disabled',
+                timestamp: new Date().toISOString()
+            }
         } catch {
             return { status: 'not_ready', db: 'error', timestamp: new Date().toISOString() }
         }
@@ -131,7 +141,7 @@ export async function createApp(deps: AppDependencies): Promise<FastifyInstance>
     // ==================== Asset Module ====================
     try {
         console.log('🔧 Registering asset module...')
-        await registerAssetModule(fastify, { pgClient: deps.pgClient })
+        await registerAssetModule(fastify, { pgClient: deps.pgClient, cache: fastify.cache })
         console.log('✅ Asset module registered successfully')
     } catch (error) {
         console.error('❌ Asset module registration failed:', error)

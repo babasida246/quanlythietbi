@@ -17,9 +17,17 @@ const DB_DIR = join(__dirname, '..', 'db')
 const DATABASE_URL = process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/qltb'
 
 const SEED_FILES = [
-    'seed-data.sql',
-    'seed-assets-management.sql',
-    'seed-qlts-demo.sql',
+    'seed-data.sql',            // 1. Foundation: users, locations, vendors
+    'seed-assets-management.sql', // 2. Asset catalog: models, warehouses
+    'seed-assets.sql',          // 3. Assets (50 units) + transactions
+    'seed-accessories.sql',     // 4. Accessories, consumables, components, licenses
+    'seed-warehouse.sql',       // 5. Warehouse stock, purchase plans
+    'seed-analytics.sql',       // 6. Analytics: reports, dashboards
+    'seed-chat-ai.sql',         // 7. AI/Chat: providers, models, channels
+    'seed-ops.sql',             // 8. Ops: alerts, notifications, RBAC
+    'seed-qlts-demo.sql',       // 9. CMDB CIs, wf_definitions (needed by next files)
+    'seed-workflows.sql',       // 10. wf_requests + automation (depends on wf_definitions)
+    'seed-inventory-audit.sql', // 11. Inventory audit (depends on cmdb_cis)
 ]
 
 const client = new pg.Client(DATABASE_URL)

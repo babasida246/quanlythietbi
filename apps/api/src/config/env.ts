@@ -47,6 +47,11 @@ const envSchema = z.object({
     ENABLE_RATE_LIMIT: z.enum(['true', 'false']).default('false'),
     RATE_LIMIT_MAX: z.coerce.number().default(10000),
     RATE_LIMIT_WINDOW_MS: z.coerce.number().default(60000),
+
+    // Redis Cache
+    REDIS_URL: z.string().default('redis://localhost:6379'),
+    REDIS_CACHE_ENABLED: z.enum(['true', 'false']).default('true'),
+    REDIS_CACHE_TTL: z.coerce.number().default(900), // 15 phút
 })
 
 export type Env = z.infer<typeof envSchema>

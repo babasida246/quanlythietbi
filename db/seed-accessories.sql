@@ -1,4 +1,4 @@
-﻿-- =============================================================================
+-- =============================================================================
 -- SEED: ACCESSORIES / CONSUMABLES / COMPONENTS / LICENSES
 -- Phụ thuộc vào: accessory_categories (ca...), accessory_manufacturers (cb...),
 --                consumable_categories (cd...), consumable_manufacturers (ce...),

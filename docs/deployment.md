@@ -1,160 +1,349 @@
 # Triển khai & Vận hành
 
-## Development Setup
+## Tổng quan các chế độ triển khai
+
+| Chế độ | File cấu hình | Dùng khi |
+|--------|---------------|----------|
+| **Development** (infra Docker, code local) | `docker-compose.dev.yml` | Lập trình hàng ngày |
+| **Full Docker** (tất cả trong container) | `docker-compose.yml` | Self-hosted đơn server |
+| **App-only Docker** (infra ngoài) | `docker-compose.app.yml` | Infra dùng cloud managed service |
+| **Standalone** (không Docker) | `.env` + `pm2`/`systemd` | Deploy trực tiếp lên server riêng lẻ |
+
+---
+
+## 1. Development (Khuyến nghị cho lập trình)
+
+Infra chạy trong Docker, code chạy local với hot-reload.
 
 ### Yêu cầu
 
-| Phần mềm | Phiên bản | Ghi chú |
-|-----------|-----------|---------|
-| Node.js | ≥ 20 | LTS recommended |
-| pnpm | ≥ 8 | Package manager |
-| Docker | Latest | Để chạy PostgreSQL |
-| Docker Compose | Latest | Đi kèm Docker Desktop |
+| Phần mềm | Phiên bản |
+|-----------|-----------|
+| Node.js | ≥ 20 LTS |
+| pnpm | ≥ 8 |
+| Docker Desktop | Latest |
 
-### Bước cài đặt
+### Cài đặt
 
 ```bash
-# 1. Clone repo
-git clone <repo-url>
-cd QuanLyThietBi
-
-# 2. Cài dependencies
+# 1. Clone repo và cài dependencies
+git clone <repo-url> && cd QuanLyThietBi
 pnpm install
 
-# 3. Tạo file .env cho API (copy từ .env.example)
-cp apps/api/.env.example apps/api/.env
+# 2. Tạo file .env từ template
+cp .env.example .env
 
-# 4. Khởi tạo infrastructure
+# 3. Khởi động infra (PostgreSQL, Redis, pgAdmin, Redis Insight)
 pnpm dev:infra
-# → PostgreSQL :5432 + pgAdmin :8080
+# → PostgreSQL :5432  pgAdmin :8080  Redis :6379  Redis Insight :8001
 
-# 5. Reset database (empty → migrate → seed)
-pnpm db:reset
+# 4. Khởi tạo database
+pnpm db:reset   # empty → migrate → seed
 
-# 6. Chạy toàn bộ development
+# 5. Chạy tất cả (packages watch + API + Web)
 pnpm dev:all
-# → API :3000 + Web :5173 + packages watch
+# → API :3000   Web :5173
 ```
 
 ### Chạy từng phần
 
 ```bash
-# Chỉ API
-pnpm dev
-
-# Chỉ Web UI
-pnpm dev:web
-
-# Chỉ packages (watch mode)
-pnpm dev:packages
-
-# Infrastructure
-pnpm dev:infra
+pnpm dev              # Chỉ API (hot-reload :3000)
+pnpm dev:web          # Chỉ Web UI (hot-reload :5173)
+pnpm dev:packages     # Watch packages (application, contracts, domain, infra)
+pnpm dev:infra        # Chỉ infra containers
 ```
 
 ---
 
-## Biến môi trường
+## 2. Full Docker (Tất cả trong container)
 
-### API (`apps/api/.env`)
+Toàn bộ stack chạy trong Docker Compose trên **một server**.
 
-| Biến | Mô tả | Default |
-|------|-------|---------|
-| `NODE_ENV` | Môi trường | `development` |
-| `PORT` | Port API server | `3000` |
-| `HOST` | Host bind | `0.0.0.0` |
-| `DATABASE_URL` | PostgreSQL connection string | (bắt buộc) |
-| `DATABASE_POOL_MAX` | Max DB connections | `10` |
-| `JWT_SECRET` | Secret cho access token | (bắt buộc) |
-| `JWT_REFRESH_SECRET` | Secret cho refresh token | (bắt buộc) |
-| `LOG_LEVEL` | Mức log (trace/debug/info/warn/error) | `info` |
-| `DISABLE_AUTH` | Tắt authentication | `false` |
-| `ENABLE_RATE_LIMIT` | Bật rate limiting | `false` |
-| `RATE_LIMIT_MAX` | Max requests/window | `10000` |
-| `RATE_LIMIT_WINDOW_MS` | Rate limit window (ms) | `60000` |
-| `REDIS_URL` | Redis connection (cho Bull queue) | — |
-| `SMTP_HOST` | SMTP server cho email | — |
-| `SMTP_PORT` | SMTP port | — |
-| `SMTP_USER` | SMTP username | — |
-| `SMTP_PASS` | SMTP password | — |
+### Cài đặt
 
-### Web UI (SvelteKit env)
+```bash
+# 1. Tạo .env từ template
+cp .env.example .env
+# Chỉnh sửa .env nếu cần (ports, passwords)
 
-| Biến | Mô tả | Default |
-|------|-------|---------|
-| `VITE_API_BASE` | URL API server | `http://localhost:3000` |
+# 2. Build và khởi động
+docker-compose up -d --build
 
-### Test Environment (`.env.test`)
+# 3. Xem logs
+docker-compose logs -f api
+```
 
-| Biến | Mô tả | Default |
-|------|-------|---------|
-| `API_BASE_URL` | API server for tests | `http://localhost:4010` |
-| `WEB_BASE_URL` | Web server for tests | `http://localhost:4011` |
-| `TEST_ADMIN_EMAIL` | Admin email for tests | `admin@example.com` |
-| `TEST_ADMIN_PASSWORD` | Admin password | `Benhvien@121` |
-| `DATABASE_URL` | Test DB | `postgres://postgres:postgres@localhost:5432/qltb_test` |
+API sẽ tự động: chờ PostgreSQL/Redis → chạy migrations → khởi động server.
+
+### Các biến môi trường quan trọng
+
+```env
+# PostgreSQL container
+POSTGRES_PASSWORD=your-secure-password
+
+# Redis container
+REDIS_PASSWORD=your-redis-password
+
+# VITE_ phải đặt trước khi build web-ui
+VITE_API_BASE=http://your-server-ip:3000/api
+VITE_API_URL=http://your-server-ip:3000/api
+```
+
+### Commands
+
+```bash
+docker-compose up -d              # Khởi động (background)
+docker-compose down               # Dừng (giữ volumes)
+docker-compose down -v            # Dừng và xóa data
+docker-compose build api          # Rebuild chỉ API
+docker-compose restart api        # Restart API
+docker-compose logs -f api        # Theo dõi logs API
+```
 
 ---
 
-## Docker Compose
+## 3. App-only Docker (Infra trên server riêng / Cloud Managed)
 
-### Development (`docker-compose.dev.yml`)
+Dùng khi PostgreSQL và Redis chạy trên server riêng biệt hoặc dịch vụ managed
+(AWS RDS, Azure Database, ElastiCache, Redis Cloud, v.v.).
 
-```bash
-pnpm dev:infra
-# = docker-compose -f docker-compose.dev.yml up -d
-```
-
-| Service | Image | Port | Mô tả |
-|---------|-------|------|-------|
-| `postgres` | `postgres:16-alpine` | 5432 | Database |
-| `pgadmin` | `dpage/pgadmin4` | 8080 | DB admin UI |
-
-### Production (`docker-compose.yml`)
+### Cài đặt
 
 ```bash
-docker-compose up -d
+# 1. Tạo .env với thông tin kết nối đến server ngoài
+cp .env.production.example .env
+# Chỉnh sửa DATABASE_URL và REDIS_URL trỏ đến server ngoài
+
+# 2. Build và khởi động (chỉ api + web-ui)
+docker-compose -f docker-compose.app.yml up -d --build
 ```
 
-| Service | Port | Mô tả |
-|---------|------|-------|
-| `postgres` | 5432 | Database |
-| `api` | 3000 | Fastify API (built from Dockerfile) |
-| `web-ui` | 3001 | SvelteKit (built from Dockerfile) |
-| `pgadmin` | 8080 | DB admin |
-| `redis-insight` | 8001 | Redis visualization |
+### Cấu hình `.env` tối thiểu
 
-Volumes: `qltb_pgdata`, `qltb_pgadmin_data`, `qltb_redis_insight_data`
+```env
+# Trỏ đến PostgreSQL server ngoài
+DATABASE_URL=postgresql://user:password@db.your-domain.com:5432/qltb
+
+# Trỏ đến Redis server ngoài
+REDIS_URL=redis://:password@redis.your-domain.com:6379
+
+# URL API cho Web UI (domain/IP thực)
+VITE_API_BASE=http://api.your-domain.com:3000/api
+VITE_API_URL=http://api.your-domain.com:3000/api
+BACKEND_BASE_URL=http://api:3000/api
+```
+
+---
+
+## 4. Standalone (Không Docker)
+
+Deploy trực tiếp lên server — mỗi dịch vụ cài đặt riêng lẻ.
+
+### Bước 1 — Cài đặt hạ tầng
+
+**PostgreSQL (Ubuntu/Debian):**
+```bash
+apt install -y postgresql-16
+sudo -u postgres psql -c "CREATE DATABASE qltb;"
+sudo -u postgres psql -c "CREATE USER qltb_user WITH PASSWORD 'your-password';"
+sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE qltb TO qltb_user;"
+```
+
+**Redis (Ubuntu/Debian):**
+```bash
+apt install -y redis-server
+# Thêm vào /etc/redis/redis.conf: requirepass your-redis-password
+systemctl restart redis
+```
+
+### Bước 2 — Build
+
+```bash
+git clone <repo-url> && cd QuanLyThietBi
+pnpm install
+cp .env.production.example .env
+# Chỉnh sửa .env — đặt đúng DATABASE_URL, REDIS_URL, VITE_API_BASE
+
+pnpm build      # Build tất cả (packages + api + web)
+```
+
+> **Lưu ý**: `VITE_API_BASE` và `VITE_API_URL` phải được đặt đúng trong `.env`
+> **trước khi chạy** `pnpm build:web` — đây là build-time variables.
+
+### Bước 3 — Chạy migrations
+
+```bash
+node scripts/db-migrate.mjs
+```
+
+### Bước 4 — Khởi động
+
+```bash
+# Dùng pm2 (khuyến nghị)
+npm install -g pm2
+pm2 start apps/api/dist/apps/api/src/main.js --name qltb-api
+pm2 start build/index.js --name qltb-web --cwd apps/web-ui
+pm2 save && pm2 startup
+```
+
+**Hoặc systemd** — tạo `/etc/systemd/system/qltb-api.service`:
+```ini
+[Unit]
+Description=QLTB API Server
+After=network.target
+
+[Service]
+Type=simple
+User=www-data
+WorkingDirectory=/opt/qltb
+EnvironmentFile=/opt/qltb/.env
+ExecStart=/usr/bin/node apps/api/dist/apps/api/src/main.js
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+```
+
+---
+
+## Biến môi trường đầy đủ
+
+### API
+
+| Biến | Mô tả | Default | Bắt buộc |
+|------|-------|---------|----------|
+| `DATABASE_URL` | PostgreSQL connection string | — | ✅ |
+| `NODE_ENV` | Môi trường | `development` | — |
+| `PORT` | Port API | `3000` | — |
+| `REDIS_URL` | Redis connection string | `redis://localhost:6379` | — |
+| `REDIS_CACHE_ENABLED` | Bật/tắt Redis cache | `true` | — |
+| `REDIS_CACHE_TTL` | TTL cache (giây) | `900` | — |
+| `RUN_MIGRATIONS` | Auto-migrate khi startup Docker | `true` | — |
+| `DISABLE_AUTH` | Tắt authentication | `false` | — |
+| `ENABLE_RATE_LIMIT` | Bật rate limiting | `false` | — |
+| `LOG_LEVEL` | trace/debug/info/warn/error | `info` | — |
+
+### Web UI
+
+| Biến | Mô tả | Thời điểm |
+|------|-------|-----------|
+| `VITE_API_BASE` | URL API server | Build-time ⚡ |
+| `VITE_API_URL` | URL API server | Build-time ⚡ |
+| `BACKEND_BASE_URL` | API cho SSR | Runtime |
+| `PORT` / `WEB_PORT` | Port Web UI | Runtime |
+
+### Docker Compose (`docker-compose.yml`)
+
+| Biến | Mô tả | Default |
+|------|-------|---------|
+| `POSTGRES_PASSWORD` | PostgreSQL password | `postgres` |
+| `REDIS_PASSWORD` | Redis auth password | (trống) |
+| `PGADMIN_EMAIL` | pgAdmin login | `admin@example.com` |
+| `PGADMIN_PASSWORD` | pgAdmin password | `admin` |
 
 ---
 
 ## Database Management
 
-### Commands
-
 ```bash
-# Reset toàn bộ (xóa → migrate → seed)
-pnpm db:reset
-
-# Chỉ xóa schema
-pnpm db:empty
-
-# Chỉ chạy migrations
-pnpm db:migrate
-
-# Chỉ chạy seed
-pnpm db:seed
+pnpm db:reset      # Xóa sạch → migrate → seed (full reset)
+pnpm db:empty      # Chỉ xóa sạch schema
+pnpm db:migrate    # Chỉ chạy migrations
+pnpm db:seed       # Chỉ chạy seed data
 ```
 
 ### Tạo migration mới
 
-1. Tạo file `db/migrations/058_your_migration.sql`
-2. Thêm vào danh sách trong `scripts/db-migrate.mjs`
-3. Test: `pnpm db:reset`
+```bash
+touch db/migrations/058_your_feature.sql
+# Thêm vào danh sách trong scripts/db-migrate.mjs
+pnpm db:reset   # Test
+```
 
 ### Backup & Restore
 
 ```bash
+# Docker
+docker exec qltb-postgres pg_dump -U postgres qltb > backup_$(date +%Y%m%d).sql
+docker exec -i qltb-postgres psql -U postgres qltb < backup.sql
+
+# Standalone
+pg_dump "$DATABASE_URL" > backup_$(date +%Y%m%d).sql
+psql "$DATABASE_URL" < backup.sql
+```
+
+---
+
+## Ports Reference
+
+| Service | Development | Production |
+|---------|-------------|------------|
+| API | 3000 | 3000 (env: `PORT`) |
+| Web UI | 5173 | 3001 (env: `WEB_PORT`) |
+| PostgreSQL | 5432 | 5432 (env: `POSTGRES_PORT`) |
+| Redis | 6379 | 6379 (env: `REDIS_PORT`) |
+| pgAdmin | 8080 | 8080 (env: `PGADMIN_PORT`) |
+| Redis Insight | 8001 | 8001 (env: `REDIS_INSIGHT_PORT`) |
+
+---
+
+## Monitoring & Logging
+
+```bash
+# Health check
+curl http://localhost:3000/health/ready
+# {"status":"ok","db":"ok","cache":"ok"}
+
+# Docker logs
+docker-compose logs -f api
+
+# PM2 logs (standalone)
+pm2 logs qltb-api
+pm2 monit
+```
+
+- **Swagger UI**: `http://localhost:3000/docs`
+- **pgAdmin**: `http://localhost:8080`
+- **Redis Insight**: `http://localhost:8001`
+
+---
+
+## Troubleshooting
+
+### API không kết nối được Database
+```bash
+pg_isready -d "$DATABASE_URL"
+docker-compose logs postgres
+```
+
+### Redis không kết nối
+API sẽ tự **fallback sang in-memory cache** — không crash. Kiểm tra:
+```bash
+redis-cli -u "$REDIS_URL" ping   # Expect: PONG
+```
+
+### Migration lỗi
+```bash
+pnpm db:reset
+# Docker: docker-compose down -v && docker-compose up -d
+```
+
+### VITE_ vars sai sau build
+`VITE_` vars được baked-in lúc build — phải rebuild sau khi thay đổi:
+```bash
+pnpm build:web
+# hoặc: docker-compose build web-ui
+```
+
+### Port đã bị chiếm (Windows)
+```powershell
+netstat -ano | findstr :3000
+taskkill /PID <PID> /F
+```
+
+---
 # Backup
 docker exec qltb-postgres pg_dump -U postgres qltb > backup.sql
 
@@ -249,50 +438,25 @@ docker-compose logs -f postgres
 
 ---
 
-## Troubleshooting
-
-### PostgreSQL không kết nối được
-
 ```bash
-# Kiểm tra container
-docker ps | findstr postgres
-
-# Restart
-docker-compose -f docker-compose.dev.yml restart postgres
-
-# Kiểm tra logs
-docker-compose -f docker-compose.dev.yml logs postgres
-```
-
-### Port đã bị sử dụng
-
-```powershell
-# Tìm process trên port 3000
-netstat -ano | findstr :3000
-
-# Kill process
-taskkill /PID <PID> /F
+redis-cli -u "$REDIS_URL" ping   # Expect: PONG
 ```
 
 ### Migration lỗi
-
 ```bash
-# Reset toàn bộ DB
 pnpm db:reset
-
-# Nếu vẫn lỗi, xóa volume Docker
-docker-compose -f docker-compose.dev.yml down -v
-docker-compose -f docker-compose.dev.yml up -d
-pnpm db:reset
+# Docker: docker-compose down -v && docker-compose up -d
 ```
 
-### Dependencies không sync
-
+### VITE_ vars sai sau build
+`VITE_` vars được baked-in lúc build  phải rebuild sau khi thay đổi:
 ```bash
-# Clean install
-rm -rf node_modules
-pnpm install
+pnpm build:web
+# hoặc: docker-compose build web-ui
+```
 
-# Rebuild packages
-pnpm dev:packages
+### Port đã bị chiếm (Windows)
+```powershell
+netstat -ano | findstr :3000
+taskkill /PID <PID> /F
 ```

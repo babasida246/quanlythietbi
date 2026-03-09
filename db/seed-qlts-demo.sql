@@ -5,8 +5,7 @@
 --   Impact Rules, Workflow Definitions + Steps + Requests + Approvals + Lines
 -- Chay SAU seed-assets-management.sql
 -- ============================================================================
-SET client_encoding
-= 'UTF8';
+SET client_encoding = 'UTF8';
 
 BEGIN;
 
@@ -51,8 +50,7 @@ BEGIN;
         (id, version_id, attr_key, attr_label, ci_type_version_id, attribute_key, attribute_label, data_type, is_required, display_order)
     VALUES
         -- Server
-        ('f2000000-0000-0000-0000-000000000001', 'f1000000-0000-0000-0000-000000000001', 'os', E
-    'H\u1EC7 \u0111i\u1EC1u h\u00E0nh', 'f1000000-0000-0000-0000-000000000001', 'os',         E'H\u1EC7 \u0111i\u1EC1u h\u00E0nh',  'text',    true,  1),
+        ('f2000000-0000-0000-0000-000000000001', 'f1000000-0000-0000-0000-000000000001', 'os', E'H\u1EC7 \u0111i\u1EC1u h\u00E0nh', 'f1000000-0000-0000-0000-000000000001', 'os',         E'H\u1EC7 \u0111i\u1EC1u h\u00E0nh',  'text',    true,  1),
     ('f2000000-0000-0000-0000-000000000002', 'f1000000-0000-0000-0000-000000000001', 'cpu',        'CPU',            'f1000000-0000-0000-0000-000000000001', 'cpu',        'CPU',             'text',    true,  2),
     ('f2000000-0000-0000-0000-000000000003', 'f1000000-0000-0000-0000-000000000001', 'ram_gb',     'RAM (GB)',       'f1000000-0000-0000-0000-000000000001', 'ram_gb',     'RAM (GB)',        'number',  true,  3),
     ('f2000000-0000-0000-0000-000000000004', 'f1000000-0000-0000-0000-000000000001', 'disk_tb',    E'\u0110\u0129a (TB)',    'f1000000-0000-0000-0000-000000000001', 'disk_tb',    E'\u0110\u0129a (TB)',     'number',  false, 4),
@@ -88,8 +86,7 @@ ON CONFLICT
         -- Physical Servers (2) — linked to assets
         ('f3000000-0000-0000-0000-000000000001', (SELECT id
             FROM cmdb_ci_types
-            WHERE code='server'), 'a1000000-0000-0000-0000-000000000018', 'a0000000-0000-0000-0000-000000000006', 'ESXi Host 01', 'CI-SRV-001', 'active', 'prod', E
-    'Ph\u00F2ng CNTT', E'M\u00E1y ch\u1EE7 Dell PowerEdge R740'),
+            WHERE code='server'), 'a1000000-0000-0000-0000-000000000018', 'a0000000-0000-0000-0000-000000000006', 'ESXi Host 01', 'CI-SRV-001', 'active', 'prod', E'Ph\u00F2ng CNTT', E'M\u00E1y ch\u1EE7 Dell PowerEdge R740'),
     ('f3000000-0000-0000-0000-000000000002',
     (SELECT id
     FROM cmdb_ci_types
@@ -348,8 +345,7 @@ ON CONFLICT
 INSERT INTO cmdb_services
     (id, code, name, description, criticality, owner, sla, status)
 VALUES
-    ('f6000000-0000-0000-0000-000000000001', 'SVC-EMAIL', E
-'D\u1ECBch v\u1EE5 Email',         E'H\u1EC7 th\u1ED1ng email c\u00F4ng ty',              'high',     E'Ph\u00F2ng CNTT', '{"uptime":"99.9%","response_time":"4h","resolution_time":"8h"}', 'active'),
+    ('f6000000-0000-0000-0000-000000000001', 'SVC-EMAIL', E'D\u1ECBch v\u1EE5 Email',         E'H\u1EC7 th\u1ED1ng email c\u00F4ng ty',              'high',     E'Ph\u00F2ng CNTT', '{"uptime":"99.9%","response_time":"4h","resolution_time":"8h"}', 'active'),
 ('f6000000-0000-0000-0000-000000000002', 'SVC-VPN',      E'D\u1ECBch v\u1EE5 VPN',           E'Truy c\u1EADp t\u1EEB xa qua VPN',                  'high',     E'Ph\u00F2ng CNTT', '{"uptime":"99.5%","response_time":"2h","resolution_time":"4h"}', 'active'),
 ('f6000000-0000-0000-0000-000000000003', 'SVC-BACKUP',   E'D\u1ECBch v\u1EE5 Backup & DR',   E'Sao l\u01B0u v\u00E0 kh\u00F4i ph\u1EE5c d\u1EEF li\u1EC7u',           'critical', E'Ph\u00F2ng CNTT', '{"uptime":"99.99%","rpo":"1h","rto":"4h"}', 'active'),
 ('f6000000-0000-0000-0000-000000000004', 'SVC-MONITOR',  E'D\u1ECBch v\u1EE5 Monitoring',    E'Gi\u00E1m s\u00E1t h\u1EC7 th\u1ED1ng v\u00E0 c\u1EA3nh b\u00E1o',         'high',     E'Ph\u00F2ng CNTT', '{"uptime":"99.9%","alert_latency":"5m"}', 'active'),
@@ -393,8 +389,7 @@ UPDATE SET dependency_type = EXCLUDED.dependency_type;
 INSERT INTO cmdb_smart_tags
     (id, tag_name, tag_category, color, description, auto_assign_rules)
 VALUES
-    ('f7000000-0000-0000-0000-000000000001', E
-'S\u1EA3n xu\u1EA5t',     'environment', '#22c55e', E'CI thu\u1ED9c m\u00F4i tr\u01B0\u1EDDng production',   '[{"field":"environment","operator":"=","value":"prod"}]'),
+    ('f7000000-0000-0000-0000-000000000001', E'S\u1EA3n xu\u1EA5t',     'environment', '#22c55e', E'CI thu\u1ED9c m\u00F4i tr\u01B0\u1EDDng production',   '[{"field":"environment","operator":"=","value":"prod"}]'),
 ('f7000000-0000-0000-0000-000000000002', E'Quan tr\u1ECDng cao', 'priority',    '#ef4444', E'CI \u0111\u01B0\u1EE3c \u0111\u00E1nh gi\u00E1 quan tr\u1ECDng',  '[{"field":"notes","operator":"contains","value":"critical"}]'),
 ('f7000000-0000-0000-0000-000000000003', 'Windows',       'os',          '#0078d4', E'CI ch\u1EA1y Windows',                '[{"field":"os","operator":"contains","value":"Windows"}]'),
 ('f7000000-0000-0000-0000-000000000004', 'Linux',         'os',          '#f5a623', E'CI ch\u1EA1y Linux/Ubuntu',            '[{"field":"os","operator":"contains","value":"Ubuntu"}]'),
@@ -424,8 +419,7 @@ ON CONFLICT
 INSERT INTO cmdb_impact_rules
     (id, name, source_ci_type_id, relationship_type_id, impact_level, propagation_depth, conditions, is_active)
 VALUES
-    ('f8000000-0000-0000-0000-000000000001', E
-'Server down \u1EA3nh h\u01B0\u1EDFng VM',
+    ('f8000000-0000-0000-0000-000000000001', E'Server down \u1EA3nh h\u01B0\u1EDFng VM',
 (SELECT id
 FROM cmdb_ci_types
 WHERE code='server')
@@ -462,8 +456,7 @@ UPDATE SET name = EXCLUDED.name;
 INSERT INTO cmdb_discovery_rules
     (id, name, discovery_type, scope, schedule_cron, mapping_rules, is_active)
 VALUES
-    ('f9000000-0000-0000-0000-000000000001', E
-'Qu\u00E9t m\u1EA1ng DC', 'network_scan', '["10.0.1.0/24","10.0.2.0/24"]', '0 2 * * 0', '[{"field":"hostname","target":"name"},{"field":"ip","target":"mgmt_ip"}]', true),
+    ('f9000000-0000-0000-0000-000000000001', E'Qu\u00E9t m\u1EA1ng DC', 'network_scan', '["10.0.1.0/24","10.0.2.0/24"]', '0 2 * * 0', '[{"field":"hostname","target":"name"},{"field":"ip","target":"mgmt_ip"}]', true),
 ('f9000000-0000-0000-0000-000000000002', E'Nh\u1EADp t\u1EEB CMDB file', 'manual_import', '["csv","excel"]', NULL, '[{"field":"Name","target":"name"},{"field":"Type","target":"type_code"}]', true)
 ON CONFLICT
 (id) DO
@@ -475,8 +468,7 @@ UPDATE SET name = EXCLUDED.name;
 INSERT INTO cmdb_change_assessments
     (id, title, description, target_ci_ids, impact_analysis, risk_score, status, created_by)
 VALUES
-    ('fa000000-0000-0000-0000-000000000001', E
-'N\u00E2ng c\u1EA5p ESXi 7.0 l\u00EAn 8.0', E'N\u00E2ng c\u1EA5p h\u1EC7 \u0111i\u1EC1u h\u00E0nh VMware ESXi tr\u00EAn c\u1EA3 2 host', ARRAY['f3000000-0000-0000-0000-000000000001','f3000000-0000-0000-0000-000000000002']::uuid[], '{"affected_vms": 6, "estimated_downtime": "4h", "rollback_plan": "Restore from backup"}', 7.5, 'reviewed', '00000000-0000-0000-0000-000000000002'),
+    ('fa000000-0000-0000-0000-000000000001', E'N\u00E2ng c\u1EA5p ESXi 7.0 l\u00EAn 8.0', E'N\u00E2ng c\u1EA5p h\u1EC7 \u0111i\u1EC1u h\u00E0nh VMware ESXi tr\u00EAn c\u1EA3 2 host', ARRAY['f3000000-0000-0000-0000-000000000001','f3000000-0000-0000-0000-000000000002']::uuid[], '{"affected_vms": 6, "estimated_downtime": "4h", "rollback_plan": "Restore from backup"}', 7.5, 'reviewed', '00000000-0000-0000-0000-000000000002'),
 ('fa000000-0000-0000-0000-000000000002', E'Thay th\u1EBF Core Switch', E'Thay th\u1EBF Cisco Catalyst 2960-X b\u1EB1ng model m\u1EDBi', ARRAY['f3000000-0000-0000-0000-000000000009']::uuid[], '{"affected_devices": 15, "estimated_downtime": "2h", "rollback_plan": "Keep old switch as backup"}', 8.0, 'draft', '00000000-0000-0000-0000-000000000006')
 ON CONFLICT
 (id) DO
@@ -488,8 +480,7 @@ UPDATE SET title = EXCLUDED.title;
 INSERT INTO wf_definitions
     (id, key, name, request_type, version, is_active)
 VALUES
-    ('fb000000-0000-0000-0000-000000000001', 'wf-purchase-plan', E
-'Quy tr\u00ECnh duy\u1EC7t mua s\u1EAFm', 'purchase', 1, true),
+    ('fb000000-0000-0000-0000-000000000001', 'wf-purchase-plan', E'Quy tr\u00ECnh duy\u1EC7t mua s\u1EAFm', 'purchase', 1, true),
 ('fb000000-0000-0000-0000-000000000002', 'wf-asset-issue',   E'Quy tr\u00ECnh c\u1EA5p ph\u00E1t t\u00E0i s\u1EA3n', 'asset_request', 1, true),
 ('fb000000-0000-0000-0000-000000000003', 'wf-asset-dispose', E'Quy tr\u00ECnh thanh l\u00FD t\u00E0i s\u1EA3n', 'disposal_request', 1, true),
 ('fb000000-0000-0000-0000-000000000004', 'wf-repair-order',  E'Quy tr\u00ECnh s\u1EEDa ch\u1EEFa', 'repair_request', 1, true)
@@ -501,8 +492,7 @@ INSERT INTO wf_steps
     (id, definition_id, step_no, name, approver_rule, on_approve, on_reject)
 VALUES
     -- Purchase plan: IT Manager -> Director
-    ('fc000000-0000-0000-0000-000000000001', 'fb000000-0000-0000-0000-000000000001', 1, E
-'Tr\u01B0\u1EDFng ph\u00F2ng CNTT duy\u1EC7t', '{"role":"it_asset_manager"}', '{"next_step": 2}', '{"cancel": true}'),
+    ('fc000000-0000-0000-0000-000000000001', 'fb000000-0000-0000-0000-000000000001', 1, E'Tr\u01B0\u1EDFng ph\u00F2ng CNTT duy\u1EC7t', '{"role":"it_asset_manager"}', '{"next_step": 2}', '{"cancel": true}'),
 ('fc000000-0000-0000-0000-000000000002', 'fb000000-0000-0000-0000-000000000001', 2, E'Ban gi\u00E1m \u0111\u1ED1c duy\u1EC7t',   '{"role":"admin"}', '{"complete": true}', '{"cancel": true}'),
 -- Asset issue: IT Manager
 ('fc000000-0000-0000-0000-000000000003', 'fb000000-0000-0000-0000-000000000002', 1, E'Tr\u01B0\u1EDFng ph\u00F2ng CNTT duy\u1EC7t', '{"role":"it_asset_manager"}', '{"complete": true}', '{"cancel": true}'),
@@ -521,8 +511,7 @@ UPDATE SET name = EXCLUDED.name;
 INSERT INTO wf_requests
     (id, code, title, request_type, priority, status, requester_id, definition_id, current_step_no, payload, submitted_at)
 VALUES
-    ('fd000000-0000-0000-0000-000000000001', 'WF-2024-001', E
-'Y\u00EAu c\u1EA7u c\u1EA5p laptop m\u1EDBi', 'asset_request', 'high', 'in_review', '00000000-0000-0000-0000-000000000004', 'fb000000-0000-0000-0000-000000000002', 1, '{"asset_type":"laptop","reason":"New employee","department":"IT"}', '2024-06-15'),
+    ('fd000000-0000-0000-0000-000000000001', 'WF-2024-001', E'Y\u00EAu c\u1EA7u c\u1EA5p laptop m\u1EDBi', 'asset_request', 'high', 'in_review', '00000000-0000-0000-0000-000000000004', 'fb000000-0000-0000-0000-000000000002', 1, '{"asset_type":"laptop","reason":"New employee","department":"IT"}', '2024-06-15'),
 ('fd000000-0000-0000-0000-000000000002', 'WF-2024-002', E'Y\u00EAu c\u1EA7u s\u1EEDa m\u00E1y in PR-001', 'repair_request', 'normal', 'approved', '00000000-0000-0000-0000-000000000006', 'fb000000-0000-0000-0000-000000000004', 1, '{"asset_code":"PR-001","severity":"medium"}', '2024-05-01'),
 ('fd000000-0000-0000-0000-000000000003', 'WF-2024-003', E'Y\u00EAu c\u1EA7u thanh l\u00FD LT-005', 'disposal_request', 'low', 'submitted', '00000000-0000-0000-0000-000000000002', 'fb000000-0000-0000-0000-000000000003', 1, '{"asset_code":"LT-005","reason":"End of life, beyond repair"}', '2024-07-01')
 ON CONFLICT
@@ -536,8 +525,7 @@ INSERT INTO wf_approvals
     (id, request_id, step_id, step_no, assignee_user_id, status, comment, decision_at, decision_by)
 VALUES
     ('fe000000-0000-0000-0000-000000000001', 'fd000000-0000-0000-0000-000000000001', 'fc000000-0000-0000-0000-000000000003', 1, '00000000-0000-0000-0000-000000000002', 'pending', NULL, NULL, NULL),
-    ('fe000000-0000-0000-0000-000000000002', 'fd000000-0000-0000-0000-000000000002', 'fc000000-0000-0000-0000-000000000006', 1, '00000000-0000-0000-0000-000000000002', 'approved', E
-'\u0110\u1ED3ng \u00FD s\u1EEDa ch\u1EEFa', '2024-05-02', '00000000-0000-0000-0000-000000000002'),
+    ('fe000000-0000-0000-0000-000000000002', 'fd000000-0000-0000-0000-000000000002', 'fc000000-0000-0000-0000-000000000006', 1, '00000000-0000-0000-0000-000000000002', 'approved', E'\u0110\u1ED3ng \u00FD s\u1EEDa ch\u1EEFa', '2024-05-02', '00000000-0000-0000-0000-000000000002'),
 ('fe000000-0000-0000-0000-000000000003', 'fd000000-0000-0000-0000-000000000003', 'fc000000-0000-0000-0000-000000000004', 1, '00000000-0000-0000-0000-000000000002', 'pending', NULL, NULL, NULL)
 ON CONFLICT
 (id) DO
@@ -550,8 +538,7 @@ INSERT INTO wf_request_lines
     (id, request_id, line_no, item_type, requested_qty, note, status)
 VALUES
     ('ff000000-0000-0000-0000-000000000001', 'fd000000-0000-0000-0000-000000000001', 1, 'asset', 1, 'Lenovo ThinkPad T14s', 'pending'),
-    ('ff000000-0000-0000-0000-000000000002', 'fd000000-0000-0000-0000-000000000001', 2, 'asset', 1, E
-'M\u00E0n h\u00ECnh Dell U2422H', 'pending'),
+    ('ff000000-0000-0000-0000-000000000002', 'fd000000-0000-0000-0000-000000000001', 2, 'asset', 1, E'M\u00E0n h\u00ECnh Dell U2422H', 'pending'),
 ('ff000000-0000-0000-0000-000000000003', 'fd000000-0000-0000-0000-000000000002', 1, 'part',  1, 'Roller Pickup thay th\u1EBF', 'fulfilled')
 ON CONFLICT
 (request_id, line_no) DO

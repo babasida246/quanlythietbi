@@ -40,6 +40,33 @@ services:
     volumes:
       - qltb_pgadmin_data:/var/lib/pgadmin
 
+  redis:
+    image: redis:7-alpine
+    container_name: qltb-redis
+    command: redis-server --maxmemory 256mb --maxmemory-policy allkeys-lru
+    ports:
+      - '6379:6379'
+    volumes:
+      - qltb_redis_data:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  redis-insight:
+    image: redislabs/redisinsight:latest
+    container_name: qltb-redis-insight
+    ports:
+      - '8001:8001'
+    depends_on:
+      redis:
+        condition: service_healthy
+    volumes:
+      - qltb_redis_insight_data:/db
+
 volumes:
   qltb_pgdata:
   qltb_pgadmin_data:
+  qltb_redis_data:
+  qltb_redis_insight_data:

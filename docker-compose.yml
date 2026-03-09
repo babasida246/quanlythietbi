@@ -1,18 +1,44 @@
+# ==============================================================================
+# docker-compose.yml — Full stack: PostgreSQL + Redis + API + Web UI
+#
+# Cách dùng:
+#   docker-compose up -d
+#
+# Cấu hình:
+#   Tạo file .env từ .env.example và điều chỉnh các giá trị theo môi trường.
+#   Các biến POSTGRES_*, REDIS_* sẽ được Docker dùng để khởi tạo container.
+# ==============================================================================
+
 services:
+  redis:
+    image: redis:7-alpine
+    container_name: qltb-redis
+    restart: unless-stopped
+    command: redis-server --maxmemory 256mb --maxmemory-policy allkeys-lru --requirepass "${REDIS_PASSWORD:-}"
+    ports:
+      - '${REDIS_PORT:-6379}:6379'
+    volumes:
+      - qltb_redis_data:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
   postgres:
     image: postgres:16-alpine
     container_name: qltb-postgres
+    restart: unless-stopped
     environment:
-      POSTGRES_DB: qltb
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: ${POSTGRES_DB:-qltb}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
     ports:
-      - '5432:5432'
+      - '${POSTGRES_PORT:-5432}:5432'
     volumes:
       - qltb_pgdata:/var/lib/postgresql/data
-      - ./db/migrations:/docker-entrypoint-initdb.d/migrations
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U postgres']
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-postgres}']
       interval: 5s
       timeout: 5s
       retries: 5
@@ -21,51 +47,76 @@ services:
     build:
       context: .
       dockerfile: apps/api/Dockerfile
+    image: qltb-api:latest
     container_name: qltb-api
+    restart: unless-stopped
+    env_file: .env
     environment:
-      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/qltb
       NODE_ENV: production
-      PORT: 3000
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:${POSTGRES_PORT:-5432}/${POSTGRES_DB:-qltb}
+      REDIS_URL: redis://:${REDIS_PASSWORD:-}@redis:${REDIS_PORT:-6379}
+      RUN_MIGRATIONS: '${RUN_MIGRATIONS:-true}'
     ports:
-      - '3000:3000'
+      - '${PORT:-3000}:3000'
     depends_on:
       postgres:
         condition: service_healthy
+      redis:
+        condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "timeout 10 bash -c '</dev/tcp/localhost/3000' || exit 1"]
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3000/health/ready || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 30s
+      start_period: 60s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   web-ui:
     build:
       context: .
       dockerfile: apps/web-ui/Dockerfile
+      args:
+        # VITE_ vars phải được truyền vào lúc BUILD
+        VITE_API_BASE: ${VITE_API_BASE:-http://localhost:3000/api}
+        VITE_API_URL: ${VITE_API_URL:-http://localhost:3000/api}
+    image: qltb-web-ui:latest
     container_name: qltb-web-ui
+    restart: unless-stopped
     environment:
       NODE_ENV: production
-      PORT: 3001
+      PORT: ${WEB_PORT:-3001}
+      BACKEND_BASE_URL: ${BACKEND_BASE_URL:-http://api:3000/api}
     ports:
-      - '3001:3001'
+      - '${WEB_PORT:-3001}:3001'
     depends_on:
-      - api
+      api:
+        condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "timeout 10 bash -c '</dev/tcp/localhost/3001' || exit 1"]
+      test: ["CMD-SHELL", "wget -qO- http://localhost:${WEB_PORT:-3001} || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 30s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   pgadmin:
     image: dpage/pgadmin4:latest
     container_name: qltb-pgadmin
+    restart: unless-stopped
     environment:
-      PGADMIN_DEFAULT_EMAIL: admin@example.com
-      PGADMIN_DEFAULT_PASSWORD: admin
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@example.com}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin}
       PGADMIN_LISTEN_PORT: 80
     ports:
-      - '8080:80'
+      - '${PGADMIN_PORT:-8080}:80'
     depends_on:
       - postgres
     volumes:
@@ -74,12 +125,17 @@ services:
   redis-insight:
     image: redislabs/redisinsight:latest
     container_name: qltb-redis-insight
+    restart: unless-stopped
     ports:
-      - '8001:8001'
+      - '${REDIS_INSIGHT_PORT:-8001}:8001'
+    depends_on:
+      redis:
+        condition: service_healthy
     volumes:
       - qltb_redis_insight_data:/db
 
 volumes:
   qltb_pgdata:
   qltb_pgadmin_data:
+  qltb_redis_data:
   qltb_redis_insight_data:

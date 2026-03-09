@@ -10,6 +10,8 @@
         "dev:packages": "concurrently -n \"app,contracts,domain,infra\" -c \"cyan,magenta,yellow,green\" \"pnpm --filter @qltb/application dev\" \"pnpm --filter @qltb/contracts dev\" \"pnpm --filter @qltb/domain dev\" \"pnpm --filter @qltb/infra-postgres dev\"",
         "dev:all": "concurrently -n \"pkgs,api,web\" -c \"cyan,green,blue\" --kill-others-on-fail \"pnpm dev:packages\" \"pnpm dev\" \"pnpm dev:web\"",
         "dev:infra": "docker-compose -f docker-compose.dev.yml up -d",
+        "deploy": "docker-compose up -d --build",
+        "deploy:app": "docker-compose -f docker-compose.app.yml up -d --build",
         "start:api": "pnpm --filter @qltb/api dev",
         "preview": "pnpm --filter @qltb/web-ui preview",
         "build": "pnpm -r build",
