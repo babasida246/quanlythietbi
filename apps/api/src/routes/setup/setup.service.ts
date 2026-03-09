@@ -226,6 +226,7 @@ export class SetupService {
         const seedFiles = [
             ['db', 'seed-data.sql'],
             ['db', 'seed-assets-management.sql'],
+            ['db', 'seed-assets.sql'],
             ['db', 'seed-qlts-demo.sql'],
         ]
 
