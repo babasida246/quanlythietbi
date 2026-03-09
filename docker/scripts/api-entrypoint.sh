@@ -1,4 +1,4 @@
-#!/usr/bin/env sh
+#!/bin/bash
 # ==============================================================================
 # API Entrypoint Script
 # Chạy migrations nếu cần thiết, sau đó khởi động API server.
@@ -37,7 +37,7 @@ echo "✅  PostgreSQL ready (${DB_HOST}:${DB_PORT})"
 
 # ── Chờ Redis nếu được cấu hình ───────────────────────────────────────────
 if [ "${REDIS_CACHE_ENABLED:-true}" = "true" ] && [ -n "${REDIS_URL:-}" ]; then
-    REDIS_HOST=$(echo "$REDIS_URL" | sed -E 's|redis://([^:/]+)[:/].*|\1|')
+    REDIS_HOST=$(echo "$REDIS_URL" | sed -E 's|.*@([^:/]+):.*|\1|; s|redis://([^:/]+):.*|\1|')
     REDIS_PORT=$(echo "$REDIS_URL" | sed -E 's|.*:([0-9]+)$|\1|')
     REDIS_PORT="${REDIS_PORT:-6379}"
     echo "⏳  Waiting for Redis (${REDIS_HOST}:${REDIS_PORT})..."
