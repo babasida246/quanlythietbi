@@ -6,7 +6,7 @@
     Tabs, TabsList, TabsTrigger
   } from '$lib/components/ui';
   import Modal from '$lib/components/Modal.svelte';
-  import { ArrowLeft, Download, Wrench, UserPlus, Undo2 } from 'lucide-svelte';
+  import { ArrowLeft, Download, Wrench, UserPlus, Undo2, ChevronDown, ChevronRight, PackageOpen } from 'lucide-svelte';
   import { _, isLoading } from '$lib/i18n';
   import { getCapabilities } from '$lib/auth/capabilities';
   import AssetTimeline from '$lib/assets/components/AssetTimeline.svelte';
@@ -44,8 +44,10 @@
     type InventorySession,
     type Reminder
   } from '$lib/api/assetMgmt';
-  import { getAssetCatalogs, type Catalogs } from '$lib/api/assetCatalogs';
+  import { getAssetCatalogs, getCategorySpecDefs, type Catalogs, type CategorySpecDef } from '$lib/api/assetCatalogs';
   import { getAssetComponents, type ComponentAssignmentWithDetails } from '$lib/api/components';
+  import { listRepairOrders, getRepairOrder, createRepairOrder, type RepairOrderRecord, type RepairOrderPartRecord } from '$lib/api/warehouse';
+  import { getLicensesByAsset, type LicenseWithAssetSeat } from '$lib/api/licenses';
   let asset = $state<Asset | null>(null);
   let assignments = $state<AssetAssignment[]>([]);
   let maintenance = $state<MaintenanceTicket[]>([]);
@@ -73,10 +75,40 @@
   let usefulLifeYears = $state('3');
 
   let assetComponents = $state<ComponentAssignmentWithDetails[]>([]);
+  let specDefs = $state<CategorySpecDef[]>([]);
+  let specDefsLoading = $state(false);
+  let repairOrders = $state<RepairOrderRecord[]>([]);
+  let repairParts = $state<Record<string, RepairOrderPartRecord[]>>({});
+  let repairOrdersLoading = $state(false);
+  let expandedRepairOrder = $state<string | null>(null);
+  let licenses = $state<LicenseWithAssetSeat[]>([]);
+  let licensesLoading = $state(false);
   let driverRecommendations = $state<DriverRecommendation[]>([]);
   let relatedDocuments = $state<KnowledgeDocument[]>([]);
   let knowledgeLoading = $state(false);
   let knowledgeError = $state('');
+
+  // Repair order creation modal
+  let showRepairModal = $state(false);
+  let repairTitle = $state('');
+  let repairSeverity = $state<'low' | 'medium' | 'high' | 'critical'>('medium');
+  let repairType = $state<'preventive' | 'corrective' | 'emergency'>('corrective');
+  let repairTechnician = $state('');
+  let repairCreating = $state(false);
+  let repairError = $state('');
+
+  function formatDate(value: string | null | undefined): string {
+    if (!value) return '-';
+    try {
+      return new Date(value).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    } catch { return String(value); }
+  }
+  function formatDateTime(value: string | null | undefined): string {
+    if (!value) return '-';
+    try {
+      return new Date(value).toLocaleString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    } catch { return String(value); }
+  }
 
   let userRole = $state('');
   let ready = $state(false);
@@ -164,6 +196,12 @@
 
       const compResp = await getAssetComponents(assetId);
       assetComponents = compResp?.components ?? [];
+
+      // Load spec defs, repair orders and licenses in parallel (non-blocking)
+      const loadedAsset = detail.data?.asset ?? null;
+      if (loadedAsset?.categoryId) void loadSpecDefs(loadedAsset.categoryId);
+      void loadRepairOrders();
+      void loadLicenses();
 
       void loadKnowledge();
     } catch (err) {
@@ -285,8 +323,73 @@
     }
   }
 
+  async function loadSpecDefs(categoryId: string) {
+    specDefsLoading = true;
+    try {
+      const res = await getCategorySpecDefs(categoryId);
+      specDefs = res.data ?? [];
+    } catch { specDefs = []; }
+    finally { specDefsLoading = false; }
+  }
+
+  async function loadRepairOrders() {
+    if (!assetId) return;
+    repairOrdersLoading = true;
+    try {
+      const res = await listRepairOrders({ assetId });
+      repairOrders = res.data ?? [];
+    } catch { repairOrders = []; }
+    finally { repairOrdersLoading = false; }
+  }
+
+  async function toggleRepairParts(orderId: string) {
+    if (expandedRepairOrder === orderId) {
+      expandedRepairOrder = null;
+      return;
+    }
+    expandedRepairOrder = orderId;
+    if (!repairParts[orderId]) {
+      try {
+        const detail = await getRepairOrder(orderId);
+        repairParts = { ...repairParts, [orderId]: detail.data?.parts ?? [] };
+      } catch { repairParts = { ...repairParts, [orderId]: [] }; }
+    }
+  }
+
+  async function loadLicenses() {
+    if (!assetId) return;
+    licensesLoading = true;
+    try {
+      const res = await getLicensesByAsset(assetId);
+      licenses = res.data ?? [];
+    } catch { licenses = []; }
+    finally { licensesLoading = false; }
+  }
+
+  async function handleCreateRepair() {
+    if (!repairTitle || !assetId) return;
+    repairCreating = true;
+    repairError = '';
+    try {
+      const res = await createRepairOrder({
+        assetId,
+        title: repairTitle,
+        severity: repairSeverity,
+        repairType,
+        technicianName: repairTechnician || undefined
+      });
+      repairOrders = [res.data, ...repairOrders];
+      showRepairModal = false;
+      repairTitle = '';
+      repairTechnician = '';
+    } catch (e) {
+      repairError = e instanceof Error ? e.message : 'Lỗi tạo lệnh sửa chữa';
+    } finally {
+      repairCreating = false;
+    }
+  }
+
   function downloadEvidencePack() {
-    if (!asset) return;
     const payload = {
       asset,
       assignments,
@@ -299,7 +402,7 @@
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `asset-${asset.assetCode}-evidence.json`;
+    link.download = `asset-${asset?.assetCode ?? 'unknown'}-evidence.json`;
     link.click();
     URL.revokeObjectURL(url);
   }
@@ -323,14 +426,44 @@
   });
 </script>
 <div class="page-shell page-content">
-  <div class="mb-4 flex items-center gap-3">
-    <a href={backHref} class="btn-sm btn-secondary inline-flex items-center">
-      <ArrowLeft class="w-4 h-4 mr-2" /> {$isLoading ? 'Back' : $_('common.back')}
+  <div class="mb-4 flex flex-wrap items-center gap-3">
+    <a href={backHref} class="btn-sm btn-secondary inline-flex items-center gap-2 rounded-lg shrink-0">
+      <ArrowLeft class="w-4 h-4" /> {$isLoading ? 'Back' : $_('common.back')}
     </a>
-    <div>
-      <h1 class="text-2xl font-semibold">{asset?.assetCode || ($isLoading ? 'Asset' : $_('assets.asset'))}</h1>
-      <p class="text-sm text-slate-500">{asset?.status}</p>
+    <div class="flex-1 min-w-0">
+      <div class="flex items-center gap-3 flex-wrap">
+        <h1 class="text-2xl font-bold tracking-tight">{asset?.assetCode || ($isLoading ? 'Asset' : $_('assets.asset'))}</h1>
+        {#if asset?.status}
+          <span class={asset.status === 'in_use' ? 'badge-success' : asset.status === 'in_repair' ? 'badge-warning' : asset.status === 'retired' || asset.status === 'disposed' ? 'badge-error' : 'badge-primary'}>
+            {$_(`assets.statusByCode.${asset.status}`)}
+          </span>
+        {/if}
+      </div>
+      {#if asset?.locationName || asset?.warehouseName}
+        <p class="text-sm text-slate-400 mt-0.5">
+          {#if asset.status === 'in_use' && asset.locationName}
+            {$_('assets.statusByCode.in_use')} · {asset.locationName}
+          {:else if asset.warehouseName}
+            {asset.warehouseName}
+          {:else if asset.locationName}
+            {asset.locationName}
+          {/if}
+        </p>
+      {/if}
     </div>
+    {#if !loading && asset && caps.canManageAssets}
+      <div class="flex flex-wrap gap-2 shrink-0">
+        <Button size="sm" onclick={() => showAssignModal = true}>
+          <UserPlus class="w-4 h-4 mr-1" /> {$isLoading ? 'Assign' : $_('assets.assign')}
+        </Button>
+        <Button size="sm" variant="secondary" onclick={() => showReturnModal = true}>
+          <Undo2 class="w-4 h-4 mr-1" /> {$isLoading ? 'Return' : $_('assets.return')}
+        </Button>
+        <Button size="sm" variant="secondary" onclick={() => showMaintenanceModal = true}>
+          <Wrench class="w-4 h-4 mr-1" /> {$isLoading ? 'Maintenance' : $_('maintenance.title')}
+        </Button>
+      </div>
+    {/if}
   </div>
   {#if error}
     <div class="alert alert-error mb-4">{error}</div>
@@ -340,38 +473,19 @@
       <div class="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
     </div>
   {:else if asset}
-    <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
-      <div class="flex items-center gap-2">
-        <span class="badge-primary">{$_(`assets.statusByCode.${asset.status}`)}</span>
-        {#if asset.locationName}
-          <span class="text-sm text-slate-500">{asset.locationName}</span>
-        {/if}
-      </div>
-      {#if caps.canManageAssets}
-        <div class="flex flex-wrap gap-2">
-          <Button size="sm" onclick={() => showAssignModal = true}>
-            <UserPlus class="w-4 h-4 mr-1" /> {$isLoading ? 'Assign' : $_('assets.assign')}
-          </Button>
-          <Button size="sm" variant="secondary" onclick={() => showReturnModal = true}>
-            <Undo2 class="w-4 h-4 mr-1" /> {$isLoading ? 'Return' : $_('assets.return')}
-          </Button>
-          <Button size="sm" variant="secondary" onclick={() => showMaintenanceModal = true}>
-            <Wrench class="w-4 h-4 mr-1" /> {$isLoading ? 'Maintenance' : $_('maintenance.title')}
-          </Button>
-        </div>
-      {/if}
-    </div>
-
     <Tabs>
       <TabsList>
         <TabsTrigger active={activeTab === 'overview'} onclick={() => activeTab = 'overview'}>{$isLoading ? 'Overview' : $_('assets.tabs.overview')}</TabsTrigger>
+        <TabsTrigger active={activeTab === 'specs'} onclick={() => activeTab = 'specs'}>{$isLoading ? 'Specs' : $_('assets.tabs.specs')}</TabsTrigger>
         <TabsTrigger active={activeTab === 'lifecycle'} onclick={() => activeTab = 'lifecycle'}>{$isLoading ? 'Lifecycle' : $_('assets.tabs.lifecycle')}</TabsTrigger>
+        <TabsTrigger active={activeTab === 'repairs'} onclick={() => activeTab = 'repairs'}>{$isLoading ? 'Repairs' : $_('assets.tabs.repairs')}</TabsTrigger>
         <TabsTrigger active={activeTab === 'maintenance'} onclick={() => activeTab = 'maintenance'}>{$isLoading ? 'Maintenance' : $_('assets.tabs.maintenance')}</TabsTrigger>
+        <TabsTrigger active={activeTab === 'software'} onclick={() => activeTab = 'software'}>{$isLoading ? 'Software' : $_('assets.tabs.software')}</TabsTrigger>
+        <TabsTrigger active={activeTab === 'components'} onclick={() => activeTab = 'components'}>{$isLoading ? 'Components' : $_('assets.tabs.components')}</TabsTrigger>
         <TabsTrigger active={activeTab === 'warranty'} onclick={() => activeTab = 'warranty'}>{$isLoading ? 'Warranty' : $_('assets.tabs.warranty')}</TabsTrigger>
         {#if caps.canManageAssets}
           <TabsTrigger active={activeTab === 'inventory'} onclick={() => activeTab = 'inventory'}>{$isLoading ? 'Inventory' : $_('assets.tabs.inventory')}</TabsTrigger>
         {/if}
-        <TabsTrigger active={activeTab === 'components'} onclick={() => activeTab = 'components'}>{$isLoading ? 'Components' : $_('assets.tabs.components')}</TabsTrigger>
         <TabsTrigger active={activeTab === 'attachments'} onclick={() => activeTab = 'attachments'}>{$isLoading ? 'Attachments' : $_('assets.tabs.attachments')}</TabsTrigger>
         <TabsTrigger active={activeTab === 'compliance'} onclick={() => activeTab = 'compliance'}>{$isLoading ? 'Compliance' : $_('assets.tabs.compliance')}</TabsTrigger>
       </TabsList>
@@ -379,74 +493,80 @@
 
     {#if activeTab === 'overview'}
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div class="card lg:col-span-2">
-            <h2 class="text-lg font-semibold mb-4">{$isLoading ? 'Overview' : $_('assets.overview')}</h2>
-            <div class="grid grid-cols-2 gap-4 text-sm">
+          <div class="card p-4 sm:p-5 lg:col-span-2">
+            <h2 class="text-base font-semibold mb-4 pb-3 border-b border-border">{$isLoading ? 'Overview' : $_('assets.overview')}</h2>
+            <div class="grid grid-cols-2 gap-y-5 gap-x-6 text-sm">
               <div>
-                <p class="text-slate-500">{$isLoading ? 'Model' : $_('assets.model')}</p>
+                <p class="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">{$isLoading ? 'Model' : $_('assets.model')}</p>
                 <p class="font-medium">{asset.modelName || '-'}</p>
               </div>
               <div>
-                <p class="text-slate-500">{$isLoading ? 'Vendor' : $_('assets.vendor')}</p>
+                <p class="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">{$isLoading ? 'Vendor' : $_('assets.vendor')}</p>
                 <p class="font-medium">{asset.vendorName || '-'}</p>
               </div>
               <div>
-                <p class="text-slate-500">{$isLoading ? 'Location' : $_('assets.location')}</p>
+                <p class="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">{$isLoading ? 'Location' : $_('assets.location')}</p>
                 <p class="font-medium">{asset.locationName || '-'}</p>
               </div>
               <div>
-                <p class="text-slate-500">{$isLoading ? 'Serial' : $_('assets.serialNumber')}</p>
-                <p class="font-medium">{asset.serialNo || '-'}</p>
+                <p class="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">{$isLoading ? 'Serial' : $_('assets.serialNumber')}</p>
+                <p class="font-medium font-mono text-xs">{asset.serialNo || '-'}</p>
               </div>
               <div>
-                <p class="text-slate-500">{$isLoading ? 'Mgmt IP' : $_('assets.mgmtIp')}</p>
-                <p class="font-medium">{asset.mgmtIp || '-'}</p>
+                <p class="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">{$isLoading ? 'Mgmt IP' : $_('assets.mgmtIp')}</p>
+                <p class="font-medium font-mono text-xs">{asset.mgmtIp || '-'}</p>
               </div>
               <div>
-                <p class="text-slate-500">{$isLoading ? 'Hostname' : $_('assets.hostname')}</p>
+                <p class="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">{$isLoading ? 'Hostname' : $_('assets.hostname')}</p>
                 <p class="font-medium">{asset.hostname || '-'}</p>
               </div>
               <div>
-                <p class="text-slate-500">{$isLoading ? 'Purchase date' : $_('assets.purchaseDate')}</p>
-                <p class="font-medium">{asset.purchaseDate || '-'}</p>
+                <p class="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">{$isLoading ? 'Purchase date' : $_('assets.purchaseDate')}</p>
+                <p class="font-medium">{formatDate(asset.purchaseDate)}</p>
               </div>
               <div>
-                <p class="text-slate-500">{$isLoading ? 'Warranty End' : $_('assets.warrantyEnd')}</p>
-                <p class="font-medium">{asset.warrantyEnd || '-'}</p>
+                <p class="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">{$isLoading ? 'Warranty End' : $_('assets.warrantyEnd')}</p>
+                <p class="font-medium">{formatDate(asset.warrantyEnd)}</p>
               </div>
-              <div class="col-span-2">
-                <p class="text-slate-500">{$isLoading ? 'Notes' : $_('assets.notes')}</p>
+              {#if asset.warehouseName}
+              <div>
+                <p class="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">{$isLoading ? 'Warehouse' : $_('assets.warehouse')}</p>
+                <p class="font-medium">{asset.warehouseName}</p>
+              </div>
+              {/if}
+              <div class={asset.warehouseName ? '' : 'col-span-2'}>
+                <p class="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">{$isLoading ? 'Notes' : $_('assets.notes')}</p>
                 <p class="font-medium">{asset.notes || '-'}</p>
               </div>
             </div>
           </div>
-          <div class="card">
-            <h2 class="text-lg font-semibold mb-4">{$isLoading ? 'Asset health' : $_('assets.health.title')}</h2>
-            <div class="flex items-center justify-between mb-3">
+          <div class="card p-4 sm:p-5">
+            <h2 class="text-base font-semibold mb-4 pb-3 border-b border-border">{$isLoading ? 'Asset health' : $_('assets.health.title')}</h2>
+            <div class="flex items-center justify-between py-2">
               <span class="text-sm text-slate-500">{$_('assets.health.score')}</span>
               <span class={healthScore > 80 ? 'badge-success' : healthScore > 60 ? 'badge-warning' : 'badge-error'}>{healthScore}</span>
             </div>
-            <div class="space-y-2 text-sm text-slate-400">
-              <div class="flex items-center justify-between">
-                <span>{$_('assets.health.maintenanceOpen')}</span>
-                <span class="font-medium">{openMaintenanceCount}</span>
+            <div class="divide-y divide-border text-sm">
+              <div class="flex items-center justify-between py-2.5">
+                <span class="text-slate-500">{$_('assets.health.maintenanceOpen')}</span>
+                <span class="font-semibold">{openMaintenanceCount}</span>
               </div>
-              <div class="flex items-center justify-between">
-                <span>{$_('assets.health.warrantyDays')}</span>
-                <span class="font-medium">{warrantyDaysLeft ?? '-'}</span>
+              <div class="flex items-center justify-between py-2.5">
+                <span class="text-slate-500">{$_('assets.health.warrantyDays')}</span>
+                <span class="font-semibold">{warrantyDaysLeft ?? '-'}</span>
               </div>
-              <div class="flex items-center justify-between">
-                <span>{$_('assets.health.assignments')}</span>
-                <span class="font-medium">{assignments.length}</span>
+              <div class="flex items-center justify-between py-2.5">
+                <span class="text-slate-500">{$_('assets.health.assignments')}</span>
+                <span class="font-semibold">{assignments.length}</span>
               </div>
             </div>
           </div>
         </div>
 
         <div class="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div class="card">
+          <div class="card p-4 sm:p-5">
             <div class="flex items-center justify-between gap-2 mb-4">
-              <h2 class="text-lg font-semibold">{$isLoading ? 'Recommended drivers' : $_('assets.knowledge.recommendedDrivers')}</h2>
+              <h2 class="text-base font-semibold">{$isLoading ? 'Recommended drivers' : $_('assets.knowledge.recommendedDrivers')}</h2>
               {#if driverRecommendations.length > 0}
                 <span class="badge-primary">{driverRecommendations.length}</span>
               {/if}
@@ -461,11 +581,11 @@
             {:else if driverRecommendations.length === 0}
               <p class="text-sm text-slate-500">{$isLoading ? 'No recommendations.' : $_('assets.knowledge.emptyDrivers')}</p>
             {:else}
-              <div class="divide-y divide-slate-700">
+              <div class="divide-y divide-border">
                 {#each driverRecommendations as rec (rec.driver.id)}
                   <div class="py-3 flex items-start justify-between gap-3">
                     <div class="min-w-0">
-                      <div class="font-semibold text-white truncate">
+                      <div class="font-semibold truncate">
                         {rec.driver.vendor} · {rec.driver.model}
                       </div>
                       <div class="text-xs text-slate-500">
@@ -491,9 +611,9 @@
             {/if}
           </div>
 
-          <div class="card">
+          <div class="card p-4 sm:p-5">
             <div class="flex items-center justify-between gap-2 mb-4">
-              <h2 class="text-lg font-semibold">{$isLoading ? 'Related documents' : $_('assets.knowledge.relatedDocs')}</h2>
+              <h2 class="text-base font-semibold">{$isLoading ? 'Related documents' : $_('assets.knowledge.relatedDocs')}</h2>
               {#if relatedDocuments.length > 0}
                 <span class="badge-primary">{relatedDocuments.length}</span>
               {/if}
@@ -508,11 +628,11 @@
             {:else if relatedDocuments.length === 0}
               <p class="text-sm text-slate-500">{$isLoading ? 'No related docs.' : $_('assets.knowledge.emptyDocs')}</p>
             {:else}
-              <div class="divide-y divide-slate-700">
+              <div class="divide-y divide-border">
                 {#each relatedDocuments as doc (doc.id)}
                   <div class="py-3 flex items-start justify-between gap-3">
                     <div class="min-w-0">
-                      <div class="font-semibold text-white truncate">{doc.title}</div>
+                      <div class="font-semibold truncate">{doc.title}</div>
                       <div class="text-xs text-slate-500 flex flex-wrap gap-2 items-center">
                         <span class="badge-primary capitalize">{doc.type}</span>
                         <span class="badge-info capitalize">{doc.visibility}</span>
@@ -548,10 +668,51 @@
             {/if}
           </div>
         </div>
+    {:else if activeTab === 'specs'}
+      <!-- ─── Specs tab ─── -->
+      <div class="card p-4 sm:p-5">
+        <h2 class="text-base font-semibold mb-4 pb-3 border-b border-border">{$isLoading ? 'Technical Specifications' : $_('assets.specifications')}</h2>
+        {#if specDefsLoading}
+          <div class="flex items-center justify-center py-10">
+            <div class="h-6 w-6 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
+          </div>
+        {:else if !asset?.spec || Object.keys(asset.spec).length === 0}
+          <p class="text-sm text-slate-500">{$isLoading ? 'No specifications recorded.' : $_('assets.noSpecsDefined')}</p>
+        {:else}
+          <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-x-8 gap-y-3 text-sm">
+            {#each specDefs.length > 0 ? specDefs.filter(d => asset?.spec && d.key in asset.spec) : Object.keys(asset.spec).map(k => ({ key: k, label: k, unit: null })) as def}
+              <div class="flex flex-col gap-0.5">
+                <span class="text-slate-500 capitalize">{def.label}{def.unit ? ` (${def.unit})` : ''}</span>
+                <span class="font-medium text-slate-100 break-all">{String(asset.spec[def.key] ?? '-')}</span>
+              </div>
+            {/each}
+            {#if specDefs.length > 0}
+              {#each Object.keys(asset.spec).filter(k => !specDefs.some(d => d.key === k)) as extraKey}
+                <div class="flex flex-col gap-0.5">
+                  <span class="text-slate-500 capitalize">{extraKey}</span>
+                  <span class="font-medium text-slate-100 break-all">{String(asset.spec[extraKey] ?? '-')}</span>
+                </div>
+              {/each}
+            {/if}
+          </div>
+        {/if}
+      </div>
     {:else if activeTab === 'lifecycle'}
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div class="card">
-            <h2 class="text-lg font-semibold mb-4">{$isLoading ? 'Assignments' : $_('assets.assignments')}</h2>
+          <div class="card p-4 sm:p-5">
+            <div class="flex items-center justify-between gap-2 mb-4">
+              <h2 class="text-base font-semibold">{$isLoading ? 'Assignments' : $_('assets.assignments')}</h2>
+              {#if caps.canManageAssets}
+                <div class="flex gap-2">
+                  <Button size="sm" onclick={() => showAssignModal = true}>
+                    <UserPlus class="w-3.5 h-3.5 mr-1" /> {$isLoading ? 'Assign' : $_('assets.assign')}
+                  </Button>
+                  <Button size="sm" variant="secondary" onclick={() => showReturnModal = true}>
+                    <Undo2 class="w-3.5 h-3.5 mr-1" /> {$isLoading ? 'Return' : $_('assets.return')}
+                  </Button>
+                </div>
+              {/if}
+            </div>
             <Table>
               <TableHeader>
                 <tr>
@@ -566,21 +727,128 @@
                   <TableRow>
                     <TableCell>{item.assigneeName}</TableCell>
                     <TableCell>{item.assigneeType}</TableCell>
-                    <TableCell>{new Date(item.assignedAt).toLocaleDateString()}</TableCell>
-                    <TableCell>{item.returnedAt ? new Date(item.returnedAt).toLocaleDateString() : '-'}</TableCell>
+                    <TableCell>{formatDate(item.assignedAt)}</TableCell>
+                    <TableCell>{item.returnedAt ? formatDate(item.returnedAt) : '-'}</TableCell>
                   </TableRow>
                 {/each}
               </tbody>
             </Table>
           </div>
-          <div class="card">
-            <h2 class="text-lg font-semibold mb-4">{$isLoading ? 'Timeline' : $_('assets.timeline')}</h2>
+          <div class="card p-4 sm:p-5">
+            <h2 class="text-base font-semibold mb-4">{$isLoading ? 'Timeline' : $_('assets.timeline')}</h2>
             <AssetTimeline events={timeline} />
           </div>
         </div>
+    {:else if activeTab === 'repairs'}
+      <!-- ─── Repairs tab ─── -->
+      <div class="space-y-3">
+        {#if caps.canManageAssets}
+          <div class="flex justify-end">
+            <Button size="sm" onclick={() => { showRepairModal = true; repairError = ''; }}>
+              <Wrench class="w-3.5 h-3.5 mr-1" /> {$isLoading ? 'Create Repair Order' : $_('assets.repairOrders.createBtn')}
+            </Button>
+          </div>
+        {/if}
+        {#if repairOrdersLoading}
+          <div class="flex items-center justify-center py-10">
+            <div class="h-6 w-6 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
+          </div>
+        {:else if repairOrders.length === 0}
+          <div class="card p-8 text-center">
+            <PackageOpen class="h-10 w-10 mx-auto mb-3 text-slate-600" />
+            <p class="text-sm text-slate-500">{$isLoading ? 'No repair orders.' : $_('assets.repairOrders.empty')}</p>
+          </div>
+        {:else}
+          {#each repairOrders as order (order.id)}
+            <div class="card p-3 sm:p-4">
+              <button
+                type="button"
+                class="w-full flex items-center justify-between gap-3 text-left"
+                onclick={() => toggleRepairParts(order.id)}
+              >
+                <div class="flex items-center gap-3 min-w-0">
+                  <span class={order.status === 'closed' ? 'badge-success' : order.status === 'canceled' ? 'badge-error' : 'badge-warning'}>
+                    {order.status}
+                  </span>
+                  <span class="font-medium text-slate-100 truncate">{order.title}</span>
+                  <span class="text-xs text-slate-500 shrink-0">{formatDate(order.openedAt)}</span>
+                </div>
+                <div class="flex items-center gap-2 shrink-0 text-slate-400">
+                  {#if order.laborCost || order.partsCost}
+                    <span class="text-xs">{((order.laborCost ?? 0) + (order.partsCost ?? 0)).toLocaleString()} đ</span>
+                  {/if}
+                  {#if expandedRepairOrder === order.id}
+                    <ChevronDown class="h-4 w-4" />
+                  {:else}
+                    <ChevronRight class="h-4 w-4" />
+                  {/if}
+                </div>
+              </button>
+
+              {#if expandedRepairOrder === order.id}
+                <div class="mt-4 pt-4 border-t border-border space-y-3 text-sm">
+                  <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 text-slate-400">
+                    <div><span class="block text-xs text-slate-500">{$isLoading ? 'Type' : $_('assets.repairOrders.type')}</span>{order.repairType}</div>
+                    <div><span class="block text-xs text-slate-500">{$isLoading ? 'Technician' : $_('assets.repairOrders.technician')}</span>{order.technicianName || '-'}</div>
+                    <div><span class="block text-xs text-slate-500">{$isLoading ? 'Downtime' : $_('assets.repairOrders.downtime')}</span>{order.downtimeMinutes ? `${order.downtimeMinutes} min` : '-'}</div>
+                  </div>
+                  {#if order.diagnosis}
+                    <div><span class="text-xs text-slate-500 block">{$isLoading ? 'Diagnosis' : $_('assets.repairOrders.diagnosis')}</span><p class="text-slate-300">{order.diagnosis}</p></div>
+                  {/if}
+                  {#if order.resolution}
+                    <div><span class="text-xs text-slate-500 block">{$isLoading ? 'Resolution' : $_('assets.repairOrders.resolution')}</span><p class="text-slate-300">{order.resolution}</p></div>
+                  {/if}
+                  {#if repairParts[order.id]}
+                    {#if repairParts[order.id].length === 0}
+                      <p class="text-xs text-slate-500 italic">{$isLoading ? 'No parts used.' : $_('assets.repairOrders.noParts')}</p>
+                    {:else}
+                      <div>
+                        <span class="text-xs text-slate-500 font-semibold block mb-2">{$isLoading ? 'Parts used' : $_('assets.repairOrders.parts')}</span>
+                        <Table>
+                          <TableHeader>
+                            <tr>
+                              <TableHeaderCell>{$isLoading ? 'Part' : $_('assets.repairOrders.partName')}</TableHeaderCell>
+                              <TableHeaderCell>{$isLoading ? 'Action' : $_('assets.repairOrders.partAction')}</TableHeaderCell>
+                              <TableHeaderCell>{$isLoading ? 'Qty' : $_('assets.repairOrders.partQty')}</TableHeaderCell>
+                              <TableHeaderCell>{$isLoading ? 'Serial' : $_('assets.serialNumber')}</TableHeaderCell>
+                              <TableHeaderCell>{$isLoading ? 'Cost' : $_('assets.repairOrders.partCost')}</TableHeaderCell>
+                            </tr>
+                          </TableHeader>
+                          <tbody>
+                            {#each repairParts[order.id] as part}
+                              <TableRow>
+                                <TableCell>{part.partName || part.partId || '-'}</TableCell>
+                                <TableCell><span class="badge-primary capitalize">{part.action}</span></TableCell>
+                                <TableCell>{part.qty}</TableCell>
+                                <TableCell>{part.serialNo || '-'}</TableCell>
+                                <TableCell>{part.unitCost ? `${part.unitCost.toLocaleString()} đ` : '-'}</TableCell>
+                              </TableRow>
+                            {/each}
+                          </tbody>
+                        </Table>
+                      </div>
+                    {/if}
+                  {:else}
+                    <button type="button" class="text-xs text-primary hover:underline" onclick={() => toggleRepairParts(order.id)}>
+                      {$isLoading ? 'Load parts...' : $_('assets.repairOrders.loadParts')}
+                    </button>
+                  {/if}
+                </div>
+              {/if}
+            </div>
+          {/each}
+        {/if}
+      </div>
     {:else if activeTab === 'maintenance'}
-        <div class="card">
-          <h2 class="text-lg font-semibold mb-4">{$isLoading ? 'Maintenance' : $_('maintenance.title')}</h2>
+        <div class="card p-4 sm:p-5">
+          <div class="flex items-center justify-between gap-2 mb-4">
+            <h2 class="text-base font-semibold">{$isLoading ? 'Maintenance' : $_('maintenance.title')}</h2>
+            {#if caps.canManageAssets}
+              <Button size="sm" onclick={() => showMaintenanceModal = true}>
+                <Wrench class="w-3.5 h-3.5 mr-1" /> {$isLoading ? 'New Ticket' : $_('maintenance.openMaintenance', { values: { assetCode: '' } }).replace('()', '').trim()}
+              </Button>
+            {/if}
+          </div>
           {#if maintenance.length === 0}
             <div class="alert alert-info">{$isLoading ? 'No maintenance records yet.' : $_('assets.maintenanceEmpty')}</div>
           {:else}
@@ -599,7 +867,7 @@
                     <TableCell>{item.title}</TableCell>
                     <TableCell>{item.severity}</TableCell>
                     <TableCell>{item.status}</TableCell>
-                    <TableCell>{new Date(item.openedAt).toLocaleDateString()}</TableCell>
+                    <TableCell>{formatDate(item.openedAt)}</TableCell>
                   </TableRow>
                 {/each}
               </tbody>
@@ -608,16 +876,16 @@
         </div>
     {:else if activeTab === 'warranty'}
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div class="card">
-            <h2 class="text-lg font-semibold mb-4">{$isLoading ? 'Warranty' : $_('assets.warranty')}</h2>
+          <div class="card p-4 sm:p-5">
+            <h2 class="text-base font-semibold mb-4 pb-3 border-b border-border">{$isLoading ? 'Warranty' : $_('assets.warranty')}</h2>
             <div class="space-y-2 text-sm text-slate-400">
               <div class="flex items-center justify-between">
                 <span>{$_('assets.purchaseDate')}</span>
-                <span class="font-medium">{asset.purchaseDate || '-'}</span>
+                <span class="font-medium">{formatDate(asset.purchaseDate)}</span>
               </div>
               <div class="flex items-center justify-between">
                 <span>{$_('assets.warrantyEnd')}</span>
-                <span class="font-medium">{asset.warrantyEnd || '-'}</span>
+                <span class="font-medium">{formatDate(asset.warrantyEnd)}</span>
               </div>
               <div class="flex items-center justify-between">
                 <span>{$_('assets.warrantyRemaining')}</span>
@@ -638,14 +906,14 @@
                 {#each reminders as reminder}
                   <div class="flex items-center justify-between text-sm">
                     <span class="text-slate-400">{reminder.reminderType}</span>
-                    <span class="font-medium">{new Date(reminder.dueAt).toLocaleDateString()}</span>
+                    <span class="font-medium">{formatDate(reminder.dueAt)}</span>
                   </div>
                 {/each}
               {/if}
             </div>
           </div>
-          <div class="card">
-            <h2 class="text-lg font-semibold mb-4">{$isLoading ? 'Depreciation' : $_('assets.depreciation.title')}</h2>
+          <div class="card p-4 sm:p-5">
+            <h2 class="text-base font-semibold mb-4 pb-3 border-b border-border">{$isLoading ? 'Depreciation' : $_('assets.depreciation.title')}</h2>
             <div class="grid grid-cols-1 gap-3 text-sm">
               <div>
                 <label class="label-base mb-2" for="depr-cost">{$_('assets.depreciation.cost')}</label>
@@ -673,8 +941,8 @@
 
     {:else if activeTab === 'inventory' && caps.canManageAssets}
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div class="card">
-            <h2 class="text-lg font-semibold mb-4">{$isLoading ? 'Sessions' : $_('assets.inventory.sessions')}</h2>
+          <div class="card p-4 sm:p-5">
+            <h2 class="text-base font-semibold mb-4">{$isLoading ? 'Sessions' : $_('assets.inventory.sessions')}</h2>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
               <div class="md:col-span-2">
                 <label class="label-base mb-2" for="inv-session-name">{$_('assets.inventory.sessionName')}</label>
@@ -713,8 +981,8 @@
               {/each}
             </div>
           </div>
-          <div class="card">
-            <h2 class="text-lg font-semibold mb-4">{$isLoading ? 'Quick scan' : $_('assets.inventory.quickScan')}</h2>
+          <div class="card p-4 sm:p-5">
+            <h2 class="text-base font-semibold mb-4">{$isLoading ? 'Quick scan' : $_('assets.inventory.quickScan')}</h2>
             <InventoryScanPanel
               sessionId={activeInventorySessionId}
               {locations}
@@ -723,8 +991,8 @@
           </div>
         </div>
         <div class="mt-6">
-          <div class="card">
-            <h2 class="text-lg font-semibold mb-4">{$isLoading ? 'Inventory items' : $_('assets.inventory.items')}</h2>
+          <div class="card p-4 sm:p-5">
+            <h2 class="text-base font-semibold mb-4">{$isLoading ? 'Inventory items' : $_('assets.inventory.items')}</h2>
             {#if inventoryLoading}
               <div class="flex items-center justify-center p-8"><div class="h-6 w-6 animate-spin rounded-full border-4 border-primary border-t-transparent"></div></div>
             {:else if inventoryItems.length === 0}
@@ -743,7 +1011,7 @@
                     <TableRow>
                       <TableCell>{item.assetId || '-'}</TableCell>
                       <TableCell>{item.status}</TableCell>
-                      <TableCell>{item.scannedAt ? new Date(item.scannedAt).toLocaleString() : '-'}</TableCell>
+                      <TableCell>{formatDateTime(item.scannedAt)}</TableCell>
                     </TableRow>
                   {/each}
                 </tbody>
@@ -751,6 +1019,52 @@
             {/if}
           </div>
         </div>
+    {:else if activeTab === 'software'}
+      <!-- ─── Software / Licenses tab ─── -->
+      <div class="card p-4 sm:p-5">
+        <div class="flex items-center justify-between gap-2 mb-4">
+          <h2 class="text-base font-semibold">{$isLoading ? 'Software & Licenses' : $_('assets.tabs.software')}</h2>
+          <a href="/licenses" class="btn-sm btn-secondary inline-flex items-center gap-1 text-xs">
+            {$isLoading ? 'Manage Licenses →' : $_('assets.software.manageLink')}
+          </a>
+        </div>
+        {#if licensesLoading}
+          <div class="flex items-center justify-center py-10">
+            <div class="h-6 w-6 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
+          </div>
+        {:else if licenses.length === 0}
+          <p class="text-sm text-slate-500">{$isLoading ? 'No software licenses assigned.' : $_('assets.software.empty')}</p>
+        {:else}
+          <Table>
+            <TableHeader>
+              <tr>
+                <TableHeaderCell>{$isLoading ? 'Software' : $_('assets.software.name')}</TableHeaderCell>
+                <TableHeaderCell>{$isLoading ? 'License Code' : $_('assets.software.licenseCode')}</TableHeaderCell>
+                <TableHeaderCell>{$isLoading ? 'Type' : $_('assets.software.type')}</TableHeaderCell>
+                <TableHeaderCell>{$isLoading ? 'Status' : $_('assets.status')}</TableHeaderCell>
+                <TableHeaderCell>{$isLoading ? 'Expiry' : $_('assets.software.expiry')}</TableHeaderCell>
+                <TableHeaderCell>{$isLoading ? 'Assigned' : $_('assets.assignedAt')}</TableHeaderCell>
+              </tr>
+            </TableHeader>
+            <tbody>
+              {#each licenses as lic (lic.seatId)}
+                <TableRow>
+                  <TableCell><span class="font-medium text-slate-100">{lic.softwareName}</span></TableCell>
+                  <TableCell><code class="text-xs font-mono text-slate-300">{lic.licenseCode}</code></TableCell>
+                  <TableCell>{lic.licenseType.replace('_', ' ')}</TableCell>
+                  <TableCell>
+                    <span class={lic.status === 'active' ? 'badge-success' : lic.status === 'expired' ? 'badge-error' : 'badge-primary'}>
+                      {lic.status}
+                    </span>
+                  </TableCell>
+                  <TableCell>{lic.expiryDate ? formatDate(lic.expiryDate) : '—'}</TableCell>
+                  <TableCell>{formatDate(lic.assignedAt)}</TableCell>
+                </TableRow>
+              {/each}
+            </tbody>
+          </Table>
+        {/if}
+      </div>
     {:else if activeTab === 'components'}
         <AssetComponentsPanel
           assetId={asset.id}
@@ -758,8 +1072,8 @@
           canManage={caps.canManageAssets}
         />
     {:else if activeTab === 'attachments'}
-        <div class="card">
-          <h2 class="text-lg font-semibold mb-4">{$isLoading ? 'Attachments' : $_('assets.attachments')}</h2>
+        <div class="card p-4 sm:p-5">
+          <h2 class="text-base font-semibold mb-4 pb-3 border-b border-border">{$isLoading ? 'Attachments' : $_('assets.attachments')}</h2>
           {#if caps.canManageAssets}
             <AttachmentUploader assetId={asset.id} onuploaded={loadDetail} />
           {/if}
@@ -768,8 +1082,8 @@
           </div>
         </div>
     {:else if activeTab === 'compliance'}
-        <div class="card">
-          <h2 class="text-lg font-semibold mb-4">{$isLoading ? 'Evidence pack' : $_('assets.compliance.title')}</h2>
+        <div class="card p-4 sm:p-5">
+          <h2 class="text-base font-semibold mb-4 pb-3 border-b border-border">{$isLoading ? 'Evidence pack' : $_('assets.compliance.title')}</h2>
           <p class="text-sm text-slate-500 mb-4">{$isLoading ? 'Download audit evidence for this asset.' : $_('assets.compliance.subtitle')}</p>
           <div class="flex flex-wrap items-center gap-3 text-sm text-slate-400">
             <span>{$_('assets.compliance.attachments')}: {attachments.length}</span>
@@ -786,6 +1100,47 @@
 {#if caps.canManageAssets}
   <AssignModal bind:open={showAssignModal} assetCode={asset?.assetCode || ''} onassign={handleAssign} />
   <MaintenanceModal bind:open={showMaintenanceModal} assetCode={asset?.assetCode || ''} onsubmit={handleMaintenance} />
+  <!-- Repair Order Creation Modal -->
+  <Modal bind:open={showRepairModal} title={$isLoading ? 'Create Repair Order' : $_('assets.repairOrders.createBtn')}>
+    <div class="space-y-4">
+      {#if repairError}
+        <div class="alert alert-error">{repairError}</div>
+      {/if}
+      <div>
+        <label class="label-base mb-2" for="repair-title">{$isLoading ? 'Title' : $_('assets.repairOrders.title')}</label>
+        <input id="repair-title" class="input-base" bind:value={repairTitle} placeholder={$isLoading ? 'Repair summary...' : $_('assets.repairOrders.titlePlaceholder')} />
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="label-base mb-2" for="repair-severity">{$isLoading ? 'Severity' : $_('assets.repairOrders.severity')}</label>
+          <select id="repair-severity" class="select-base" bind:value={repairSeverity}>
+            <option value="low">{$isLoading ? 'Low' : $_('maintenance.low')}</option>
+            <option value="medium">{$isLoading ? 'Medium' : $_('maintenance.medium')}</option>
+            <option value="high">{$isLoading ? 'High' : $_('maintenance.high')}</option>
+            <option value="critical">{$isLoading ? 'Critical' : $_('maintenance.critical')}</option>
+          </select>
+        </div>
+        <div>
+          <label class="label-base mb-2" for="repair-type">{$isLoading ? 'Type' : $_('assets.repairOrders.type')}</label>
+          <select id="repair-type" class="select-base" bind:value={repairType}>
+            <option value="corrective">{$isLoading ? 'Corrective' : $_('assets.repairOrders.corrective')}</option>
+            <option value="preventive">{$isLoading ? 'Preventive' : $_('assets.repairOrders.preventive')}</option>
+            <option value="emergency">{$isLoading ? 'Emergency' : $_('assets.repairOrders.emergency')}</option>
+          </select>
+        </div>
+      </div>
+      <div>
+        <label class="label-base mb-2" for="repair-technician">{$isLoading ? 'Technician' : $_('assets.repairOrders.technician')}</label>
+        <input id="repair-technician" class="input-base" bind:value={repairTechnician} placeholder={$isLoading ? 'Technician name (optional)' : $_('assets.repairOrders.technicianPlaceholder')} />
+      </div>
+    </div>
+    <div class="flex justify-end gap-2 mt-4">
+      <Button variant="secondary" onclick={() => showRepairModal = false}>{$isLoading ? 'Cancel' : $_('common.cancel')}</Button>
+      <Button disabled={repairCreating || !repairTitle} onclick={handleCreateRepair}>
+        {repairCreating ? ($isLoading ? 'Creating...' : $_('common.loading')) : ($isLoading ? 'Create' : $_('common.save'))}
+      </Button>
+    </div>
+  </Modal>
   <Modal bind:open={showReturnModal} title={$isLoading ? 'Return Asset' : $_('assets.returnAsset')}>
     <div class="space-y-4">
       <div>

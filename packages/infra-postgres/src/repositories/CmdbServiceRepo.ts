@@ -5,6 +5,7 @@ type ServiceRow = {
     id: string
     code: string
     name: string
+    description: string | null
     criticality: string | null
     owner: string | null
     sla: string | null
@@ -24,6 +25,7 @@ const mapService = (row: ServiceRow): CmdbServiceRecord => ({
     id: row.id,
     code: row.code,
     name: row.name,
+    description: row.description,
     criticality: row.criticality,
     owner: row.owner,
     sla: row.sla,
@@ -51,18 +53,20 @@ export class CmdbServiceRepo implements IServiceRepo {
     async create(input: {
         code: string
         name: string
+        description?: string | null
         criticality?: string | null
         owner?: string | null
         sla?: string | null
         status?: string | null
     }): Promise<CmdbServiceRecord> {
         const result = await this.pg.query<ServiceRow>(
-            `INSERT INTO cmdb_services (code, name, criticality, owner, sla, status)
-             VALUES ($1,$2,$3,$4,$5,$6)
-             RETURNING id, code, name, criticality, owner, sla, status, created_at`,
+            `INSERT INTO cmdb_services (code, name, description, criticality, owner, sla, status)
+             VALUES ($1,$2,$3,$4,$5,$6,$7)
+             RETURNING id, code, name, description, criticality, owner, sla, status, created_at`,
             [
                 input.code,
                 input.name,
+                input.description ?? null,
                 input.criticality ?? null,
                 input.owner ?? null,
                 input.sla ?? null,
@@ -76,6 +80,7 @@ export class CmdbServiceRepo implements IServiceRepo {
         const updates: Array<{ column: string; value: unknown }> = []
         if (patch.code !== undefined) updates.push({ column: 'code', value: patch.code })
         if (patch.name !== undefined) updates.push({ column: 'name', value: patch.name })
+        if (patch.description !== undefined) updates.push({ column: 'description', value: patch.description })
         if (patch.criticality !== undefined) updates.push({ column: 'criticality', value: patch.criticality })
         if (patch.owner !== undefined) updates.push({ column: 'owner', value: patch.owner })
         if (patch.sla !== undefined) updates.push({ column: 'sla', value: patch.sla })
@@ -89,7 +94,7 @@ export class CmdbServiceRepo implements IServiceRepo {
         const result = await this.pg.query<ServiceRow>(
             `UPDATE cmdb_services SET ${setClause}
              WHERE id = $${params.length}
-             RETURNING id, code, name, criticality, owner, sla, status, created_at`,
+             RETURNING id, code, name, description, criticality, owner, sla, status, created_at`,
             params
         )
         return result.rows[0] ? mapService(result.rows[0]) : null
@@ -97,7 +102,7 @@ export class CmdbServiceRepo implements IServiceRepo {
 
     async getById(id: string): Promise<CmdbServiceRecord | null> {
         const result = await this.pg.query<ServiceRow>(
-            `SELECT id, code, name, criticality, owner, sla, status, created_at
+            `SELECT id, code, name, description, criticality, owner, sla, status, created_at
              FROM cmdb_services
              WHERE id = $1`,
             [id]
@@ -124,7 +129,7 @@ export class CmdbServiceRepo implements IServiceRepo {
 
         const listParams = [...params, limit, offset]
         const result = await this.pg.query<ServiceRow>(
-            `SELECT id, code, name, criticality, owner, sla, status, created_at
+            `SELECT id, code, name, description, criticality, owner, sla, status, created_at
              FROM cmdb_services
              ${whereClause}
              ORDER BY name ASC

@@ -36,3 +36,6 @@
 
 -- 11. CMDB & WF demo data (depends on assets existing)
 \i seed-qlts-demo.sql
+
+-- 12. CMDB services extended data
+\i seed-cmdb.sql

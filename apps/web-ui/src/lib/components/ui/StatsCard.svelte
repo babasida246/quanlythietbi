@@ -1,7 +1,6 @@
 <!--
   StatsCard — enterprise-grade KPI card for dashboards.
-  Has a 2px left accent coloured by tone.
-  Never looks like an input (bg-surface-2, shadow, no height constraint).
+  Has a 2px left accent coloured by tone, with token-driven card backgrounds.
 
   Props:
     label   — short uppercase label
@@ -32,35 +31,38 @@
     testid,
   }: Props = $props();
 
-  const accentBorder: Record<string, string> = {
-    neutral: 'border-l-slate-500',
-    primary: 'border-l-blue-500',
-    success: 'border-l-emerald-500',
-    warning: 'border-l-amber-500',
-    danger:  'border-l-red-500',
+  const ACCENT: Record<string, string> = {
+    neutral: 'var(--card-neutral-accent)',
+    primary: 'var(--card-total-accent)',
+    success: 'var(--card-active-accent)',
+    warning: 'var(--card-repair-accent)',
+    danger:  'var(--card-expired-accent)',
   };
 
-  const valueColour: Record<string, string> = {
-    neutral: 'text-slate-100',
-    primary: 'text-blue-300',
-    success: 'text-emerald-300',
-    warning: 'text-amber-300',
-    danger:  'text-red-300',
+  const BG: Record<string, string> = {
+    neutral: 'var(--card-neutral-bg)',
+    primary: 'var(--card-total-bg)',
+    success: 'var(--card-active-bg)',
+    warning: 'var(--card-repair-bg)',
+    danger:  'var(--card-expired-bg)',
   };
 </script>
 
 <div
-  class="card card-body flex flex-col gap-1 border-l-2 {accentBorder[tone]}"
+  class="card card-body flex flex-col gap-1"
+  style="border-left: 2px solid {ACCENT[tone]}; background: {BG[tone]};"
   data-testid={testid}
 >
   <div class="flex items-start justify-between gap-2">
     <p class="label-base mb-0 text-2xs uppercase tracking-widest">{label}</p>
     {#if Icon}
-      <Icon class="h-4 w-4 shrink-0 text-slate-500" />
+      <span style="color: {ACCENT[tone]};">
+        <Icon class="h-4 w-4 shrink-0" />
+      </span>
     {/if}
   </div>
-  <p class="text-2xl font-bold leading-tight {valueColour[tone]}">{value}</p>
+  <p class="text-2xl font-bold leading-tight" style="color: {ACCENT[tone]};">{value}</p>
   {#if hint}
-    <p class="text-2xs text-slate-500">{hint}</p>
+    <p class="text-2xs" style="color: var(--color-text-dim);">{hint}</p>
   {/if}
 </div>

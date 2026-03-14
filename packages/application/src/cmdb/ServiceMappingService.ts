@@ -17,7 +17,7 @@ export class ServiceMappingService {
     ) { }
 
     async createService(
-        input: { code: string; name: string; criticality?: string | null; owner?: string | null; sla?: string | null; status?: string | null },
+        input: { code: string; name: string; description?: string | null; criticality?: string | null; owner?: string | null; sla?: string | null; status?: string | null },
         ctx: CmdbContext
     ): Promise<CmdbServiceRecord> {
         const created = await this.services.create(input)

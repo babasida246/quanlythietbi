@@ -7,7 +7,6 @@
     "scripts": {
         "dev": "pnpm --filter @qltb/api dev",
         "dev:web": "pnpm --filter @qltb/web-ui dev",
-        "dev:packages": "concurrently -n \"app,contracts,domain,infra\" -c \"cyan,magenta,yellow,green\" \"pnpm --filter @qltb/application dev\" \"pnpm --filter @qltb/contracts dev\" \"pnpm --filter @qltb/domain dev\" \"pnpm --filter @qltb/infra-postgres dev\"",
         "dev:all": "concurrently -n \"pkgs,api,web\" -c \"cyan,green,blue\" --kill-others-on-fail \"pnpm dev:packages\" \"pnpm dev\" \"pnpm dev:web\"",
         "dev:infra": "docker-compose -f docker-compose.dev.yml up -d",
         "deploy": "docker-compose up -d --build",
@@ -30,14 +29,12 @@
         "test:e2e": "playwright test",
         "test:api": "playwright test --project=api",
         "test:ui": "playwright test --project=chromium",
-        "test:ui:all": "playwright test --project=chromium",
         "test:smoke": "playwright test --grep @smoke",
         "test:headed": "playwright test --headed",
         "test:debug": "playwright test --debug",
         "test:report": "playwright show-report",
         "test:docker": "docker-compose -f docker-compose.test.yml up --build --abort-on-container-exit",
         "test:docker:clean": "docker-compose -f docker-compose.test.yml down -v",
-        "lint": "echo 'TODO: setup eslint'",
         "typecheck": "tsc --build",
         "clean": "pnpm -r exec rm -rf node_modules dist",
         "db:empty": "node scripts/db-empty.mjs",
@@ -45,10 +42,6 @@
         "db:seed": "node scripts/db-seed.mjs",
         "db:reset": "pnpm db:empty && pnpm db:migrate && pnpm db:seed",
         "db:setup": "node scripts/db-setup.mjs",
-        "db:seed:deterministic": "node packages/infra-postgres/src/seeds/deterministic-seed.mjs",
-        "db:migrate:assets": "docker compose -f docker/compose.assets.yml --env-file .env.assets exec -T api /app/docker/scripts/migrate-assets.sh",
-        "db:seed:assets": "docker compose -f docker/compose.assets.yml exec -T api /app/docker/scripts/seed-assets.sh",
-        "db:reset:assets": "docker compose -f docker/compose.assets.yml exec -T api /app/docker/scripts/reset-assets.sh",
         "setup:status": "node -e \"fetch('http://localhost:3000/api/setup/status').then((r)=>r.text()).then(console.log).catch((e)=>{console.error(e);process.exit(1);})\""
     },
     "devDependencies": {

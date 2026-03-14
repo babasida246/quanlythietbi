@@ -6,15 +6,9 @@ BEGIN;
 
     -- Add warehouse_id column to assets
     ALTER TABLE assets
-    ADD COLUMN
-    IF NOT EXISTS warehouse_id UUID
-        REFERENCES warehouses
-    (id) ON
-    DELETE
-    SET NULL;
+    ADD COLUMN IF NOT EXISTS warehouse_id UUID
+        REFERENCES warehouses(id) ON DELETE SET NULL;
 
-    CREATE INDEX
-    IF NOT EXISTS idx_assets_warehouse_id ON assets
-    (warehouse_id);
+    CREATE INDEX IF NOT EXISTS idx_assets_warehouse_id ON assets(warehouse_id);
 
     COMMIT;

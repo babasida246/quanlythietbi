@@ -1,6 +1,9 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
   import { page } from '$app/state';
   import { _, isLoading } from '$lib/i18n';
+  import type { Capabilities } from '$lib/auth/capabilities';
+  import { loadHiddenSiteHrefs } from '$lib/config/hiddenSites';
   import {
     Bell,
     ClipboardList,
@@ -19,7 +22,8 @@
     Link,
     ShieldCheck,
     HelpCircle,
-    GitBranch
+    GitBranch,
+    Palette
   } from 'lucide-svelte';
 
   type NavItem = {
@@ -31,12 +35,6 @@
     match?: (path: string) => boolean;
   };
 
-  type Capabilities = {
-    canViewAssets: boolean;
-    canViewRequests: boolean;
-    isAdmin: boolean;
-  };
-
   type Props = {
     visible: boolean;
     capabilities: Capabilities;
@@ -46,18 +44,19 @@
   };
 
   let { visible, capabilities, userEmail, userRole, onclose }: Props = $props();
+  let hiddenHrefs = $state<string[]>([]);
 
   const myItems: NavItem[] = [
-    { href: '/me/assets', labelKey: 'nav.myAssets', icon: HardDrive, testId: 'nav-my-assets', requires: (caps) => caps.canViewAssets },
+    { href: '/me/assets', labelKey: 'nav.myAssets', icon: HardDrive, testId: 'nav-my-assets', requires: (caps) => caps.assets.read },
     {
       href: '/requests',
       labelKey: 'nav.requests',
       icon: ClipboardList,
       testId: 'nav-requests',
-      requires: (caps) => caps.canViewRequests,
+      requires: (caps) => caps.requests.read,
       match: (path) => path === '/requests' || path.startsWith('/requests?') || path === '/me/requests' || path === '/inbox'
     },
-    { href: '/notifications', labelKey: 'nav.notifications', icon: Bell, testId: 'nav-notifications', requires: (caps) => caps.canViewRequests || caps.canViewAssets },
+    { href: '/notifications', labelKey: 'nav.notifications', icon: Bell, testId: 'nav-notifications', requires: (caps) => caps.requests.read || caps.assets.read },
   ];
 
   const assetItems: NavItem[] = [
@@ -66,32 +65,46 @@
       labelKey: 'nav.assets',
       icon: HardDrive,
       testId: 'nav-assets',
-      requires: (caps) => caps.canViewAssets,
+      requires: (caps) => caps.assets.read,
       match: (path) => path === '/assets' || (path.startsWith('/assets/') && !path.startsWith('/assets/catalogs'))
     },
-    { href: '/assets/catalogs', labelKey: 'nav.catalogs', icon: Layers, testId: 'nav-catalogs', requires: (caps) => caps.canViewAssets },
-    { href: '/cmdb', labelKey: 'nav.cmdb', icon: Database, testId: 'nav-cmdb', requires: (caps) => caps.canViewAssets },
-    { href: '/inventory', labelKey: 'nav.inventory', icon: ClipboardList, testId: 'nav-inventory', requires: (caps) => caps.canViewAssets },
-    { href: '/warehouse/stock', labelKey: 'nav.warehouse', icon: Warehouse, testId: 'nav-warehouse', requires: (caps) => caps.canViewAssets },
-    { href: '/maintenance', labelKey: 'nav.maintenance', icon: Wrench, testId: 'nav-maintenance', requires: (caps) => caps.canViewAssets, match: (path) => path === '/maintenance' || path.startsWith('/maintenance/') },
-    { href: '/reports', labelKey: 'nav.reports', icon: BarChart3, testId: 'nav-reports', requires: (caps) => caps.canViewAssets, match: (path) => path.startsWith('/reports') },
-    { href: '/analytics', labelKey: 'nav.analytics', icon: TrendingUp, testId: 'nav-analytics', requires: (caps) => caps.canViewAssets },
-    { href: '/automation', labelKey: 'nav.automation', icon: GitBranch, testId: 'nav-automation', requires: (caps) => caps.isAdmin },
-    { href: '/integrations', labelKey: 'nav.integrations', icon: Link, testId: 'nav-integrations', requires: (caps) => caps.isAdmin },
-    { href: '/security', labelKey: 'nav.security', icon: ShieldCheck, testId: 'nav-security', requires: (caps) => caps.isAdmin },
-    { href: '/admin', labelKey: 'nav.admin', icon: Shield, testId: 'nav-admin', requires: (caps) => caps.isAdmin }
+    { href: '/assets/catalogs', labelKey: 'nav.catalogs', icon: Layers, testId: 'nav-catalogs', requires: (caps) => caps.categories.read },
+    { href: '/cmdb', labelKey: 'nav.cmdb', icon: Database, testId: 'nav-cmdb', requires: (caps) => caps.cmdb.read },
+    { href: '/inventory', labelKey: 'nav.inventory', icon: ClipboardList, testId: 'nav-inventory', requires: (caps) => caps.inventory.read },
+    { href: '/warehouse/stock', labelKey: 'nav.warehouse', icon: Warehouse, testId: 'nav-warehouse', requires: (caps) => caps.warehouse.read },
+    { href: '/maintenance', labelKey: 'nav.maintenance', icon: Wrench, testId: 'nav-maintenance', requires: (caps) => caps.maintenance.read, match: (path) => path === '/maintenance' || path.startsWith('/maintenance/') },
+    { href: '/reports', labelKey: 'nav.reports', icon: BarChart3, testId: 'nav-reports', requires: (caps) => caps.reports.read, match: (path) => path.startsWith('/reports') },
+    { href: '/analytics', labelKey: 'nav.analytics', icon: TrendingUp, testId: 'nav-analytics', requires: (caps) => caps.analytics.read },
+    { href: '/automation', labelKey: 'nav.automation', icon: GitBranch, testId: 'nav-automation', requires: (caps) => caps.automation.read },
+    { href: '/integrations', labelKey: 'nav.integrations', icon: Link, testId: 'nav-integrations', requires: (caps) => caps.integrations.read },
+    { href: '/security', labelKey: 'nav.security', icon: ShieldCheck, testId: 'nav-security', requires: (caps) => caps.security.read },
+    { href: '/admin', labelKey: 'nav.admin', icon: Shield, testId: 'nav-admin', requires: (caps) => caps.admin.users || caps.admin.roles || caps.admin.settings }
   ];
 
   const supportItems: NavItem[] = [
+    { href: '/settings/theme', labelKey: 'nav.themeCustomizer', icon: Palette, testId: 'nav-theme-customizer' },
+    { href: '/settings/print', labelKey: 'nav.printCustomizer', icon: Palette, testId: 'nav-print-customizer', requires: (caps) => caps.reports.read },
     { href: '/help', labelKey: 'nav.help', icon: HelpCircle, testId: 'nav-help' }
   ];
 
-  const visibleMyItems = $derived.by(() => myItems.filter((item) => !item.requires || item.requires(capabilities)));
-  const visibleAssetItems = $derived.by(() => assetItems.filter((item) => !item.requires || item.requires(capabilities)));
-  const visibleSupportItems = $derived.by(() => supportItems.filter((item) => !item.requires || item.requires(capabilities)));
+  onMount(async () => {
+    try {
+      hiddenHrefs = await loadHiddenSiteHrefs();
+    } catch {
+      hiddenHrefs = [];
+    }
+  });
 
-  const activeItemClass = 'bg-primary/15 text-primary font-semibold';
-  const inactiveItemClass = 'text-slate-300 hover:bg-surface-3/50 hover:text-slate-100 font-medium';
+  function isTemporarilyHidden(item: NavItem): boolean {
+    return hiddenHrefs.includes(item.href);
+  }
+
+  const visibleMyItems = $derived.by(() => myItems.filter((item) => (!item.requires || item.requires(capabilities)) && !isTemporarilyHidden(item)));
+  const visibleAssetItems = $derived.by(() => assetItems.filter((item) => (!item.requires || item.requires(capabilities)) && !isTemporarilyHidden(item)));
+  const visibleSupportItems = $derived.by(() => supportItems.filter((item) => (!item.requires || item.requires(capabilities)) && !isTemporarilyHidden(item)));
+
+  const activeItemClass = 'sidebar-nav-active';
+  const inactiveItemClass = 'sidebar-nav-item';
 
   const isActiveItem = (item: NavItem) => {
     const path = page.url.pathname;
@@ -102,8 +115,7 @@
 
 <aside
   class="
-    fixed left-0 top-[49px] bottom-0 z-40 w-64 bg-surface-bg
-    border-r border-slate-700/60
+    fixed left-0 top-[49px] bottom-0 z-40 w-64 sidebar-always-dark
     transform transition-transform duration-200 ease-in-out
     {visible ? 'translate-x-0' : '-translate-x-full'}
   "
@@ -112,7 +124,7 @@
   <nav class="h-full overflow-y-auto custom-scrollbar px-2 py-3 space-y-4" aria-label="Sidebar navigation">
     {#if visibleMyItems.length > 0}
       <div role="group" aria-labelledby="nav-group-my">
-        <p id="nav-group-my" class="px-3 mb-1.5 text-2xs font-semibold uppercase tracking-widest text-slate-400">
+        <p id="nav-group-my" class="px-3 mb-1.5 text-2xs font-semibold uppercase tracking-widest sidebar-group-label">
           {$isLoading ? 'MY' : $_('nav.groupMy', { default: 'MY' })}
         </p>
         <div class="space-y-0.5">
@@ -136,7 +148,7 @@
 
     {#if visibleAssetItems.length > 0}
       <div role="group" aria-labelledby="nav-group-assets">
-        <p id="nav-group-assets" class="px-3 mb-1.5 text-2xs font-semibold uppercase tracking-widest text-slate-400">
+        <p id="nav-group-assets" class="px-3 mb-1.5 text-2xs font-semibold uppercase tracking-widest sidebar-group-label">
           {$isLoading ? 'ASSETS' : $_('nav.groupAssets', { default: 'ASSETS' })}
         </p>
         <div class="space-y-0.5">
@@ -160,7 +172,7 @@
 
     {#if visibleSupportItems.length > 0}
       <div role="group" aria-labelledby="nav-group-support">
-        <p id="nav-group-support" class="px-3 mb-1.5 text-2xs font-semibold uppercase tracking-widest text-slate-400">
+        <p id="nav-group-support" class="px-3 mb-1.5 text-2xs font-semibold uppercase tracking-widest sidebar-group-label">
           {$isLoading ? 'SUPPORT' : $_('nav.groupSupport', { default: 'SUPPORT' })}
         </p>
         <div class="space-y-0.5">
@@ -184,11 +196,11 @@
 
     <!-- Mobile-only user info -->
     <div class="mt-auto border-t border-slate-700/40 pt-3 sm:hidden">
-      <div class="px-3 text-xs text-slate-400">
+      <div class="px-3 text-xs sidebar-group-label">
         {#if userEmail}
           <div class="font-semibold text-slate-100 truncate">{userEmail}</div>
           {#if userRole}
-            <div class="mt-0.5 text-2xs uppercase tracking-wide text-slate-400">{userRole}</div>
+            <div class="mt-0.5 text-2xs uppercase tracking-wide sidebar-group-label">{userRole}</div>
           {/if}
         {:else}
           <div>{$isLoading ? 'Guest' : $_('auth.login')}</div>

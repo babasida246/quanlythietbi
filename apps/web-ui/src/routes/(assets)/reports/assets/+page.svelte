@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
+  import PageHeader from '$lib/components/PageHeader.svelte';
   import { _, isLoading } from '$lib/i18n';
   import ReportsPanel from '$lib/assets/components/ReportsPanel.svelte';
   import { listAssets, type AssetStatus } from '$lib/api/assets';
@@ -10,6 +12,10 @@
   let locationRows = $state<Array<{ label: string; value: number }>>([]);
   let loading = $state(true);
   let error = $state('');
+
+  const totalAssets = $derived(statusRows.reduce((sum, row) => sum + row.value, 0));
+  const totalCategories = $derived(categoryRows.length);
+  const totalLocations = $derived(locationRows.length);
 
   const statusLabels = $derived.by<Array<{ key: AssetStatus; label: string }>>(() => ([
     { key: 'in_stock', label: $_('assets.statusLabels.inStock') },
@@ -55,32 +61,46 @@
     }
   }
 
-  $effect(() => {
+  onMount(() => {
     void loadReports();
   });
 </script>
 
-  <div class="page-shell page-content">
-  <div class="mb-6">
-    <h1 class="text-2xl font-semibold">{$isLoading ? 'Asset Reports' : $_('reports.assetsTitle')}</h1>
-    <p class="text-sm text-gray-500">
-      {$isLoading ? 'Summary by status, category, and location' : $_('reports.assetsSubtitle')}
-    </p>
-  </div>
+<div class="page-shell page-content space-y-4">
+  <PageHeader
+    title={$isLoading ? 'Asset Reports' : $_('reports.assetsTitle')}
+    subtitle={$isLoading ? 'Summary by status, category, and location' : $_('reports.assetsSubtitle')}
+  />
+
+  <section class="grid grid-cols-1 gap-3 sm:grid-cols-3">
+    <div class="card p-3">
+      <p class="text-xs uppercase tracking-wider" style="color: var(--color-text-muted)">{$isLoading ? 'Total assets' : $_('reports.col.total')}</p>
+      <p class="mt-1 text-2xl font-bold tabular-nums" style="color: var(--color-text)">{totalAssets.toLocaleString('vi-VN')}</p>
+    </div>
+    <div class="card p-3">
+      <p class="text-xs uppercase tracking-wider" style="color: var(--color-text-muted)">{$isLoading ? 'Categories' : $_('assets.category')}</p>
+      <p class="mt-1 text-2xl font-bold tabular-nums" style="color: var(--color-text)">{totalCategories}</p>
+    </div>
+    <div class="card p-3">
+      <p class="text-xs uppercase tracking-wider" style="color: var(--color-text-muted)">{$isLoading ? 'Locations' : $_('assets.location')}</p>
+      <p class="mt-1 text-2xl font-bold tabular-nums" style="color: var(--color-text)">{totalLocations}</p>
+    </div>
+  </section>
 
   {#if error}
-    <div class="alert alert-error mb-4">{error}</div>
+    <div class="alert alert-error">{error}</div>
   {/if}
 
   {#if loading}
-    <div class="flex items-center justify-center p-8">
+    <div class="card flex items-center justify-center p-8">
       <div class="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
     </div>
   {:else}
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div class="grid grid-cols-1 gap-4 lg:grid-cols-3">
       <ReportsPanel title={$isLoading ? 'Status' : $_('assets.status')} rows={statusRows} />
       <ReportsPanel title={$isLoading ? 'Category' : $_('assets.category')} rows={categoryRows} />
       <ReportsPanel title={$isLoading ? 'Location' : $_('assets.location')} rows={locationRows} />
     </div>
   {/if}
-</div>
+
+  </div>

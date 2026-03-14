@@ -108,9 +108,9 @@
           'text-wrap': 'ellipsis',
           'text-margin-y': 7,
           ...(perfMode ? {} : {
-            'shadow-blur': 6,
+            'shadow-blur': 8,
             'shadow-color': 'data(color)',
-            'shadow-opacity': 0.35,
+            'shadow-opacity': 0.5,
             'shadow-offset-x': 0,
             'shadow-offset-y': 0,
           }),
@@ -148,16 +148,16 @@
       {
         selector: 'edge',
         style: {
-          width: 1.5,
-          'line-color': 'rgba(148,163,184,0.35)',
-          'target-arrow-color': 'rgba(148,163,184,0.35)',
+          width: 2,
+          'line-color': 'rgba(148,163,184,0.6)',
+          'target-arrow-color': 'rgba(148,163,184,0.6)',
           'target-arrow-shape': 'triangle',
           'curve-style': 'bezier',
           label: '',
           'font-size': '9px',
           'text-rotation': 'autorotate',
           'text-margin-y': -7,
-          color: '#94A3B8',
+          color: '#CBD5E1',
         },
       },
       { selector: 'edge.show-label', style: { label: 'data(label)' } },
@@ -428,7 +428,7 @@
 
   function exportPng() {
     if (!cy) return;
-    const url = cy.png({ scale: 2, full: true, bg: '#0B1220' });
+    const url = cy.png({ scale: 2, full: true, bg: '#1E293B' });
     const a = document.createElement('a');
     a.href = url; a.download = `cmdb-topology-${new Date().toISOString().slice(0, 10)}.png`; a.click();
   }
@@ -494,7 +494,7 @@
 <svelte:document onclick={() => { ctxMenu = null; }} />
 
 <!-- ─── Root layout ──────────────────────────────────────────────────────────── -->
-<div class="flex h-full overflow-hidden bg-[#0B1220] relative select-none">
+<div class="flex h-full overflow-hidden bg-[#0F172A] relative select-none">
 
   <!-- Left filter panel -->
   <CmdbFiltersPanel
@@ -507,8 +507,8 @@
   <div class="flex min-w-0 flex-1 flex-col">
 
     <!-- Page header strip -->
-    <header class="flex h-11 shrink-0 items-center gap-2 border-b border-slate-700/50
-                   bg-[#121B2E]/80 px-4 backdrop-blur-sm">
+    <header class="flex h-11 shrink-0 items-center gap-2 border-b border-slate-700/60
+                   bg-[#0F172A]/95 px-4 backdrop-blur-sm">
       <nav class="flex items-center gap-1 text-xs text-slate-500 truncate">
         <span>{$isLoading ? 'CMDB' : $_('cmdb.pageTitle')}</span>
         <ChevronRight size={12} />
@@ -537,9 +537,9 @@
 
     <!-- Canvas area -->
     <div class="relative flex-1 overflow-hidden"
-         style="background-color:#0B1220;
-                background-image:linear-gradient(rgba(148,163,184,0.04) 1px,transparent 1px),
-                                 linear-gradient(90deg,rgba(148,163,184,0.04) 1px,transparent 1px);
+         style="background-color:#1E293B;
+                background-image:linear-gradient(rgba(148,163,184,0.07) 1px,transparent 1px),
+                                 linear-gradient(90deg,rgba(148,163,184,0.07) 1px,transparent 1px);
                 background-size:40px 40px;">
 
       <!-- Cytoscape mount -->
@@ -547,7 +547,7 @@
 
       <!-- Loading overlay -->
       {#if loading}
-      <div class="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-[#0B1220]/80 backdrop-blur-[2px]">
+      <div class="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-[#1E293B]/80 backdrop-blur-[2px]">
         <Loader2 size={28} class="animate-spin text-blue-500" />
         <span class="text-sm text-slate-400">{$isLoading ? 'Loading topology…' : $_('cmdb.topology.loading')}</span>
       </div>
@@ -565,7 +565,7 @@
 
       <!-- Empty state -->
       {#if !loading && stats.nodes === 0 && !error}
-      <div class="absolute inset-0 flex flex-col items-center justify-center gap-2 text-slate-500">
+      <div class="absolute inset-0 flex flex-col items-center justify-center gap-2 text-slate-400">
         <BarChart3 size={36} class="opacity-30" />
         <p class="text-sm">{$isLoading ? 'No CIs match the current filters.' : $_('cmdb.topology.noMatchingCis')}</p>
         <button onclick={resetFilters} class="mt-1 text-xs text-blue-400 hover:text-blue-300 underline">{$isLoading ? 'Reset filters' : $_('cmdb.topology.resetFilters')}</button>
@@ -576,7 +576,7 @@
       {#if !loading}
       <div class="pointer-events-auto absolute left-1/2 top-3 z-20
                   flex -translate-x-1/2 items-center gap-1 rounded-xl
-                  border border-slate-700/60 bg-[#121B2E]/85 px-2 py-1.5
+                  border border-slate-600/70 bg-[#0F172A]/90 px-2 py-1.5
                   shadow-2xl backdrop-blur-md">
 
         <!-- Search -->
@@ -663,7 +663,7 @@
       <!-- svelte-ignore a11y_click_events_have_key_events -->
       <!-- svelte-ignore a11y_no_static_element_interactions -->
       <div class="pointer-events-auto absolute z-30 min-w-[160px] overflow-hidden rounded-lg
-                  border border-slate-700/70 bg-[#121B2E]/95 py-1 shadow-2xl backdrop-blur-md"
+                  border border-slate-600/70 bg-[#0F172A]/95 py-1 shadow-2xl backdrop-blur-md"
            style="left:{ctxMenu.x}px; top:{ctxMenu.y}px"
            onclick={(e: MouseEvent) => e.stopPropagation()}>
         {#each [

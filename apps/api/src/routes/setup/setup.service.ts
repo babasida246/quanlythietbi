@@ -28,6 +28,15 @@ export type SetupFinalizeInput = {
     completedBy?: string
 }
 
+export type OrgInfo = {
+    name: string
+    shortName: string
+    address?: string
+    phone?: string
+    taxCode?: string
+    website?: string
+}
+
 type MigrationFile = {
     fileName: string
     filePath: string
@@ -355,6 +364,25 @@ export class SetupService {
             username: created.username,
             role: 'admin'
         }
+    }
+
+    async saveOrgInfo(info: OrgInfo): Promise<OrgInfo> {
+        await this.ensureSetupTables()
+        const sanitized: OrgInfo = {
+            name: info.name.trim(),
+            shortName: info.shortName.trim().toUpperCase(),
+            address: info.address?.trim() || undefined,
+            phone: info.phone?.trim() || undefined,
+            taxCode: info.taxCode?.trim() || undefined,
+            website: info.website?.trim() || undefined,
+        }
+        await this.upsertMeta('org.info', sanitized as unknown as AppMetaValue)
+        return sanitized
+    }
+
+    async getOrgInfo(): Promise<OrgInfo | null> {
+        await this.ensureSetupTables()
+        return this.readMeta<OrgInfo>('org.info')
     }
 
     async finalizeSetup(input: SetupFinalizeInput): Promise<{ completedAt: string; completedBy: string; version: string }> {

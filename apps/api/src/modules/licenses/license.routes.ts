@@ -55,6 +55,19 @@ export async function licenseRoutes(
 
         // ==================== Licenses CRUD ====================
 
+        // Get licenses assigned to a specific asset
+        licenseApp.get('/asset/:assetId', {
+            schema: {
+                tags: ['Licenses'],
+                summary: 'Get licenses assigned to an asset',
+                params: { type: 'object', properties: { assetId: { type: 'string' } } }
+            }
+        }, async (request: FastifyRequest<{ Params: { assetId: string } }>, reply) => {
+            const { assetId } = request.params;
+            const licenses = await service.getLicensesByAsset(assetId);
+            return { data: licenses };
+        });
+
         // List licenses
         licenseApp.get('/', {
             schema: {

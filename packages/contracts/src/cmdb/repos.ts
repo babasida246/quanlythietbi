@@ -100,7 +100,7 @@ export interface ICmdbChangeRepo {
 }
 
 export interface IServiceRepo {
-    create(input: { code: string; name: string; criticality?: string | null; owner?: string | null; sla?: string | null; status?: string | null }): Promise<CmdbServiceRecord>
+    create(input: { code: string; name: string; description?: string | null; criticality?: string | null; owner?: string | null; sla?: string | null; status?: string | null }): Promise<CmdbServiceRecord>
     update(id: string, patch: Partial<CmdbServiceRecord>): Promise<CmdbServiceRecord | null>
     getById(id: string): Promise<CmdbServiceRecord | null>
     list(filters: { q?: string; page?: number; limit?: number }): Promise<CmdbServicePage>

@@ -36,6 +36,8 @@
     "automation": "Workflows",
     "integrations": "Integrations",
     "security": "Security",
+    "themeCustomizer": "Theme customizer",
+    "printCustomizer": "Print templates",
     "groupMy": "MY",
     "groupAssets": "ASSET MANAGEMENT",
     "groupSupport": "SUPPORT"
@@ -626,6 +628,9 @@
       "ownerPlaceholder": "Team / person",
       "sla": "SLA",
       "slaPlaceholder": "99.9%",
+      "slaUptime": "SLA Uptime",
+      "slaResponseTime": "Response Time",
+      "slaResolutionTime": "Resolution Time",
       "save": "Save",
       "dependencyPlaceholder": "primary / dependency"
     },
@@ -739,6 +744,7 @@
     "vendor": "Vendor",
     "model": "Model",
     "location": "Location",
+    "warehouse": "Warehouse",
     "status": "Status",
     "specs": "Specs",
     "mgmtIp": "Mgmt IP",
@@ -784,8 +790,11 @@
     },
     "tabs": {
       "overview": "Overview",
+      "specs": "Specifications",
       "lifecycle": "Lifecycle",
+      "repairs": "Repairs",
       "maintenance": "Maintenance",
+      "software": "Software",
       "warranty": "Warranty",
       "inventory": "Inventory",
       "workflow": "Workflow",
@@ -847,6 +856,39 @@
       "attachments": "Attachments",
       "timeline": "Timeline events",
       "maintenance": "Maintenance tickets"
+    },
+    "specifications": "Technical Specifications",
+    "noSpecsDefined": "No technical specifications recorded.",
+    "repairOrders": {
+      "empty": "No repair orders found.",
+      "type": "Repair type",
+      "technician": "Technician",
+      "technicianPlaceholder": "Technician name (optional)",
+      "severity": "Severity",
+      "createBtn": "Create Repair Order",
+      "title": "Title",
+      "titlePlaceholder": "Repair summary...",
+      "corrective": "Corrective",
+      "preventive": "Preventive",
+      "emergency": "Emergency",
+      "downtime": "Downtime",
+      "diagnosis": "Diagnosis",
+      "resolution": "Resolution",
+      "noParts": "No parts used.",
+      "parts": "Parts used",
+      "partName": "Part",
+      "partAction": "Action",
+      "partQty": "Qty",
+      "partCost": "Unit cost",
+      "loadParts": "Load parts..."
+    },
+    "software": {
+      "empty": "No software licenses assigned.",
+      "name": "Software",
+      "licenseCode": "License code",
+      "type": "License type",
+      "expiry": "Expiry date",
+      "manageLink": "Manage Licenses →"
     },
     "maintenanceEmpty": "No maintenance records yet.",
     "warranty": "Warranty",
@@ -977,11 +1019,13 @@
     "subtitleCount": "{count} assets",
     "selectAll": "Select all",
     "select": "Select {item}",
+    "reportIncident": "Report Incident",
     "toast": {
       "createSuccess": "Asset created successfully",
       "updateSuccess": "Asset updated successfully",
       "deleteSuccess": "Asset deleted successfully",
-      "exportSuccess": "CSV exported successfully"
+      "exportSuccess": "CSV exported successfully",
+      "incidentReported": "Incident reported successfully"
     },
     "validation": {
       "nameRequired": "Asset name is required",
@@ -994,11 +1038,25 @@
       "selectVendor": "Select vendor",
       "selectLocation": "Select location",
       "selectStatus": "Select status",
-      "note": "Note"
+      "note": "Note",
+      "basicInfo": "Basic Information",
+      "classification": "Classification"
     },
-    "noSpecsDefined": "No specifications defined"
+    "noSpecsDefined": "No specifications defined",
+    "createAssetHint": "Fill in the details below. Fields marked * are required.",
+    "assetNamePlaceholder": "e.g. PC-Finance-01",
+    "createSuccessTitle": "Asset created successfully!",
+    "createAnother": "Create another",
+    "backToList": "Back to list",
+    "specHint": "Specifications are loaded from the model and can be customized per asset.",
+    "specLoadedFromModel": "Specs from model"
   },
   "maintenance": {
+    "title": "Maintenance",
+    "openMaintenance": "Open maintenance {assetCode}",
+    "titleLabel": "Title",
+    "severity": "Severity",
+    "openedAt": "Opened At",
     "pageTitle": "Maintenance & Repairs",
     "pageSubtitle": "Maintenance tickets and repair orders",
     "tabTickets": "Maintenance Tickets",
@@ -3266,13 +3324,17 @@
       "assetLifecycle": "Asset Lifecycle",
       "repairWorkflow": "Repair Workflow",
       "procurement": "Procurement Process",
-      "inventoryMgmt": "Inventory Management"
+      "inventoryMgmt": "Inventory Management",
+      "assetAllocation": "Asset Allocation & Assignment",
+      "assetDisposal": "Asset Disposal & Retirement"
     },
     "diagramDesc": {
       "assetLifecycle": "Flow from receiving, inspecting, assigning to retiring assets",
       "repairWorkflow": "Repair request flow from ticket creation to completion",
       "procurement": "Procurement from stock check to warehouse receipt and payment",
-      "inventoryMgmt": "Manage receipts, issues, stock counts and transfers"
+      "inventoryMgmt": "Manage receipts, issues, stock counts and transfers",
+      "assetAllocation": "Allocation process from request to user handover",
+      "assetDisposal": "Disposal process for end-of-life or irreparable equipment"
     },
     "clickExpand": "Click to expand",
     "clickCollapse": "Click to collapse",
@@ -4073,7 +4135,18 @@
       "migrations": "Migrations",
       "seed": "Seed data",
       "admin": "Admin",
-      "linkPgAdmin": "pgAdmin"
+      "linkPgAdmin": "pgAdmin",
+      "orgInfoTitle": "Organization Information",
+      "adminAccountTitle": "Administrator Account",
+      "orgName": "Organization name",
+      "orgNamePlaceholder": "e.g. Acme Corporation",
+      "orgShortName": "Short name (logo display)",
+      "orgAddress": "Address",
+      "orgPhone": "Phone",
+      "orgTaxCode": "Tax code",
+      "orgWebsite": "Website",
+      "saveOrg": "Save organization info",
+      "orgSaved": "Organization info saved"
     },
     "systemConfig": {
       "title": "System Configuration",
@@ -4404,5 +4477,150 @@
     "selectPart": "-- Select material --",
     "selectAsset": "-- Select device --",
     "serviceNote": "Describe in note column →"
+  },
+  "themeCustomizer": {
+    "title": "Theme Color Customizer",
+    "subtitle": "Pick global design-token colors and apply to all components",
+    "enable": "Enable custom palette",
+    "enableHint": "Enable customization to apply your global color palette instantly.",
+    "resetMode": "Reset current mode",
+    "resetAll": "Reset all",
+    "dark": "Dark mode",
+    "light": "Light mode",
+    "preview": "Preview",
+    "surfaceSample": "Surface sample",
+    "mutedSample": "Muted text sample",
+    "groups": {
+      "surfaces": "Surfaces",
+      "textBorder": "Text & Borders",
+      "brandStatus": "Brand & Status",
+      "sidebarHeader": "Sidebar & Header"
+    },
+    "tokens": {
+      "colorBg": "App background",
+      "colorSurface": "Card/panel surface",
+      "colorSurface2": "Secondary layer surface",
+      "colorElevated": "Elevated surface (dropdown/popover)",
+      "colorText": "Primary text",
+      "colorTextMuted": "Secondary text",
+      "colorTextDim": "Dim/placeholder text",
+      "colorBorder": "Default border",
+      "colorBorderStrong": "Strong border",
+      "colorPrimary": "Primary",
+      "colorPrimaryHover": "Primary hover",
+      "colorPrimaryActive": "Primary active",
+      "colorSuccess": "Success",
+      "colorWarning": "Warning",
+      "colorDanger": "Danger",
+      "colorInfo": "Info",
+      "sidebarBg": "Sidebar background",
+      "sidebarSurface": "Secondary sidebar/header surface",
+      "sidebarAccent": "Active sidebar item background",
+      "sidebarAccentText": "Active sidebar item text"
+    },
+    "sectionTitle": "Advanced Color Overrides",
+    "sectionSubtitle": "Fine-tune individual color tokens on top of the selected theme"
+  },
+  "themePresets": {
+    "title": "Color Themes",
+    "subtitle": "Select a preset color scheme for the entire application. You can still customize individual tokens below.",
+    "recommended": "Recommended",
+    "sky": {
+      "name": "Sky Pro",
+      "desc": "Professional sky blue — the default palette"
+    },
+    "teal": {
+      "name": "Ocean Teal",
+      "desc": "Elegant teal — suitable for medical environments"
+    },
+    "violet": {
+      "name": "Violet Enterprise",
+      "desc": "Refined violet — corporate, sophisticated"
+    },
+    "slate": {
+      "name": "Slate Clean",
+      "desc": "Minimalist slate — data-focused"
+    },
+    "amber": {
+      "name": "Amber Warm",
+      "desc": "Warm amber — dynamic, great for dashboards"
+    }
+  },
+  "printCustomizer": {
+    "title": "Print Template Customization",
+    "subtitle": "Customize layout, typography and labels for all print templates.",
+    "reset": "Reset to defaults",
+    "openSample": "Open sample print",
+    "tipTitle": "Tip:",
+    "tip": "Changes are saved automatically and applied to all print templates.",
+    "header": {
+      "title": "Header labels",
+      "showLogo": "Show logo placeholder",
+      "logoText": "Logo text",
+      "addressLabel": "Address label",
+      "phoneLabel": "Phone label",
+      "taxLabel": "Tax label",
+      "numberLabel": "Document number label",
+      "codeLabel": "Code label",
+      "dateLabel": "Date label"
+    },
+    "typography": {
+      "title": "Typography and spacing",
+      "fontFamily": "Font family",
+      "fontSize": "Base font size (pt)",
+      "lineHeight": "Line height",
+      "titleSize": "Title size (pt)",
+      "tableFontSize": "Table font size (pt)"
+    },
+    "layout": {
+      "title": "Page padding (mm)"
+    },
+    "signature": {
+      "title": "Signature and footer",
+      "defaultTitleLine": "Default signature note",
+      "datePrefix": "Date prefix",
+      "footerNote": "Footer note"
+    },
+    "templates": {
+      "title": "Custom Word templates",
+      "subtitle": "Import .docx templates with {{field_name}} placeholders, map values, then print/PDF.",
+      "nameLabel": "Template name (optional)",
+      "namePlaceholder": "Example: Asset handover v2",
+      "importLabel": "Import .docx file",
+      "selectedFile": "Selected file",
+      "importing": "Importing template...",
+      "onlyDocx": "Only .docx files are supported.",
+      "importedPrefix": "Template imported",
+      "empty": "No custom templates yet.",
+      "table": {
+        "name": "Template",
+        "fields": "Fields",
+        "updatedAt": "Updated",
+        "actions": "Actions"
+      },
+      "actions": {
+        "select": "Select",
+        "rename": "Rename",
+        "delete": "Delete"
+      },
+      "deleteConfirm": "Are you sure you want to delete this template?",
+      "renamePrompt": "Enter a new template name",
+      "mappingTitle": "Field mapping",
+      "mappingSubtitle": "Fill values for each {{field_name}} placeholder.",
+      "fillSample": "Auto-fill sample",
+      "sampleSource": "Sample data source",
+      "sampleRecord": "Sample record",
+      "autoMapFromSource": "Auto-map from source",
+      "exportPdf": "Export PDF",
+      "exportingPdf": "Exporting PDF...",
+      "pdfExportSuccess": "PDF exported successfully.",
+      "openPreview": "Preview / Print",
+      "noFields": "No placeholders were found in this template.",
+      "sampleSources": {
+        "asset": "Asset sample",
+        "warehouseDoc": "Warehouse document sample",
+        "user": "User sample"
+      }
+    }
   }
 }

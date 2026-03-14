@@ -14,10 +14,13 @@
   let saving = $state(false);
 
   let name = $state('');
-  let criticality = $state('');
+  let criticality = $state('normal');
   let owner = $state('');
-  let sla = $state('');
-  let status = $state('');
+  let slaUptime = $state('');
+  let slaResponseTime = $state('');
+  let slaResolutionTime = $state('');
+  let status = $state('active');
+  let description = $state('');
 
   let memberCiId = $state('');
   let memberRole = $state('');
@@ -33,10 +36,15 @@
       name = service?.name ?? '';
       criticality = service?.criticality ?? '';
       owner = service?.owner ?? '';
-      // sla is stored as JSONB — display as JSON string if object
+      // Parse SLA JSONB into structured fields
       const rawSla = service?.sla;
-      sla = rawSla && typeof rawSla === 'object' ? JSON.stringify(rawSla) : (rawSla ?? '');
-      status = service?.status ?? '';
+      const parsedSla = rawSla && typeof rawSla === 'object' ? rawSla as Record<string, string>
+        : (rawSla ? (() => { try { return JSON.parse(rawSla as string) as Record<string, string> } catch { return {} } })() : {});
+      slaUptime = parsedSla.uptime ?? '';
+      slaResponseTime = parsedSla.response_time ?? '';
+      slaResolutionTime = parsedSla.resolution_time ?? '';
+      status = service?.status ?? 'active';
+      description = (service as any)?.description ?? '';
     } catch (err) {
       error = err instanceof Error ? err.message : 'Failed to load service';
     } finally {
@@ -62,9 +70,12 @@
         name,
         criticality: criticality || null,
         owner: owner || null,
-        sla: sla || null,
-        status: status || null
-      });
+        sla: (slaUptime || slaResponseTime || slaResolutionTime)
+          ? JSON.stringify({ uptime: slaUptime || null, response_time: slaResponseTime || null, resolution_time: slaResolutionTime || null })
+          : null,
+        status: status || null,
+        description: description || null
+      } as any);
       service = response.data;
     } catch (err) {
       error = err instanceof Error ? err.message : 'Failed to update service';
@@ -109,10 +120,15 @@
     }
   }
 
-  const membersColumns = [
-    { key: 'ciId' as const, label: $isLoading ? 'CI' : $_('cmdb.svc.ci'), sortable: true, filterable: true },
+  const membersColumns = $derived([
+    { key: 'ciId' as const, label: $isLoading ? 'CI' : $_('cmdb.svc.ci'), sortable: true, filterable: true,
+      render: (_value: unknown, row: CmdbServiceMember) => {
+        const ci = cis.find(c => c.id === row.ciId)
+        return ci ? `${ci.ciCode} — ${ci.name}` : row.ciId
+      }
+    },
     { key: 'role' as const, label: $isLoading ? 'Role' : $_('cmdb.role'), sortable: true, filterable: true, render: (_value: unknown, row: CmdbServiceMember) => row.role ?? '-' }
-  ];
+  ]);
 
   $effect(() => {
     if (serviceId) {
@@ -152,19 +168,40 @@
         </div>
         <div>
           <label for="service-criticality" class="label-base">{$isLoading ? 'Criticality' : $_('cmdb.svc.criticality')}</label>
-          <input id="service-criticality" class="input-base" bind:value={criticality} placeholder={$isLoading ? 'low / medium / high' : $_('cmdb.svc.criticalityPlaceholder')} />
+          <select id="service-criticality" class="select-base" bind:value={criticality}>
+            <option value="normal">Normal</option>
+            <option value="high">High</option>
+            <option value="critical">Critical</option>
+            <option value="low">Low</option>
+          </select>
         </div>
         <div>
           <label for="service-status" class="label-base">{$isLoading ? 'Status' : $_('cmdb.svc.status')}</label>
-          <input id="service-status" class="input-base" bind:value={status} placeholder={$isLoading ? 'active' : $_('cmdb.svc.statusPlaceholder')} />
+          <select id="service-status" class="select-base" bind:value={status}>
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+            <option value="retired">Retired</option>
+          </select>
         </div>
         <div>
           <label for="service-owner" class="label-base">{$isLoading ? 'Owner' : $_('cmdb.svc.owner')}</label>
           <input id="service-owner" class="input-base" bind:value={owner} placeholder={$isLoading ? 'Team / person' : $_('cmdb.svc.ownerPlaceholder')} />
         </div>
+        <div class="md:col-span-2">
+          <label for="service-description" class="label-base">Description</label>
+          <textarea id="service-description" class="input-base min-h-[56px] resize-y" bind:value={description} placeholder="Brief description of this service…"></textarea>
+        </div>
         <div>
-          <label for="service-sla" class="label-base">{$isLoading ? 'SLA' : $_('cmdb.svc.sla')}</label>
-          <input id="service-sla" class="input-base" bind:value={sla} placeholder={$isLoading ? '99.9%' : $_('cmdb.svc.slaPlaceholder')} />
+          <label for="service-sla-uptime" class="label-base">{$isLoading ? 'SLA Uptime' : $_('cmdb.svc.slaUptime')}</label>
+          <input id="service-sla-uptime" class="input-base" bind:value={slaUptime} placeholder="99.9%" />
+        </div>
+        <div>
+          <label for="service-sla-response" class="label-base">{$isLoading ? 'SLA Response Time' : $_('cmdb.svc.slaResponseTime')}</label>
+          <input id="service-sla-response" class="input-base" bind:value={slaResponseTime} placeholder="1h" />
+        </div>
+        <div>
+          <label for="service-sla-resolution" class="label-base">{$isLoading ? 'SLA Resolution Time' : $_('cmdb.svc.slaResolutionTime')}</label>
+          <input id="service-sla-resolution" class="input-base" bind:value={slaResolutionTime} placeholder="4h" />
         </div>
       </div>
       <Button disabled={saving} onclick={saveService}>{saving ? ($isLoading ? 'Saving...' : $_('cmdb.svc.saving')) : ($isLoading ? 'Save' : $_('cmdb.svc.save'))}</Button>

@@ -54,6 +54,24 @@ export type SetupFinalizeResult = {
     version: string
 }
 
+export type OrgInfoPayload = {
+    name: string
+    shortName: string
+    address?: string
+    phone?: string
+    taxCode?: string
+    website?: string
+}
+
+export type OrgInfoResult = {
+    name: string
+    shortName: string
+    address?: string
+    phone?: string
+    taxCode?: string
+    website?: string
+}
+
 export class SetupApiError extends Error {
     status: number
     details?: unknown
@@ -155,4 +173,16 @@ export async function getApiHealth(): Promise<{ ok: boolean; raw?: unknown }> {
     } catch {
         return { ok: false }
     }
+}
+
+export async function saveSetupOrgInfo(payload: OrgInfoPayload): Promise<OrgInfoResult> {
+    return requestSetup<OrgInfoResult>('/org-info', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+    })
+}
+
+export async function getSetupOrgInfo(): Promise<OrgInfoResult | null> {
+    return requestSetup<OrgInfoResult | null>('/org')
 }

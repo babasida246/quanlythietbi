@@ -66,6 +66,20 @@ export interface LicenseSeatWithDetails extends LicenseSeat {
     assetName?: string;
 }
 
+// License with seat info for a specific asset
+export interface LicenseWithAssetSeat {
+    licenseId: string;
+    licenseCode: string;
+    softwareName: string;
+    licenseType: LicenseType;
+    status: LicenseStatus;
+    expiryDate?: Date;
+    seatId: string;
+    assignedAt: Date;
+    assignedBy: string;
+    notes?: string;
+}
+
 // License audit log
 export interface LicenseAuditLog {
     id: string;

@@ -63,7 +63,7 @@ export type RelationshipTypeRecord = {
     allowedToTypeId?: string | null
 }
 export type CiGraph = { nodes: CiRecord[]; edges: RelationshipRecord[] }
-export type CmdbServiceRecord = { id: string; code: string; name: string; criticality?: string | null; owner?: string | null; sla?: string | null; status?: string | null; createdAt?: string }
+export type CmdbServiceRecord = { id: string; code: string; name: string; description?: string | null; criticality?: string | null; owner?: string | null; sla?: string | null; status?: string | null; createdAt?: string }
 export type CmdbServiceMember = { id: string; serviceId: string; ciId: string; role?: string | null; createdAt?: string }
 export type CmdbRelationshipImportResult = {
     dryRun: boolean
@@ -332,7 +332,15 @@ export async function listServices(params: { q?: string; page?: number; limit?: 
     return apiJson<ApiResponse<CmdbServiceRecord[]>>(`${API_BASE}/v1/cmdb/services${suffix}`, { headers: getAssetHeaders() })
 }
 
-export async function createService(input: { code: string; name: string; criticality?: string | null }): Promise<ApiResponse<CmdbServiceRecord>> {
+export async function createService(input: {
+    code: string
+    name: string
+    description?: string | null
+    criticality?: string | null
+    owner?: string | null
+    sla?: string | null
+    status?: string | null
+}): Promise<ApiResponse<CmdbServiceRecord>> {
     return apiJson<ApiResponse<CmdbServiceRecord>>(`${API_BASE}/v1/cmdb/services`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', ...getAssetHeaders() },

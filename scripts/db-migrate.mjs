@@ -81,6 +81,7 @@ const MIGRATIONS = [
     { label: '057_wf_enhancements.sql', path: join(DB_MIGRATIONS, '057_wf_enhancements.sql') },
     { label: '20260304_001_fix_wf_definitions_request_types.sql', path: join(DB_MIGRATIONS, '20260304_001_fix_wf_definitions_request_types.sql') },
     { label: '20260304_002_business_integrity_constraints.sql', path: join(DB_MIGRATIONS, '20260304_002_business_integrity_constraints.sql') },
+    { label: '20260310_001_add_unit_cost_to_spare_parts.sql', path: join(DB_MIGRATIONS, '20260310_001_add_unit_cost_to_spare_parts.sql') },
 ]
 
 const client = new pg.Client(DATABASE_URL)

@@ -6,6 +6,7 @@
   import { Printer } from 'lucide-svelte';
   import { addNotification } from '$lib/stores/notifications';
   import StockDocumentLines from '$lib/warehouse/StockDocumentLines.svelte';
+  import { openPrintPage } from '$lib/utils/printUtils';
   import {
     approveStockDocument,
     cancelStockDocument,
@@ -198,7 +199,42 @@
   });
 
   function printDoc() {
-    window.print();
+    if (!document) return;
+    const theLines = lines.map((l, i) => ({
+      stt: i + 1,
+      partCode: l.partId,
+      partName: `(${l.partId})`,
+      qty: l.qty,
+      unitCost: l.unitCost ?? undefined,
+      total: l.unitCost ? l.qty * l.unitCost : undefined,
+      serialNo: l.serialNo ?? undefined,
+      note: l.note ?? undefined,
+    }));
+    const printType = document.docType === 'receipt' ? 'phieu-nhap-kho' : 'phieu-xuat-kho';
+    const data = document.docType === 'receipt'
+      ? {
+          code: document.code,
+          date: document.docDate,
+          warehouseName: warehouseName || document.warehouseId || 'Kho',
+          supplier: document.supplier ?? undefined,
+          note: document.note ?? undefined,
+          lines: theLines,
+          preparedBy: document.submitterName ?? undefined,
+          approvedBy: document.approvedBy ?? undefined,
+          receivedBy: document.receiverName ?? undefined,
+        }
+      : {
+          code: document.code,
+          date: document.docDate,
+          warehouseName: warehouseName || document.warehouseId || 'Kho',
+          recipient: document.receiverName ?? undefined,
+          department: document.department ?? undefined,
+          note: document.note ?? undefined,
+          lines: theLines,
+          preparedBy: document.submitterName ?? undefined,
+          approvedBy: document.approvedBy ?? undefined,
+        };
+    openPrintPage(printType, document.id, data);
   }
 </script>
 

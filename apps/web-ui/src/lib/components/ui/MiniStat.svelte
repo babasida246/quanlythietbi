@@ -1,6 +1,7 @@
 <!--
   MiniStat — compact secondary KPI metric.
   Two per row as a supplement to primary StatsCards.
+  Uses token-driven accent colors.
 
   Props:
     label   — metric name
@@ -20,12 +21,12 @@
 
   const { label, value, hint, tone = 'neutral', testid }: Props = $props();
 
-  const valueColour: Record<string, string> = {
-    neutral: 'text-slate-200',
-    primary: 'text-blue-300',
-    success: 'text-emerald-300',
-    warning: 'text-amber-300',
-    danger:  'text-red-300',
+  const ACCENT: Record<string, string> = {
+    neutral: 'var(--card-neutral-accent)',
+    primary: 'var(--card-total-accent)',
+    success: 'var(--card-active-accent)',
+    warning: 'var(--card-repair-accent)',
+    danger:  'var(--card-expired-accent)',
   };
 </script>
 
@@ -35,9 +36,9 @@
 >
   <div class="min-w-0 flex-1">
     <p class="label-base mb-0 text-2xs uppercase tracking-widest truncate">{label}</p>
-    <p class="text-xl font-bold leading-tight {valueColour[tone]}">{value}</p>
+    <p class="text-xl font-bold leading-tight" style="color: {ACCENT[tone]};">{value}</p>
     {#if hint}
-      <p class="text-2xs text-slate-500 mt-0.5">{hint}</p>
+      <p class="text-2xs mt-0.5" style="color: var(--color-text-dim);">{hint}</p>
     {/if}
   </div>
 </div>

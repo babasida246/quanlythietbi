@@ -12,6 +12,8 @@
   import HelpFieldGuide from './HelpFieldGuide.svelte';
   import HelpDiagrams from './HelpDiagrams.svelte';
   import HelpFAQ from './HelpFAQ.svelte';
+  import HelpAssetDetail from './HelpAssetDetail.svelte';
+  import HelpBusinessProcess from './HelpBusinessProcess.svelte';
 
   type TocItem = { id: string; label: string; level: number };
 
@@ -19,15 +21,17 @@
   let copiedId = $state('');
 
   const tocItems: TocItem[] = [
-    { id: 'intro',         label: 'Giới thiệu dự án',           level: 1 },
-    { id: 'prerequisites', label: 'Trước khi bắt đầu',          level: 1 },
-    { id: 'quickstart',    label: 'Quick Start (5 bước)',        level: 1 },
-    { id: 'modules',       label: 'Hướng dẫn theo module',       level: 1 },
-    { id: 'playbooks',     label: 'Kịch bản Work Order',         level: 1 },
-    { id: 'field-guide',   label: 'Bảng mapping trường nhập',    level: 1 },
-    { id: 'charts',        label: 'Biểu đồ & Thống kê',          level: 1 },
-    { id: 'diagrams',      label: 'Flow Diagrams (Mermaid)',      level: 1 },
-    { id: 'faq',           label: 'Troubleshooting',             level: 1 }
+    { id: 'intro',           label: 'Giới thiệu dự án',             level: 1 },
+    { id: 'prerequisites',   label: 'Trước khi bắt đầu',            level: 1 },
+    { id: 'quickstart',      label: 'Quick Start (5 bước)',          level: 1 },
+    { id: 'modules',         label: 'Hướng dẫn theo module',         level: 1 },
+    { id: 'asset-detail',    label: 'Quản lý chi tiết tài sản',      level: 1 },
+    { id: 'business-process',label: 'Quy trình nghiệp vụ (SOP)',     level: 1 },
+    { id: 'playbooks',       label: 'Kịch bản Work Order',           level: 1 },
+    { id: 'field-guide',     label: 'Bảng mapping trường nhập',      level: 1 },
+    { id: 'charts',          label: 'Biểu đồ & Thống kê',            level: 1 },
+    { id: 'diagrams',        label: 'Flow Diagrams (Mermaid)',        level: 1 },
+    { id: 'faq',             label: 'Troubleshooting',               level: 1 }
   ];
 
   let activeSection = $state('intro');
@@ -101,6 +105,12 @@
 
     <!-- 4. Module Guide -->
     <HelpModules {copyAnchor} {copiedId} />
+
+    <!-- 4b. Asset Detail Management Guide -->
+    <HelpAssetDetail {copyAnchor} {copiedId} />
+
+    <!-- 4c. Business Process SOPs -->
+    <HelpBusinessProcess {copyAnchor} {copiedId} />
 
     <!-- 5. Repair Playbooks -->
     <HelpRepairPlaybooks {copyAnchor} {copiedId} />

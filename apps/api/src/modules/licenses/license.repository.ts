@@ -9,6 +9,7 @@ import type {
     LicenseSeat,
     LicenseSeatWithDetails,
     LicenseAuditLog,
+    LicenseWithAssetSeat,
     Supplier,
     LicenseCategory,
     CreateLicenseDto,
@@ -368,6 +369,39 @@ export class LicenseRepository {
         const query = 'SELECT 1 FROM license_seats WHERE license_id = $1 AND assigned_asset_id = $2';
         const result = await this.db.query(query, [licenseId, assetId]);
         return result.rows.length > 0;
+    }
+
+    async findByAssetId(assetId: string): Promise<LicenseWithAssetSeat[]> {
+        const query = `
+            SELECT
+                l.id AS license_id,
+                l.license_code,
+                l.software_name,
+                l.license_type,
+                l.status,
+                l.expiry_date,
+                ls.id AS seat_id,
+                ls.assigned_at,
+                ls.assigned_by,
+                ls.notes
+            FROM license_seats ls
+            JOIN licenses l ON ls.license_id = l.id
+            WHERE ls.assigned_asset_id = $1
+            ORDER BY ls.assigned_at DESC
+        `;
+        const result = await this.db.query(query, [assetId]);
+        return result.rows.map(row => ({
+            licenseId: row.license_id,
+            licenseCode: row.license_code,
+            softwareName: row.software_name,
+            licenseType: row.license_type,
+            status: row.status,
+            expiryDate: row.expiry_date ?? undefined,
+            seatId: row.seat_id,
+            assignedAt: row.assigned_at,
+            assignedBy: row.assigned_by,
+            notes: row.notes ?? undefined
+        }));
     }
 
     // ==================== Audit Log ====================

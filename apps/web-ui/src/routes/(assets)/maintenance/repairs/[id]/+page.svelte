@@ -3,7 +3,8 @@
   import { page } from '$app/state';
   import { goto } from '$app/navigation';
   import { Button } from '$lib/components/ui';
-  import { ArrowLeft, RefreshCw, Link2 } from 'lucide-svelte';
+  import { ArrowLeft, RefreshCw, Link2, Printer } from 'lucide-svelte';
+  import { openPrintPage } from '$lib/utils/printUtils';
   import {
     addRepairOrderPart,
     changeRepairOrderStatus,
@@ -284,6 +285,44 @@
   }
 
   onMount(() => { void loadPage(true); });
+
+  function printRepairOrder() {
+    if (!detail?.order) return;
+    const o = detail.order;
+    openPrintPage('lenh-sua-chua', o.id, {
+      code: o.code,
+      date: o.openedAt.slice(0, 10),
+      asset: {
+        code: o.assetId,
+        name: o.title,
+        serialNo: undefined,
+        category: undefined,
+        location: undefined,
+      },
+      issueDescription: o.description ?? o.title,
+      severity: o.severity,
+      diagnosis: o.diagnosis ?? undefined,
+      resolution: o.resolution ?? undefined,
+      technicianName: o.technicianName ?? undefined,
+      repairType: o.repairType,
+      vendorName: undefined,
+      status: o.status,
+      laborCost: o.laborCost ?? undefined,
+      partsCost: o.partsCost ?? undefined,
+      parts: (detail.parts ?? []).map((p) => ({
+        name: p.partName ?? `(part ${p.partId})`,
+        action: p.action,
+        qty: p.qty,
+        unitCost: p.unitCost ?? undefined,
+        serialNo: p.serialNo ?? undefined,
+        note: p.note ?? undefined,
+      })),
+      openedAt: o.openedAt.slice(0, 10),
+      closedAt: o.closedAt?.slice(0, 10) ?? undefined,
+      downtime: o.downtimeMinutes ?? undefined,
+      note: undefined,
+    });
+  }
 </script>
 
 <div class="space-y-5">
@@ -295,10 +334,15 @@
       </Button>
       <h2 class="text-lg font-semibold text-slate-100">Chi tiết đơn sửa chữa</h2>
     </div>
-    <Button variant="secondary" size="sm" data-testid="repair-detail-refresh" onclick={handleRefresh} disabled={refreshing}>
-      <RefreshCw class="w-4 h-4 mr-1 {refreshing ? 'animate-spin' : ''}" />
-      {refreshing ? 'Đang làm mới...' : 'Làm mới'}
-    </Button>
+    <div class="flex items-center gap-2">
+      <Button variant="secondary" size="sm" onclick={printRepairOrder} disabled={!detail}>
+        <Printer class="w-4 h-4 mr-1" /> In lệnh sửa chữa
+      </Button>
+      <Button variant="secondary" size="sm" data-testid="repair-detail-refresh" onclick={handleRefresh} disabled={refreshing}>
+        <RefreshCw class="w-4 h-4 mr-1 {refreshing ? 'animate-spin' : ''}" />
+        {refreshing ? 'Đang làm mới...' : 'Làm mới'}
+      </Button>
+    </div>
   </div>
 
   <!-- ── Alerts ─────────────────────────────────────────────────── -->

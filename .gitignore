@@ -75,6 +75,9 @@ scripts/cols-out.txt
 tmp/
 temp/
 
+# Local UI visibility overrides
+apps/web-ui/static/local-ui-hidden-sites.json
+
 # Package manager lock files are tracked
 # pnpm-lock.yaml
 

@@ -150,6 +150,7 @@ export interface CmdbServiceRecord {
     id: string
     code: string
     name: string
+    description?: string | null
     criticality?: string | null
     owner?: string | null
     sla?: string | null

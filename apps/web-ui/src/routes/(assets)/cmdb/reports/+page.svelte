@@ -80,7 +80,8 @@
   </PageHeader>
 
   <!-- Tab navigation -->
-  <Tabs>
+  <div class="card p-3">
+    <Tabs>
     <TabsList>
       {#each CMDB_KEYS as key}
         {@const reg = REPORT_REGISTRY.find(r => r.key === key)}
@@ -90,6 +91,7 @@
       {/each}
     </TabsList>
   </Tabs>
+  </div>
 
   <!-- Filter bar -->
   {#if activeReport?.filterFields?.length}
@@ -101,10 +103,10 @@
   {/if}
 
   <!-- Toolbar -->
-  <div class="flex items-center justify-between">
+  <div class="card p-3 flex items-center justify-between">
     <div>
       {#if report}
-        <p class="text-sm text-slate-400">
+        <p class="text-sm" style="color: var(--color-text-muted)">
           {$isLoading ? 'Updated' : $_('cmdb.report.updated')}: {new Date(report.meta?.generatedAt ?? '').toLocaleString()}
         </p>
       {/if}
@@ -126,14 +128,14 @@
   {/if}
 
   {#if loading && !report}
-    <div class="flex items-center justify-center py-16 gap-3">
+    <div class="card flex items-center justify-center py-16 gap-3">
       <div class="h-7 w-7 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
-      <span class="text-sm text-slate-400">{$isLoading ? 'Loading report...' : $_('cmdb.report.loading')}</span>
+      <span class="text-sm" style="color: var(--color-text-muted)">{$isLoading ? 'Loading report...' : $_('cmdb.report.loading')}</span>
     </div>
   {:else if report}
     <!-- KPI Cards -->
     {#if report.kpis?.length}
-      <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+      <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
         {#each report.kpis as kpi}
           <KpiCard {kpi} />
         {/each}
@@ -161,13 +163,13 @@
 
     <!-- Empty state -->
     {#if !report.kpis?.length && !report.table?.rows?.length}
-      <div class="empty-state py-16">
+      <div class="card empty-state py-16">
         <p class="empty-state-title">{$isLoading ? 'No data' : $_('cmdb.report.noData')}</p>
         <p class="empty-state-desc">{$isLoading ? 'Try changing filters or check CMDB data.' : $_('cmdb.report.noDataHint')}</p>
       </div>
     {/if}
   {:else}
-    <div class="empty-state py-16">
+    <div class="card empty-state py-16">
       <p class="empty-state-title">{$isLoading ? 'Report not loaded' : $_('cmdb.report.notLoaded')}</p>
       <p class="empty-state-desc">{$isLoading ? 'Click "Load report" to view data.' : $_('cmdb.report.notLoadedHint')}</p>
     </div>

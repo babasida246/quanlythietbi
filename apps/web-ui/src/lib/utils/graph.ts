@@ -156,32 +156,32 @@ export function nodeColor(status: string): string {
     switch (status?.toLowerCase()) {
         case 'active':
         case 'healthy':
-        case 'online': return '#10B981'; // --color-success
+        case 'online': return '#34D399'; // emerald-400 — softer, easier on eyes
         case 'warning':
-        case 'degraded': return '#F59E0B'; // --color-warning
+        case 'degraded': return '#FBBF24'; // amber-400 — softer
         case 'critical':
         case 'error':
-        case 'down': return '#EF4444'; // --color-danger
+        case 'down': return '#F87171'; // red-400 — softer
         case 'inactive':
-        case 'retired': return '#475569'; // slate-600
-        default: return '#64748B'; // slate-500
+        case 'retired': return '#64748B'; // slate-500 — slightly lighter
+        default: return '#94A3B8'; // slate-400 — more visible
     }
 }
 
-/** Map CI status → border color (slightly darker / more saturated) */
+/** Map CI status → border color (original saturated shade — creates clear ring around lighter fill) */
 export function nodeBorderColor(status: string): string {
     switch (status?.toLowerCase()) {
         case 'active':
         case 'healthy':
-        case 'online': return '#059669';
+        case 'online': return '#10B981'; // emerald-500
         case 'warning':
-        case 'degraded': return '#D97706';
+        case 'degraded': return '#F59E0B'; // amber-500
         case 'critical':
         case 'error':
-        case 'down': return '#DC2626';
+        case 'down': return '#EF4444'; // red-500
         case 'inactive':
-        case 'retired': return '#334155';
-        default: return '#475569';
+        case 'retired': return '#475569'; // slate-600
+        default: return '#64748B'; // slate-500
     }
 }
 

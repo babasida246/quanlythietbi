@@ -47,7 +47,7 @@
   );
 
   const STATUS_COLORS: Record<string, string> = {
-    active: '#10B981', warning: '#F59E0B', critical: '#EF4444',
+    active: '#34D399', warning: '#FBBF24', critical: '#F87171',
     inactive: '#64748B', retired: '#475569',
   };
 </script>
@@ -60,8 +60,8 @@
   <button
     onclick={() => (open = !open)}
     class="absolute -right-3 top-4 z-10 flex h-6 w-6 items-center justify-center rounded-full
-           border border-slate-700 bg-[#121B2E] text-slate-400 shadow-lg
-           hover:border-slate-500 hover:text-slate-200 transition-colors"
+           border border-slate-600 bg-[#0F172A] text-slate-400 shadow-lg
+           hover:border-slate-400 hover:text-slate-200 transition-colors"
     title={open ? ($isLoading ? 'Hide filters' : $_('cmdb.topology.hideFilters')) : ($isLoading ? 'Show filters' : $_('cmdb.topology.showFilters'))}
   >
     {#if open}

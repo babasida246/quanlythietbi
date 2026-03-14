@@ -43,16 +43,16 @@
 </script>
 
 <div class="card card-body flex flex-col gap-3">
-  <h4 class="text-sm font-semibold text-slate-100">{title}</h4>
+  <h4 class="text-sm font-semibold" style="color: var(--color-text);">{title}</h4>
   <div class="space-y-3">
     {#each items as item}
       {@const p = pct(item)}
       <div class="space-y-1">
         <div class="flex items-center justify-between gap-2 text-xs">
-          <span class="truncate text-slate-400">{item.label}</span>
-          <span class="shrink-0 font-semibold tabular-nums text-slate-100">{item.value}</span>
+          <span class="truncate" style="color: var(--color-text-muted);">{item.label}</span>
+          <span class="shrink-0 font-semibold tabular-nums" style="color: var(--color-text);">{item.value}</span>
         </div>
-        <div class="h-1.5 w-full overflow-hidden rounded-full bg-slate-700/60">
+        <div class="h-1.5 w-full overflow-hidden rounded-full" style="background: var(--color-border);">
           <div
             class="h-full rounded-full transition-all duration-500 {BAR_COLOUR[item.tone ?? 'blue'] ?? BAR_COLOUR.blue}"
             style="width: {p}%"
@@ -62,6 +62,6 @@
     {/each}
   </div>
   {#if footer}
-    <p class="border-t border-slate-700/40 pt-2 text-xs text-slate-500">{footer}</p>
+    <p class="pt-2 text-xs" style="border-top: 1px solid var(--color-border); color: var(--color-text-dim);">{footer}</p>
   {/if}
 </div>

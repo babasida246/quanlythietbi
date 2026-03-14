@@ -718,7 +718,7 @@ export class ComponentRepository {
                 c.component_code,
                 c.name as component_name,
                 c.component_type,
-                $1 as asset_tag,
+                a.asset_id::text as asset_tag,
                 'Asset' as asset_name,
                 NULL as installed_by_name,
                 NULL as removed_by_name

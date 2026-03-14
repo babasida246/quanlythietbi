@@ -124,6 +124,7 @@ export const cmdbRelationshipImportSchema = z.object({
 export const cmdbServiceCreateSchema = z.object({
     code: z.string().min(1),
     name: z.string().min(1),
+    description: z.string().nullable().optional(),
     criticality: z.string().nullable().optional(),
     owner: z.string().nullable().optional(),
     sla: z.string().nullable().optional(),

@@ -204,9 +204,9 @@
 
 {#if reportType === 'valuation' && valuation}
   <div class="space-y-3">
-    <div class="text-sm text-slate-600 dark:text-slate-400">
+    <div class="rounded-md border px-3 py-2 text-sm" style="border-color: var(--color-border); background: rgb(var(--color-surface-2) / 0.45); color: var(--color-text)">
       {$isLoading ? 'Total value:' : $_('warehouse.totalValue')}
-      <span class="font-semibold">{valuation.currency ?? ''} {valuation.total ?? 0}</span>
+      <span class="font-semibold tabular-nums"> {valuation.currency ?? ''} {valuation.total ?? 0}</span>
     </div>
     <DataTable
       data={data as any[]}

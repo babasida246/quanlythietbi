@@ -76,25 +76,26 @@
   })
 </script>
 
-<div class="card overflow-hidden p-0">
+<div class="card overflow-hidden p-0 report-table-shell">
   {#if loading}
     <div class="p-4 space-y-2">
       {#each Array(5) as _}
-        <div class="h-8 animate-pulse rounded bg-slate-700"></div>
+        <div class="h-8 animate-pulse rounded bg-surface-3/60"></div>
       {/each}
     </div>
   {:else if !rows.length}
-    <div class="flex h-32 items-center justify-center text-slate-500 text-sm">
+    <div class="flex h-32 items-center justify-center text-sm" style="color: var(--color-text-muted)">
       {$isLoading ? 'No data' : $_('common.noData')}
     </div>
   {:else}
     <div class="overflow-x-auto">
-      <table class="w-full text-sm">
-        <thead class="border-b border-slate-700 bg-slate-800">
+      <table class="w-full text-sm report-table">
+        <thead class="border-b report-thead" style="border-color: var(--color-border-strong); background: rgb(var(--color-surface-2));">
           <tr>
             {#each effectiveCols as col}
               <th
-                class="px-4 py-3 text-{col.align ?? 'left'} text-xs font-semibold uppercase tracking-wider text-slate-400 {col.sortable ? 'cursor-pointer select-none hover:text-white' : ''}"
+                class="px-4 py-3 text-{col.align ?? 'left'} text-xs font-semibold uppercase tracking-wider {col.sortable ? 'cursor-pointer select-none hover:opacity-95' : ''}"
+                style="color: var(--color-text-muted)"
                 onclick={col.sortable ? () => toggleSort(col.key) : undefined}
               >
                 <div class="flex items-center gap-1 {col.align === 'right' ? 'justify-end' : ''}">
@@ -111,14 +112,14 @@
             {/each}
           </tr>
         </thead>
-        <tbody class="divide-y divide-slate-800">
+        <tbody>
           {#each rows as row, i}
             <tr
-              class="hover:bg-slate-800/50 transition-colors {onRowClick ? 'cursor-pointer' : ''}"
+              class="report-row transition-colors {onRowClick ? 'cursor-pointer' : ''}"
               onclick={() => onRowClick?.(row)}
             >
               {#each effectiveCols as col}
-                <td class="px-4 py-2.5 text-{col.align ?? 'left'} text-slate-200">
+                <td class="px-4 py-2.5 text-{col.align ?? 'left'}" style="color: var(--color-text)">
                   {fmt(col, row)}
                 </td>
               {/each}
@@ -130,7 +131,7 @@
 
     <!-- Pagination -->
     {#if onPageChange && totalPages > 1}
-      <div class="flex items-center justify-between border-t border-slate-700 px-4 py-3 text-sm text-slate-400">
+      <div class="flex items-center justify-between border-t px-4 py-3 text-sm" style="border-color: var(--color-border-strong); color: var(--color-text-muted)">
         <span>
           {#if $isLoading}
             Showing {((currentPage - 1) * (tableData?.pageSize ?? 20)) + 1}–{Math.min(currentPage * (tableData?.pageSize ?? 20), tableData?.total ?? 0)} / {tableData?.total ?? 0} results
@@ -140,7 +141,8 @@
         </span>
         <div class="flex gap-1">
           <button
-            class="rounded px-2 py-1 text-xs hover:bg-slate-700 disabled:opacity-30"
+            class="report-pager-btn rounded px-2 py-1 text-xs disabled:opacity-30"
+            style="color: var(--color-text)"
             disabled={currentPage <= 1}
             onclick={() => onPageChange?.(currentPage - 1)}
           >
@@ -152,7 +154,8 @@
           }) as pg}
             {#if pg >= 1 && pg <= totalPages}
               <button
-                class="rounded px-2 py-1 text-xs {pg === currentPage ? 'bg-primary text-white' : 'hover:bg-slate-700'}"
+                class="rounded px-2 py-1 text-xs {pg === currentPage ? 'bg-primary text-white' : 'report-pager-btn'}"
+                style={pg === currentPage ? '' : 'color: var(--color-text)'}
                 onclick={() => onPageChange?.(pg)}
               >
                 {pg}
@@ -160,14 +163,43 @@
             {/if}
           {/each}
           <button
-            class="rounded px-2 py-1 text-xs hover:bg-slate-700 disabled:opacity-30"
+            class="report-pager-btn rounded px-2 py-1 text-xs disabled:opacity-30"
+            style="color: var(--color-text)"
             disabled={currentPage >= totalPages}
             onclick={() => onPageChange?.(currentPage + 1)}
           >
-            Sau ›
+            {$isLoading ? 'Next ›' : $_('common.next') + ' ›'}
           </button>
         </div>
       </div>
     {/if}
   {/if}
 </div>
+
+<style>
+  .report-table-shell {
+    border: 1px solid var(--color-border);
+    background: rgb(var(--color-surface));
+  }
+  .report-table {
+    border-collapse: separate;
+    border-spacing: 0;
+  }
+  .report-thead {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+  }
+  .report-row {
+    border-top: 1px solid var(--color-border);
+  }
+  .report-row:nth-child(even) {
+    background: rgb(var(--color-surface-2) / 0.35);
+  }
+  .report-row:hover {
+    background: rgb(var(--color-surface-2));
+  }
+  .report-pager-btn:hover {
+    background: rgb(var(--color-surface-2));
+  }
+</style>

@@ -64,17 +64,18 @@
   });
 </script>
 
-<div class="space-y-4">
-  <div class="flex flex-col lg:flex-row gap-3 lg:items-end lg:justify-between">
+<div class="page-shell page-content space-y-4">
+  <div class="card p-4 space-y-4">
+    <div class="flex flex-col lg:flex-row gap-3 lg:items-end lg:justify-between">
     <div>
-      <h2 class="text-lg font-semibold">{$isLoading ? 'Stock Reports' : $_('warehouse.reports')}</h2>
-      <p class="text-sm text-slate-500">
+      <h2 class="text-xl font-semibold" style="color: var(--color-text)">{$isLoading ? 'Stock Reports' : $_('warehouse.reports')}</h2>
+      <p class="text-sm" style="color: var(--color-text-muted)">
         {$isLoading ? 'Quick insight into stock and valuation' : $_('warehouse.reportsSubtitle')}
       </p>
     </div>
     <div class="flex flex-wrap gap-3">
       <div>
-        <label for="report-type" class="text-sm font-medium text-slate-300">{$isLoading ? 'Report' : $_('warehouse.reportType')}</label>
+        <label for="report-type" class="text-sm font-medium" style="color: var(--color-text-muted)">{$isLoading ? 'Report' : $_('warehouse.reportType')}</label>
         <select id="report-type" class="select-base" bind:value={reportType} onchange={() => loadReport()}>
           <option value="stockOnHand">{$isLoading ? 'Stock on hand' : $_('warehouse.reportOptions.stockOnHand')}</option>
           <option value="stockAvailable">{$isLoading ? 'Stock available' : $_('warehouse.reportOptions.stockAvailable')}</option>
@@ -84,7 +85,7 @@
         </select>
       </div>
       <div>
-        <label for="report-warehouse" class="text-sm font-medium text-slate-300">{$isLoading ? 'Warehouse' : $_('warehouse.warehouse')}</label>
+        <label for="report-warehouse" class="text-sm font-medium" style="color: var(--color-text-muted)">{$isLoading ? 'Warehouse' : $_('warehouse.warehouse')}</label>
         <select id="report-warehouse" class="select-base" bind:value={warehouseId} onchange={() => loadReport()}>
           <option value="">{$isLoading ? 'All warehouses' : $_('common.allWarehouses')}</option>
           {#each warehouses as wh}
@@ -94,6 +95,22 @@
       </div>
       <Button variant="secondary" onclick={loadReport}>{$isLoading ? 'Refresh' : $_('common.refresh')}</Button>
     </div>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+      <div class="rounded-lg border p-3" style="border-color: var(--color-border); background: rgb(var(--color-surface-2) / 0.45)">
+        <p class="text-xs uppercase tracking-wider" style="color: var(--color-text-muted)">{$isLoading ? 'Report Type' : $_('warehouse.reportType')}</p>
+        <p class="mt-1 text-sm font-semibold" style="color: var(--color-text)">{reportType}</p>
+      </div>
+      <div class="rounded-lg border p-3" style="border-color: var(--color-border); background: rgb(var(--color-surface-2) / 0.45)">
+        <p class="text-xs uppercase tracking-wider" style="color: var(--color-text-muted)">{$isLoading ? 'Warehouse scope' : $_('warehouse.warehouse')}</p>
+        <p class="mt-1 text-sm font-semibold" style="color: var(--color-text)">{warehouseId ? warehouses.find((w) => w.id === warehouseId)?.name ?? warehouseId : ($isLoading ? 'All warehouses' : $_('common.allWarehouses'))}</p>
+      </div>
+      <div class="rounded-lg border p-3" style="border-color: var(--color-border); background: rgb(var(--color-surface-2) / 0.45)">
+        <p class="text-xs uppercase tracking-wider" style="color: var(--color-text-muted)">{$isLoading ? 'Available warehouses' : $_('warehouse.warehouse')}</p>
+        <p class="mt-1 text-sm font-semibold tabular-nums" style="color: var(--color-text)">{warehouses.length}</p>
+      </div>
+    </div>
   </div>
 
   {#if error}
@@ -101,18 +118,20 @@
   {/if}
 
   {#if loading}
-    <div class="flex items-center justify-center py-10">
+    <div class="card flex items-center justify-center py-10">
       <div class="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
     </div>
   {:else}
-    <ReportsTable
-      {reportType}
-      {stockOnHandRows}
-      {stockAvailableRows}
-      {reorderRows}
-      {fefoRows}
-      {valuation}
-      {loading}
-    />
+    <div class="card p-4">
+      <ReportsTable
+        {reportType}
+        {stockOnHandRows}
+        {stockAvailableRows}
+        {reorderRows}
+        {fefoRows}
+        {valuation}
+        {loading}
+      />
+    </div>
   {/if}
 </div>

@@ -1,10 +1,30 @@
 <!doctype html>
-<html lang="en" class="dark">
+<html lang="en" data-theme="dark">
 
 <head>
     <meta charset="utf-8" />
     <link rel="icon" href="%sveltekit.assets%/favicon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- Prevent flash of wrong theme: apply saved preference before paint -->
+    <script>
+        (function () {
+            var t = localStorage.getItem('theme');
+            document.documentElement.setAttribute('data-theme', t === 'light' ? 'light' : 'dark');
+
+            // Apply persisted color scheme (theme preset) before paint.
+            var cs = localStorage.getItem('qltb_color_scheme') || 'sky';
+            document.documentElement.setAttribute('data-color-scheme', cs);
+
+            // Apply persisted custom token overrides before paint to avoid flash.
+            var customCss = localStorage.getItem('theme_customizer_css_v1');
+            if (customCss) {
+                var styleEl = document.createElement('style');
+                styleEl.id = 'custom-theme-overrides';
+                styleEl.textContent = customCss;
+                document.head.appendChild(styleEl);
+            }
+        })();
+    </script>
     %sveltekit.head%
 </head>
 

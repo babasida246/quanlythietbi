@@ -3,7 +3,23 @@
    =================================================================
    All color, shadow, radius, and spacing tokens live here.
    Components must reference these variables — never hardcode hex.
-   
+
+   Surface Hierarchy:
+     bg        → App shell, sidebar backdrop  (#0B1220 dark / #F8FAFC light)
+     surface   → Card/panel background        (#121B2E dark / #FFFFFF light)
+     surface-2 → Input bg, inner card         (#0F172A dark / #F1F5F9 light)
+     elevated  → Dropdown, popover, selected  (#1A2540 dark / #E2E8F0 light)
+
+   Typography Roles:
+     --font-size-2xs  → badge text, row count labels
+     --font-size-xs   → column filter inputs, field hints
+     --font-size-sm   → form labels, button text, table body  ← ADMIN BASE
+     --font-size-base → body text, modal content
+     --font-size-lg   → card values, secondary headings
+     --font-size-xl   → page headings (PageHeader h1)
+     --font-size-2xl  → section heading
+     --font-size-3xl  → login/setup page headings
+
    Contrast targets (WCAG 2.1 AA):
      --text       on --bg        ≈ 16 : 1  ✅
      --text       on --surface   ≈ 14 : 1  ✅
@@ -32,11 +48,11 @@
   --color-text-dim:      rgba(226, 232, 240, 0.50);  /* Placeholder / hint */
 
   /* ── Brand / Primary ───────────────────────────────────────── */
-  --color-primary:          #3B82F6;
-  --color-primary-hover:    #60A5FA;
-  --color-primary-active:   #2563EB;
+  --color-primary:          #0EA5E9;
+  --color-primary-hover:    #38BDF8;
+  --color-primary-active:   #0284C7;
   --color-primary-contrast: #FFFFFF;
-  --color-primary-muted:    rgba(59, 130, 246, 0.15); /* bg tint for active nav */
+  --color-primary-muted:    rgba(14, 165, 233, 0.15); /* bg tint for active nav */
 
   /* ── Danger / Error ────────────────────────────────────────── */
   --color-danger:        #EF4444;
@@ -45,18 +61,89 @@
   --color-danger-border: rgba(239, 68, 68, 0.55);
 
   /* ── Success ───────────────────────────────────────────────── */
-  --color-success:       #10B981;
-  --color-success-bg:    rgba(16, 185, 129, 0.10);
-  --color-success-border:rgba(16, 185, 129, 0.55);
+  --color-success:        #10B981;
+  --color-success-hover:  #059669;
+  --color-success-bg:     rgba(16, 185, 129, 0.10);
+  --color-success-border: rgba(16, 185, 129, 0.55);
 
   /* ── Warning ───────────────────────────────────────────────── */
-  --color-warning:       #F59E0B;
-  --color-warning-bg:    rgba(245, 158, 11, 0.10);
-  --color-warning-border:rgba(245, 158, 11, 0.55);
+  --color-warning:        #F59E0B;
+  --color-warning-hover:  #D97706;
+  --color-warning-bg:     rgba(245, 158, 11, 0.10);
+  --color-warning-border: rgba(245, 158, 11, 0.55);
+
+  /* ── Info / Indigo ─────────────────────────────────────────── */
+  --color-info:          #6366F1;
+  --color-info-hover:    #4F46E5;
+  --color-info-bg:       rgba(99, 102, 241, 0.12);
+  --color-info-border:   rgba(99, 102, 241, 0.40);
 
   /* ── Focus ─────────────────────────────────────────────────── */
-  --color-focus:         rgba(59, 130, 246, 0.55);
-  --shadow-focus-ring:   0 0 0 3px rgba(59, 130, 246, 0.35);
+  --color-focus:         rgba(14, 165, 233, 0.55);
+  --shadow-focus-ring:   0 0 0 3px rgba(14, 165, 233, 0.35);
+
+  /* ── Scrollbar ─────────────────────────────────────────────── */
+  --color-scrollbar-thumb:       rgba(148, 163, 184, 0.35);
+  --color-scrollbar-thumb-hover: rgba(148, 163, 184, 0.55);
+
+  /* ── Status Colors (semantic) ──────────────────────────────── */
+  --status-success:        #10B981;
+  --status-success-bg:     rgba(16, 185, 129, 0.12);
+  --status-success-border: rgba(16, 185, 129, 0.30);
+
+  --status-warning:        #F59E0B;
+  --status-warning-bg:     rgba(245, 158, 11, 0.12);
+  --status-warning-border: rgba(245, 158, 11, 0.30);
+
+  --status-danger:         #EF4444;
+  --status-danger-bg:      rgba(239, 68, 68, 0.12);
+  --status-danger-border:  rgba(239, 68, 68, 0.30);
+
+  --status-info:           #0EA5E9;
+  --status-info-bg:        rgba(14, 165, 233, 0.12);
+  --status-info-border:    rgba(14, 165, 233, 0.30);
+
+  --status-neutral:        #94A3B8;
+  --status-neutral-bg:     rgba(148, 163, 184, 0.12);
+  --status-neutral-border: rgba(148, 163, 184, 0.25);
+
+  --status-purple:         #8B5CF6;
+  --status-purple-bg:      rgba(139, 92, 246, 0.12);
+  --status-purple-border:  rgba(139, 92, 246, 0.30);
+
+  --status-cyan:           #06B6D4;
+  --status-cyan-bg:        rgba(6, 182, 212, 0.12);
+  --status-cyan-border:    rgba(6, 182, 212, 0.30);
+
+  --status-orange:         #F97316;
+  --status-orange-bg:      rgba(249, 115, 22, 0.12);
+  --status-orange-border:  rgba(249, 115, 22, 0.30);
+
+  --status-teal:           #14B8A6;
+  --status-teal-bg:        rgba(20, 184, 166, 0.12);
+  --status-teal-border:    rgba(20, 184, 166, 0.30);
+
+  /* ── Stat Card Variants ────────────────────────────────────── */
+  --card-total-accent:     #0EA5E9;
+  --card-total-bg:         rgba(14, 165, 233, 0.08);
+  --card-active-accent:    #10B981;
+  --card-active-bg:        rgba(16, 185, 129, 0.08);
+  --card-repair-accent:    #F59E0B;
+  --card-repair-bg:        rgba(245, 158, 11, 0.08);
+  --card-expired-accent:   #EF4444;
+  --card-expired-bg:       rgba(239, 68, 68, 0.08);
+  --card-neutral-accent:   #64748B;
+  --card-neutral-bg:       rgba(100, 116, 139, 0.08);
+
+  /* ── Sidebar (always dark) ─────────────────────────────────── */
+  --sidebar-bg:            #0B1220;
+  --sidebar-surface:       #121B2E;
+  --sidebar-border:        rgba(148, 163, 184, 0.12);
+  --sidebar-text:          rgba(226, 232, 240, 0.72);
+  --sidebar-text-active:   #FFFFFF;
+  --sidebar-accent:        rgba(14, 165, 233, 0.15);
+  --sidebar-accent-text:   #38BDF8;
+  --sidebar-hover:         rgba(148, 163, 184, 0.08);
 
   /* ── Radius ────────────────────────────────────────────────── */
   --radius-sm:  4px;
@@ -73,8 +160,10 @@
   --shadow-modal: 0 24px 48px rgba(0, 0, 0, 0.30), 0 8px 16px rgba(0, 0, 0, 0.18);
 
   /* ── Transition ────────────────────────────────────────────── */
-  --transition-fast: 150ms ease;
-  --transition-base: 200ms ease;
+  --transition-fast:   150ms ease;
+  --transition-base:   200ms ease;
+  --transition-slow:   300ms ease;
+  --transition-spring: 300ms cubic-bezier(0.34, 1.56, 0.64, 1);
 
   /* ── Spacing (mirrors Tailwind 8pt) ────────────────────────── */
   --space-1:  4px;
@@ -83,5 +172,280 @@
   --space-4:  16px;
   --space-5:  20px;
   --space-6:  24px;
+  --space-7:  28px;
   --space-8:  32px;
+  --space-10: 40px;   /* table row height reference */
+  --space-12: 48px;   /* header height reference */
+  --space-16: 64px;
+
+  /* ── Typography Scale ──────────────────────────────────────── */
+  --font-size-2xs:  0.625rem;   /* 10px — badge text, row count */
+  --font-size-xs:   0.75rem;    /* 12px — field hint, filter */
+  --font-size-sm:   0.8125rem;  /* 13px — label, button, table body */
+  --font-size-base: 0.875rem;   /* 14px — body text, modal content */
+  --font-size-lg:   1rem;       /* 16px — card value, sub-heading */
+  --font-size-xl:   1.125rem;   /* 18px — page title */
+  --font-size-2xl:  1.25rem;    /* 20px — section heading */
+  --font-size-3xl:  1.5rem;     /* 24px — login/setup heading */
+
+  --line-height-tight:   1.25;
+  --line-height-snug:    1.375;
+  --line-height-normal:  1.5;
+  --line-height-relaxed: 1.625;
+
+  --font-weight-normal:   400;
+  --font-weight-medium:   500;
+  --font-weight-semibold: 600;
+  --font-weight-bold:     700;
+
+  --letter-spacing-tight:   -0.01em;
+  --letter-spacing-normal:   0;
+  --letter-spacing-wide:     0.025em;
+  --letter-spacing-widest:   0.08em;   /* badge/label uppercase */
+
+  /* ── Chart Palette ─────────────────────────────────────────── */
+  --color-chart-1: #6366F1;   /* indigo */
+  --color-chart-2: #22D3EE;   /* cyan */
+  --color-chart-3: #10B981;   /* emerald */
+  --color-chart-4: #F59E0B;   /* amber */
+  --color-chart-5: #EF4444;   /* red */
+  --color-chart-6: #8B5CF6;   /* purple */
+  --color-chart-7: #F97316;   /* orange */
+  --color-chart-8: #14B8A6;   /* teal */
+
+  /* ── Chart Canvas ──────────────────────────────────────────── */
+  --color-chart-bg:             #0F172A;
+  --color-chart-grid:           #1E293B;
+  --color-chart-text:           #94A3B8;
+  --color-chart-tooltip-bg:     #1E293B;
+  --color-chart-tooltip-border: #334155;
+
+  /* ── Z-Index Layers ────────────────────────────────────────── */
+  --z-dropdown: 10;
+  --z-sticky:   20;
+  --z-overlay:  30;
+  --z-sidebar:  40;
+  --z-header:   50;
+  --z-modal:    60;
+  --z-popover:  70;
+  --z-toast:    80;
+  --z-tooltip:  90;
 }
+
+/* =================================================================
+   LIGHT MODE TOKEN OVERRIDES
+   Applied when <html> does NOT have data-theme="dark"
+   ================================================================= */
+html:not([data-theme="dark"]) {
+  --color-bg:            248 250 252;           /* #F8FAFC */
+  --color-surface:       255 255 255;           /* #FFFFFF */
+  --color-surface-2:     236 242 248;           /* #ECF2F8 — clearer layer separation */
+  --color-elevated:      218 226 236;           /* #DAE2EC — stronger than surface-2 */
+
+  --color-border:        rgba(15, 23, 42, 0.18);
+  --color-border-strong: rgba(15, 23, 42, 0.34);
+
+  --color-text:          rgba(15, 23, 42, 0.95);
+  --color-text-muted:    rgba(15, 23, 42, 0.74);
+  --color-text-dim:      rgba(15, 23, 42, 0.54);
+
+  --color-primary-muted: rgba(14, 165, 233, 0.14);
+
+  --color-danger-bg:     rgba(239, 68, 68, 0.08);
+  --color-danger-border: rgba(239, 68, 68, 0.40);
+
+  --color-success-bg:     rgba(16, 185, 129, 0.08);
+  --color-success-border: rgba(16, 185, 129, 0.40);
+
+  --color-warning-bg:     rgba(245, 158, 11, 0.08);
+  --color-warning-border: rgba(245, 158, 11, 0.40);
+
+  --color-info:          #4F46E5;
+  --color-info-bg:       rgba(99, 102, 241, 0.08);
+  --color-info-border:   rgba(99, 102, 241, 0.30);
+
+  --color-scrollbar-thumb:       rgba(71, 85, 105, 0.30);
+  --color-scrollbar-thumb-hover: rgba(71, 85, 105, 0.50);
+
+  /* Status colors — lighter backgrounds for light mode */
+  --status-success-bg:     rgba(16, 185, 129, 0.12);
+  --status-success-border: rgba(16, 185, 129, 0.32);
+  --status-warning-bg:     rgba(245, 158, 11, 0.12);
+  --status-warning-border: rgba(245, 158, 11, 0.32);
+  --status-danger-bg:      rgba(239, 68, 68, 0.12);
+  --status-danger-border:  rgba(239, 68, 68, 0.32);
+  --status-info-bg:        rgba(14, 165, 233, 0.12);
+  --status-info-border:    rgba(14, 165, 233, 0.32);
+  --status-neutral-bg:     rgba(148, 163, 184, 0.12);
+  --status-neutral-border: rgba(148, 163, 184, 0.28);
+  --status-purple-bg:      rgba(139, 92, 246, 0.12);
+  --status-purple-border:  rgba(139, 92, 246, 0.32);
+  --status-cyan-bg:        rgba(6, 182, 212, 0.12);
+  --status-cyan-border:    rgba(6, 182, 212, 0.32);
+  --status-orange-bg:      rgba(249, 115, 22, 0.12);
+  --status-orange-border:  rgba(249, 115, 22, 0.32);
+  --status-teal-bg:        rgba(20, 184, 166, 0.12);
+  --status-teal-border:    rgba(20, 184, 166, 0.32);
+
+  /* Stat card variants — lighter for light mode */
+  --card-total-bg:         rgba(14, 165, 233, 0.05);
+  --card-active-bg:        rgba(16, 185, 129, 0.05);
+  --card-repair-bg:        rgba(245, 158, 11, 0.05);
+  --card-expired-bg:       rgba(239, 68, 68, 0.05);
+  --card-neutral-bg:       rgba(100, 116, 139, 0.05);
+
+  --color-chart-bg:             #FFFFFF;
+  --color-chart-grid:           #E2E8F0;
+  --color-chart-text:           #64748B;
+  --color-chart-tooltip-bg:     #FFFFFF;
+  --color-chart-tooltip-border: #E2E8F0;
+
+  --shadow-xs:    0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-sm:    0 2px 6px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-md:    0 4px 14px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.04);
+  --shadow-lg:    0 8px 28px rgba(0, 0, 0, 0.10), 0 4px 8px rgba(0, 0, 0, 0.06);
+  --shadow-card:  0 4px 24px rgba(0, 0, 0, 0.06), 0 1px 4px rgba(0, 0, 0, 0.04);
+  --shadow-modal: 0 24px 48px rgba(0, 0, 0, 0.14), 0 8px 16px rgba(0, 0, 0, 0.08);
+}
+
+/* =================================================================
+   LIGHT MODE — HARDCODED CLASS OVERRIDES
+   Remap dark-first Tailwind utilities so they read well on light bg.
+   ================================================================= */
+
+html:not([data-theme="dark"]) body {
+  color: #0f172a;
+  background-color: rgb(248 250 252);
+}
+
+/* ─── Slate text ──────────────────────────────────────────────── */
+html:not([data-theme="dark"]) .text-slate-50,
+html:not([data-theme="dark"]) .text-slate-100 { color: #0f172a; }
+html:not([data-theme="dark"]) .text-slate-200 { color: #1e293b; }
+html:not([data-theme="dark"]) .text-slate-300 { color: #334155; }
+html:not([data-theme="dark"]) .text-slate-400 { color: #475569; }
+html:not([data-theme="dark"]) .text-slate-500 { color: #64748b; }
+html:not([data-theme="dark"]) .text-gray-500  { color: #64748b; }
+
+/* ─── Colored text (badges, stats, alerts) ────────────────────── */
+html:not([data-theme="dark"]) .text-blue-300,
+html:not([data-theme="dark"]) .text-blue-400    { color: #2563eb; }
+html:not([data-theme="dark"]) .text-emerald-300,
+html:not([data-theme="dark"]) .text-emerald-400 { color: #059669; }
+html:not([data-theme="dark"]) .text-amber-300,
+html:not([data-theme="dark"]) .text-amber-400   { color: #d97706; }
+html:not([data-theme="dark"]) .text-red-300,
+html:not([data-theme="dark"]) .text-red-400     { color: #dc2626; }
+html:not([data-theme="dark"]) .text-purple-300,
+html:not([data-theme="dark"]) .text-purple-400  { color: #7c3aed; }
+html:not([data-theme="dark"]) .text-cyan-300,
+html:not([data-theme="dark"]) .text-cyan-400    { color: #0891b2; }
+html:not([data-theme="dark"]) .text-orange-300,
+html:not([data-theme="dark"]) .text-orange-400  { color: #ea580c; }
+html:not([data-theme="dark"]) .text-teal-300,
+html:not([data-theme="dark"]) .text-teal-400    { color: #0d9488; }
+html:not([data-theme="dark"]) .text-green-300,
+html:not([data-theme="dark"]) .text-green-400   { color: #16a34a; }
+html:not([data-theme="dark"]) .text-yellow-300,
+html:not([data-theme="dark"]) .text-yellow-400  { color: #ca8a04; }
+html:not([data-theme="dark"]) .text-indigo-300,
+html:not([data-theme="dark"]) .text-indigo-400  { color: #4f46e5; }
+
+/* ─── Hover text ──────────────────────────────────────────────── */
+html:not([data-theme="dark"]) .hover\:text-slate-100:hover { color: #0f172a; }
+html:not([data-theme="dark"]) .hover\:text-slate-200:hover { color: #1e293b; }
+html:not([data-theme="dark"]) .hover\:text-slate-300:hover { color: #334155; }
+html:not([data-theme="dark"]) .hover\:text-white:hover     { color: #0f172a; }
+html:not([data-theme="dark"]) .hover\:text-red-300:hover   { color: #dc2626; }
+html:not([data-theme="dark"]) .hover\:text-red-400:hover   { color: #b91c1c; }
+
+/* ─── Force dark-header contrast while app is in light mode ─── */
+html:not([data-theme="dark"]) .header-always-dark .text-slate-100,
+html:not([data-theme="dark"]) .header-always-dark .text-slate-200,
+html:not([data-theme="dark"]) .header-always-dark .text-slate-300,
+html:not([data-theme="dark"]) .header-always-dark .text-slate-400,
+html:not([data-theme="dark"]) .header-always-dark .text-white {
+  color: #e2e8f0;
+}
+html:not([data-theme="dark"]) .header-always-dark .hover\:text-slate-100:hover,
+html:not([data-theme="dark"]) .header-always-dark .hover\:text-white:hover {
+  color: #ffffff;
+}
+html:not([data-theme="dark"]) .header-always-dark .hover\:text-slate-200:hover,
+html:not([data-theme="dark"]) .header-always-dark .hover\:text-slate-300:hover {
+  color: #cbd5e1;
+}
+
+/* ─── Borders ─────────────────────────────────────────────────── */
+html:not([data-theme="dark"]) .border-slate-700,
+html:not([data-theme="dark"]) .border-slate-700\/60,
+html:not([data-theme="dark"]) .border-slate-700\/40 { border-color: rgba(15, 23, 42, 0.14); }
+html:not([data-theme="dark"]) .border-slate-600 { border-color: rgba(15, 23, 42, 0.20); }
+html:not([data-theme="dark"]) .border-slate-800 { border-color: rgba(15, 23, 42, 0.10); }
+
+/* ─── Dividers ────────────────────────────────────────────────── */
+html:not([data-theme="dark"]) .divide-slate-700 > * + *,
+html:not([data-theme="dark"]) .divide-slate-800 > * + * { border-color: rgba(15, 23, 42, 0.12); }
+
+/* ─── Backgrounds ─────────────────────────────────────────────── */
+html:not([data-theme="dark"]) .bg-slate-700    { background-color: #e2e8f0; }
+html:not([data-theme="dark"]) .bg-slate-700\/60,
+html:not([data-theme="dark"]) .bg-slate-800,
+html:not([data-theme="dark"]) .bg-slate-900    { background-color: rgb(226 232 240); }
+html:not([data-theme="dark"]) .bg-slate-800\/50 { background-color: rgba(241, 245, 249, 0.5); }
+html:not([data-theme="dark"]) .bg-slate-800\/30 { background-color: rgba(241, 245, 249, 0.3); }
+html:not([data-theme="dark"]) .bg-slate-800\/70 { background-color: rgba(226, 232, 240, 0.7); }
+html:not([data-theme="dark"]) .bg-slate-900\/60 { background-color: rgba(241, 245, 249, 0.6); }
+html:not([data-theme="dark"]) .bg-red-900\/10   { background-color: rgba(239, 68, 68, 0.05); }
+html:not([data-theme="dark"]) .bg-red-900\/30   { background-color: rgba(239, 68, 68, 0.06); }
+html:not([data-theme="dark"]) .bg-red-950\/20   { background-color: rgba(239, 68, 68, 0.05); }
+
+/* ─── Hover backgrounds ──────────────────────────────────────── */
+html:not([data-theme="dark"]) .hover\:bg-surface-3\/60:hover { background-color: rgba(226, 232, 240, 0.6); }
+html:not([data-theme="dark"]) .hover\:bg-surface-3\/80:hover { background-color: rgba(226, 232, 240, 0.8); }
+html:not([data-theme="dark"]) .hover\:bg-surface-3\/50:hover { background-color: rgba(226, 232, 240, 0.5); }
+html:not([data-theme="dark"]) .hover\:bg-slate-700:hover     { background-color: #e2e8f0; }
+html:not([data-theme="dark"]) .hover\:bg-slate-800\/50:hover { background-color: rgba(241, 245, 249, 0.5); }
+html:not([data-theme="dark"]) .hover\:bg-slate-800\/30:hover { background-color: rgba(241, 245, 249, 0.3); }
+html:not([data-theme="dark"]) .hover\:bg-red-900\/30:hover   { background-color: rgba(239, 68, 68, 0.06); }
+html:not([data-theme="dark"]) .hover\:bg-slate-500\/40:hover { background-color: rgba(148, 163, 184, 0.15); }
+
+/* ─── Inputs & selects ────────────────────────────────────────── */
+html:not([data-theme="dark"]) .input-base,
+html:not([data-theme="dark"]) .select-base {
+  background-color: #ffffff;
+  color: #0f172a;
+  border-color: rgba(15, 23, 42, 0.20);
+}
+html:not([data-theme="dark"]) .input-base::placeholder { color: #94a3b8; }
+
+/* ─── Inline form inputs with hardcoded bg-slate-900 ──────────── */
+html:not([data-theme="dark"]) input[class*="bg-slate-900"],
+html:not([data-theme="dark"]) select[class*="bg-slate-900"],
+html:not([data-theme="dark"]) textarea[class*="bg-slate-900"] {
+  background-color: #ffffff;
+  color: #0f172a;
+}
+
+/* ─── text-white: remap to dark, except on colored backgrounds ── */
+html:not([data-theme="dark"]) .text-white { color: #0f172a; }
+html:not([data-theme="dark"]) .bg-primary.text-white,
+html:not([data-theme="dark"]) .bg-emerald-600.text-white,
+html:not([data-theme="dark"]) .bg-green-600.text-white,
+html:not([data-theme="dark"]) .bg-error.text-white,
+html:not([data-theme="dark"]) .skip-link { color: #ffffff; }
+
+/* ─── Additional hover overrides ─────────────────────────────── */
+html:not([data-theme="dark"]) .hover\:bg-slate-800\/40:hover { background-color: rgba(241, 245, 249, 0.4); }
+html:not([data-theme="dark"]) .hover\:border-slate-600:hover { border-color: rgba(15, 23, 42, 0.20); }
+html:not([data-theme="dark"]) .hover\:border-slate-400:hover { border-color: rgba(15, 23, 42, 0.30); }
+
+/* ─── Setup page chip/alert hardcoded colors ──────────────────── */
+html:not([data-theme="dark"]) .setup-chip-ok      { color: #059669; }
+html:not([data-theme="dark"]) .setup-chip-fail    { color: #dc2626; }
+html:not([data-theme="dark"]) .setup-chip-running { color: #2563eb; }
+html:not([data-theme="dark"]) .setup-alert-info   { color: #1d4ed8; }
+html:not([data-theme="dark"]) .setup-alert-error  { color: #b91c1c; }
+html:not([data-theme="dark"]) .setup-alert-success { color: #047857; }
+html:not([data-theme="dark"]) .setup-alert-warning { color: #b45309; }
+html:not([data-theme="dark"]) .login-error         { color: #b91c1c; }

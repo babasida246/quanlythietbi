@@ -21,6 +21,7 @@
     getSetupStatus,
     runSetupMigrate,
     runSetupSeed,
+    saveSetupOrgInfo,
     SetupApiError,
     type SetupAdminResult,
     type SetupStatusResponse
@@ -75,6 +76,18 @@
     password: '',
     confirmPassword: '',
     locale: 'vi' as 'vi' | 'en'
+  });
+
+  let orgBusy = $state(false);
+  let orgError = $state<string | null>(null);
+  let orgSaved = $state(false);
+  let orgForm = $state({
+    name: '',
+    shortName: '',
+    address: '',
+    phone: '',
+    taxCode: '',
+    website: ''
   });
 
   let finalizeBusy = $state(false);
@@ -136,6 +149,39 @@
     if (!/[^A-Za-z0-9]/.test(adminForm.password)) return 'Password must include at least one special character';
     if (COMMON_PASSWORDS.has(adminForm.password.toLowerCase())) return 'Password is too common';
     return null;
+  }
+
+  async function submitOrg(): Promise<void> {
+    if (orgBusy) return;
+    orgError = null;
+    if (!orgForm.name.trim()) {
+      orgError = `${$_('setup.wizard.orgName')} is required`;
+      return;
+    }
+    if (!orgForm.shortName.trim()) {
+      orgError = `${$_('setup.wizard.orgShortName')} is required`;
+      return;
+    }
+    orgBusy = true;
+    try {
+      await saveSetupOrgInfo({
+        name: orgForm.name.trim(),
+        shortName: orgForm.shortName.trim(),
+        address: orgForm.address.trim() || undefined,
+        phone: orgForm.phone.trim() || undefined,
+        taxCode: orgForm.taxCode.trim() || undefined,
+        website: orgForm.website.trim() || undefined,
+      });
+      orgSaved = true;
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem('orgName', orgForm.name.trim());
+        localStorage.setItem('orgShortName', orgForm.shortName.trim().toUpperCase());
+      }
+    } catch (error) {
+      orgError = errorToMessage(error);
+    } finally {
+      orgBusy = false;
+    }
   }
 
   async function copyToClipboard(key: string, value: string): Promise<void> {
@@ -292,6 +338,10 @@
       adminCreated = created;
       adminForm.password = '';
       adminForm.confirmPassword = '';
+      // Also save org info if filled and not yet saved
+      if (!orgSaved && orgForm.name.trim()) {
+        void submitOrg();
+      }
       if (status) {
         status = { ...status, adminExists: true };
       }
@@ -538,6 +588,65 @@
       <!-- Step 3: Create first admin -->
       <section class="setup-section">
         <h2 class="setup-step-title">{$_('setup.wizard.step3Title')}</h2>
+
+        <!-- Org Info subsection -->
+        <h3 class="mt-4 mb-3 text-sm font-semibold" style="color: var(--color-text-muted);">{$_('setup.wizard.orgInfoTitle')}</h3>
+
+        {#if orgSaved}
+          <div class="setup-alert setup-alert-success mb-3">
+            <CheckCircle2 class="h-4 w-4" />
+            <span>{$_('setup.wizard.orgSaved')}</span>
+          </div>
+        {/if}
+
+        <form class="grid gap-4 md:grid-cols-2" onsubmit={(event) => { event.preventDefault(); void submitOrg(); }}>
+          <label class="setup-label">
+            <span>{$_('setup.wizard.orgName')} <span style="color: var(--color-error)">*</span></span>
+            <input class="setup-input" bind:value={orgForm.name} disabled={orgBusy || orgSaved} placeholder="{$_('setup.wizard.orgNamePlaceholder')}" />
+          </label>
+
+          <label class="setup-label">
+            <span>{$_('setup.wizard.orgShortName')} <span style="color: var(--color-error)">*</span></span>
+            <input class="setup-input" bind:value={orgForm.shortName} disabled={orgBusy || orgSaved} placeholder="e.g. ABC" maxlength="20" />
+          </label>
+
+          <label class="setup-label">
+            <span>{$_('setup.wizard.orgAddress')}</span>
+            <input class="setup-input" bind:value={orgForm.address} disabled={orgBusy || orgSaved} />
+          </label>
+
+          <label class="setup-label">
+            <span>{$_('setup.wizard.orgPhone')}</span>
+            <input class="setup-input" bind:value={orgForm.phone} type="tel" disabled={orgBusy || orgSaved} />
+          </label>
+
+          <label class="setup-label">
+            <span>{$_('setup.wizard.orgTaxCode')}</span>
+            <input class="setup-input" bind:value={orgForm.taxCode} disabled={orgBusy || orgSaved} />
+          </label>
+
+          <label class="setup-label">
+            <span>{$_('setup.wizard.orgWebsite')}</span>
+            <input class="setup-input" bind:value={orgForm.website} type="url" disabled={orgBusy || orgSaved} />
+          </label>
+
+          <div class="md:col-span-2">
+            <button type="submit" class="setup-btn setup-btn-secondary" disabled={orgBusy || orgSaved}>
+              {#if orgBusy}<Loader2 class="h-4 w-4 animate-spin" />{/if}
+              {orgSaved ? $_('setup.wizard.orgSaved') : $_('setup.wizard.saveOrg')}
+            </button>
+          </div>
+        </form>
+
+        {#if orgError}
+          <div class="setup-alert setup-alert-error mt-3">
+            <AlertTriangle class="h-4 w-4" />
+            <span>{orgError}</span>
+          </div>
+        {/if}
+
+        <hr class="my-5" style="border-color: var(--color-border);" />
+        <h3 class="mb-3 text-sm font-semibold" style="color: var(--color-text-muted);">{$_('setup.wizard.adminAccountTitle')}</h3>
 
         {#if status?.adminExists && !adminCreated}
           <div class="setup-alert setup-alert-success mt-3">

@@ -6,7 +6,8 @@
 -- Tao >100 dong de test phan trang (pagination)
 -- Chay SAU seed-data.sql
 -- ============================================================================
-SET client_encoding = 'UTF8';
+SET client_encoding
+= 'UTF8';
 
 BEGIN;
 
@@ -63,10 +64,12 @@ BEGIN;
     DELETE FROM license_seats WHERE true;
     DELETE FROM licenses WHERE true;
 
-    -- Checkouts
+    -- Checkouts (transfers must be deleted before checkouts)
+    DELETE FROM checkout_transfers WHERE true;
     DELETE FROM asset_checkouts WHERE true;
 
-    -- Reports & misc
+    -- Reports & misc (print_jobs must be deleted before label_templates)
+    DELETE FROM print_jobs WHERE true;
     DELETE FROM depreciation_schedules WHERE true;
     DELETE FROM label_settings WHERE true;
     DELETE FROM label_templates WHERE true;
@@ -298,48 +301,49 @@ ON CONFLICT
     -- 6. SPARE PARTS  (35 linh kien - du test pagination)
     -- ============================================================================
     INSERT INTO spare_parts
-        (id, part_code, name, category, uom, manufacturer, model, spec, min_level)
+        (id, part_code, name, category, uom, manufacturer, model, spec, min_level, unit_cost)
     VALUES
-        ('c1000000-0000-0000-0000-000000000001', 'SP-RAM-8G', 'RAM DDR4 8GB 3200MHz', E'B\u1ED9 nh\u1EDB',    'pcs', 'Kingston',      'KVR32N22S8/8',  '{"speed":"3200MHz","type":"DDR4"}', 10),
-    ('c1000000-0000-0000-0000-000000000002', 'SP-RAM-16G',   'RAM DDR4 16GB 3200MHz',   E'B\u1ED9 nh\u1EDB',    'pcs', 'Kingston',      'KVR32N22D8/16', '{"speed":"3200MHz","type":"DDR4"}', 5),
-    ('c1000000-0000-0000-0000-000000000003', 'SP-RAM-32G',   'RAM DDR4 32GB 3200MHz',   E'B\u1ED9 nh\u1EDB',    'pcs', 'Kingston',      'KVR32N22D8/32', '{"speed":"3200MHz","type":"DDR4"}', 3),
-    ('c1000000-0000-0000-0000-000000000004', 'SP-SSD-256',   'SSD NVMe 256GB',          E'\u0110\u0129a c\u1EE9ng',  'pcs', 'Samsung',       '980 PRO 256GB', '{"interface":"NVMe","form":"M.2"}', 10),
-    ('c1000000-0000-0000-0000-000000000005', 'SP-SSD-512',   'SSD NVMe 512GB',          E'\u0110\u0129a c\u1EE9ng',  'pcs', 'Samsung',       '980 PRO 512GB', '{"interface":"NVMe","form":"M.2"}', 8),
-    ('c1000000-0000-0000-0000-000000000006', 'SP-SSD-1T',    'SSD NVMe 1TB',            E'\u0110\u0129a c\u1EE9ng',  'pcs', 'Samsung',       '980 PRO 1TB',   '{"interface":"NVMe","form":"M.2"}', 5),
-    ('c1000000-0000-0000-0000-000000000007', 'SP-HDD-1T',    E'HDD 3.5" SATA 1TB',      E'\u0110\u0129a c\u1EE9ng',  'pcs', 'Seagate',       'Barracuda 1TB', '{"interface":"SATA","rpm":7200}', 5),
-    ('c1000000-0000-0000-0000-000000000008', 'SP-HDD-2T',    E'HDD 3.5" SATA 2TB',      E'\u0110\u0129a c\u1EE9ng',  'pcs', 'Seagate',       'Barracuda 2TB', '{"interface":"SATA","rpm":7200}', 3),
-    ('c1000000-0000-0000-0000-000000000009', 'SP-FAN-CPU',   E'Qu\u1EA1t t\u1EA3n nhi\u1EC7t CPU',  E'T\u1EA3n nhi\u1EC7t',  'pcs', 'Cooler Master', 'Hyper 212',     '{}', 5),
-    ('c1000000-0000-0000-0000-000000000010', 'SP-PSU-500W',  E'Ngu\u1ED3n 500W',             E'Ngu\u1ED3n',      'pcs', 'Corsair',       'CV550',         '{"watt":550}', 3),
-    ('c1000000-0000-0000-0000-000000000011', 'SP-PSU-650W',  E'Ngu\u1ED3n 650W',             E'Ngu\u1ED3n',      'pcs', 'Corsair',       'RM650x',        '{"watt":650}', 2),
-    ('c1000000-0000-0000-0000-000000000012', 'SP-KB-USB',    E'B\u00E0n ph\u00EDm USB',           E'Ngo\u1EA1i vi',   'pcs', 'Logitech',      'K120',          '{}', 20),
-    ('c1000000-0000-0000-0000-000000000013', 'SP-MS-USB',    E'Chu\u1ED9t quang USB',         E'Ngo\u1EA1i vi',   'pcs', 'Logitech',      'M100',          '{}', 20),
-    ('c1000000-0000-0000-0000-000000000014', 'SP-KB-WL',     E'B\u00E0n ph\u00EDm kh\u00F4ng d\u00E2y',   E'Ngo\u1EA1i vi',   'pcs', 'Logitech',      'K270',          '{}', 10),
-    ('c1000000-0000-0000-0000-000000000015', 'SP-MS-WL',     E'Chu\u1ED9t kh\u00F4ng d\u00E2y',       E'Ngo\u1EA1i vi',   'pcs', 'Logitech',      'M185',          '{}', 10),
-    ('c1000000-0000-0000-0000-000000000016', 'SP-CAB-RJ45',  E'C\u00E1p m\u1EA1ng CAT6 3m',      E'C\u00E1p',        'pcs', 'AMP',           'CAT6-3M',       '{"length":"3m","type":"CAT6"}', 50),
-    ('c1000000-0000-0000-0000-000000000017', 'SP-CAB-HDMI',  E'C\u00E1p HDMI 2m',            E'C\u00E1p',        'pcs', 'Ugreen',        'HDMI-2M',       '{"length":"2m","version":"2.0"}', 20),
-    ('c1000000-0000-0000-0000-000000000018', 'SP-CAB-DP',    E'C\u00E1p DisplayPort 2m',     E'C\u00E1p',        'pcs', 'Ugreen',        'DP-2M',         '{"length":"2m","version":"1.4"}', 10),
-    ('c1000000-0000-0000-0000-000000000019', 'SP-CAB-USB3',  E'C\u00E1p USB-C to USB-A 1m',  E'C\u00E1p',        'pcs', 'Anker',         'A8163',         '{"length":"1m","usb":"3.0"}', 15),
-    ('c1000000-0000-0000-0000-000000000020', 'SP-TNR-HP',    'HP Toner CF226A',          E'M\u1EF1c in',     'pcs', 'HP',            'CF226A',        '{}', 10),
-    ('c1000000-0000-0000-0000-000000000021', 'SP-TNR-BRO',   'Brother Toner TN-2480',    E'M\u1EF1c in',     'pcs', 'Brother',       'TN-2480',       '{}', 10),
-    ('c1000000-0000-0000-0000-000000000022', 'SP-TNR-SAM',   'Samsung Toner MLT-D116L',  E'M\u1EF1c in',     'pcs', 'Samsung',       'MLT-D116L',     '{}', 5),
-    ('c1000000-0000-0000-0000-000000000023', 'SP-SFP-1G',    'SFP Module 1Gbps',         E'Module m\u1EA1ng', 'pcs', 'Cisco',         'GLC-LH-SM',     '{}', 5),
-    ('c1000000-0000-0000-0000-000000000024', 'SP-SFP-10G',   'SFP+ Module 10Gbps',       E'Module m\u1EA1ng', 'pcs', 'Cisco',         'SFP-10G-SR',    '{}', 3),
-    ('c1000000-0000-0000-0000-000000000025', 'SP-BAT-UPS',   'Pin UPS 12V 7Ah',          'Pin',         'pcs', 'APC',           'RBC2',          '{"voltage":"12V","capacity":"7Ah"}', 5),
-    ('c1000000-0000-0000-0000-000000000026', 'SP-BAT-LAPTOP',E'Pin laptop gi\u1EA3',           'Pin',         'pcs', 'Generic',       'LI-ION',        '{}', 3),
-    ('c1000000-0000-0000-0000-000000000027', 'SP-THERM',     E'Keo t\u1EA3n nhi\u1EC7t',          E'T\u1EA3n nhi\u1EC7t',  'tube','Arctic',        'MX-4',          '{}', 10),
-    ('c1000000-0000-0000-0000-000000000028', 'SP-SCREEN-P',  E'T\u1EA5m b\u1EA3o v\u1EC7 m\u00E0n h\u00ECnh',  E'Ph\u1EE5 ki\u1EC7n',   'pcs', '3M',            'PF240W',        '{"size":"24 inch"}', 5),
-    ('c1000000-0000-0000-0000-000000000029', 'SP-DOCK-USB',  'Hub USB-C 7in1',           E'Ph\u1EE5 ki\u1EC7n',   'pcs', 'Ugreen',        'CM511',         '{}', 5),
-    ('c1000000-0000-0000-0000-000000000030', 'SP-WEBCAM',    'Webcam FullHD 1080p',      E'Ngo\u1EA1i vi',   'pcs', 'Logitech',      'C920',          '{"resolution":"1080p"}', 5),
-    ('c1000000-0000-0000-0000-000000000031', 'SP-HEADSET',   E'Tai nghe USB',            E'Ngo\u1EA1i vi',   'pcs', 'Jabra',         'Evolve2 30',    '{}', 10),
-    ('c1000000-0000-0000-0000-000000000032', 'SP-ADAPTER',   E'S\u1EA1c laptop \u0111a n\u0103ng',     E'Ph\u1EE5 ki\u1EC7n',   'pcs', 'Dell',          '65W Type-C',    '{"watt":65}', 5),
-    ('c1000000-0000-0000-0000-000000000033', 'SP-CABLE-PWR', E'D\u00E2y ngu\u1ED3n 3 ch\u1EA5u',       E'C\u00E1p',        'pcs', 'Generic',       'IEC-C13',       '{"length":"1.8m"}', 20),
-    ('c1000000-0000-0000-0000-000000000034', 'SP-CPASTE',    E'Keo t\u1EA3n nhi\u1EC7t cao c\u1EA5p',   E'T\u1EA3n nhi\u1EC7t',  'tube','Noctua',        'NT-H1',         '{}', 5),
-    ('c1000000-0000-0000-0000-000000000035', 'SP-PAD-COOL',  E'\u0110\u1EBF t\u1EA3n nhi\u1EC7t laptop',    E'Ph\u1EE5 ki\u1EC7n',   'pcs', 'Cooler Master', 'Notepal U2',    '{}', 3)
+        ('c1000000-0000-0000-0000-000000000001', 'SP-RAM-8G', 'RAM DDR4 8GB 3200MHz', E'B\u1ED9 nh\u1EDB',    'pcs', 'Kingston',      'KVR32N22S8/8',  '{"speed":"3200MHz","type":"DDR4"}', 10, 450000),
+    ('c1000000-0000-0000-0000-000000000002', 'SP-RAM-16G',   'RAM DDR4 16GB 3200MHz',   E'B\u1ED9 nh\u1EDB',    'pcs', 'Kingston',      'KVR32N22D8/16', '{"speed":"3200MHz","type":"DDR4"}', 5, 850000),
+    ('c1000000-0000-0000-0000-000000000003', 'SP-RAM-32G',   'RAM DDR4 32GB 3200MHz',   E'B\u1ED9 nh\u1EDB',    'pcs', 'Kingston',      'KVR32N22D8/32', '{"speed":"3200MHz","type":"DDR4"}', 3, 1600000),
+    ('c1000000-0000-0000-0000-000000000004', 'SP-SSD-256',   'SSD NVMe 256GB',          E'\u0110\u0129a c\u1EE9ng',  'pcs', 'Samsung',       '980 PRO 256GB', '{"interface":"NVMe","form":"M.2"}', 10, 1200000),
+    ('c1000000-0000-0000-0000-000000000005', 'SP-SSD-512',   'SSD NVMe 512GB',          E'\u0110\u0129a c\u1EE9ng',  'pcs', 'Samsung',       '980 PRO 512GB', '{"interface":"NVMe","form":"M.2"}', 8, 2100000),
+    ('c1000000-0000-0000-0000-000000000006', 'SP-SSD-1T',    'SSD NVMe 1TB',            E'\u0110\u0129a c\u1EE9ng',  'pcs', 'Samsung',       '980 PRO 1TB',   '{"interface":"NVMe","form":"M.2"}', 5, 3800000),
+    ('c1000000-0000-0000-0000-000000000007', 'SP-HDD-1T',    E'HDD 3.5" SATA 1TB',      E'\u0110\u0129a c\u1EE9ng',  'pcs', 'Seagate',       'Barracuda 1TB', '{"interface":"SATA","rpm":7200}', 5, 950000),
+    ('c1000000-0000-0000-0000-000000000008', 'SP-HDD-2T',    E'HDD 3.5" SATA 2TB',      E'\u0110\u0129a c\u1EE9ng',  'pcs', 'Seagate',       'Barracuda 2TB', '{"interface":"SATA","rpm":7200}', 3, 1550000),
+    ('c1000000-0000-0000-0000-000000000009', 'SP-FAN-CPU',   E'Qu\u1EA1t t\u1EA3n nhi\u1EC7t CPU',  E'T\u1EA3n nhi\u1EC7t',  'pcs', 'Cooler Master', 'Hyper 212',     '{}', 5, 380000),
+    ('c1000000-0000-0000-0000-000000000010', 'SP-PSU-500W',  E'Ngu\u1ED3n 500W',             E'Ngu\u1ED3n',      'pcs', 'Corsair',       'CV550',         '{"watt":550}', 3, 1200000),
+    ('c1000000-0000-0000-0000-000000000011', 'SP-PSU-650W',  E'Ngu\u1ED3n 650W',             E'Ngu\u1ED3n',      'pcs', 'Corsair',       'RM650x',        '{"watt":650}', 2, 1850000),
+    ('c1000000-0000-0000-0000-000000000012', 'SP-KB-USB',    E'B\u00E0n ph\u00EDm USB',           E'Ngo\u1EA1i vi',   'pcs', 'Logitech',      'K120',          '{}', 20, 180000),
+    ('c1000000-0000-0000-0000-000000000013', 'SP-MS-USB',    E'Chu\u1ED9t quang USB',         E'Ngo\u1EA1i vi',   'pcs', 'Logitech',      'M100',          '{}', 20, 120000),
+    ('c1000000-0000-0000-0000-000000000014', 'SP-KB-WL',     E'B\u00E0n ph\u00EDm kh\u00F4ng d\u00E2y',   E'Ngo\u1EA1i vi',   'pcs', 'Logitech',      'K270',          '{}', 10, 350000),
+    ('c1000000-0000-0000-0000-000000000015', 'SP-MS-WL',     E'Chu\u1ED9t kh\u00F4ng d\u00E2y',       E'Ngo\u1EA1i vi',   'pcs', 'Logitech',      'M185',          '{}', 10, 250000),
+    ('c1000000-0000-0000-0000-000000000016', 'SP-CAB-RJ45',  E'C\u00E1p m\u1EA1ng CAT6 3m',      E'C\u00E1p',        'pcs', 'AMP',           'CAT6-3M',       '{"length":"3m","type":"CAT6"}', 50, 35000),
+    ('c1000000-0000-0000-0000-000000000017', 'SP-CAB-HDMI',  E'C\u00E1p HDMI 2m',            E'C\u00E1p',        'pcs', 'Ugreen',        'HDMI-2M',       '{"length":"2m","version":"2.0"}', 20, 80000),
+    ('c1000000-0000-0000-0000-000000000018', 'SP-CAB-DP',    E'C\u00E1p DisplayPort 2m',     E'C\u00E1p',        'pcs', 'Ugreen',        'DP-2M',         '{"length":"2m","version":"1.4"}', 10, 95000),
+    ('c1000000-0000-0000-0000-000000000019', 'SP-CAB-USB3',  E'C\u00E1p USB-C to USB-A 1m',  E'C\u00E1p',        'pcs', 'Anker',         'A8163',         '{"length":"1m","usb":"3.0"}', 15, 55000),
+    ('c1000000-0000-0000-0000-000000000020', 'SP-TNR-HP',    'HP Toner CF226A',          E'M\u1EF1c in',     'pcs', 'HP',            'CF226A',        '{}', 10, 650000),
+    ('c1000000-0000-0000-0000-000000000021', 'SP-TNR-BRO',   'Brother Toner TN-2480',    E'M\u1EF1c in',     'pcs', 'Brother',       'TN-2480',       '{}', 10, 480000),
+    ('c1000000-0000-0000-0000-000000000022', 'SP-TNR-SAM',   'Samsung Toner MLT-D116L',  E'M\u1EF1c in',     'pcs', 'Samsung',       'MLT-D116L',     '{}', 5, 420000),
+    ('c1000000-0000-0000-0000-000000000023', 'SP-SFP-1G',    'SFP Module 1Gbps',         E'Module m\u1EA1ng', 'pcs', 'Cisco',         'GLC-LH-SM',     '{}', 5, 1800000),
+    ('c1000000-0000-0000-0000-000000000024', 'SP-SFP-10G',   'SFP+ Module 10Gbps',       E'Module m\u1EA1ng', 'pcs', 'Cisco',         'SFP-10G-SR',    '{}', 3, 3500000),
+    ('c1000000-0000-0000-0000-000000000025', 'SP-BAT-UPS',   'Pin UPS 12V 7Ah',          'Pin',         'pcs', 'APC',           'RBC2',          '{"voltage":"12V","capacity":"7Ah"}', 5, 350000),
+    ('c1000000-0000-0000-0000-000000000026', 'SP-BAT-LAPTOP',E'Pin laptop gi\u1EA3',           'Pin',         'pcs', 'Generic',       'LI-ION',        '{}', 3, 280000),
+    ('c1000000-0000-0000-0000-000000000027', 'SP-THERM',     E'Keo t\u1EA3n nhi\u1EC7t',          E'T\u1EA3n nhi\u1EC7t',  'tube','Arctic',        'MX-4',          '{}', 10, 120000),
+    ('c1000000-0000-0000-0000-000000000028', 'SP-SCREEN-P',  E'T\u1EA5m b\u1EA3o v\u1EC7 m\u00E0n h\u00ECnh',  E'Ph\u1EE5 ki\u1EC7n',   'pcs', '3M',            'PF240W',        '{"size":"24 inch"}', 5, 450000),
+    ('c1000000-0000-0000-0000-000000000029', 'SP-DOCK-USB',  'Hub USB-C 7in1',           E'Ph\u1EE5 ki\u1EC7n',   'pcs', 'Ugreen',        'CM511',         '{}', 5, 380000),
+    ('c1000000-0000-0000-0000-000000000030', 'SP-WEBCAM',    'Webcam FullHD 1080p',      E'Ngo\u1EA1i vi',   'pcs', 'Logitech',      'C920',          '{"resolution":"1080p"}', 5, 1450000),
+    ('c1000000-0000-0000-0000-000000000031', 'SP-HEADSET',   E'Tai nghe USB',            E'Ngo\u1EA1i vi',   'pcs', 'Jabra',         'Evolve2 30',    '{}', 10, 2200000),
+    ('c1000000-0000-0000-0000-000000000032', 'SP-ADAPTER',   E'S\u1EA1c laptop \u0111a n\u0103ng',     E'Ph\u1EE5 ki\u1EC7n',   'pcs', 'Dell',          '65W Type-C',    '{"watt":65}', 5, 750000),
+    ('c1000000-0000-0000-0000-000000000033', 'SP-CABLE-PWR', E'D\u00E2y ngu\u1ED3n 3 ch\u1EA5u',       E'C\u00E1p',        'pcs', 'Generic',       'IEC-C13',       '{"length":"1.8m"}', 20, 45000),
+    ('c1000000-0000-0000-0000-000000000034', 'SP-CPASTE',    E'Keo t\u1EA3n nhi\u1EC7t cao c\u1EA5p',   E'T\u1EA3n nhi\u1EC7t',  'tube','Noctua',        'NT-H1',         '{}', 5, 180000),
+    ('c1000000-0000-0000-0000-000000000035', 'SP-PAD-COOL',  E'\u0110\u1EBF t\u1EA3n nhi\u1EC7t laptop',    E'Ph\u1EE5 ki\u1EC7n',   'pcs', 'Cooler Master', 'Notepal U2',    '{}', 3, 320000)
 ON CONFLICT
     (part_code) DO
     UPDATE SET
   name = EXCLUDED.name, category = EXCLUDED.category, manufacturer = EXCLUDED.manufacturer,
-  model = EXCLUDED.model, spec = EXCLUDED.spec, min_level = EXCLUDED.min_level;
+  model = EXCLUDED.model, spec = EXCLUDED.spec, min_level = EXCLUDED.min_level,
+  unit_cost = EXCLUDED.unit_cost;
 
     -- ============================================================================
     -- 7. LICENSE CATEGORIES  (6 loai)

@@ -15,23 +15,23 @@
 /* ------------------------------------------------------------------ */
 export const colors = {
     /* Semantic */
-    primary: { DEFAULT: '#3b82f6', hover: '#2563eb', active: '#1d4ed8', light: '#dbeafe', lighter: '#eff6ff' },
+    primary: { DEFAULT: '#0ea5e9', hover: '#38bdf8', active: '#0284c7', light: '#e0f2fe', lighter: '#f0f9ff' },
     success: { DEFAULT: '#10b981', hover: '#059669', light: '#d1fae5', lighter: '#ecfdf5' },
     warning: { DEFAULT: '#f59e0b', hover: '#d97706', light: '#fef3c7', lighter: '#fffbeb' },
     error: { DEFAULT: '#ef4444', hover: '#dc2626', light: '#fee2e2', lighter: '#fef2f2' },
     info: { DEFAULT: '#6366f1', hover: '#4f46e5', light: '#e0e7ff', lighter: '#eef2ff' },
 
-    /* Dark surfaces (layered) */
+    /* Dark surfaces (layered) — synced with tokens.css CSS variables */
     dark: {
-        bg: '#0b0f1a',   // deepest background
-        surface1: '#111827',   // page-level
-        surface2: '#1e293b',   // card/panel
-        surface3: '#334155',   // popover/modal
-        border: '#1e293b',
-        borderSoft: '#334155',
-        text: '#f1f5f9',
-        textMuted: '#94a3b8',
-        textDim: '#64748b',
+        bg: '#0B1220',         // --color-bg:        11 18 32
+        surface1: '#121B2E',   // --color-surface:   18 27 46
+        surface2: '#0F172A',   // --color-surface-2: 15 23 42
+        surface3: '#1A2540',   // --color-elevated:  26 37 64
+        border: 'rgba(148, 163, 184, 0.18)',   // --color-border
+        borderSoft: 'rgba(148, 163, 184, 0.35)', // --color-border-strong
+        text: 'rgba(248, 250, 252, 0.95)',     // --color-text
+        textMuted: 'rgba(226, 232, 240, 0.72)', // --color-text-muted
+        textDim: 'rgba(226, 232, 240, 0.50)',   // --color-text-dim
     },
 
     /* Light surfaces */

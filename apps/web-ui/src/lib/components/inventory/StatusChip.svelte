@@ -9,13 +9,13 @@
 	} = $props();
 
 	const colorMap: Record<string, string> = {
-		draft: 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300',
-		approved: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300',
-		active: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300',
-		posted: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
-		committed: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
-		released: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300',
-		void: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300'
+		draft:     'badge badge-gray',
+		approved:  'badge badge-blue',
+		active:    'badge badge-blue',
+		posted:    'badge badge-green',
+		committed: 'badge badge-green',
+		released:  'badge badge-yellow',
+		void:      'badge badge-red'
 	};
 
 	const sizeMap: Record<SizeOption, string> = {
@@ -24,7 +24,7 @@
 		lg: 'text-base px-3 py-1'
 	};
 
-	const colorClass = $derived(colorMap[status] || 'bg-gray-100 text-gray-800');
+	const colorClass = $derived(colorMap[status] || 'badge badge-gray');
 	const sizeClass = $derived(sizeMap[size ?? 'md']);
 </script>
 

@@ -71,11 +71,11 @@
   <!-- Drawer -->
   <aside class="fixed inset-y-0 right-0 z-50 flex w-full max-w-2xl flex-col bg-surface-1 shadow-2xl">
     <!-- Header -->
-    <div class="flex items-center justify-between border-b border-slate-700 px-5 py-4">
+    <div class="flex items-center justify-between border-b px-5 py-4" style="border-color: var(--color-border-strong)">
       <div>
         <h2 class="text-base font-semibold">Drilldown: {dimension} = {value}</h2>
         {#if data}
-          <p class="text-xs text-slate-400 mt-0.5">{$isLoading ? `${data.total} results` : $_('reports.results', { values: { count: data.total } })}</p>
+          <p class="text-xs mt-0.5" style="color: var(--color-text-muted)">{$isLoading ? `${data.total} results` : $_('reports.results', { values: { count: data.total } })}</p>
         {/if}
       </div>
       <div class="flex items-center gap-2">
@@ -83,7 +83,8 @@
           <Button size="sm" variant="secondary" onclick={handleExport}>{$isLoading ? 'Export CSV' : $_('reports.exportCsv')}</Button>
         {/if}
         <button
-          class="rounded p-1 hover:bg-slate-700 text-slate-400 hover:text-white"
+          class="drawer-close-btn rounded p-1 transition-colors"
+          style="color: var(--color-text-muted)"
           onclick={() => (open = false)}
         >
           <X class="h-4 w-4" />
@@ -96,34 +97,34 @@
       {#if loading}
         <div class="space-y-2">
           {#each Array(5) as _}
-            <div class="h-8 animate-pulse rounded bg-slate-700"></div>
+            <div class="h-8 animate-pulse rounded bg-surface-3/60"></div>
           {/each}
         </div>
       {:else if error}
         <div class="alert alert-error">{error}</div>
       {:else if !data?.rows?.length}
-        <div class="flex h-32 items-center justify-center text-slate-500">{$isLoading ? 'No data' : $_('reports.noData')}</div>
+        <div class="flex h-32 items-center justify-center" style="color: var(--color-text-muted)">{$isLoading ? 'No data' : $_('reports.noData')}</div>
       {:else}
         <table class="w-full text-xs">
           <thead class="sticky top-0 bg-surface-1">
-            <tr class="border-b border-slate-700">
+            <tr class="border-b" style="border-color: var(--color-border-strong)">
               {#each colKeys as k}
-                <th class="px-3 py-2 text-left font-semibold uppercase tracking-wider text-slate-400">{k}</th>
+                <th class="px-3 py-2 text-left font-semibold uppercase tracking-wider" style="color: var(--color-text-muted)">{k}</th>
               {/each}
             </tr>
           </thead>
-          <tbody class="divide-y divide-slate-800">
+          <tbody>
             {#each data.rows as row}
-              <tr class="hover:bg-slate-800/50">
+              <tr class="drilldown-row">
                 {#each colKeys as k}
-                  <td class="px-3 py-2 text-slate-200">{fmtCell(row[k])}</td>
+                  <td class="px-3 py-2" style="color: var(--color-text)">{fmtCell(row[k])}</td>
                 {/each}
               </tr>
             {/each}
           </tbody>
         </table>
         {#if (data?.total ?? 0) > data.rows.length}
-          <p class="mt-3 text-center text-xs text-slate-500">
+          <p class="mt-3 text-center text-xs" style="color: var(--color-text-muted)">
             {$isLoading ? `Showing ${data.rows.length} / ${data.total} \u2014` : $_('reports.showingOfTotal', { values: { shown: data.rows.length, total: data.total } })} <span class="text-primary">{$isLoading ? 'Export CSV' : $_('reports.exportCsv')}</span> {$isLoading ? 'for all' : $_('reports.forAll')}
           </p>
         {/if}
@@ -131,3 +132,16 @@
     </div>
   </aside>
 {/if}
+
+<style>
+  .drilldown-row {
+    border-top: 1px solid var(--color-border);
+  }
+  .drilldown-row:hover {
+    background: rgb(var(--color-surface-2));
+  }
+  .drawer-close-btn:hover {
+    background: rgb(var(--color-surface-2));
+    color: var(--color-text) !important;
+  }
+</style>

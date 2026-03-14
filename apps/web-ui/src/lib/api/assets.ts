@@ -25,6 +25,7 @@ export type Asset = {
     purchaseDate?: string | null
     warrantyEnd?: string | null
     notes?: string | null
+    spec?: Record<string, unknown> | null
     modelName?: string | null
     modelBrand?: string | null
     categoryName?: string | null

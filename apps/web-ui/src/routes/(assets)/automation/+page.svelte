@@ -126,6 +126,31 @@
     J --> E
     K --> E
     L --> E`
+    },
+    {
+      key: 'assetAllocation',
+      code: `flowchart LR
+    A[📋 Yêu cầu cấp phát] --> B{Duyệt?}
+    B -->|Có| C[🔍 Tìm TB trong kho]
+    B -->|Không| D[↩️ Từ chối]
+    C --> E{Có sẵn?}
+    E -->|Có| F[🛠️ Chuẩn bị & Cài đặt]
+    E -->|Không| G[🛒 Tạo đề xuất mua]
+    F --> H[📝 Gán cho người dùng]
+    H --> I[✍️ Ký biên bản bàn giao]
+    I --> J[✅ Đang sử dụng]`
+    },
+    {
+      key: 'assetDisposal',
+      code: `flowchart TD
+    A[📝 Đề xuất thanh lý] --> B[👔 Phê duyệt quản lý]
+    B --> C{Duyệt?}
+    C -->|Có| D[🔒 Xóa dữ liệu bảo mật]
+    C -->|Không| E[↩️ Giữ lại / Sửa chữa]
+    D --> F[♻️ Thu hồi linh kiện tái dùng]
+    F --> G[📦 Bàn giao đơn vị thanh lý]
+    G --> H[📊 Cập nhật trạng thái Disposed]
+    H --> I[📋 Lưu hồ sơ kiểm toán]`
     }
   ];
 

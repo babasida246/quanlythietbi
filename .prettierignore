@@ -1,0 +1,3 @@
+# SQL files contain PostgreSQL-specific syntax (E'...' escape strings, dollar-quoting)
+# that generic formatters will break. Do not format these files.
+db/**/*.sql

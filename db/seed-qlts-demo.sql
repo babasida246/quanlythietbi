@@ -5,7 +5,8 @@
 --   Impact Rules, Workflow Definitions + Steps + Requests + Approvals + Lines
 -- Chay SAU seed-assets-management.sql
 -- ============================================================================
-SET client_encoding = 'UTF8';
+SET client_encoding
+= 'UTF8';
 
 BEGIN;
 
@@ -354,7 +355,8 @@ VALUES
 ON CONFLICT
 (code) DO
 UPDATE SET
-    name = EXCLUDED.name, description = EXCLUDED.description, criticality = EXCLUDED.criticality, sla = EXCLUDED.sla;
+    name = EXCLUDED.name, description = EXCLUDED.description, criticality = EXCLUDED.criticality,
+    owner = EXCLUDED.owner, sla = EXCLUDED.sla, status = EXCLUDED.status;
 
 -- ============================================================================
 -- 7. CMDB SERVICE CIs  (gan CI vao dich vu)

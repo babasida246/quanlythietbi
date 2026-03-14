@@ -13,3 +13,7 @@ export { default as TabsTrigger } from './TabsTrigger.svelte';
 export { default as StatsCard } from './StatsCard.svelte';
 export { default as MiniStat } from './MiniStat.svelte';
 export { default as BreakdownCard } from './BreakdownCard.svelte';
+
+// Design system components
+export { default as StatusBadge } from './StatusBadge.svelte';
+export { default as PageShell } from './PageShell.svelte';

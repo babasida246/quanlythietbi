@@ -1,0 +1,629 @@
+/* =================================================================
+   COLOR THEMES — 5 presets × 2 modes
+   =================================================================
+   Selector: [data-color-scheme="X"][data-theme="dark"]     ← dark
+             [data-color-scheme="X"]:not([data-theme="dark"]) ← light
+
+   These rules OVERRIDE variables defined in tokens.css.
+   Import this file AFTER tokens.css so overrides take effect.
+   ================================================================= */
+
+/* ══════════════════════════════════════════════════════════════════
+   THEME 1 — SKY PRO
+   Xanh trời chuyên nghiệp, gần với bộ màu hiện tại
+   ══════════════════════════════════════════════════════════════════ */
+
+[data-color-scheme="sky"][data-theme="dark"] {
+  /* Surfaces (R G B channels for alpha compositing) */
+  --color-bg:            10 15 30;
+  --color-surface:       17 24 39;
+  --color-surface-2:     30 41 59;
+  --color-elevated:      39 53 73;
+
+  /* Borders */
+  --color-border:        rgba(148, 163, 184, 0.15);
+  --color-border-strong: rgba(148, 163, 184, 0.32);
+
+  /* Text */
+  --color-text:          rgba(241, 245, 249, 0.95);
+  --color-text-muted:    rgba(148, 163, 184, 0.80);
+  --color-text-dim:      rgba(100, 116, 139, 0.85);
+
+  /* Primary / Accent */
+  --color-primary:          #38bdf8;
+  --color-primary-hover:    #0ea5e9;
+  --color-primary-active:   #0284c7;
+  --color-primary-contrast: #0f172a;
+  --color-primary-muted:    rgba(56, 189, 248, 0.12);
+  --color-focus:            rgba(56, 189, 248, 0.50);
+  --shadow-focus-ring:      0 0 0 3px rgba(56, 189, 248, 0.30);
+
+  /* Status — Info (sky blue) */
+  --color-info:          #38bdf8;
+  --color-info-hover:    #0ea5e9;
+  --color-info-bg:       rgba(56, 189, 248, 0.12);
+  --color-info-border:   rgba(56, 189, 248, 0.30);
+  --status-info:         #60a5fa;
+  --status-info-bg:      rgba(96, 165, 250, 0.12);
+  --status-info-border:  rgba(96, 165, 250, 0.30);
+
+  /* Sidebar */
+  --sidebar-bg:          #0f172a;
+  --sidebar-surface:     #1e293b;
+  --sidebar-border:      rgba(15, 23, 42, 0.80);
+  --sidebar-text:        rgba(148, 163, 184, 0.85);
+  --sidebar-text-active: #e2e8f0;
+  --sidebar-accent:      rgba(56, 189, 248, 0.12);
+  --sidebar-accent-text: #38bdf8;
+  --sidebar-hover:       rgba(148, 163, 184, 0.08);
+
+  /* Stat Card primary accent */
+  --card-total-accent:   #38bdf8;
+  --card-total-bg:       rgba(56, 189, 248, 0.08);
+
+  /* Shadows */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.20);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.30), 0 1px 2px rgba(0, 0, 0, 0.18);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.40), 0 2px 4px rgba(0, 0, 0, 0.24);
+  --shadow-lg: 0 10px 40px rgba(0, 0, 0, 0.50), 0 4px 8px rgba(0, 0, 0, 0.28);
+}
+
+[data-color-scheme="sky"]:not([data-theme="dark"]) {
+  /* Surfaces */
+  --color-bg:            240 244 248;
+  --color-surface:       255 255 255;
+  --color-surface-2:     236 242 248;
+  --color-elevated:      218 226 236;
+
+  /* Borders */
+  --color-border:        rgba(15, 23, 42, 0.14);
+  --color-border-strong: rgba(15, 23, 42, 0.28);
+
+  /* Text */
+  --color-text:          rgba(15, 23, 42, 0.92);
+  --color-text-muted:    rgba(15, 23, 42, 0.64);
+  --color-text-dim:      rgba(15, 23, 42, 0.44);
+
+  /* Primary / Accent */
+  --color-primary:          #0ea5e9;
+  --color-primary-hover:    #0284c7;
+  --color-primary-active:   #0369a1;
+  --color-primary-contrast: #ffffff;
+  --color-primary-muted:    rgba(14, 165, 233, 0.10);
+  --color-focus:            rgba(14, 165, 233, 0.45);
+  --shadow-focus-ring:      0 0 0 3px rgba(14, 165, 233, 0.25);
+
+  /* Status — Info */
+  --color-info:          #0ea5e9;
+  --color-info-hover:    #0284c7;
+  --color-info-bg:       rgba(14, 165, 233, 0.10);
+  --color-info-border:   rgba(14, 165, 233, 0.28);
+  --status-info:         #0369a1;
+  --status-info-bg:      rgba(14, 165, 233, 0.10);
+  --status-info-border:  rgba(14, 165, 233, 0.28);
+
+  /* Sidebar (always dark even in light mode) */
+  --sidebar-bg:          #1e293b;
+  --sidebar-surface:     #273549;
+  --sidebar-border:      rgba(15, 23, 42, 0.30);
+  --sidebar-text:        rgba(203, 213, 225, 0.85);
+  --sidebar-text-active: #ffffff;
+  --sidebar-accent:      rgba(14, 165, 233, 0.15);
+  --sidebar-accent-text: #38bdf8;
+  --sidebar-hover:       rgba(148, 163, 184, 0.10);
+
+  /* Stat Card primary accent */
+  --card-total-accent:   #0ea5e9;
+  --card-total-bg:       rgba(14, 165, 233, 0.08);
+
+  /* Shadows */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.10), 0 2px 4px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 40px rgba(0, 0, 0, 0.12), 0 4px 8px rgba(0, 0, 0, 0.08);
+}
+
+
+/* ══════════════════════════════════════════════════════════════════
+   THEME 2 — OCEAN TEAL
+   Xanh ngọc, phù hợp môi trường y tế & kỹ thuật
+   ══════════════════════════════════════════════════════════════════ */
+
+[data-color-scheme="teal"][data-theme="dark"] {
+  /* Surfaces */
+  --color-bg:            2 23 22;
+  --color-surface:       15 31 30;
+  --color-surface-2:     19 78 74;
+  --color-elevated:      17 94 89;
+
+  /* Borders */
+  --color-border:        rgba(45, 212, 191, 0.12);
+  --color-border-strong: rgba(45, 212, 191, 0.28);
+
+  /* Text */
+  --color-text:          rgba(204, 251, 241, 0.92);
+  --color-text-muted:    rgba(94, 234, 212, 0.75);
+  --color-text-dim:      rgba(45, 106, 103, 0.90);
+
+  /* Primary / Accent */
+  --color-primary:          #2dd4bf;
+  --color-primary-hover:    #14b8a6;
+  --color-primary-active:   #0d9488;
+  --color-primary-contrast: #042f2e;
+  --color-primary-muted:    rgba(45, 212, 191, 0.12);
+  --color-focus:            rgba(45, 212, 191, 0.50);
+  --shadow-focus-ring:      0 0 0 3px rgba(45, 212, 191, 0.30);
+
+  /* Status — Info (teal-themed) */
+  --color-info:          #2dd4bf;
+  --color-info-hover:    #14b8a6;
+  --color-info-bg:       rgba(45, 212, 191, 0.12);
+  --color-info-border:   rgba(45, 212, 191, 0.30);
+  --status-info:         #5eead4;
+  --status-info-bg:      rgba(94, 234, 212, 0.12);
+  --status-info-border:  rgba(94, 234, 212, 0.30);
+
+  /* Success (teal-specific) */
+  --color-success:        #34d399;
+  --color-success-hover:  #10b981;
+  --color-success-bg:     rgba(52, 211, 153, 0.12);
+  --color-success-border: rgba(52, 211, 153, 0.30);
+  --status-success:       #34d399;
+  --status-success-bg:    rgba(52, 211, 153, 0.12);
+  --status-success-border:rgba(52, 211, 153, 0.30);
+
+  /* Sidebar */
+  --sidebar-bg:          #042f2e;
+  --sidebar-surface:     #134e4a;
+  --sidebar-border:      rgba(4, 47, 46, 0.80);
+  --sidebar-text:        rgba(94, 234, 212, 0.80);
+  --sidebar-text-active: #ccfbf1;
+  --sidebar-accent:      rgba(45, 212, 191, 0.15);
+  --sidebar-accent-text: #2dd4bf;
+  --sidebar-hover:       rgba(45, 212, 191, 0.08);
+
+  /* Stat Card */
+  --card-total-accent:   #2dd4bf;
+  --card-total-bg:       rgba(45, 212, 191, 0.08);
+
+  /* Shadows */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.30);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.40), 0 1px 2px rgba(0, 0, 0, 0.24);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.50), 0 2px 4px rgba(0, 0, 0, 0.28);
+  --shadow-lg: 0 10px 40px rgba(0, 0, 0, 0.60), 0 4px 8px rgba(0, 0, 0, 0.32);
+}
+
+[data-color-scheme="teal"]:not([data-theme="dark"]) {
+  /* Surfaces */
+  --color-bg:            240 250 249;
+  --color-surface:       255 255 255;
+  --color-surface-2:     240 253 250;
+  --color-elevated:      204 251 241;
+
+  /* Borders */
+  --color-border:        rgba(13, 148, 136, 0.14);
+  --color-border-strong: rgba(13, 148, 136, 0.30);
+
+  /* Text */
+  --color-text:          rgba(19, 78, 74, 0.92);
+  --color-text-muted:    rgba(15, 118, 110, 0.75);
+  --color-text-dim:      rgba(45, 106, 103, 0.65);
+
+  /* Primary / Accent */
+  --color-primary:          #0d9488;
+  --color-primary-hover:    #0f766e;
+  --color-primary-active:   #115e59;
+  --color-primary-contrast: #ffffff;
+  --color-primary-muted:    rgba(13, 148, 136, 0.10);
+  --color-focus:            rgba(13, 148, 136, 0.45);
+  --shadow-focus-ring:      0 0 0 3px rgba(13, 148, 136, 0.25);
+
+  /* Status — Info */
+  --color-info:          #0d9488;
+  --color-info-hover:    #0f766e;
+  --color-info-bg:       rgba(13, 148, 136, 0.10);
+  --color-info-border:   rgba(13, 148, 136, 0.28);
+  --status-info:         #0f766e;
+  --status-info-bg:      rgba(13, 148, 136, 0.10);
+  --status-info-border:  rgba(13, 148, 136, 0.28);
+
+  /* Success */
+  --color-success:        #059669;
+  --color-success-hover:  #047857;
+  --color-success-bg:     rgba(5, 150, 105, 0.10);
+  --color-success-border: rgba(5, 150, 105, 0.28);
+  --status-success:       #065f46;
+  --status-success-bg:    rgba(5, 150, 105, 0.10);
+  --status-success-border:rgba(5, 150, 105, 0.28);
+
+  /* Sidebar (always dark) */
+  --sidebar-bg:          #134e4a;
+  --sidebar-surface:     #115e59;
+  --sidebar-border:      rgba(4, 47, 46, 0.40);
+  --sidebar-text:        rgba(153, 246, 228, 0.85);
+  --sidebar-text-active: #ccfbf1;
+  --sidebar-accent:      rgba(13, 148, 136, 0.18);
+  --sidebar-accent-text: #5eead4;
+  --sidebar-hover:       rgba(45, 212, 191, 0.10);
+
+  /* Stat Card */
+  --card-total-accent:   #0d9488;
+  --card-total-bg:       rgba(13, 148, 136, 0.08);
+
+  /* Shadows */
+  --shadow-xs: 0 1px 2px rgba(13, 148, 136, 0.06);
+  --shadow-sm: 0 1px 3px rgba(13, 148, 136, 0.10), 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 4px 16px rgba(13, 148, 136, 0.12), 0 2px 4px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 40px rgba(13, 148, 136, 0.15), 0 4px 8px rgba(0, 0, 0, 0.08);
+}
+
+
+/* ══════════════════════════════════════════════════════════════════
+   THEME 3 — VIOLET ENTERPRISE
+   Tím tinh tế, corporate, sang trọng
+   ══════════════════════════════════════════════════════════════════ */
+
+[data-color-scheme="violet"][data-theme="dark"] {
+  /* Surfaces */
+  --color-bg:            13 10 30;
+  --color-surface:       19 15 40;
+  --color-surface-2:     30 27 75;
+  --color-elevated:      45 42 110;
+
+  /* Borders */
+  --color-border:        rgba(167, 139, 250, 0.12);
+  --color-border-strong: rgba(167, 139, 250, 0.28);
+
+  /* Text */
+  --color-text:          rgba(237, 233, 254, 0.94);
+  --color-text-muted:    rgba(196, 181, 253, 0.75);
+  --color-text-dim:      rgba(76, 70, 128, 0.90);
+
+  /* Primary / Accent */
+  --color-primary:          #a78bfa;
+  --color-primary-hover:    #8b5cf6;
+  --color-primary-active:   #7c3aed;
+  --color-primary-contrast: #ffffff;
+  --color-primary-muted:    rgba(167, 139, 250, 0.12);
+  --color-focus:            rgba(167, 139, 250, 0.50);
+  --shadow-focus-ring:      0 0 0 3px rgba(167, 139, 250, 0.30);
+
+  /* Status — Info (violet) */
+  --color-info:          #a78bfa;
+  --color-info-hover:    #8b5cf6;
+  --color-info-bg:       rgba(167, 139, 250, 0.12);
+  --color-info-border:   rgba(167, 139, 250, 0.30);
+  --status-info:         #c4b5fd;
+  --status-info-bg:      rgba(196, 181, 253, 0.12);
+  --status-info-border:  rgba(196, 181, 253, 0.30);
+
+  /* Status — Purple (now neutral for this theme) */
+  --status-purple:        #a78bfa;
+  --status-purple-bg:     rgba(167, 139, 250, 0.12);
+  --status-purple-border: rgba(167, 139, 250, 0.30);
+
+  /* Sidebar */
+  --sidebar-bg:          #0d0a1e;
+  --sidebar-surface:     #1e1b4b;
+  --sidebar-border:      rgba(7, 5, 26, 0.80);
+  --sidebar-text:        rgba(196, 181, 253, 0.80);
+  --sidebar-text-active: #ede9fe;
+  --sidebar-accent:      rgba(167, 139, 250, 0.15);
+  --sidebar-accent-text: #a78bfa;
+  --sidebar-hover:       rgba(167, 139, 250, 0.08);
+
+  /* Stat Card */
+  --card-total-accent:   #a78bfa;
+  --card-total-bg:       rgba(167, 139, 250, 0.08);
+
+  /* Shadows */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.30);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.40), 0 1px 2px rgba(0, 0, 0, 0.24);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.50), 0 2px 4px rgba(0, 0, 0, 0.28);
+  --shadow-lg: 0 10px 40px rgba(0, 0, 0, 0.60), 0 4px 8px rgba(0, 0, 0, 0.32);
+}
+
+[data-color-scheme="violet"]:not([data-theme="dark"]) {
+  /* Surfaces */
+  --color-bg:            247 245 255;
+  --color-surface:       255 255 255;
+  --color-surface-2:     250 248 255;
+  --color-elevated:      237 233 254;
+
+  /* Borders */
+  --color-border:        rgba(124, 58, 237, 0.12);
+  --color-border-strong: rgba(124, 58, 237, 0.26);
+
+  /* Text */
+  --color-text:          rgba(30, 27, 75, 0.92);
+  --color-text-muted:    rgba(76, 74, 109, 0.80);
+  --color-text-dim:      rgba(165, 163, 192, 0.90);
+
+  /* Primary / Accent */
+  --color-primary:          #7c3aed;
+  --color-primary-hover:    #6d28d9;
+  --color-primary-active:   #5b21b6;
+  --color-primary-contrast: #ffffff;
+  --color-primary-muted:    rgba(124, 58, 237, 0.10);
+  --color-focus:            rgba(124, 58, 237, 0.45);
+  --shadow-focus-ring:      0 0 0 3px rgba(124, 58, 237, 0.25);
+
+  /* Status — Info (violet) */
+  --color-info:          #7c3aed;
+  --color-info-hover:    #6d28d9;
+  --color-info-bg:       rgba(124, 58, 237, 0.10);
+  --color-info-border:   rgba(124, 58, 237, 0.28);
+  --status-info:         #5b21b6;
+  --status-info-bg:      rgba(124, 58, 237, 0.10);
+  --status-info-border:  rgba(124, 58, 237, 0.28);
+
+  /* Sidebar (always dark) */
+  --sidebar-bg:          #1e1b4b;
+  --sidebar-surface:     #2d2a6e;
+  --sidebar-border:      rgba(13, 10, 30, 0.35);
+  --sidebar-text:        rgba(196, 181, 253, 0.85);
+  --sidebar-text-active: #ede9fe;
+  --sidebar-accent:      rgba(124, 58, 237, 0.18);
+  --sidebar-accent-text: #c4b5fd;
+  --sidebar-hover:       rgba(167, 139, 250, 0.10);
+
+  /* Stat Card */
+  --card-total-accent:   #7c3aed;
+  --card-total-bg:       rgba(124, 58, 237, 0.08);
+
+  /* Shadows */
+  --shadow-xs: 0 1px 2px rgba(124, 58, 237, 0.06);
+  --shadow-sm: 0 1px 3px rgba(124, 58, 237, 0.10), 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 4px 16px rgba(124, 58, 237, 0.12), 0 2px 4px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 40px rgba(124, 58, 237, 0.14), 0 4px 8px rgba(0, 0, 0, 0.08);
+}
+
+
+/* ══════════════════════════════════════════════════════════════════
+   THEME 4 — SLATE CLEAN
+   Xám xanh trung tính, minimalist, focus vào dữ liệu
+   ══════════════════════════════════════════════════════════════════ */
+
+[data-color-scheme="slate"][data-theme="dark"] {
+  /* Surfaces */
+  --color-bg:            15 23 42;
+  --color-surface:       30 41 59;
+  --color-surface-2:     39 53 73;
+  --color-elevated:      51 65 85;
+
+  /* Borders */
+  --color-border:        rgba(148, 163, 184, 0.16);
+  --color-border-strong: rgba(148, 163, 184, 0.35);
+
+  /* Text */
+  --color-text:          rgba(241, 245, 249, 0.96);
+  --color-text-muted:    rgba(148, 163, 184, 0.85);
+  --color-text-dim:      rgba(71, 85, 105, 0.90);
+
+  /* Primary / Accent */
+  --color-primary:          #60a5fa;
+  --color-primary-hover:    #3b82f6;
+  --color-primary-active:   #2563eb;
+  --color-primary-contrast: #0f172a;
+  --color-primary-muted:    rgba(96, 165, 250, 0.10);
+  --color-focus:            rgba(96, 165, 250, 0.50);
+  --shadow-focus-ring:      0 0 0 3px rgba(96, 165, 250, 0.30);
+
+  /* Status — Info */
+  --color-info:          #60a5fa;
+  --color-info-hover:    #3b82f6;
+  --color-info-bg:       rgba(96, 165, 250, 0.12);
+  --color-info-border:   rgba(96, 165, 250, 0.30);
+  --status-info:         #93c5fd;
+  --status-info-bg:      rgba(147, 197, 253, 0.12);
+  --status-info-border:  rgba(147, 197, 253, 0.30);
+
+  /* Sidebar */
+  --sidebar-bg:          #0a0f1e;
+  --sidebar-surface:     #0f172a;
+  --sidebar-border:      rgba(7, 9, 26, 0.80);
+  --sidebar-text:        rgba(100, 116, 139, 0.90);
+  --sidebar-text-active: #f1f5f9;
+  --sidebar-accent:      rgba(96, 165, 250, 0.10);
+  --sidebar-accent-text: #60a5fa;
+  --sidebar-hover:       rgba(148, 163, 184, 0.08);
+
+  /* Stat Card */
+  --card-total-accent:   #60a5fa;
+  --card-total-bg:       rgba(96, 165, 250, 0.08);
+
+  /* Shadows */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.20);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.30), 0 1px 2px rgba(0, 0, 0, 0.18);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.40), 0 2px 4px rgba(0, 0, 0, 0.22);
+  --shadow-lg: 0 10px 40px rgba(0, 0, 0, 0.50), 0 4px 8px rgba(0, 0, 0, 0.26);
+}
+
+[data-color-scheme="slate"]:not([data-theme="dark"]) {
+  /* Surfaces */
+  --color-bg:            241 245 249;
+  --color-surface:       255 255 255;
+  --color-surface-2:     248 250 252;
+  --color-elevated:      226 232 240;
+
+  /* Borders */
+  --color-border:        rgba(15, 23, 42, 0.12);
+  --color-border-strong: rgba(15, 23, 42, 0.26);
+
+  /* Text */
+  --color-text:          rgba(30, 41, 59, 0.94);
+  --color-text-muted:    rgba(100, 116, 139, 0.90);
+  --color-text-dim:      rgba(148, 163, 184, 0.95);
+
+  /* Primary / Accent */
+  --color-primary:          #3b82f6;
+  --color-primary-hover:    #2563eb;
+  --color-primary-active:   #1d4ed8;
+  --color-primary-contrast: #ffffff;
+  --color-primary-muted:    rgba(59, 130, 246, 0.10);
+  --color-focus:            rgba(59, 130, 246, 0.45);
+  --shadow-focus-ring:      0 0 0 3px rgba(59, 130, 246, 0.25);
+
+  /* Status — Info */
+  --color-info:          #3b82f6;
+  --color-info-hover:    #2563eb;
+  --color-info-bg:       rgba(59, 130, 246, 0.10);
+  --color-info-border:   rgba(59, 130, 246, 0.28);
+  --status-info:         #1d4ed8;
+  --status-info-bg:      rgba(59, 130, 246, 0.10);
+  --status-info-border:  rgba(59, 130, 246, 0.28);
+
+  /* Sidebar */
+  --sidebar-bg:          #0f172a;
+  --sidebar-surface:     #1e293b;
+  --sidebar-border:      rgba(10, 15, 30, 0.35);
+  --sidebar-text:        rgba(148, 163, 184, 0.85);
+  --sidebar-text-active: #ffffff;
+  --sidebar-accent:      rgba(59, 130, 246, 0.12);
+  --sidebar-accent-text: #60a5fa;
+  --sidebar-hover:       rgba(148, 163, 184, 0.08);
+
+  /* Stat Card */
+  --card-total-accent:   #3b82f6;
+  --card-total-bg:       rgba(59, 130, 246, 0.08);
+
+  /* Shadows */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.07), 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.09), 0 2px 4px rgba(0, 0, 0, 0.05);
+  --shadow-lg: 0 10px 40px rgba(0, 0, 0, 0.11), 0 4px 8px rgba(0, 0, 0, 0.07);
+}
+
+
+/* ══════════════════════════════════════════════════════════════════
+   THEME 5 — AMBER WARM
+   Vàng ấm, năng động, phù hợp dashboard & analytics
+   ══════════════════════════════════════════════════════════════════ */
+
+[data-color-scheme="amber"][data-theme="dark"] {
+  /* Surfaces */
+  --color-bg:            20 13 0;
+  --color-surface:       31 19 0;
+  --color-surface-2:     45 27 0;
+  --color-elevated:      61 37 0;
+
+  /* Borders */
+  --color-border:        rgba(251, 191, 36, 0.10);
+  --color-border-strong: rgba(251, 191, 36, 0.24);
+
+  /* Text */
+  --color-text:          rgba(254, 249, 195, 0.92);
+  --color-text-muted:    rgba(252, 211, 77, 0.70);
+  --color-text-dim:      rgba(120, 80, 26, 0.90);
+
+  /* Primary / Accent */
+  --color-primary:          #fbbf24;
+  --color-primary-hover:    #f59e0b;
+  --color-primary-active:   #d97706;
+  --color-primary-contrast: #1c1001;
+  --color-primary-muted:    rgba(251, 191, 36, 0.12);
+  --color-focus:            rgba(251, 191, 36, 0.50);
+  --shadow-focus-ring:      0 0 0 3px rgba(251, 191, 36, 0.30);
+
+  /* Status — Info (amber-tinted) */
+  --color-info:          #fbbf24;
+  --color-info-hover:    #f59e0b;
+  --color-info-bg:       rgba(251, 191, 36, 0.12);
+  --color-info-border:   rgba(251, 191, 36, 0.30);
+  --status-info:         #fde68a;
+  --status-info-bg:      rgba(253, 230, 138, 0.14);
+  --status-info-border:  rgba(251, 191, 36, 0.28);
+
+  /* Warning (amber itself becomes the warning color — use orange) */
+  --color-warning:        #fb923c;
+  --color-warning-hover:  #ea580c;
+  --color-warning-bg:     rgba(251, 146, 60, 0.12);
+  --color-warning-border: rgba(251, 146, 60, 0.30);
+  --status-warning:       #fb923c;
+  --status-warning-bg:    rgba(251, 146, 60, 0.12);
+  --status-warning-border:rgba(251, 146, 60, 0.30);
+
+  /* Sidebar */
+  --sidebar-bg:          #0c0800;
+  --sidebar-surface:     #1c1001;
+  --sidebar-border:      rgba(7, 5, 0, 0.80);
+  --sidebar-text:        rgba(252, 211, 77, 0.75);
+  --sidebar-text-active: #fef9c3;
+  --sidebar-accent:      rgba(251, 191, 36, 0.15);
+  --sidebar-accent-text: #fbbf24;
+  --sidebar-hover:       rgba(251, 191, 36, 0.08);
+
+  /* Stat Card */
+  --card-total-accent:   #fbbf24;
+  --card-total-bg:       rgba(251, 191, 36, 0.08);
+
+  /* Shadows */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.30);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.40), 0 1px 2px rgba(0, 0, 0, 0.24);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.50), 0 2px 4px rgba(0, 0, 0, 0.28);
+  --shadow-lg: 0 10px 40px rgba(0, 0, 0, 0.60), 0 4px 8px rgba(0, 0, 0, 0.32);
+}
+
+[data-color-scheme="amber"]:not([data-theme="dark"]) {
+  /* Surfaces */
+  --color-bg:            255 253 245;
+  --color-surface:       255 255 255;
+  --color-surface-2:     255 251 235;
+  --color-elevated:      254 243 199;
+
+  /* Borders */
+  --color-border:        rgba(28, 16, 1, 0.12);
+  --color-border-strong: rgba(28, 16, 1, 0.26);
+
+  /* Text */
+  --color-text:          rgba(28, 16, 1, 0.92);
+  --color-text-muted:    rgba(87, 64, 15, 0.82);
+  --color-text-dim:      rgba(160, 120, 48, 0.80);
+
+  /* Primary / Accent */
+  --color-primary:          #d97706;
+  --color-primary-hover:    #b45309;
+  --color-primary-active:   #92400e;
+  --color-primary-contrast: #ffffff;
+  --color-primary-muted:    rgba(217, 119, 6, 0.10);
+  --color-focus:            rgba(217, 119, 6, 0.45);
+  --shadow-focus-ring:      0 0 0 3px rgba(217, 119, 6, 0.25);
+
+  /* Status — Info (amber-tinted) */
+  --color-info:          #d97706;
+  --color-info-hover:    #b45309;
+  --color-info-bg:       rgba(217, 119, 6, 0.10);
+  --color-info-border:   rgba(217, 119, 6, 0.28);
+  --status-info:         #92400e;
+  --status-info-bg:      rgba(217, 119, 6, 0.10);
+  --status-info-border:  rgba(217, 119, 6, 0.28);
+
+  /* Warning (orange since amber IS the primary) */
+  --color-warning:        #ea580c;
+  --color-warning-hover:  #c2410c;
+  --color-warning-bg:     rgba(234, 88, 12, 0.10);
+  --color-warning-border: rgba(234, 88, 12, 0.28);
+  --status-warning:       #9a3412;
+  --status-warning-bg:    rgba(234, 88, 12, 0.10);
+  --status-warning-border:rgba(234, 88, 12, 0.28);
+
+  /* Sidebar (always dark) */
+  --sidebar-bg:          #1c1001;
+  --sidebar-surface:     #2d1c02;
+  --sidebar-border:      rgba(12, 7, 0, 0.35);
+  --sidebar-text:        rgba(252, 211, 77, 0.80);
+  --sidebar-text-active: #fef9c3;
+  --sidebar-accent:      rgba(217, 119, 6, 0.18);
+  --sidebar-accent-text: #fbbf24;
+  --sidebar-hover:       rgba(251, 191, 36, 0.10);
+
+  /* Stat Card */
+  --card-total-accent:   #d97706;
+  --card-total-bg:       rgba(217, 119, 6, 0.08);
+
+  /* Shadows */
+  --shadow-xs: 0 1px 2px rgba(217, 119, 6, 0.06);
+  --shadow-sm: 0 1px 3px rgba(217, 119, 6, 0.10), 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 4px 16px rgba(217, 119, 6, 0.12), 0 2px 4px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 40px rgba(217, 119, 6, 0.14), 0 4px 8px rgba(0, 0, 0, 0.08);
+}

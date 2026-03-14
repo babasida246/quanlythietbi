@@ -23,7 +23,7 @@ type SetupJob = {
 
 type SetupRoutesService = Pick<
     SetupService,
-    'getStatus' | 'isSetupLocked' | 'runMigrations' | 'runSeed' | 'createFirstAdmin' | 'finalizeSetup'
+    'getStatus' | 'isSetupLocked' | 'runMigrations' | 'runSeed' | 'createFirstAdmin' | 'finalizeSetup' | 'saveOrgInfo' | 'getOrgInfo'
 >
 
 export interface SetupRoutesOptions {
@@ -437,5 +437,42 @@ export const setupRoutes: FastifyPluginAsync<SetupRoutesOptions> = async (
             const message = error instanceof Error ? error.message : String(error)
             reply.status(400).send(createErrorResponse(createApiError.badRequest(message), requestIdOf(request)))
         }
+    })
+
+    const orgInfoBodySchema = z.object({
+        name: z.string().trim().min(2).max(200),
+        shortName: z.string().trim().min(1).max(20),
+        address: z.string().trim().max(500).optional(),
+        phone: z.string().trim().max(50).optional(),
+        taxCode: z.string().trim().max(50).optional(),
+        website: z.string().trim().max(200).optional(),
+    })
+
+    fastify.post('/org-info', async (request, reply) => {
+        if (!enforceRateLimit(rateLimiter, request, reply, 'setup:org', 20, 60_000)) return
+
+        const parsed = orgInfoBodySchema.safeParse(request.body)
+        if (!parsed.success) {
+            reply.status(400).send(
+                createErrorResponse(
+                    createApiError.validation('Invalid org info payload', validationDetails(parsed.error)),
+                    requestIdOf(request)
+                )
+            )
+            return
+        }
+
+        try {
+            const result = await service.saveOrgInfo(parsed.data)
+            reply.send(createSuccessResponse(result, requestIdOf(request)))
+        } catch (error) {
+            const message = error instanceof Error ? error.message : String(error)
+            reply.status(400).send(createErrorResponse(createApiError.badRequest(message), requestIdOf(request)))
+        }
+    })
+
+    fastify.get('/org', async (request, reply) => {
+        const result = await service.getOrgInfo()
+        reply.send(createSuccessResponse(result, requestIdOf(request)))
     })
 }

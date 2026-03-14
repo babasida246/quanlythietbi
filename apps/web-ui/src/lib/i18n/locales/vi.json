@@ -36,6 +36,8 @@
     "automation": "Quy trình nghiệp vụ",
     "integrations": "Tích hợp",
     "security": "Bảo mật",
+    "themeCustomizer": "Tùy biến giao diện",
+    "printCustomizer": "Tuy chinh mau in",
     "groupMy": "CỦA TÔI",
     "groupAssets": "QUẢN LÝ TÀI SẢN",
     "groupSupport": "HỖ TRỢ"
@@ -626,6 +628,9 @@
       "ownerPlaceholder": "Nhóm / người phụ trách",
       "sla": "SLA",
       "slaPlaceholder": "99.9%",
+      "slaUptime": "SLA Uptime (%)",
+      "slaResponseTime": "Thời gian phản hồi",
+      "slaResolutionTime": "Thời gian giải quyết",
       "save": "Lưu",
       "dependencyPlaceholder": "chính / phụ thuộc"
     },
@@ -678,6 +683,7 @@
     "vendor": "Nhà cung cấp",
     "model": "Model",
     "location": "Vị trí",
+    "warehouse": "Kho",
     "status": "Trạng thái",
     "specs": "Thông số",
     "mgmtIp": "IP quản lý",
@@ -723,8 +729,11 @@
     },
     "tabs": {
       "overview": "Tổng quan",
+      "specs": "Thông số kỹ thuật",
       "lifecycle": "Vòng đời",
+      "repairs": "Sửa chữa",
       "maintenance": "Bảo trì",
+      "software": "Phần mềm",
       "warranty": "Bảo hành",
       "inventory": "Kiểm kê",
       "workflow": "Workflow",
@@ -786,6 +795,39 @@
       "attachments": "Tài liệu",
       "timeline": "Dòng thời gian",
       "maintenance": "Phiếu bảo trì"
+    },
+    "specifications": "Thông số kỹ thuật",
+    "noSpecsDefined": "Chưa có thông số kỹ thuật nào được ghi nhận.",
+    "repairOrders": {
+      "empty": "Chưa có đơn sửa chữa.",
+      "type": "Loại sửa chữa",
+      "technician": "Kỹ thuật viên",
+      "technicianPlaceholder": "Tên kỹ thuật viên (tùy chọn)",
+      "severity": "Mức độ nghiêm trọng",
+      "createBtn": "Tạo lệnh sửa chữa",
+      "title": "Tiêu đề",
+      "titlePlaceholder": "Tóm tắt nội dung sửa chữa...",
+      "corrective": "Sửa chữa khắc phục",
+      "preventive": "Sửa chữa phòng ngừa",
+      "emergency": "Sửa chữa khẩn cấp",
+      "downtime": "Thời gian ngừng",
+      "diagnosis": "Chẩn đoán",
+      "resolution": "Hướng xử lý",
+      "noParts": "Không có linh kiện sử dụng.",
+      "parts": "Linh kiện sử dụng",
+      "partName": "Linh kiện",
+      "partAction": "Thao tác",
+      "partQty": "Số lượng",
+      "partCost": "Đơn giá",
+      "loadParts": "Xem linh kiện..."
+    },
+    "software": {
+      "empty": "Chưa có phần mềm nào được cấp phép.",
+      "name": "Phần mềm",
+      "licenseCode": "Mã giấy phép",
+      "type": "Loại giấy phép",
+      "expiry": "Hết hạn",
+      "manageLink": "Quản lý giấy phép →"
     },
     "maintenanceEmpty": "Chưa có bản ghi bảo trì.",
     "warranty": "Bảo hành",
@@ -977,11 +1019,13 @@
     "subtitleCount": "{count} tài sản",
     "selectAll": "Chọn tất cả",
     "select": "Chọn {item}",
+    "reportIncident": "Báo sự cố",
     "toast": {
       "createSuccess": "Tạo tài sản thành công",
       "updateSuccess": "Cập nhật tài sản thành công",
       "deleteSuccess": "Xóa tài sản thành công",
-      "exportSuccess": "Xuất CSV thành công"
+      "exportSuccess": "Xuất CSV thành công",
+      "incidentReported": "Báo sự cố thành công"
     },
     "validation": {
       "nameRequired": "Tên tài sản là bắt buộc",
@@ -994,11 +1038,25 @@
       "selectVendor": "Chọn nhà cung cấp",
       "selectLocation": "Chọn vị trí",
       "selectStatus": "Chọn trạng thái",
-      "note": "Ghi chú"
+      "note": "Ghi chú",
+      "basicInfo": "Thông tin cơ bản",
+      "classification": "Phân loại"
     },
-    "noSpecsDefined": "Chưa có thông số kỹ thuật"
+    "noSpecsDefined": "Chưa có thông số kỹ thuật",
+    "createAssetHint": "Điền các thông tin bên dưới. Các trường có * là bắt buộc.",
+    "assetNamePlaceholder": "Ví dụ: PC-KeToan-01",
+    "createSuccessTitle": "Tạo tài sản thành công!",
+    "createAnother": "Tạo tài sản khác",
+    "backToList": "Về danh sách",
+    "specHint": "Thông số kỹ thuật được lấy từ mẫu mã, có thể tùy chỉnh cho từng tài sản.",
+    "specLoadedFromModel": "Thông số từ mẫu mã"
   },
   "maintenance": {
+    "title": "Bảo trì",
+    "openMaintenance": "Mở phiếu bảo trì {assetCode}",
+    "titleLabel": "Tiêu đề",
+    "severity": "Mức độ",
+    "openedAt": "Ngày mở",
     "pageTitle": "Bảo trì & Sửa chữa",
     "pageSubtitle": "Quản lý phiếu bảo trì và đơn sửa chữa",
     "tabTickets": "Phiếu bảo trì",
@@ -3266,13 +3324,17 @@
       "assetLifecycle": "Vòng đời tài sản",
       "repairWorkflow": "Quy trình sửa chữa",
       "procurement": "Quy trình mua sắm",
-      "inventoryMgmt": "Quy trình kho vật tư"
+      "inventoryMgmt": "Quy trình kho vật tư",
+      "assetAllocation": "Phân bổ & Gán tài sản",
+      "assetDisposal": "Thanh lý & Loại bỏ tài sản"
     },
     "diagramDesc": {
       "assetLifecycle": "Luồng xử lý từ tiếp nhận, kiểm tra, phân bổ đến thanh lý tài sản",
       "repairWorkflow": "Luồng xử lý yêu cầu sửa chữa từ tạo phiếu đến hoàn thành",
       "procurement": "Luồng mua sắm từ kiểm tra tồn kho đến nhập kho và thanh toán",
-      "inventoryMgmt": "Quản lý nhập, xuất, kiểm kê và điều chuyển kho vật tư"
+      "inventoryMgmt": "Quản lý nhập, xuất, kiểm kê và điều chuyển kho vật tư",
+      "assetAllocation": "Quy trình cấp phát thiết bị từ yêu cầu đến bàn giao người dùng",
+      "assetDisposal": "Quy trình thanh lý thiết bị hết hạn sử dụng hoặc hỏng vĩnh viễn"
     },
     "clickExpand": "Nhấn để mở",
     "clickCollapse": "Nhấn để thu gọn",
@@ -4069,7 +4131,18 @@
       "migrations": "Migrations",
       "seed": "Seed data",
       "admin": "Admin",
-      "linkPgAdmin": "pgAdmin"
+      "linkPgAdmin": "pgAdmin",
+      "orgInfoTitle": "Thông tin đơn vị",
+      "adminAccountTitle": "Tài khoản quản trị viên",
+      "orgName": "Tên đơn vị / tổ chức",
+      "orgNamePlaceholder": "Ví dụ: Bệnh viện Đa khoa Trung ương",
+      "orgShortName": "Tên viết tắt (hiển thị logo)",
+      "orgAddress": "Địa chỉ",
+      "orgPhone": "Điện thoại",
+      "orgTaxCode": "Mã số thuế",
+      "orgWebsite": "Website",
+      "saveOrg": "Lưu thông tin đơn vị",
+      "orgSaved": "Đã lưu thông tin đơn vị"
     },
     "systemConfig": {
       "title": "Cấu hình hệ thống",
@@ -4400,5 +4473,150 @@
     "selectPart": "-- Chọn vật tư --",
     "selectAsset": "-- Chọn thiết bị --",
     "serviceNote": "Mô tả trong cột ghi chú →"
+  },
+  "themeCustomizer": {
+    "title": "Tùy biến màu giao diện",
+    "subtitle": "Chọn màu cho token toàn cục để áp dụng cho tất cả components",
+    "enable": "Bật bảng màu tùy chỉnh",
+    "enableHint": "Bật tùy chỉnh để áp dụng màu sắc toàn cục ngay lập tức.",
+    "resetMode": "Đặt lại mode hiện tại",
+    "resetAll": "Đặt lại toàn bộ",
+    "dark": "Dark mode",
+    "light": "Light mode",
+    "preview": "Xem trước",
+    "surfaceSample": "Mẫu bề mặt",
+    "mutedSample": "Mẫu chữ phụ",
+    "groups": {
+      "surfaces": "Bề mặt",
+      "textBorder": "Chữ và đường viền",
+      "brandStatus": "Màu thương hiệu và trạng thái",
+      "sidebarHeader": "Sidebar và header"
+    },
+    "tokens": {
+      "colorBg": "Nền ứng dụng",
+      "colorSurface": "Nền card/panel",
+      "colorSurface2": "Nền lớp phụ",
+      "colorElevated": "Nền nổi (dropdown/popover)",
+      "colorText": "Chữ chính",
+      "colorTextMuted": "Chữ phụ",
+      "colorTextDim": "Chữ mờ/placeholder",
+      "colorBorder": "Viền mặc định",
+      "colorBorderStrong": "Viền nhấn mạnh",
+      "colorPrimary": "Primary",
+      "colorPrimaryHover": "Primary hover",
+      "colorPrimaryActive": "Primary active",
+      "colorSuccess": "Success",
+      "colorWarning": "Warning",
+      "colorDanger": "Danger",
+      "colorInfo": "Info",
+      "sidebarBg": "Nền sidebar",
+      "sidebarSurface": "Nền header/sidebar phụ",
+      "sidebarAccent": "Nền item active sidebar",
+      "sidebarAccentText": "Chữ item active sidebar"
+    },
+    "sectionTitle": "Tùy chỉnh màu sắc nâng cao",
+    "sectionSubtitle": "Tinh chỉnh từng token màu, áp dụng trên theme đang chọn"
+  },
+  "themePresets": {
+    "title": "Bộ màu giao diện",
+    "subtitle": "Chọn bộ màu có sẵn cho toàn bộ ứng dụng. Bạn vẫn có thể tùy chỉnh thêm ở bên dưới.",
+    "recommended": "Gợi ý",
+    "sky": {
+      "name": "Sky Pro",
+      "desc": "Xanh trời chuyên nghiệp — bộ màu mặc định"
+    },
+    "teal": {
+      "name": "Ocean Teal",
+      "desc": "Xanh ngọc — thanh lịch, phù hợp môi trường y tế"
+    },
+    "violet": {
+      "name": "Violet Enterprise",
+      "desc": "Tím tinh tế — corporate, sang trọng"
+    },
+    "slate": {
+      "name": "Slate Clean",
+      "desc": "Xám xanh tối giản — focus vào dữ liệu"
+    },
+    "amber": {
+      "name": "Amber Warm",
+      "desc": "Vàng ấm — năng động, phù hợp dashboard"
+    }
+  },
+  "printCustomizer": {
+    "title": "Tuy chinh mau in",
+    "subtitle": "Tuy chinh bo cuc, chu va nhan cho tat ca bieu mau in.",
+    "reset": "Dat lai mac dinh",
+    "openSample": "Mo mau in thu",
+    "tipTitle": "Meo:",
+    "tip": "Thay doi duoc luu tu dong va ap dung cho toan bo mau in.",
+    "header": {
+      "title": "Nhan tieu de",
+      "showLogo": "Hien o logo gia lap",
+      "logoText": "Noi dung logo",
+      "addressLabel": "Nhan dia chi",
+      "phoneLabel": "Nhan dien thoai",
+      "taxLabel": "Nhan MST",
+      "numberLabel": "Nhan so chung tu",
+      "codeLabel": "Nhan ma",
+      "dateLabel": "Nhan ngay"
+    },
+    "typography": {
+      "title": "Kieu chu va khoang cach",
+      "fontFamily": "Kieu chu",
+      "fontSize": "Co chu co so (pt)",
+      "lineHeight": "Do gian dong",
+      "titleSize": "Co tieu de (pt)",
+      "tableFontSize": "Co chu bang (pt)"
+    },
+    "layout": {
+      "title": "Le trang (mm)"
+    },
+    "signature": {
+      "title": "Chu ky va chan trang",
+      "defaultTitleLine": "Dong chu ky mac dinh",
+      "datePrefix": "Tien to ngay",
+      "footerNote": "Ghi chu chan trang"
+    },
+    "templates": {
+      "title": "Mau in Word tuy chinh",
+      "subtitle": "Import file .docx co placeholder {{field_name}}, map du lieu va in/PDF.",
+      "nameLabel": "Ten mau in (tuy chon)",
+      "namePlaceholder": "Vi du: Bien ban ban giao v2",
+      "importLabel": "Import file .docx",
+      "selectedFile": "File da chon",
+      "importing": "Dang import mau in...",
+      "onlyDocx": "Chi ho tro file .docx",
+      "importedPrefix": "Da import mau in",
+      "empty": "Chua co mau in tuy chinh nao.",
+      "table": {
+        "name": "Mau in",
+        "fields": "So truong",
+        "updatedAt": "Cap nhat",
+        "actions": "Thao tac"
+      },
+      "actions": {
+        "select": "Chon",
+        "rename": "Doi ten",
+        "delete": "Xoa"
+      },
+      "deleteConfirm": "Ban co chac chan muon xoa mau in nay?",
+      "renamePrompt": "Nhap ten moi cho mau in",
+      "mappingTitle": "Map du lieu",
+      "mappingSubtitle": "Nhap gia tri cho tung placeholder {{field_name}}.",
+      "fillSample": "Tu dien du lieu mau",
+      "sampleSource": "Nguon du lieu mau",
+      "sampleRecord": "Ban ghi mau",
+      "autoMapFromSource": "Tu map tu nguon",
+      "exportPdf": "Xuat PDF",
+      "exportingPdf": "Dang xuat PDF...",
+      "pdfExportSuccess": "Xuat PDF thanh cong.",
+      "openPreview": "Xem truoc / In",
+      "noFields": "Khong tim thay placeholder trong mau in nay.",
+      "sampleSources": {
+        "asset": "Mau tai san",
+        "warehouseDoc": "Mau chung tu kho",
+        "user": "Mau nguoi dung"
+      }
+    }
   }
 }

@@ -32,30 +32,57 @@
   let container = $state<HTMLDivElement | undefined>(undefined)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let chart: any = null
+  let themeObserver: MutationObserver | null = null
 
-  const DEFAULT_COLORS = ['#6366F1', '#22D3EE', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#F97316', '#14B8A6']
+  const DEFAULT_COLORS = [
+    'var(--color-chart-1, #6366F1)',
+    'var(--color-chart-2, #22D3EE)',
+    'var(--color-chart-3, #10B981)',
+    'var(--color-chart-4, #F59E0B)',
+    'var(--color-chart-5, #EF4444)',
+    'var(--color-chart-6, #8B5CF6)',
+    'var(--color-chart-7, #F97316)',
+    'var(--color-chart-8, #14B8A6)'
+  ]
+
+  // Read resolved chart colors from CSS tokens (supports dark/light theme switch)
+  function getChartTheme() {
+    const s = typeof window !== 'undefined'
+      ? getComputedStyle(document.documentElement)
+      : null
+    const get = (v: string, fallback: string) => s?.getPropertyValue(v).trim() || fallback
+    return {
+      bg:             get('--color-chart-bg',             '#0F172A'),
+      grid:           get('--color-chart-grid',           '#1E293B'),
+      text:           get('--color-chart-text',           '#94A3B8'),
+      tooltipBg:      get('--color-chart-tooltip-bg',     '#1E293B'),
+      tooltipBorder:  get('--color-chart-tooltip-border', '#334155'),
+      // Resolve chart palette tokens to actual hex
+      palette: Array.from({ length: 8 }, (_, i) =>
+        get(`--color-chart-${i + 1}`, DEFAULT_COLORS[i])
+      )
+    }
+  }
 
   function isSeriesArray(s: number[] | SeriesItem[]): s is SeriesItem[] {
     return s.length > 0 && typeof (s as SeriesItem[])[0] === 'object'
   }
 
   function buildOption(): Record<string, unknown> {
-    const THEME_COLORS = colors ?? DEFAULT_COLORS
-    const darkBg = '#0F172A'
-    const textColor = '#94A3B8'
-    const gridColor = '#1E293B'
+    const theme = getChartTheme()
+    const THEME_COLORS = colors ?? theme.palette
 
     const baseTooltip = {
       trigger: type === 'pie' || type === 'donut' ? 'item' : 'axis',
-      backgroundColor: '#1E293B',
-      borderColor: '#334155',
-      textStyle: { color: '#F1F5F9', fontSize: 12 },
+      backgroundColor: theme.tooltipBg,
+      borderColor: theme.tooltipBorder,
+      textStyle: { color: theme.text, fontSize: 12 },
       axisPointer: { type: 'shadow' }
     }
 
     const baseLegend = {
-      textStyle: { color: textColor },
-      pageIconColor: textColor,
+      textStyle: { color: theme.text },
+      pageIconColor: theme.text,
       show: (type === 'pie' || type === 'donut' || isSeriesArray(series)) && labels.length > 0
     }
 
@@ -65,7 +92,7 @@
         : (series as number[]).map((v, i) => ({ name: labels[i] ?? `Item ${i}`, value: v, itemStyle: { color: THEME_COLORS[i % THEME_COLORS.length] } }))
 
       return {
-        backgroundColor: darkBg,
+        backgroundColor: theme.bg,
         tooltip: { ...baseTooltip, formatter: '{a} <br/>{b}: {c} ({d}%)' },
         legend: { ...baseLegend, orient: 'vertical', right: 10, top: 'center' },
         series: [{
@@ -82,15 +109,15 @@
     const xAxis = {
       type: 'category',
       data: labels,
-      axisLabel: { color: textColor, fontSize: 11, rotate: labels.length > 6 ? 30 : 0, overflow: 'truncate', width: 80 },
-      axisLine: { lineStyle: { color: gridColor } },
+      axisLabel: { color: theme.text, fontSize: 11, rotate: labels.length > 6 ? 30 : 0, overflow: 'truncate', width: 80 },
+      axisLine: { lineStyle: { color: theme.grid } },
       splitLine: { show: false }
     }
 
     const yAxis = {
       type: 'value',
-      axisLabel: { color: textColor, fontSize: 11 },
-      splitLine: { lineStyle: { color: gridColor } },
+      axisLabel: { color: theme.text, fontSize: 11 },
+      splitLine: { lineStyle: { color: theme.grid } },
       axisLine: { show: false }
     }
 
@@ -107,7 +134,7 @@
           }))
         : [{ name: title, type: 'line', data: series as number[], smooth: true, lineStyle: { color: THEME_COLORS[0], width: 2 }, itemStyle: { color: THEME_COLORS[0] }, areaStyle: { opacity: 0.08, color: THEME_COLORS[0] } }]
 
-      return { backgroundColor: darkBg, tooltip: baseTooltip, legend: baseLegend, xAxis, yAxis, series: seriesData, grid: { left: 50, right: 20, top: 30, bottom: labels.length > 6 ? 60 : 30 } }
+      return { backgroundColor: theme.bg, tooltip: baseTooltip, legend: baseLegend, xAxis, yAxis, series: seriesData, grid: { left: 50, right: 20, top: 30, bottom: labels.length > 6 ? 60 : 30 } }
     }
 
     if (type === 'stacked-bar') {
@@ -121,7 +148,7 @@
           }))
         : []
 
-      return { backgroundColor: darkBg, tooltip: { ...baseTooltip, trigger: 'axis' }, legend: baseLegend, xAxis, yAxis, series: seriesData, grid: { left: 50, right: 20, top: 40, bottom: labels.length > 6 ? 60 : 30 } }
+      return { backgroundColor: theme.bg, tooltip: { ...baseTooltip, trigger: 'axis' }, legend: baseLegend, xAxis, yAxis, series: seriesData, grid: { left: 50, right: 20, top: 40, bottom: labels.length > 6 ? 60 : 30 } }
     }
 
     // default: bar (grouped or simple)
@@ -140,7 +167,7 @@
         }]
 
     return {
-      backgroundColor: darkBg,
+      backgroundColor: theme.bg,
       tooltip: baseTooltip,
       legend: isSeriesArray(series) ? baseLegend : undefined,
       xAxis,
@@ -153,7 +180,7 @@
   onMount(async () => {
     if (!container) return
     const echarts = await import('echarts')
-    chart = echarts.init(container, 'dark')
+    chart = echarts.init(container)
 
     if (onclick) {
       chart.on('click', (params: { name: string; value: number }) => {
@@ -165,6 +192,15 @@
 
     const ro = new ResizeObserver(() => { chart?.resize() })
     ro.observe(container)
+
+    // Re-render chart when dark/light mode or color preset toggles.
+    themeObserver = new MutationObserver(() => {
+      if (chart) chart.setOption(buildOption(), { notMerge: true })
+    })
+    themeObserver.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['data-theme', 'data-color-scheme']
+    })
   })
 
   $effect(() => {
@@ -176,20 +212,23 @@
     chart.setOption(option, { notMerge: false })
   })
 
-  onDestroy(() => { chart?.dispose() })
+  onDestroy(() => {
+    chart?.dispose()
+    themeObserver?.disconnect()
+  })
 </script>
 
 <div class="card h-full">
   {#if title}
-    <p class="mb-3 text-sm font-semibold text-white">{title}</p>
+    <p class="mb-3 text-sm font-semibold" style="color: var(--color-text);">{title}</p>
   {/if}
 
   {#if loading}
-    <div class="flex items-center justify-center animate-pulse bg-slate-800 rounded" style="height: {height}px">
-      <div class="h-32 w-32 rounded-full border-4 border-slate-700 border-t-primary animate-spin"></div>
+    <div class="flex items-center justify-center animate-pulse rounded skeleton" style="height: {height}px">
+      <div class="h-32 w-32 rounded-full border-4 border-t-primary animate-spin" style="border-color: var(--color-border); border-top-color: var(--color-primary);"></div>
     </div>
   {:else if !labels.length && !series.length}
-    <div class="flex items-center justify-center rounded bg-slate-800 text-slate-500 text-sm" style="height: {height}px">
+    <div class="empty-state" style="height: {height}px">
       {$isLoading ? 'No data' : $_('reports.noData')}
     </div>
   {:else}

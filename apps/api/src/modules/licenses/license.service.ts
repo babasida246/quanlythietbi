@@ -10,6 +10,7 @@ import type {
     LicenseSeat,
     LicenseSeatWithDetails,
     LicenseAuditLog,
+    LicenseWithAssetSeat,
     Supplier,
     LicenseCategory,
     CreateLicenseDto,
@@ -71,6 +72,13 @@ export class LicenseService {
      */
     async listLicenses(query: LicenseListQuery): Promise<PaginatedResult<LicenseWithUsage>> {
         return this.repository.list(query);
+    }
+
+    /**
+     * Get all licenses assigned to a specific asset
+     */
+    async getLicensesByAsset(assetId: string): Promise<LicenseWithAssetSeat[]> {
+        return this.repository.findByAssetId(assetId);
     }
 
     /**

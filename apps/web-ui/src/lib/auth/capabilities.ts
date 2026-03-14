@@ -432,6 +432,8 @@ export function isRouteAllowed(pathname: string, caps: Capabilities): boolean {
   // Inbox/notifications: ai cũng xem được
   if (pathname.startsWith('/inbox')) return caps.requests.read || caps.requests.approve
   if (pathname.startsWith('/notifications') || pathname.startsWith('/me')) return true
+  if (pathname.startsWith('/settings/theme')) return true
+  if (pathname.startsWith('/settings/print')) return caps.reports.read
   if (pathname === '/profile' || pathname === '/logout' || pathname === '/forbidden' || pathname === '/help') return true
 
   // Default: cho phép (không lock-out route chưa được định nghĩa)

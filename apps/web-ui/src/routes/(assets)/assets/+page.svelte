@@ -1,18 +1,22 @@
 <script lang="ts">
+  import { goto } from '$app/navigation';
   import { onMount } from 'svelte';
   import { _, isLoading } from '$lib/i18n';
-  import { Download, Filter, HardDrive, Plus, Printer, RefreshCw, Upload, X } from 'lucide-svelte';
+  import { AlertTriangle, Download, Eye, Filter, HardDrive, Plus, Printer, RefreshCw, Upload, X } from 'lucide-svelte';
   import { z } from 'zod';
   import {
-    createAsset,
     deleteAsset,
     exportAssetsCsv,
     listAssets,
+    openMaintenanceTicket,
     updateAsset,
     type Asset,
-    type AssetStatus
+    type AssetStatus,
+    type MaintenanceSeverity
   } from '$lib/api/assets';
-  import { getAssetCatalogs, listStatusCatalogs, type AssetStatusCatalog, type Catalogs } from '$lib/api/assetCatalogs';
+  import { getAssetCatalogs, getCategorySpecDefs, listStatusCatalogs, type AssetStatusCatalog, type Catalogs, type CategorySpecDef } from '$lib/api/assetCatalogs';
+  import DynamicSpecForm from '$lib/assets/components/catalogs/DynamicSpecForm.svelte';
+  import MaintenanceModal from '$lib/assets/components/MaintenanceModal.svelte';
   import { toast } from '$lib/components/toast';
   import PageHeader from '$lib/components/PageHeader.svelte';
   import TextField from '$lib/components/TextField.svelte';
@@ -67,12 +71,18 @@
   let selectedIds = $state(new Set<string>());
   let printOpen = $state(false);
 
-  let createOpen = $state(false);
   let editOpen = $state(false);
   let deleteOpen = $state(false);
   let importOpen = $state(false);
   let editingAsset = $state<Asset | null>(null);
   let deletingAsset = $state<Asset | null>(null);
+  let reportOpen = $state(false);
+  let reportingAsset = $state<Asset | null>(null);
+
+  // Spec state for edit form
+  let editSpec = $state<Record<string, unknown>>({});
+  let editSpecDefs = $state<CategorySpecDef[]>([]);
+  let editSpecLoading = $state(false);
 
   function emptyAssetForm(): AssetFormValues {
     return {
@@ -131,7 +141,49 @@
     }
   }
 
-  function makeAssetPayload(values: AssetFormValues) {
+  async function loadSpecForModel(modelId: string) {
+    const model = catalogs?.models?.find((m) => m.id === modelId);
+    if (!model) {
+      editSpec = {};
+      editSpecDefs = [];
+      return;
+    }
+    editSpec = { ...(model.spec || {}) };
+
+    if (!model.categoryId) {
+      editSpecDefs = [];
+      return;
+    }
+    editSpecLoading = true;
+    try {
+      const response = await getCategorySpecDefs(model.categoryId);
+      editSpecDefs = response.data;
+    } catch {
+      editSpecDefs = [];
+    } finally {
+      editSpecLoading = false;
+    }
+  }
+
+  $effect(() => {
+    if (!editOpen) {
+      editSpec = {};
+      editSpecDefs = [];
+    } else if (editingAsset?.modelId) {
+      // Pre-populate spec from existing asset, then load defs
+      editSpec = { ...(editingAsset.spec || {}) };
+      const model = catalogs?.models?.find((m) => m.id === editingAsset?.modelId);
+      if (model?.categoryId) {
+        editSpecLoading = true;
+        getCategorySpecDefs(model.categoryId)
+          .then((r) => { editSpecDefs = r.data; })
+          .catch(() => { editSpecDefs = []; })
+          .finally(() => { editSpecLoading = false; });
+      }
+    }
+  });
+
+  function makeAssetPayload(values: AssetFormValues, spec?: Record<string, unknown>) {
     const generatedCode = `AST-${Date.now().toString().slice(-6)}`;
     const modelId = values.modelId || (catalogs?.models?.[0]?.id ?? '');
     if (!modelId) {
@@ -148,22 +200,15 @@
       purchaseDate: values.purchaseDate || undefined,
       warrantyEnd: values.warrantyEnd || undefined,
       notes: values.note?.trim() || undefined,
-      hostname: values.name.trim()
+      hostname: values.name.trim(),
+      spec: spec && Object.keys(spec).length > 0 ? spec : undefined
     };
-  }
-
-  async function handleCreate(values: Record<string, unknown>) {
-    const parsed = assetSchema.parse(values);
-    const payload = makeAssetPayload(parsed);
-    await createAsset(payload);
-    toast.success($isLoading ? 'Asset created successfully' : $_('assets.toast.createSuccess'));
-    await loadPageData();
   }
 
   async function handleEdit(values: Record<string, unknown>) {
     if (!editingAsset) return;
     const parsed = assetSchema.parse(values);
-    const payload = makeAssetPayload(parsed);
+    const payload = makeAssetPayload(parsed, editSpec);
     await updateAsset(editingAsset.id, payload);
     toast.success($isLoading ? 'Asset updated successfully' : $_('assets.toast.updateSuccess'));
     await loadPageData();
@@ -176,6 +221,18 @@
     deleteOpen = false;
     deletingAsset = null;
     await loadPageData();
+  }
+
+  async function handleReport(data: { title: string; severity: MaintenanceSeverity; diagnosis?: string; resolution?: string }) {
+    if (!reportingAsset) return;
+    try {
+      await openMaintenanceTicket(reportingAsset.id, data);
+      toast.success($isLoading ? 'Incident reported' : $_('assets.toast.incidentReported'));
+      reportOpen = false;
+      reportingAsset = null;
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to report incident');
+    }
   }
 
   async function handleExport() {
@@ -289,7 +346,7 @@
         {#snippet leftIcon()}<Upload class="h-3.5 w-3.5" />{/snippet}
         {$isLoading ? 'Import CSV' : $_('assets.importCsv')}
       </Button>
-      <Button variant="primary" size="sm" data-testid="btn-create" onclick={() => (createOpen = true)}>
+      <Button variant="primary" size="sm" data-testid="btn-create" onclick={() => goto('/assets/new')}>
         {#snippet leftIcon()}<Plus class="h-3.5 w-3.5" />{/snippet}
         {$isLoading ? 'Create new' : $_('assets.createNew')}
       </Button>
@@ -410,7 +467,7 @@
       title={$isLoading ? 'No assets' : $_('assets.noAssets')}
       description={query ? ($isLoading ? 'No matching results. Try different keywords.' : $_('assets.noResults')) : ($isLoading ? 'Start by creating a new asset.' : $_('assets.emptyHint'))}
       actionLabel={query ? '' : ($isLoading ? 'Create Asset' : $_('assets.createAsset'))}
-      onAction={() => (createOpen = true)}
+      onAction={() => goto('/assets/new')}
     />
   {:else}
     <div class="data-table-wrap">
@@ -467,6 +524,27 @@
                     <Button
                       size="sm"
                       variant="secondary"
+                      data-testid={`row-view-${asset.id}`}
+                      onclick={() => goto(`/assets/${asset.id}`)}
+                    >
+                      {#snippet leftIcon()}<Eye class="h-3.5 w-3.5" />{/snippet}
+                      {$isLoading ? 'View' : $_('common.view')}
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      data-testid={`row-report-${asset.id}`}
+                      onclick={() => {
+                        reportingAsset = asset;
+                        reportOpen = true;
+                      }}
+                    >
+                      {#snippet leftIcon()}<AlertTriangle class="h-3.5 w-3.5" />{/snippet}
+                      {$isLoading ? 'Report incident' : $_('assets.reportIncident')}
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
                       data-testid={`row-edit-${asset.id}`}
                       onclick={() => {
                         editingAsset = asset;
@@ -498,31 +576,6 @@
 </div>
 
 <CreateEditModal
-  bind:open={createOpen}
-  mode="create"
-  title={$isLoading ? 'Create Asset' : $_('assets.createAsset')}
-  schema={assetSchema}
-  initialValues={emptyAssetForm()}
-  onSubmit={handleCreate}
->
-  {#snippet fields({ values, errors, setValue, disabled })}
-    <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-      <TextField id="asset-name-create" label={$isLoading ? 'Asset name' : $_('assets.assetName')} required value={String(values.name ?? '')} error={errors.name} onValueChange={(v) => setValue('name', v)} disabled={disabled} />
-      <TextField id="asset-code-create" label={$isLoading ? 'Asset Code' : $_('assets.assetCode')} value={String(values.assetCode ?? '')} hint={$isLoading ? 'Leave empty to auto-generate' : $_('assets.form.autoGenHint')} onValueChange={(v) => setValue('assetCode', v)} disabled={disabled} />
-      <SelectField id="asset-category-create" label={$isLoading ? 'Category' : $_('assets.category')} value={String(values.categoryId ?? '')} options={categoryOptions} placeholder={$isLoading ? 'Select category' : $_('assets.form.selectCategory')} onValueChange={(v) => setValue('categoryId', v)} disabled={disabled} />
-      <SelectField id="asset-model-create" label={$isLoading ? 'Model' : $_('assets.model')} value={String(values.modelId ?? '')} options={modelOptions.filter((option) => !values.categoryId || catalogs?.models.find((m) => m.id === option.value)?.categoryId === values.categoryId)} placeholder={$isLoading ? 'Select model' : $_('assets.form.selectModel')} onValueChange={(v) => setValue('modelId', v)} disabled={disabled} />
-      <SelectField id="asset-vendor-create" label={$isLoading ? 'Vendor' : $_('assets.vendor')} value={String(values.vendorId ?? '')} options={vendorOptions} placeholder={$isLoading ? 'Select vendor' : $_('assets.form.selectVendor')} onValueChange={(v) => setValue('vendorId', v)} disabled={disabled} />
-      <SelectField id="asset-location-create" label={$isLoading ? 'Location' : $_('assets.location')} value={String(values.locationId ?? '')} options={locationOptions} placeholder={$isLoading ? 'Select location' : $_('assets.form.selectLocation')} onValueChange={(v) => setValue('locationId', v)} disabled={disabled} />
-      <SelectField id="asset-status-create" label={$isLoading ? 'Status' : $_('assets.status')} value={String(values.statusId ?? '')} options={statusOptions} placeholder={$isLoading ? 'Select status' : $_('assets.form.selectStatus')} onValueChange={(v) => setValue('statusId', v)} disabled={disabled} />
-      <TextField id="asset-serial-create" label={$isLoading ? 'Serial Number' : $_('assets.serialNumber')} value={String(values.serialNumber ?? '')} onValueChange={(v) => setValue('serialNumber', v)} disabled={disabled} />
-      <TextField id="asset-purchase-create" type="date" label={$isLoading ? 'Purchase Date' : $_('assets.purchaseDate')} value={String(values.purchaseDate ?? '')} onValueChange={(v) => setValue('purchaseDate', v)} disabled={disabled} />
-      <TextField id="asset-warranty-create" type="date" label={$isLoading ? 'Warranty End' : $_('assets.warrantyEnd')} value={String(values.warrantyEnd ?? '')} onValueChange={(v) => setValue('warrantyEnd', v)} disabled={disabled} />
-    </div>
-    <TextareaField id="asset-note-create" label={$isLoading ? 'Note' : $_('assets.form.note')} value={String(values.note ?? '')} onValueChange={(v) => setValue('note', v)} disabled={disabled} />
-  {/snippet}
-</CreateEditModal>
-
-<CreateEditModal
   bind:open={editOpen}
   mode="edit"
   title={$isLoading ? 'Edit asset' : $_('assets.editAsset')}
@@ -535,7 +588,7 @@
       <TextField id="asset-name-edit" label={$isLoading ? 'Asset name' : $_('assets.assetName')} required value={String(values.name ?? '')} error={errors.name} onValueChange={(v) => setValue('name', v)} disabled={disabled} />
       <TextField id="asset-code-edit" label={$isLoading ? 'Asset Code' : $_('assets.assetCode')} value={String(values.assetCode ?? '')} onValueChange={(v) => setValue('assetCode', v)} disabled={disabled} />
       <SelectField id="asset-category-edit" label={$isLoading ? 'Category' : $_('assets.category')} value={String(values.categoryId ?? '')} options={categoryOptions} placeholder={$isLoading ? 'Select category' : $_('assets.form.selectCategory')} onValueChange={(v) => setValue('categoryId', v)} disabled={disabled} />
-      <SelectField id="asset-model-edit" label={$isLoading ? 'Model' : $_('assets.model')} value={String(values.modelId ?? '')} options={modelOptions.filter((option) => !values.categoryId || catalogs?.models.find((m) => m.id === option.value)?.categoryId === values.categoryId)} placeholder={$isLoading ? 'Select model' : $_('assets.form.selectModel')} onValueChange={(v) => setValue('modelId', v)} disabled={disabled} />
+      <SelectField id="asset-model-edit" label={$isLoading ? 'Model' : $_('assets.model')} value={String(values.modelId ?? '')} options={modelOptions.filter((option) => !values.categoryId || catalogs?.models.find((m) => m.id === option.value)?.categoryId === values.categoryId)} placeholder={$isLoading ? 'Select model' : $_('assets.form.selectModel')} onValueChange={(v) => { setValue('modelId', v); loadSpecForModel(v); }} disabled={disabled} />
       <SelectField id="asset-vendor-edit" label={$isLoading ? 'Vendor' : $_('assets.vendor')} value={String(values.vendorId ?? '')} options={vendorOptions} placeholder={$isLoading ? 'Select vendor' : $_('assets.form.selectVendor')} onValueChange={(v) => setValue('vendorId', v)} disabled={disabled} />
       <SelectField id="asset-location-edit" label={$isLoading ? 'Location' : $_('assets.location')} value={String(values.locationId ?? '')} options={locationOptions} placeholder={$isLoading ? 'Select location' : $_('assets.form.selectLocation')} onValueChange={(v) => setValue('locationId', v)} disabled={disabled} />
       <SelectField id="asset-status-edit" label={$isLoading ? 'Status' : $_('assets.status')} value={String(values.statusId ?? '')} options={statusOptions} placeholder={$isLoading ? 'Select status' : $_('assets.form.selectStatus')} onValueChange={(v) => setValue('statusId', v)} disabled={disabled} />
@@ -544,6 +597,16 @@
       <TextField id="asset-warranty-edit" type="date" label={$isLoading ? 'Warranty End' : $_('assets.warrantyEnd')} value={String(values.warrantyEnd ?? '')} onValueChange={(v) => setValue('warrantyEnd', v)} disabled={disabled} />
     </div>
     <TextareaField id="asset-note-edit" label={$isLoading ? 'Note' : $_('assets.form.note')} value={String(values.note ?? '')} onValueChange={(v) => setValue('note', v)} disabled={disabled} />
+    {#if editSpecDefs.length > 0 || editSpecLoading}
+      <div class="border-t border-slate-700 pt-4 mt-2">
+        <h4 class="text-sm font-semibold text-slate-300 mb-3">{$isLoading ? 'Specifications' : $_('assets.specifications')}</h4>
+        {#if editSpecLoading}
+          <div class="flex items-center justify-center p-6"><div class="h-6 w-6 animate-spin rounded-full border-4 border-primary border-t-transparent"></div></div>
+        {:else}
+          <DynamicSpecForm bind:spec={editSpec} specDefs={editSpecDefs} />
+        {/if}
+      </div>
+    {/if}
   {/snippet}
 </CreateEditModal>
 
@@ -557,6 +620,12 @@
 <ImportWizard bind:open={importOpen} onimported={() => loadPageData()} />
 
 <InventoryLabelPrint bind:open={printOpen} assets={selectedAssets} />
+
+<MaintenanceModal
+  bind:open={reportOpen}
+  assetCode={reportingAsset?.assetCode ?? ''}
+  onsubmit={handleReport}
+/>
 
 <style>
   /* Filter toggle button */

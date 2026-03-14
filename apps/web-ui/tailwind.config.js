@@ -4,13 +4,13 @@ export default {
         './src/**/*.{html,js,svelte,ts}',
         './node_modules/flowbite-svelte/**/*.{html,js,svelte,ts}',
     ],
-    darkMode: 'class',
+    darkMode: ['selector', '[data-theme="dark"]'],
     theme: {
         extend: {
             /* ── Semantic color system ────────────────────────────── */
             colors: {
-                brand: { 50: '#eff6ff', 100: '#dbeafe', 200: '#bfdbfe', 300: '#93c5fd', 400: '#60a5fa', 500: '#3b82f6', 600: '#2563eb', 700: '#1d4ed8', 800: '#1e40af', 900: '#1e3a8a', 950: '#172554' },
-                primary: { DEFAULT: '#3b82f6', hover: '#2563eb', active: '#1d4ed8', light: '#dbeafe', lighter: '#eff6ff' },
+                brand: { 50: '#f0f9ff', 100: '#e0f2fe', 200: '#bae6fd', 300: '#7dd3fc', 400: '#38bdf8', 500: '#0ea5e9', 600: '#0284c7', 700: '#0369a1', 800: '#075985', 900: '#0c4a6e', 950: '#082f49' },
+                primary: { DEFAULT: '#0ea5e9', hover: '#38bdf8', active: '#0284c7', light: '#e0f2fe', lighter: '#f0f9ff' },
                 success: { DEFAULT: '#10b981', hover: '#059669', light: '#d1fae5', lighter: '#ecfdf5' },
                 warning: { DEFAULT: '#f59e0b', hover: '#d97706', light: '#fef3c7', lighter: '#fffbeb' },
                 error: { DEFAULT: '#ef4444', hover: '#dc2626', light: '#fee2e2', lighter: '#fef2f2' },
@@ -22,6 +22,9 @@ export default {
                     2: 'rgb(var(--color-surface-2) / <alpha-value>)',
                     3: 'rgb(var(--color-elevated) / <alpha-value>)',
                 },
+                /* Semantic border / divide colors */
+                border: 'var(--color-border)',
+                'border-strong': 'var(--color-border-strong)',
             },
 
             /* ── Typography ──────────────────────────────────────── */
