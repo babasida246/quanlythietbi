@@ -45,9 +45,13 @@
     'letmein'
   ]);
 
-  const dockerCommand = 'docker compose up -d postgres api web-ui pgadmin';
+  const isStandalone = import.meta.env.VITE_DEPLOYMENT_MODE === 'standalone';
+
+  const primaryCommand = isStandalone
+    ? 'sudo systemctl restart qltb-api qltb-web'
+    : 'docker compose up -d postgres api web-ui pgadmin';
   const manualCommand = 'pnpm db:migrate && pnpm db:seed';
-  const pgAdminLink = 'http://localhost:8080';
+  const serviceLink = isStandalone ? '/docs' : 'http://localhost:8080';
   const loginLink = '/login';
 
   let loading = $state(true);
@@ -499,8 +503,8 @@
         <div class="mt-5 grid gap-4 md:grid-cols-2">
           <div class="setup-code-box">
             <div class="setup-code-label">{$_('setup.wizard.commandDocker')}</div>
-            <pre class="setup-code-pre"><code>{dockerCommand}</code></pre>
-            <button class="setup-copy-btn" onclick={() => void copyToClipboard('docker', dockerCommand)}>
+            <pre class="setup-code-pre"><code>{primaryCommand}</code></pre>
+            <button class="setup-copy-btn" onclick={() => void copyToClipboard('docker', primaryCommand)}>
               <Copy class="h-3.5 w-3.5" />
               {copiedKey === 'docker' ? $_('setup.wizard.copied') : $_('setup.wizard.copy')}
             </button>
@@ -516,7 +520,9 @@
         </div>
 
         <div class="mt-4 flex flex-wrap gap-4">
-          <a class="setup-link" href={pgAdminLink} target="_blank" rel="noreferrer">{$_('setup.wizard.linkPgAdmin')}</a>
+          <a class="setup-link" href={serviceLink} target="_blank" rel="noreferrer">
+            {isStandalone ? $_('setup.wizard.linkSwagger') : $_('setup.wizard.linkPgAdmin')}
+          </a>
           <a class="setup-link" href={loginLink}>{$_('setup.wizard.linkLogin')}</a>
         </div>
       </section>
