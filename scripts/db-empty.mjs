@@ -5,6 +5,19 @@
  * Requires DATABASE_URL env variable
  */
 import pg from 'pg'
+import { config } from 'dotenv'
+import { resolve, dirname } from 'path'
+import { fileURLToPath } from 'url'
+import { existsSync } from 'fs'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
+const rootDir = resolve(__dirname, '..')
+const envPath = resolve(rootDir, '.env')
+const envLocalPath = resolve(rootDir, '.env.local')
+
+if (existsSync(envPath)) config({ path: envPath })
+if (existsSync(envLocalPath)) config({ path: envLocalPath, override: true })
 
 const { Client } = pg
 const url = process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/qltb'

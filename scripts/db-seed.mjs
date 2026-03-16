@@ -7,12 +7,19 @@
  *   DATABASE_URL  — PostgreSQL connection string (default: postgresql://postgres:postgres@localhost:5432/qltb)
  */
 import pg from 'pg'
-import { readFileSync } from 'fs'
+import { readFileSync, existsSync } from 'fs'
 import { join, dirname } from 'path'
 import { fileURLToPath } from 'url'
+import { config } from 'dotenv'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const DB_DIR = join(__dirname, '..', 'db')
+const ROOT = join(__dirname, '..')
+const ENV_PATH = join(ROOT, '.env')
+const ENV_LOCAL_PATH = join(ROOT, '.env.local')
+
+if (existsSync(ENV_PATH)) config({ path: ENV_PATH })
+if (existsSync(ENV_LOCAL_PATH)) config({ path: ENV_LOCAL_PATH, override: true })
 
 const DATABASE_URL = process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/qltb'
 
