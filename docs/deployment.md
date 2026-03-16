@@ -11,6 +11,86 @@
 
 ---
 
+## Ubuntu Server Moi Hoan Toan
+
+Repo da co san script bootstrap cho Ubuntu server moi tai `scripts/install-ubuntu-server.sh`.
+
+Script nay se:
+
+- cai Docker Engine + Docker Compose plugin
+- cai Node.js 20 + corepack/pnpm
+- sinh file `.env` production neu chua co
+- tao `docker-compose.server.override.yml` de bind PostgreSQL/Redis chi tren `127.0.0.1`
+- bat UFW va chi mo SSH, Web UI, API
+- build va khoi dong `postgres`, `redis`, `api`, `web-ui`
+
+### Cach dung nhanh
+
+```bash
+# 1. Clone repo len server
+git clone <repo-url> /opt/qltb
+cd /opt/qltb
+
+# 2. Cho phep script duoc chay
+chmod +x scripts/install-ubuntu-server.sh
+
+# 3. Chay bootstrap voi IP/domain public cua server
+./scripts/install-ubuntu-server.sh your-domain.com
+```
+
+Neu muon tuy bien truoc khi chay:
+
+```bash
+PUBLIC_HOST=your-domain.com \
+WEB_PORT=80 \
+PORT=3000 \
+ENABLE_PGADMIN=false \
+ENABLE_REDIS_INSIGHT=false \
+FORCE_OVERWRITE_ENV=true \
+./scripts/install-ubuntu-server.sh
+```
+
+### Luu y van hanh
+
+- Script mac dinh expose `Web UI` tren port `80` va `API` tren port `3000`.
+- PostgreSQL va Redis van chay trong Docker, nhung chi bind tren `127.0.0.1`.
+- Neu muon doi sang HTTPS + reverse proxy, dat them Nginx/Caddy o phia truoc sau khi bootstrap xong.
+
+### Standalone khong Docker
+
+Neu muon deploy tung dich vu truc tiep tren Ubuntu, repo da co them script `scripts/install-ubuntu-standalone.sh`.
+
+Script nay se:
+
+- cai Node.js 20 + pnpm
+- cai PostgreSQL va tao database/user rieng cho QLTB
+- cai Redis va bat `requirepass`
+- build API + Web UI tu source
+- chay migration va seed data
+- tao 2 `systemd` services: `qltb-api`, `qltb-web`
+- tuy chon cai Nginx reverse proxy
+
+```bash
+chmod +x scripts/install-ubuntu-standalone.sh
+./scripts/install-ubuntu-standalone.sh your-domain.com
+```
+
+Tuy bien thuong dung:
+
+```bash
+PUBLIC_HOST=your-domain.com \
+PORT=3000 \
+WEB_PORT=3001 \
+RUN_DB_SEED=true \
+INSTALL_NGINX=true \
+FORCE_OVERWRITE_ENV=true \
+./scripts/install-ubuntu-standalone.sh
+```
+
+Mac dinh standalone khong cai Nginx. Neu bat `INSTALL_NGINX=true`, script se expose web qua port `80` va proxy `/api/*` vao API local.
+
+---
+
 ## 1. Development (Khuyến nghị cho lập trình)
 
 Infra chạy trong Docker, code chạy local với hot-reload.
