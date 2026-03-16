@@ -37,6 +37,9 @@ WEB_SERVICE_NAME="qltb-web"
 : "${TARGET_USER:=${SUDO_USER:-${USER}}}"  # Default to current user
 : "${PUBLIC_HOST:=${1:-}}"  # Default to first argument or empty
 
+# Ensure openssl is available before using it
+command_exists openssl || fail "openssl is required but not installed. Please install it."
+
 log() {
     printf '\n[%s] %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$*"
 }
@@ -144,20 +147,18 @@ configure_postgres_service() {
     log "Cau hinh PostgreSQL bind localhost va port runtime"
 
     local conf_file hba_file
-    conf_file="$(run_sudo -u postgres psql -Atqc "SHOW config_file")"
-    hba_file="$(run_sudo -u postgres psql -Atqc "SHOW hba_file")"
+    # Correctly use sudo to switch to the postgres user
+    conf_file="$(sudo -u postgres psql -Atqc "SHOW config_file")"
+    hba_file="$(sudo -u postgres psql -Atqc "SHOW hba_file")"
 
-    [ -n "${conf_file}" ] || fail "Khong xac dinh duoc postgresql.conf"
-    [ -n "${hba_file}" ] || fail "Khong xac dinh duoc pg_hba.conf"
+    log "Sua config_file: ${conf_file}"
+    sudo sed -i "s/^#*listen_addresses = .*/listen_addresses = 'localhost'/" "${conf_file}"
 
-    run_sudo sed -i "s|^#\?listen_addresses *=.*|listen_addresses = '127.0.0.1'|" "${conf_file}"
-    run_sudo sed -i "s|^#\?port *=.*|port = ${POSTGRES_PORT}|" "${conf_file}"
+    log "Sua hba_file: ${hba_file}"
+    sudo sed -i "s/^host\s\+all\s\+all\s\+127.0.0.1\/32\s\+.*$/host all all 127.0.0.1\/32 md5/" "${hba_file}"
 
-    if ! grep -q "^host[[:space:]]\+${POSTGRES_DB}[[:space:]]\+${POSTGRES_USER}[[:space:]]\+127.0.0.1/32[[:space:]]\+scram-sha-256" "${hba_file}"; then
-        printf '\nhost %s %s 127.0.0.1/32 scram-sha-256\n' "${POSTGRES_DB}" "${POSTGRES_USER}" | run_sudo tee -a "${hba_file}" >/dev/null
-    fi
-
-    run_sudo systemctl restart postgresql
+    log "Khoi dong lai PostgreSQL"
+    sudo systemctl restart postgresql
 }
 
 install_redis() {
