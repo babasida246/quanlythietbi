@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(grep -E \"\\\\.sql$\")",
+      "Bash(find /e/GitHub/QuanLyThietBi/apps/web-ui/src/routes/'\\(assets\\)' -type d)",
+      "Bash(pnpm --filter @qltb/web-ui build)",
+      "Bash(node -e \":*)",
+      "Bash(grep -n \"TAB: Effective\\\\|TAB: Resource\\\\|rightTab === ''''effective''''\\\\|rightTab === ''''registry''''\" \"apps/web-ui/src/lib/components/admin/AdRbacPanel.svelte\")",
+      "Bash(grep -n \"rbac_permissions\\\\|rbac_role_permissions\\\\|rbac_roles\" e:/GitHub/QuanLyThietBi/db/migrations/*.sql)",
+      "Bash(node scripts/db-migrate.mjs)",
+      "Bash(psql \"postgresql://postgres:postgres@localhost:5432/qltb\" -c \"SELECT key, name FROM rbac_roles ORDER BY key;\")",
+      "Bash(pnpm --filter @qltb/api build)",
+      "Bash(python3 -c \"import json; d=json.load\\(open\\(r''e:\\\\GitHub\\\\QuanLyThietBi\\\\apps\\\\web-ui\\\\src\\\\lib\\\\i18n\\\\locales\\\\vi.json'', encoding=''utf-8''\\)\\); print\\(list\\(d.get\\(''admin'', {}\\).keys\\(\\)\\)[:30]\\)\")",
+      "Bash(node -e \"const d=JSON.parse\\(require\\(''fs''\\).readFileSync\\(''e:/GitHub/QuanLyThietBi/apps/web-ui/src/lib/i18n/locales/vi.json'',''utf8''\\)\\); console.log\\(Object.keys\\(d.admin||{}\\).slice\\(0,30\\)\\)\")",
+      "Bash(node -e \"const d=JSON.parse\\(require\\(''fs''\\).readFileSync\\(''e:/GitHub/QuanLyThietBi/apps/web-ui/src/lib/i18n/locales/vi.json'',''utf8''\\)\\); console.log\\(JSON.stringify\\(Object.keys\\(d.admin||{}\\)\\)\\)\")",
+      "Bash(node -e \"const d=JSON.parse\\(require\\(''fs''\\).readFileSync\\(''e:/GitHub/QuanLyThietBi/apps/web-ui/src/lib/i18n/locales/vi.json'',''utf8''\\)\\); console.log\\(JSON.stringify\\(d.admin.tab\\)\\)\")",
+      "Bash(node -e \"const d=JSON.parse\\(require\\(''fs''\\).readFileSync\\(''e:/GitHub/QuanLyThietBi/apps/web-ui/src/lib/i18n/locales/en.json'',''utf8''\\)\\); console.log\\(JSON.stringify\\(d.admin?.tab\\)\\)\")"
+    ]
+  }
+}

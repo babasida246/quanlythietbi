@@ -1,0 +1,183 @@
+{
+  "analytics": {
+    "pageTitle": "Phân tích",
+    "pageSubtitle": "Phân tích tài sản, chi phí và nhận diện bất thường",
+    "validation": {
+      "assetRequired": "Tài sản là bắt buộc",
+      "amountPositive": "Số tiền phải > 0"
+    },
+    "toast": {
+      "snapshotCreated": "Đã tạo snapshot thành công",
+      "costAdded": "Đã thêm chi phí thành công"
+    },
+    "actions": {
+      "snapshot": "Tạo Snapshot",
+      "addCost": "Thêm chi phí"
+    },
+    "stats": {
+      "totalAssets": "Tổng tài sản",
+      "active": "Đang sử dụng",
+      "inRepair": "Đang sửa chữa",
+      "retired": "Đã thanh lý",
+      "totalCost": "Tổng chi phí"
+    },
+    "tabs": {
+      "overview": "Tổng quan",
+      "snapshots": "Lịch sử chụp",
+      "costs": "Chi phí",
+      "anomalies": "Bất thường"
+    },
+    "costBreakdown": "Phân tích chi phí",
+    "noCostData": "Chưa có dữ liệu chi phí",
+    "anomalySummary": "Tổng hợp bất thường",
+    "noAnomalies": "Không phát hiện bất thường",
+    "assetTrend": "Xu hướng tài sản (30 ngày)",
+    "noSnapshots": "Chưa có snapshot nào",
+    "createFirstSnapshot": "Tạo snapshot đầu tiên",
+    "noCosts": "Chưa có bản ghi chi phí",
+    "addFirstCost": "Thêm chi phí đầu tiên",
+    "severity": {
+      "critical": "Nghiêm trọng",
+      "high": "Cao",
+      "medium": "Trung bình",
+      "low": "Thấp"
+    },
+    "snapshotCols": {
+      "date": "Ngày",
+      "total": "Tổng",
+      "active": "Đang dùng",
+      "inRepair": "Sửa chữa",
+      "retired": "Thanh lý",
+      "totalCost": "Tổng chi phí"
+    },
+    "costCols": {
+      "asset": "Tài sản",
+      "type": "Loại",
+      "amount": "Số tiền",
+      "currency": "Tiền tệ",
+      "date": "Ngày",
+      "description": "Mô tả"
+    },
+    "modal": {
+      "addCostTitle": "Thêm bản ghi chi phí"
+    },
+    "field": {
+      "assetId": "Mã tài sản",
+      "costType": "Loại chi phí",
+      "amount": "Số tiền",
+      "currency": "Tiền tệ",
+      "description": "Mô tả"
+    },
+    "costTypes": {
+      "purchase": "Mua sắm",
+      "maintenance": "Bảo trì",
+      "license": "Bản quyền",
+      "insurance": "Bảo hiểm",
+      "depreciation": "Khấu hao",
+      "other": "Khác"
+    }
+  },
+  "reports": {
+    "forAll": "để lấy tất cả",
+    "vsPreviousPeriod": "so với kỳ trước",
+    "showingResults": "Hiển thị {from}–{to} / {total} kết quả",
+    "appliedView": "Đã áp dụng view: ",
+    "sidebar": {
+      "heading": "Báo cáo",
+      "saved": "Đã lưu"
+    },
+    "title": "Báo cáo",
+    "refreshData": "Làm mới dữ liệu",
+    "detailData": "Dữ liệu chi tiết",
+    "updatedAt": "Cập nhật lúc",
+    "col": {
+      "assetCode": "Mã tài sản",
+      "category": "Danh mục",
+      "location": "Vị trí",
+      "status": "Trạng thái",
+      "createdAt": "Ngày tạo",
+      "month": "Tháng",
+      "created": "Tạo mới",
+      "retired": "Thanh lý",
+      "assetCodeShort": "Mã TS",
+      "name": "Tên",
+      "warrantyEnd": "Hết hạn BH",
+      "total": "Tổng",
+      "inUse": "Đang dùng",
+      "inStock": "Trong kho",
+      "code": "Mã",
+      "partName": "Tên mặt hàng",
+      "warehouse": "Kho",
+      "onHand": "Tồn kho",
+      "reserved": "Đặt trước",
+      "receipts": "Nhập",
+      "issues": "Xuất",
+      "minLevel": "Tối thiểu",
+      "shortfall": "Thiếu",
+      "severity": "Mức độ",
+      "closed": "Đã đóng",
+      "avgHours": "TB (giờ)",
+      "title": "Tiêu đề",
+      "openedAt": "Ngày mở",
+      "asset": "Tài sản",
+      "requestType": "Loại yêu cầu",
+      "ciType": "Loại CI",
+      "totalCis": "Tổng CI",
+      "active": "Đang hoạt động",
+      "ciName": "Tên CI",
+      "type": "Loại",
+      "attrCount": "Số thuộc tính",
+      "materialGroup": "Nhóm vật tư",
+      "unit": "Đơn vị",
+      "totalQty": "Tổng SL",
+      "unitCost": "Đơn giá",
+      "totalValue": "Tổng giá trị",
+      "reorderPoint": "Điểm đặt lại",
+      "lotNumber": "Số lô",
+      "expiryDate": "Hạn sử dụng",
+      "quantity": "Số lượng",
+      "available": "Khả dụng"
+    },
+    "chart": {
+      "byStatus": "Theo trạng thái",
+      "byCategoryTop10": "Theo danh mục (Top 10)",
+      "byLocationTop10": "Theo vị trí (Top 10)",
+      "monthlyTrend": "Biến động theo tháng",
+      "warrantyExpiring": "Sắp hết hạn bảo hành",
+      "assetsByLocation": "Tài sản theo vị trí",
+      "topStockItems": "Top 10 mặt hàng tồn kho",
+      "monthlyMovement": "Nhập / Xuất kho theo tháng",
+      "lowStockTop10": "Mặt hàng thiếu hụt (Top 10)",
+      "bySeverity": "Phiếu theo mức độ",
+      "avgProcessingHours": "Thời gian xử lý TB (giờ)",
+      "maintenanceStatus": "Trạng thái phiếu bảo trì",
+      "requestsByStatus": "Yêu cầu theo trạng thái",
+      "byRequestType": "Theo loại yêu cầu",
+      "cisByType": "CI theo loại",
+      "activeVsOther": "Hoạt động vs Khác",
+      "stockByWarehouse": "Tồn kho theo kho hàng",
+      "stockByMaterialGroup": "Tồn kho theo nhóm vật tư",
+      "valuationByWarehouse": "Giá trị theo kho hàng",
+      "valuationByGroup": "Giá trị theo nhóm vật tư",
+      "shortfallTop10": "Thiếu hụt (Top 10)",
+      "expiringByMonth": "Hết hạn theo tháng",
+      "availableByWarehouse": "Khả dụng theo kho hàng"
+    },
+    "filter": {
+      "savedFilter": "Đã lưu bộ lọc: ",
+      "title": "Bộ lọc",
+      "category": "Danh mục",
+      "location": "Vị trí",
+      "warehouse": "Kho",
+      "status": "Trạng thái",
+      "statusPlaceholder": "Trạng thái...",
+      "saveFilter": "Lưu bộ lọc",
+      "savedView": "Đã lưu bộ lọc",
+      "saveView": "Lưu bộ lọc"
+    },
+    "drilldownTitle": "Chi tiết: {dimension} = {value}",
+    "totalResults": "{total} kết quả",
+    "showingPartial": "Hiển thị {shown} / {total} — Export CSV để lấy tất cả",
+    "unknownError": "Lỗi không xác định"
+  }
+}

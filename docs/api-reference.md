@@ -2,12 +2,19 @@
 
 ## Tổng quan
 
-- **Base URL:** `http://localhost:3000/api/v1` (dev) | `http://localhost:4010/api/v1` (test)
+- **Base URL API:** `http://localhost:3000/api` (dev) | `http://localhost:4010/api` (test)
+- **Base URL API v1:** `http://localhost:3000/api/v1` (dev) | `http://localhost:4010/api/v1` (test)
 - **Format:** JSON
 - **Authentication:** Bearer JWT Token
 - **Validation:** Zod schemas
 - **Documentation:** Swagger UI tại `http://localhost:3000/docs`
 - **Tổng số endpoints:** ~221 routes
+
+### Prefix chuẩn
+
+- Auth: `/api/v1/auth/*`
+- Setup: `/api/setup/*`
+- Business APIs: `/api/v1/*`
 
 ## Authentication
 
@@ -15,10 +22,10 @@
 
 | Method | Path | Mô tả |
 |--------|------|-------|
-| POST | `/api/v1/login` | Đăng nhập, trả về JWT token |
-| POST | `/api/v1/refresh` | Refresh access token |
-| POST | `/api/v1/logout` | Đăng xuất |
-| GET | `/api/v1/me` | Thông tin user hiện tại |
+| POST | `/api/v1/auth/login` | Đăng nhập, trả về JWT token |
+| POST | `/api/v1/auth/refresh` | Refresh access token |
+| POST | `/api/v1/auth/logout` | Đăng xuất |
+| GET | `/api/v1/auth/me` | Thông tin user hiện tại |
 
 ### JWT Token
 

@@ -3,16 +3,17 @@
     import { _, isLoading } from '$lib/i18n'
     import { Button } from '$lib/components/ui'
     import {
-        listRbacRoles, listRbacPermissions, getRolePermissions, setRolePermissions,
-        listUsers,
-        type RbacRole, type RbacPermission
+        listRbacRoles, listRbacPermissions, getRolePermissions, setRolePermissions, listUsers,
+        createRole, deleteRole, updateRole,
+        type RbacRole, type RbacPermission,
     } from '$lib/api/admin'
     import {
         Laptop, FolderTree, Network, Package, ClipboardList, Key, Puzzle,
         FlaskConical, Cpu, ArrowLeftRight, FileText, Wrench, BarChart3,
         TrendingUp, TrendingDown, Tag, Files, Zap, Plug, Shield, Settings,
         Save, RefreshCw, Search, ChevronDown, ChevronRight, Users, CheckSquare,
-        Square, Minus, RotateCcw, CircleCheck, CircleX, Info, Lock
+        Square, Minus, RotateCcw, CircleCheck, CircleX, Info, Lock, LayoutDashboard,
+        Plus, Trash2, Pencil, X
     } from 'lucide-svelte'
 
     // === Data ================================================================
@@ -29,11 +30,20 @@
     let error      = $state('')
     let successMsg = $state('')
 
+    // === Role management state ==============================================
+    let showNewRoleForm = $state(false)
+    let newRoleSlug     = $state('')
+    let newRoleName     = $state('')
+    let newRoleDesc     = $state('')
+    let creatingRole    = $state(false)
+    let deletingSlug    = $state('')
+
     // === UI state ===========================================================
     let selectedSlug   = $state<string>('')
     let searchQuery    = $state('')
     let expandedGroups = $state<Set<string>>(new Set())
     let showOnlyDiff   = $state(false)
+
 
     // === Derived =============================================================
     const selectedRole = $derived.by(() => roles.find(r => r.slug === selectedSlug) ?? null)
@@ -100,7 +110,7 @@
     function actionOrder(a: string): number {
         const o: Record<string, number> = {
             read:0,create:1,update:2,delete:3,manage:4,approve:5,
-            export:6,import:7,assign:8,upload:9,users:10,roles:11,settings:12
+            export:6,import:7,assign:8,upload:9,users:10,roles:11,settings:12,show:13
         }
         return o[a] ?? 99
     }
@@ -190,7 +200,8 @@
         automation:   { Icon: Zap,            color: 'text-yellow-300',  bg: 'bg-yellow-900/20' },
         integrations: { Icon: Plug,           color: 'text-purple-400',  bg: 'bg-purple-900/20' },
         security:     { Icon: Shield,         color: 'text-red-500',     bg: 'bg-red-900/20' },
-        admin:        { Icon: Settings,       color: 'text-rose-400',    bg: 'bg-rose-900/20' },
+        admin:        { Icon: Settings,         color: 'text-rose-400',    bg: 'bg-rose-900/20' },
+        site:         { Icon: LayoutDashboard, color: 'text-sky-300',     bg: 'bg-sky-900/20' },
     }
 
     const actionMeta: Record<string, { cls: string }> = {
@@ -207,6 +218,7 @@
         users:    { cls: 'bg-indigo-900/60 text-indigo-300 border-indigo-700/50' },
         roles:    { cls: 'bg-purple-900/60 text-purple-300 border-purple-700/50' },
         settings: { cls: 'bg-rose-900/60 text-rose-300 border-rose-700/50' },
+        show:     { cls: 'bg-sky-900/60 text-sky-200 border-sky-700/50' },
     }
 
     // === Load / save =========================================================
@@ -269,6 +281,42 @@
         setTimeout(() => { if (successMsg === msg) successMsg = '' }, 4000)
     }
 
+    async function handleCreateRole() {
+        if (!newRoleSlug.trim() || !newRoleName.trim()) return
+        creatingRole = true; error = ''
+        try {
+            const res = await createRole({ slug: newRoleSlug.trim(), name: newRoleName.trim(), description: newRoleDesc.trim() || undefined })
+            roles = [...roles, res.data]
+            granted = new Map([...granted, [res.data.slug, new Set()]])
+            selectedSlug = res.data.slug
+            showNewRoleForm = false; newRoleSlug = ''; newRoleName = ''; newRoleDesc = ''
+            setSuccess(`Role "${res.data.name}" created`)
+        } catch (err) {
+            error = err instanceof Error ? err.message : 'Failed to create role'
+        } finally {
+            creatingRole = false
+        }
+    }
+
+    async function handleDeleteRole(slug: string) {
+        const role = roles.find(r => r.slug === slug)
+        if (!role || role.isSystem) return
+        if (!confirm(`Delete role "${role.name}"? Users with this role will lose all permissions.`)) return
+        deletingSlug = slug; error = ''
+        try {
+            await deleteRole(slug)
+            roles = roles.filter(r => r.slug !== slug)
+            if (selectedSlug === slug) selectedSlug = roles[0]?.slug ?? ''
+            const ng = new Map(granted); ng.delete(slug); granted = ng
+            const np = new Map(pending); np.delete(slug); pending = np
+            setSuccess(`Role "${role.name}" deleted`)
+        } catch (err) {
+            error = err instanceof Error ? err.message : 'Failed to delete role'
+        } finally {
+            deletingSlug = ''
+        }
+    }
+
     onMount(() => { void loadAll() })
 </script>
 
@@ -314,12 +362,49 @@
 
             <!--  LEFT: Role list  -->
             <div class="w-60 flex-shrink-0 bg-surface-2 border-r border-surface-3 flex flex-col">
-                <!-- Pane title -->
-                <div class="px-3 py-2 border-b border-surface-3 bg-surface-3/40">
+                <!-- Pane title + New Role button -->
+                <div class="px-3 py-2 border-b border-surface-3 bg-surface-3/40 flex items-center justify-between">
                     <p class="text-xs font-semibold text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
                         <Users class="w-3 h-3" /> {$isLoading ? 'Roles' : $_('adminRbac.roles')}
                     </p>
+                    <button
+                        type="button"
+                        class="w-5 h-5 rounded flex items-center justify-center text-slate-500 hover:text-primary hover:bg-primary/15 transition-colors"
+                        title="Create new role"
+                        onclick={() => { showNewRoleForm = !showNewRoleForm }}
+                    >
+                        {#if showNewRoleForm}<X class="w-3 h-3" />{:else}<Plus class="w-3 h-3" />{/if}
+                    </button>
                 </div>
+
+                <!-- New Role inline form -->
+                {#if showNewRoleForm}
+                    <div class="px-3 py-2 border-b border-surface-3 bg-primary/5 space-y-1.5">
+                        <input
+                            class="input-base py-1 text-xs w-full font-mono"
+                            placeholder="slug (e.g. helpdesk)"
+                            bind:value={newRoleSlug}
+                        />
+                        <input
+                            class="input-base py-1 text-xs w-full"
+                            placeholder="Display name"
+                            bind:value={newRoleName}
+                        />
+                        <input
+                            class="input-base py-1 text-xs w-full"
+                            placeholder="Description (optional)"
+                            bind:value={newRoleDesc}
+                        />
+                        <button
+                            type="button"
+                            class="w-full text-xs py-1 rounded bg-primary/20 text-primary hover:bg-primary/30 border border-primary/30 disabled:opacity-50"
+                            disabled={!newRoleSlug.trim() || !newRoleName.trim() || creatingRole}
+                            onclick={handleCreateRole}
+                        >
+                            {creatingRole ? 'Creating...' : 'Create Role'}
+                        </button>
+                    </div>
+                {/if}
 
                 <!-- Role items -->
                 <div class="flex-1 overflow-y-auto py-1">
@@ -328,15 +413,18 @@
                         {@const dirty2 = pending.has(role.slug)}
                         {@const rc     = roleGrantedCount(role.slug)}
                         {@const pct    = totalCount > 0 ? Math.round(rc / totalCount * 100) : 0}
-                        <button
-                            type="button"
-                            class="w-full text-left px-3 py-2.5 transition-colors border-r-2 group
+                        <!-- Use div+role=button to avoid nested <button> invalid HTML -->
+                        <div
+                            role="button"
+                            tabindex="0"
+                            class="w-full text-left px-3 py-2.5 transition-colors border-r-2 group cursor-pointer
                                 {sel
                                     ? 'bg-primary/12 border-primary'
                                     : 'hover:bg-surface-3/50 border-transparent'}"
                             onclick={() => { selectedSlug = role.slug }}
+                            onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') selectedSlug = role.slug }}
                         >
-                            <!-- Row: dot + name + count -->
+                            <!-- Row: dot + name + count + delete -->
                             <div class="flex items-center justify-between gap-1">
                                 <div class="flex items-center gap-2 min-w-0">
                                     {#if dirty2}
@@ -347,10 +435,23 @@
                                         <span class="w-2 h-2 rounded-full border border-slate-600 flex-shrink-0"></span>
                                     {/if}
                                     <span class="text-sm font-medium truncate {sel ? 'text-white' : 'text-slate-300'}">
-                                        {$isLoading ? role.name : $_('adminRbac.roleLabels.' + role.slug)}
+                                        {$isLoading ? role.name : $_('adminRbac.roleLabels.' + role.slug, { default: role.name })}
                                     </span>
                                 </div>
-                                <span class="text-xs text-slate-500 flex-shrink-0">{rc}</span>
+                                <div class="flex items-center gap-1 flex-shrink-0">
+                                    <span class="text-xs text-slate-500">{rc}</span>
+                                    {#if !role.isSystem}
+                                        <button
+                                            type="button"
+                                            class="w-4 h-4 flex items-center justify-center text-slate-600 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all"
+                                            title="Delete role"
+                                            disabled={deletingSlug === role.slug}
+                                            onclick={(e) => { e.stopPropagation(); void handleDeleteRole(role.slug) }}
+                                        >
+                                            <Trash2 class="w-3 h-3" />
+                                        </button>
+                                    {/if}
+                                </div>
                             </div>
                             <!-- Sub info -->
                             <div class="mt-0.5 ml-4 flex items-center gap-1.5 text-xs text-slate-600">
@@ -367,14 +468,14 @@
                                     style="width:{pct}%"
                                 ></div>
                             </div>
-                        </button>
+                        </div>
                     {/each}
                 </div>
 
                 <!-- Footer -->
-                <div class="px-3 py-2 border-t border-surface-3 bg-surface-3/20">
+                <div class="px-3 py-2 border-t border-surface-3 bg-surface-3/20 space-y-0.5">
                     <p class="text-xs text-slate-600 flex items-center gap-1">
-                        <Lock class="w-3 h-3" /> {$isLoading ? 'System roles' : $_('adminRbac.systemRoles')}
+                        <Lock class="w-3 h-3" /> {roles.filter(r => r.isSystem).length} system · {roles.filter(r => !r.isSystem).length} custom
                     </p>
                 </div>
             </div>
@@ -646,4 +747,5 @@
             </div>
         </div>
     {/if}
+
 </div>

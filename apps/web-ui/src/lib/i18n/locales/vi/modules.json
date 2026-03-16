@@ -1,0 +1,706 @@
+{
+  "tools": {
+    "title": "Công cụ & Tiện ích",
+    "subtitle": "Các trợ giúp nhanh cho sơ đồ, khắc phục sự cố mạng và truy cập SSH",
+    "sections": "Phần",
+    "configGenerator": "Tạo cấu hình",
+    "mikrotikFullConfig": "MikroTik cấu hình đầy đủ",
+    "mermaid": "Mermaid",
+    "fieldKit": "Bộ dụng cụ trường",
+    "sshTerminal": "Terminal SSH",
+    "diagram": "Sơ đồ",
+    "mermaidPlayground": "Sân chơi Mermaid",
+    "mermaidDefinition": "Định nghĩa Mermaid",
+    "render": "Kết xuất",
+    "rendering": "Đang kết xuất...",
+    "renderPreview": "Kết xuất để xem trước sơ đồ của bạn",
+    "quickHelp": "Trợ giúp nhanh",
+    "mermaidTips": "Mẹo Mermaid",
+    "tipsDescription": "Sử dụng đồ thị con, liên kết và kiểu để giữ cho sơ đồ dễ đọc",
+    "networkQuickCommands": "Lệnh mạng nhanh",
+    "sshTerminalUI": "Terminal SSH (UI)",
+    "sshDescription": "Vỏ phía trước; cần proxy phía sau để chạy lệnh",
+    "host": "Máy chủ",
+    "port": "Cổng",
+    "username": "Tên người dùng",
+    "auth": "Xác thực",
+    "password": "Mật khẩu",
+    "sshKey": "Khóa SSH",
+    "privateKey": "Khóa riêng",
+    "command": "Lệnh",
+    "connect": "Kết nối",
+    "reconnect": "Kết nối lại",
+    "send": "Gửi",
+    "noOutput": "Chưa có đầu ra phiên",
+    "remote": "Từ xa",
+    "placeholders": {
+      "host": "tên máy chủ hoặc IP"
+    },
+    "mermaidTipsList": {
+      "subgraph": "Các luồng nhóm với các khối đồ thị con.",
+      "flow": "Căn chỉnh trái sang phải với lưu đồ LR hoặc từ trên xuống với TD.",
+      "style": "Sử dụng kiểu cho nhấn mạnh và linkStyle cho các cạnh."
+    },
+    "ssh": {
+      "connecting": "[cục bộ] Kết nối đến {{user}}@{{host}}:{{port}} ({{auth}})",
+      "commandEcho": "$ {{command}}"
+    },
+    "errors": {
+      "sshBackendMissing": "Backend SSH chưa được kết nối - vui lòng kết nối với API máy chủ.",
+      "sshProxyMissing": "! Backend bị thiếu: thêm proxy SSH phía máy chủ để bật thực thi.",
+      "sshNotConnected": "Không được kết nối.",
+      "sshPending": "... chờ triển khai phía sau ..."
+    },
+    "cli": {
+      "nmapFast": {
+        "title": "nmap: quét dịch vụ nhanh",
+        "description": "Bỏ qua phát hiện máy chủ (-Pn) và xác định dấu vân tay các dịch vụ phổ biến nhanh chóng."
+      },
+      "nmapUdp": {
+        "title": "nmap: cổng UDP hàng đầu",
+        "description": "Quét UDP nhanh cho các cổng phổ biến thường bị bỏ qua."
+      },
+      "snmpBaseline": {
+        "title": "đường căn cứ snmpwalk",
+        "description": "Liệt kê cây MIB-2 tiêu chuẩn; hoán đổi OID cho các chi nhánh dành riêng cho nhà cung cấp."
+      },
+      "snmpBulk": {
+        "title": "bảng giao diện snmp (hàng loạt)",
+        "description": "Bước qua IF-MIB hiệu quả; tăng -Cr cho các lô lớn hơn."
+      },
+      "mtr": {
+        "title": "Kiểm tra đường dẫn & mất (mtr)",
+        "description": "Traceroute+ping liên tục để tìm mất/độ trễ qua các bước nhảy."
+      },
+      "tcpdump": {
+        "title": "Nắm bắt gói tin có xoay vòng",
+        "description": "Xoay pcap mỗi 5 phút, giữ 4 tệp, tập trung vào lưu lượng TLS."
+      },
+      "httpProbe": {
+        "title": "Kiểm tra sức khỏe HTTP",
+        "description": "Kiểm tra sức khỏe đơn giản bạn có thể thả vào cron hoặc giám sát."
+      }
+    }
+  },
+  "models": {
+    "title": "Mô hình AI & Điều phối",
+    "subtitle": "Cấu hình mô hình, nhà cung cấp và quy tắc định tuyến",
+    "activeModels": "{{count}} mô hình hoạt động",
+    "providers": "{{count}} nhà cung cấp",
+    "rules": "{{count}} quy tắc",
+    "tabs": {
+      "models": "Mô hình",
+      "providers": "Nhà cung cấp",
+      "orchestration": "Điều phối",
+      "openrouter": "OpenRouter"
+    },
+    "search": "Tìm kiếm mô hình...",
+    "statusFilter": "Bộ lọc trạng thái",
+    "providerFilter": "Bộ lọc nhà cung cấp",
+    "groupBy": "Nhóm theo",
+    "noGrouping": "Không nhóm",
+    "active": "Hoạt động",
+    "inactive": "Không hoạt động",
+    "deprecated": "Không dùng nữa",
+    "createModel": "Tạo mô hình",
+    "newModel": "Mô hình mới",
+    "createProvider": "Tạo nhà cung cấp",
+    "createRule": "Tạo quy tắc",
+    "enabled": "Bật",
+    "disabled": "Tắt",
+    "priority": "Ưu tiên",
+    "tier": "Tầng",
+    "displayName": "Tên hiển thị",
+    "description": "Mô tả",
+    "strategy": "Chiến lược",
+    "fallback": "Dự phòng (thử các mô hình theo thứ tự)",
+    "loadBalancing": "Cân bằng tải",
+    "costOptimized": "Tối ưu chi phí",
+    "qualityFirst": "Chất lượng trước",
+    "custom": "Tùy chỉnh",
+    "modelSequence": "Chuỗi mô hình",
+    "apiEndpoint": "Điểm cuối API",
+    "apiKey": "Khóa API",
+    "healthCheck": "Kiểm tra sức khỏe",
+    "history": "Lịch sử",
+    "deleteModel": "Xóa mô hình",
+    "deleteProvider": "Xóa nhà cung cấp",
+    "deleteRule": "Xóa quy tắc",
+    "importModel": "Nhập mô hình",
+    "remoteModels": "Mô hình từ xa",
+    "accountActivity": "Hoạt động tài khoản",
+    "credits": "Tín dụng",
+    "allStatuses": "Tất cả trạng thái",
+    "allProviders": "Tất cả nhà cung cấp",
+    "table": {
+      "model": "MÔ HÌNH",
+      "provider": "NHÀ CUNG CẤP",
+      "tier": "TẦNG",
+      "priority": "ƯU TIÊN",
+      "status": "TRẠNG THÁI",
+      "context": "NGỮ CẢNH",
+      "costPer1k": "CHI PHÍ $/1K",
+      "capabilities": "KHẢ NĂNG",
+      "actions": "HÀNH ĐỘNG",
+      "streaming": "Streaming",
+      "functions": "Hàm",
+      "vision": "Hình ảnh"
+    },
+    "actions": {
+      "minusTen": "-10",
+      "plusTen": "+10",
+      "edit": "Chỉnh sửa",
+      "delete": "Xóa"
+    },
+    "form": {
+      "friendlyName": "Tên thân thiện",
+      "contextWindow": "Cửa sổ ngữ cảnh",
+      "maxTokens": "Token tối đa",
+      "costPerInputK": "Chi phí /1k đầu vào",
+      "costPerOutputK": "Chi phí /1k đầu ra",
+      "status": "Trạng thái",
+      "edit": "Chỉnh sửa",
+      "create": "Tạo",
+      "save": "Lưu",
+      "cancel": "Hủy"
+    },
+    "usage": {
+      "usageHistory": "Lịch sử sử dụng (30 ngày)",
+      "loadingHistory": "Đang tải lịch sử...",
+      "noUsageRecords": "Không có bản ghi sử dụng",
+      "recentLogs": "Nhật ký sử dụng gần đây"
+    },
+    "openrouter": {
+      "browseRemoteModels": "Duyệt mô hình từ xa và nhập vào danh mục của bạn.",
+      "limit": "Giới hạn",
+      "refresh": "Làm mới",
+      "loading": "Đang tải...",
+      "noModels": "Không có mô hình",
+      "promptCost": "Lời nhắc $/1k",
+      "completionCost": "Hoàn thành $/1k",
+      "title": "Mô hình OpenRouter khả dụng"
+    },
+    "placeholders": {
+      "providerName": "ví dụ: 'OpenAI (chính)'",
+      "ruleName": "ví dụ: 'Tối ưu chi phí'",
+      "optionalDescription": "Mô tả tùy chọn",
+      "searchProvider": "Tìm kiếm nhà cung cấp",
+      "searchModels": "Tìm kiếm mô hình",
+      "displayName": "Tên hiển thị"
+    },
+    "orchestrationDiagram": "Sơ đồ luồng điều phối",
+    "orchestrationDescription": "Xác định lựa chọn mô hình và chiến lược dự phòng",
+    "auth": "Xác thực",
+    "rateLimit": "Giới hạn tốc độ",
+    "health": {
+      "label": "Sức khỏe",
+      "checking": "Đang kiểm tra sức khỏe..."
+    },
+    "maintenance": "Bảo trì",
+    "errors": {
+      "diagramRenderFailed": "Kết xuất sơ đồ thất bại"
+    },
+    "capabilities": {
+      "streaming": "Streaming",
+      "functions": "Hàm",
+      "vision": "Hình ảnh"
+    },
+    "context": "Ngữ cảnh",
+    "contextWindow": "Cửa sổ ngữ cảnh",
+    "costPer1K": "Chi phí /1K",
+    "costPer1kInput": "Chi phí /1k đầu vào",
+    "costPer1kOutput": "Chi phí /1k đầu ra",
+    "groupByProvider": "Nhóm theo nhà cung cấp",
+    "groupByStatus": "Nhóm theo trạng thái",
+    "maxTokens": "Token tối đa",
+    "model": "Mô hình",
+    "models": "Mô hình",
+    "noModelsFound": "Không tìm thấy mô hình",
+    "orchestration": "Điều phối",
+    "provider": "Nhà cung cấp",
+    "saveModel": "Lưu mô hình",
+    "searchPlaceholder": "Tìm kiếm mô hình...",
+    "searchProvider": "Tìm kiếm nhà cung cấp...",
+    "viewDiagram": "Xem biểu đồ"
+  },
+  "chat": {
+    "title": "AI Chat",
+    "workspace": "Không gian làm việc chat",
+    "netopsConversations": "Cuộc hội thoại NetOpsAI",
+    "fastWorkspace": "Không gian làm việc chat nhanh với kiểm soát chi phí và mô hình",
+    "newChat": "Chat mới",
+    "deleteChat": "Xóa",
+    "typeMessage": "Nhập tin nhắn...",
+    "send": "Gửi",
+    "selectModel": "Chọn mô hình",
+    "todayStats": "Thống kê hôm nay",
+    "messages": "Tin nhắn",
+    "tokens": "Token",
+    "cost": "Chi phí",
+    "acrossModels": "Qua {{count}} mô hình",
+    "activeModel": "Mô hình hoạt động",
+    "conversations": "Cuộc hội thoại",
+    "threads": "{{count}} chủ đề",
+    "noConversations": "Chưa có cuộc hội thoại",
+    "startNewConversation": "Bắt đầu cuộc hội thoại mới",
+    "conversation": "Cuộc hội thoại",
+    "startConversation": "Bắt đầu cuộc hội thoại bằng một tin nhắn",
+    "thinking": "Đang suy nghĩ...",
+    "enterToSend": "Nhấn Enter để gửi, Shift+Enter để dòng mới",
+    "untitledChat": "Chat không tiêu đề",
+    "noConversationsYet": "Chưa có cuộc hội thoại",
+    "createToBegin": "Tạo chat mới để bắt đầu"
+  },
+  "stats": {
+    "title": "Thống kê sử dụng",
+    "subtitle": "Theo dõi sử dụng AI, chi phí và các chỉ số hiệu suất",
+    "usageInsights": "Cái nhìn sâu sắc về sử dụng",
+    "aiStatsCost": "Thống kê AI & Chi phí",
+    "usageCostVolume": "Sử dụng, chi phí và khối lượng theo mô hình",
+    "period": "Khoảng thời gian",
+    "today": "Hôm nay",
+    "week": "7 ngày qua",
+    "month": "30 ngày qua",
+    "last7Days": "7 ngày qua",
+    "last30Days": "30 ngày qua",
+    "records": "{{count}} bản ghi",
+    "totalTokens": "Tổng Token",
+    "todaysTokens": "Token hôm nay",
+    "todaysCost": "Chi phí hôm nay",
+    "totalCost": "Tổng chi phí",
+    "periodTotal": "Tổng khoảng thời gian",
+    "totalMessages": "Tổng tin nhắn",
+    "totalConversations": "Cuộc hội thoại",
+    "byModel": "Sử dụng theo mô hình",
+    "usageByModel": "Sử dụng theo mô hình",
+    "topSpend": "Chi tiêu hàng đầu",
+    "model": "Mô hình",
+    "provider": "Nhà cung cấp",
+    "tokens": "Token",
+    "cost": "Chi phí",
+    "messages": "Tin nhắn",
+    "modelsUsed": "{{count}} mô hình được sử dụng",
+    "perMsg": "${{amount}}/msg",
+    "tokensPerMsg": "{{count}} token/msg",
+    "avgCostPerMsg": "Trung bình Chi phí/Msg",
+    "dailyBreakdown": "Chia tách hàng ngày",
+    "entries": "{{count}} mục",
+    "date": "Ngày",
+    "noUsageData": "Không có dữ liệu sử dụng cho khoảng thời gian được chọn"
+  },
+  "drivers": {
+    "navLabel": "Drivers",
+    "title": "Gói Driver",
+    "subtitle": "Quản lý gói driver với phê duyệt, cảnh báo rủi ro và audit trail.",
+    "new": "Thêm driver",
+    "download": "Tải xuống",
+    "filters": {
+      "searchPlaceholder": "Tìm theo vendor, model, version, tag…"
+    },
+    "fields": {
+      "deviceType": "Loại thiết bị",
+      "component": "Thành phần",
+      "os": "Hệ điều hành",
+      "arch": "Kiến trúc",
+      "platform": "Nền tảng",
+      "version": "Phiên bản",
+      "approval": "Phê duyệt",
+      "risk": "Rủi ro",
+      "support": "Trạng thái hỗ trợ",
+      "tags": "Tag",
+      "compatibilityNotes": "Ghi chú tương thích",
+      "links": "Liên kết",
+      "installDetect": "Cài đặt & Nhận dạng",
+      "silentInstallCmd": "Lệnh cài silent",
+      "silentUninstallCmd": "Lệnh gỡ silent",
+      "updatedAt": "Cập nhật",
+      "approvalReason": "Lý do phê duyệt"
+    },
+    "columns": {
+      "vendorModel": "Vendor / Model",
+      "platform": "OS / Arch",
+      "version": "Phiên bản",
+      "status": "Hỗ trợ",
+      "approval": "Phê duyệt",
+      "risk": "Rủi ro",
+      "updated": "Cập nhật"
+    },
+    "bulk": {
+      "tag": "Tag",
+      "reason": "Lý do",
+      "reasonPlaceholder": "Nhập lý do (bắt buộc khi block/unblock/xóa).",
+      "noExtra": "Không cần thông tin bổ sung cho thao tác này."
+    },
+    "create": {
+      "title": "Tạo gói driver",
+      "subtitle": "Tạo bản nháp, upload file, sau đó submit để phê duyệt."
+    },
+    "detailTitle": "Gói driver",
+    "detailSubtitle": "Metadata, file, phê duyệt và audit.",
+    "tabs": {
+      "files": "Tệp",
+      "approval": "Phê duyệt",
+      "audit": "Audit"
+    },
+    "files": {
+      "title": "Tệp driver",
+      "subtitle": "Upload một lần. Driver đã approved không thể chỉnh sửa.",
+      "size": "Dung lượng",
+      "empty": "Chưa có tệp được upload.",
+      "upload": "Upload tệp"
+    },
+    "approval": {
+      "title": "Luồng phê duyệt",
+      "submit": "Gửi phê duyệt",
+      "approve": "Phê duyệt",
+      "reject": "Từ chối"
+    },
+    "danger": {
+      "title": "Thao tác nguy hiểm",
+      "badge": "Nguy hiểm",
+      "block": "Chặn",
+      "unblock": "Bỏ chặn",
+      "deleteApprovedReason": "Cần lý do để xoá driver đã approved:",
+      "deleteReason": "Lý do xoá (tuỳ chọn):"
+    },
+    "audit": {
+      "title": "Audit log",
+      "subtitle": "Mọi thao tác đặc quyền đều được ghi nhận.",
+      "empty": "Chưa có audit entry.",
+      "time": "Thời gian",
+      "action": "Hành động",
+      "details": "Chi tiết"
+    },
+    "actions": {
+      "title": "Xác nhận thao tác",
+      "reason": "Lý do",
+      "reasonPlaceholder": "Giải thích vì sao cần thao tác này.",
+      "reasonRequiredHighRisk": "Bắt buộc lý do khi phê duyệt driver rủi ro cao/critical.",
+      "reasonRequired": "Bắt buộc lý do.",
+      "reasonRequiredApprovedDelete": "Bắt buộc lý do khi xoá bản đã approved.",
+      "noteOptional": "Ghi chú (tuỳ chọn)",
+      "notePlaceholder": "Ghi chú thêm cho người review."
+    }
+  },
+  "docs": {
+    "navLabel": "Tài liệu",
+    "title": "Tài liệu",
+    "subtitle": "SOP, template và tài liệu vận hành với phê duyệt và audit.",
+    "new": "Thêm tài liệu",
+    "filters": {
+      "searchPlaceholder": "Tìm theo tiêu đề, tag…"
+    },
+    "fields": {
+      "title": "Tiêu đề",
+      "summary": "Tóm tắt",
+      "type": "Loại",
+      "contentType": "Loại nội dung",
+      "visibility": "Hiển thị",
+      "approval": "Phê duyệt",
+      "tags": "Tag",
+      "markdown": "Markdown",
+      "externalUrl": "URL ngoài",
+      "approvalReason": "Lý do phê duyệt"
+    },
+    "columns": {
+      "title": "Tiêu đề",
+      "type": "Loại",
+      "visibility": "Hiển thị",
+      "approval": "Phê duyệt",
+      "updated": "Cập nhật"
+    },
+    "bulk": {
+      "tag": "Tag",
+      "reason": "Lý do",
+      "reasonPlaceholderOrg": "Bắt buộc lý do khi publish org-wide.",
+      "reasonPlaceholderDelete": "Lý do (bắt buộc khi xoá bản đã approved).",
+      "noExtra": "Không cần thông tin bổ sung cho thao tác này."
+    },
+    "create": {
+      "title": "Tạo tài liệu",
+      "subtitle": "Tạo bản nháp, thêm nội dung, sau đó submit để phê duyệt."
+    },
+    "detailTitle": "Tài liệu",
+    "detailSubtitle": "Nội dung, tệp đính kèm, liên kết, phê duyệt và audit.",
+    "tabs": {
+      "content": "Nội dung",
+      "files": "Tệp",
+      "relations": "Liên quan",
+      "approval": "Phê duyệt",
+      "audit": "Audit"
+    },
+    "openLink": "Mở liên kết",
+    "files": {
+      "help": "Đính kèm file/markdown/link tuỳ theo loại nội dung.",
+      "title": "Tệp đính kèm",
+      "subtitle": "Với tài liệu dạng file, cần upload trước khi submit phê duyệt.",
+      "empty": "Chưa có tệp được upload.",
+      "filename": "Tên tệp",
+      "download": "Tải xuống"
+    },
+    "relations": {
+      "help": "Gắn tài liệu với asset/model/site/service để gợi ý theo ngữ cảnh.",
+      "assets": "Asset liên quan",
+      "models": "Model liên quan",
+      "sites": "Site liên quan",
+      "services": "Service liên quan"
+    },
+    "approval": {
+      "title": "Luồng phê duyệt",
+      "submit": "Gửi phê duyệt",
+      "approve": "Phê duyệt",
+      "reject": "Từ chối"
+    },
+    "danger": {
+      "title": "Thao tác nguy hiểm",
+      "badge": "Nguy hiểm",
+      "deleteApprovedReason": "Cần lý do để xoá tài liệu đã approved:",
+      "deleteReason": "Lý do xoá (tuỳ chọn):"
+    },
+    "audit": {
+      "title": "Audit log",
+      "subtitle": "Mọi thao tác đặc quyền đều được ghi nhận.",
+      "empty": "Chưa có audit entry.",
+      "time": "Thời gian",
+      "action": "Hành động",
+      "details": "Chi tiết"
+    },
+    "actions": {
+      "title": "Xác nhận thao tác",
+      "reason": "Lý do",
+      "reasonPlaceholder": "Giải thích vì sao cần thao tác này.",
+      "reasonRequiredOrg": "Bắt buộc lý do khi publish org-wide.",
+      "reasonRequired": "Bắt buộc lý do.",
+      "reasonRequiredApprovedDelete": "Bắt buộc lý do khi xoá bản đã approved.",
+      "noteOptional": "Ghi chú (tuỳ chọn)",
+      "notePlaceholder": "Ghi chú thêm cho người review."
+    }
+  },
+  "qlts": {
+    "purchasePlans": {
+      "title": "Kế hoạch mua sắm",
+      "subtitle": "Theo dõi và tạo kế hoạch mua sắm.",
+      "empty": "Chưa có kế hoạch mua sắm."
+    },
+    "purchasePlansNew": {
+      "title": "Kế hoạch mua sắm mới",
+      "subtitle": "Tạo kế hoạch mua sắm mới.",
+      "empty": "Biểu mẫu sẽ được bổ sung."
+    },
+    "assetIncreasesNew": {
+      "title": "Ghi tăng tài sản mới",
+      "subtitle": "Đăng ký ghi tăng tài sản.",
+      "empty": "Biểu mẫu sẽ được bổ sung."
+    },
+    "assetIncrease": {
+      "form": {
+        "createTitle": "Tạo phiếu ghi tăng tài sản",
+        "basicInfo": "Thông tin cơ bản",
+        "increaseType": "Loại ghi tăng",
+        "invoiceNo": "Số hóa đơn",
+        "invoiceDate": "Ngày hóa đơn",
+        "purchasePlanRef": "Kế hoạch mua sắm",
+        "assetLines": "Chi tiết tài sản",
+        "vendor": "Nhà cung cấp",
+        "selectVendor": "Chọn nhà cung cấp"
+      }
+    },
+    "common": {
+      "docDate": "Ngày chứng từ",
+      "orgUnit": "Đơn vị",
+      "note": "Ghi chú",
+      "addLine": "+ Thêm dòng",
+      "assetName": "Tên tài sản",
+      "serialNumber": "Số seri",
+      "quantity": "Số lượng",
+      "unit": "Đơn vị",
+      "originalCost": "Nguyên giá",
+      "location": "Vị trí",
+      "custodian": "Người phụ trách",
+      "total": "Tổng cộng",
+      "saveDraft": "Lưu nháp",
+      "saveAndSubmit": "Lưu & Gửi duyệt"
+    },
+    "increaseType": {
+      "purchase": "Mua mới",
+      "donation": "Được tặng / Tài trợ",
+      "transfer_in": "Điều chuyển đến",
+      "found": "Phát hiện / Kiểm kê",
+      "other": "Khác"
+    }
+  },
+  "themeCustomizer": {
+    "title": "Tùy biến màu giao diện",
+    "subtitle": "Chọn màu cho token toàn cục để áp dụng cho tất cả components",
+    "enable": "Bật bảng màu tùy chỉnh",
+    "enableHint": "Bật tùy chỉnh để áp dụng màu sắc toàn cục ngay lập tức.",
+    "resetMode": "Đặt lại mode hiện tại",
+    "resetAll": "Đặt lại toàn bộ",
+    "dark": "Dark mode",
+    "light": "Light mode",
+    "preview": "Xem trước",
+    "surfaceSample": "Mẫu bề mặt",
+    "mutedSample": "Mẫu chữ phụ",
+    "groups": {
+      "surfaces": "Bề mặt",
+      "textBorder": "Chữ và đường viền",
+      "brandStatus": "Màu thương hiệu và trạng thái",
+      "sidebarHeader": "Sidebar và header"
+    },
+    "tokens": {
+      "colorBg": "Nền ứng dụng",
+      "colorSurface": "Nền card/panel",
+      "colorSurface2": "Nền lớp phụ",
+      "colorElevated": "Nền nổi (dropdown/popover)",
+      "colorText": "Chữ chính",
+      "colorTextMuted": "Chữ phụ",
+      "colorTextDim": "Chữ mờ/placeholder",
+      "colorBorder": "Viền mặc định",
+      "colorBorderStrong": "Viền nhấn mạnh",
+      "colorPrimary": "Primary",
+      "colorPrimaryHover": "Primary hover",
+      "colorPrimaryActive": "Primary active",
+      "colorSuccess": "Success",
+      "colorWarning": "Warning",
+      "colorDanger": "Danger",
+      "colorInfo": "Info",
+      "sidebarBg": "Nền sidebar",
+      "sidebarSurface": "Nền header/sidebar phụ",
+      "sidebarAccent": "Nền item active sidebar",
+      "sidebarAccentText": "Chữ item active sidebar"
+    },
+    "sectionTitle": "Tùy chỉnh màu sắc nâng cao",
+    "sectionSubtitle": "Tinh chỉnh từng token màu, áp dụng trên theme đang chọn",
+    "tabs": {
+      "presets": "Chủ đề nhanh",
+      "tokens": "Màu nâng cao",
+      "hiddenSites": "Ẩn site và tab"
+    },
+    "hiddenSites": {
+      "title": "Quản lý ẩn/hiện site và tab",
+      "subtitle": "Bật/tắt nhanh các route điều hướng và các tab chức năng.",
+      "hideAll": "Ẩn toàn bộ danh mục",
+      "showAll": "Hiện toàn bộ danh mục",
+      "resetDefault": "Khôi phục danh sách ẩn mặc định",
+      "customTitle": "Đường dẫn tùy chỉnh",
+      "customPlaceholder": "/module/path",
+      "addPath": "Thêm đường dẫn ẩn",
+      "customHint": "Dùng cho route hoặc tab ảo chưa có trong danh mục.",
+      "defaultInfo": "Số mục ẩn mặc định từ local-ui-hidden-sites.json",
+      "pathInvalid": "Đường dẫn phải bắt đầu bằng /",
+      "pathAdded": "Đã thêm đường dẫn ẩn.",
+      "groups": {
+        "navigation": "Điều hướng chính",
+        "warehouseTabs": "Tab Kho hàng",
+        "automationTabs": "Tab Quy trình"
+      }
+    },
+    "automationTabs": {
+      "title": "Hiển thị tab quy trình",
+      "subtitle": "Bật/tắt các tab trong trang Quy trình nghiệp vụ.",
+      "hint": "Tab bị ẩn sẽ biến mất ngay trên trang quy trình."
+    }
+  },
+  "themePresets": {
+    "title": "Bộ màu giao diện",
+    "subtitle": "Chọn bộ màu có sẵn cho toàn bộ ứng dụng. Bạn vẫn có thể tùy chỉnh thêm ở bên dưới.",
+    "recommended": "Gợi ý",
+    "sky": {
+      "name": "Sky Pro",
+      "desc": "Xanh trời chuyên nghiệp — bộ màu mặc định"
+    },
+    "teal": {
+      "name": "Ocean Teal",
+      "desc": "Xanh ngọc — thanh lịch, phù hợp môi trường y tế"
+    },
+    "violet": {
+      "name": "Violet Enterprise",
+      "desc": "Tím tinh tế — corporate, sang trọng"
+    },
+    "slate": {
+      "name": "Slate Clean",
+      "desc": "Xám xanh tối giản — focus vào dữ liệu"
+    },
+    "amber": {
+      "name": "Amber Warm",
+      "desc": "Vàng ấm — năng động, phù hợp dashboard"
+    }
+  },
+  "printCustomizer": {
+    "title": "Tuy chinh mau in",
+    "subtitle": "Tuy chinh bo cuc, chu va nhan cho tat ca bieu mau in.",
+    "reset": "Dat lai mac dinh",
+    "openSample": "Mo mau in thu",
+    "tipTitle": "Meo:",
+    "tip": "Thay doi duoc luu tu dong va ap dung cho toan bo mau in.",
+    "header": {
+      "title": "Nhan tieu de",
+      "showLogo": "Hien o logo gia lap",
+      "logoText": "Noi dung logo",
+      "addressLabel": "Nhan dia chi",
+      "phoneLabel": "Nhan dien thoai",
+      "taxLabel": "Nhan MST",
+      "numberLabel": "Nhan so chung tu",
+      "codeLabel": "Nhan ma",
+      "dateLabel": "Nhan ngay"
+    },
+    "typography": {
+      "title": "Kieu chu va khoang cach",
+      "fontFamily": "Kieu chu",
+      "fontSize": "Co chu co so (pt)",
+      "lineHeight": "Do gian dong",
+      "titleSize": "Co tieu de (pt)",
+      "tableFontSize": "Co chu bang (pt)"
+    },
+    "layout": {
+      "title": "Le trang (mm)"
+    },
+    "signature": {
+      "title": "Chu ky va chan trang",
+      "defaultTitleLine": "Dong chu ky mac dinh",
+      "datePrefix": "Tien to ngay",
+      "footerNote": "Ghi chu chan trang"
+    },
+    "templates": {
+      "title": "Mau in Word tuy chinh",
+      "subtitle": "Import file .docx co placeholder {{field_name}}, map du lieu va in/PDF.",
+      "nameLabel": "Ten mau in (tuy chon)",
+      "namePlaceholder": "Vi du: Bien ban ban giao v2",
+      "importLabel": "Import file .docx",
+      "selectedFile": "File da chon",
+      "importing": "Dang import mau in...",
+      "onlyDocx": "Chi ho tro file .docx",
+      "importedPrefix": "Da import mau in",
+      "empty": "Chua co mau in tuy chinh nao.",
+      "table": {
+        "name": "Mau in",
+        "fields": "So truong",
+        "updatedAt": "Cap nhat",
+        "actions": "Thao tac"
+      },
+      "actions": {
+        "select": "Chon",
+        "rename": "Doi ten",
+        "delete": "Xoa"
+      },
+      "deleteConfirm": "Ban co chac chan muon xoa mau in nay?",
+      "renamePrompt": "Nhap ten moi cho mau in",
+      "mappingTitle": "Map du lieu",
+      "mappingSubtitle": "Nhap gia tri cho tung placeholder {{field_name}}.",
+      "fillSample": "Tu dien du lieu mau",
+      "sampleSource": "Nguon du lieu mau",
+      "sampleRecord": "Ban ghi mau",
+      "autoMapFromSource": "Tu map tu nguon",
+      "exportPdf": "Xuat PDF",
+      "exportingPdf": "Dang xuat PDF...",
+      "pdfExportSuccess": "Xuat PDF thanh cong.",
+      "openPreview": "Xem truoc / In",
+      "noFields": "Khong tim thay placeholder trong mau in nay.",
+      "sampleSources": {
+        "asset": "Mau tai san",
+        "warehouseDoc": "Mau chung tu kho",
+        "user": "Mau nguoi dung"
+      }
+    }
+  }
+}

@@ -1,0 +1,815 @@
+{
+  "netops": {
+    "title": "NetOps",
+    "devices": "Thiết bị",
+    "changes": "Thay đổi",
+    "rulepacks": "Rulepacks",
+    "tools": "Công cụ",
+    "fieldKit": "Field Kit",
+    "configs": "Cấu hình",
+    "field": {
+      "title": "Field Kit",
+      "subtitle": "Chẩn đoán an toàn theo hướng dẫn cho kỹ thuật hiện trường.",
+      "errors": {
+        "loadDevicesFailed": "Tải danh sách thiết bị thất bại"
+      }
+    },
+    "toolsPage": {
+      "title": "Trình tạo cấu hình NetOps",
+      "subtitle": "Tạo các đoạn CLI dành riêng cho nhà cung cấp cho các thiết bị mạng.",
+      "vendor": "Nhà cung cấp",
+      "vendorOptions": {
+        "cisco": "Cisco",
+        "fortigate": "Fortigate",
+        "mikrotik": "MikroTik"
+      },
+      "action": "Hành động",
+      "params": "Tham số (JSON)",
+      "generate": "Tạo",
+      "generating": "Đang tạo...",
+      "command": "Lệnh",
+      "errors": {
+        "generateFailed": "Tạo thất bại"
+      },
+      "actions": {
+        "secureBaseline": "Đường cơ sở an toàn",
+        "baseline": "Đường cơ sở",
+        "wanUplink": "Liên kết WAN",
+        "lanVlan": "LAN VLAN",
+        "dhcpServer": "Máy chủ DHCP",
+        "staticRoute": "Tuyến tĩnh",
+        "ospf": "OSPF",
+        "natOverload": "Quá tải NAT",
+        "firewallBasic": "Tường lửa cơ bản",
+        "loadBalancing": "Cân bằng tải",
+        "bridge": "Cầu"
+      }
+    },
+    "rulepacksPage": {
+      "total": "{{count}} rulepacks",
+      "activeLabel": "{{name}} đang hoạt động",
+      "emptyTitle": "Không tìm thấy rulepacks",
+      "emptySubtitle": "Rulepacks xác định các quy tắc linting để xác thực cấu hình.",
+      "version": "Phiên bản",
+      "vendorScope": "Phạm vi nhà cung cấp",
+      "rules": "Quy tắc",
+      "created": "Được tạo",
+      "summary": "Tóm tắt quy tắc",
+      "viewJson": "Xem JSON",
+      "activate": "Kích hoạt",
+      "activating": "Đang kích hoạt...",
+      "severity": {
+        "critical": "Tới hạn",
+        "high": "Cao",
+        "med": "Vừa",
+        "low": "Thấp"
+      },
+      "errors": {
+        "loadFailed": "Tải rulepacks thất bại",
+        "activateFailed": "Kích hoạt rulepack thất bại"
+      }
+    },
+    "changesPage": {
+      "title": "Yêu cầu thay đổi",
+      "summary": "{{count}} yêu cầu",
+      "filters": {
+        "search": "Tìm kiếm",
+        "searchPlaceholder": "Tìm tiêu đề...",
+        "status": "Trạng thái",
+        "risk": "Cấp độ rủi ro",
+        "allStatuses": "Tất cả trạng thái",
+        "allRiskLevels": "Tất cả cấp độ rủi ro"
+      },
+      "statuses": {
+        "draft": "Nháp",
+        "planned": "Kế hoạch",
+        "candidate_ready": "Ứng viên sẵn sàng",
+        "verified": "Đã xác minh",
+        "waiting_approval": "Chờ phê duyệt",
+        "approved": "Được phê duyệt",
+        "deploying": "Đang triển khai",
+        "deployed": "Đã triển khai",
+        "closed": "Đã đóng",
+        "rejected": "Bị từ chối"
+      },
+      "risks": {
+        "low": "Thấp",
+        "med": "Vừa",
+        "high": "Cao"
+      },
+      "actions": {
+        "newChange": "Thay đổi mới",
+        "refresh": "Làm mới",
+        "clearFilters": "Xóa bộ lọc",
+        "view": "Xem",
+        "createFirst": "Tạo yêu cầu đầu tiên"
+      },
+      "empty": "Không tìm thấy yêu cầu thay đổi",
+      "table": {
+        "title": "Tiêu đề",
+        "status": "Trạng thái",
+        "risk": "Rủi ro",
+        "intentType": "Loại ý định",
+        "devices": "Thiết bị",
+        "created": "Được tạo",
+        "actions": "Hành động"
+      }
+    },
+    "changeForm": {
+      "back": "Quay lại Danh sách thay đổi",
+      "title": "Tạo yêu cầu thay đổi",
+      "subtitle": "Định nghĩa ý định và phạm vi thay đổi mạng",
+      "steps": {
+        "basics": "Cơ bản",
+        "scope": "Phạm vi",
+        "parameters": "Tham số",
+        "review": "Xem lại"
+      },
+      "stepDescriptions": {
+        "basics": "Tiêu đề và loại ý định",
+        "scope": "Chọn thiết bị",
+        "parameters": "Cấu hình ý định",
+        "review": "Xác nhận và tạo"
+      },
+      "fields": {
+        "title": "Tiêu đề",
+        "titlePlaceholder": "vd: Thêm VLAN 100 cho mạng PACS",
+        "intentType": "Loại ý định",
+        "intentPlaceholder": "Chọn loại ý định...",
+        "riskTier": "Cấp độ rủi ro",
+        "riskNote": "Cấp độ rủi ro quyết định yêu cầu phê duyệt",
+        "selectDevices": "Chọn thiết bị",
+        "selectDevicesSubtitle": "Chọn thiết bị bị ảnh hưởng",
+        "intentParameters": "Tham số ý định",
+        "parameters": "Tham số (JSON)",
+        "parametersHelp": "Cung cấp tham số theo ý định ở dạng JSON",
+        "reviewConfirm": "Xem lại và xác nhận",
+        "devices": "Thiết bị",
+        "selectedCount": "Đã chọn: {{count}} thiết bị",
+        "parametersLabel": "Tham số"
+      },
+      "intents": {
+        "VLAN_CREATE_AND_TRUNK": "Tạo VLAN và Trunk",
+        "FORTIGATE_POLICY_ALLOW_SERVICE_WITH_LOG": "FortiGate Allow Policy có log",
+        "FORTIGATE_NAT_SNAT_DNAT": "FortiGate NAT (SNAT/DNAT)",
+        "CUSTOM": "Ý định tùy chỉnh"
+      },
+      "cta": {
+        "cancel": "Hủy",
+        "previous": "Trước",
+        "next": "Tiếp",
+        "create": "Tạo thay đổi",
+        "creating": "Đang tạo..."
+      },
+      "alerts": {
+        "noDevices": "Không có thiết bị. Thêm thiết bị trước khi tạo thay đổi.",
+        "selectedDevices": "Đã chọn: {{count}} thiết bị"
+      }
+    },
+    "devicesPage": {
+      "title": "Thiết bị NetOps",
+      "summary": "{{count}} thiết bị",
+      "filters": {
+        "search": "Tìm kiếm",
+        "searchPlaceholder": "Tên hoặc IP...",
+        "vendor": "Nhà cung cấp",
+        "site": "Site",
+        "role": "Vai trò",
+        "allVendors": "Tất cả nhà cung cấp",
+        "allSites": "Tất cả site",
+        "allRoles": "Tất cả vai trò"
+      },
+      "roles": {
+        "core": "Core",
+        "distribution": "Phân phối",
+        "access": "Truy cập",
+        "edge": "Biên",
+        "firewall": "Tường lửa",
+        "wan": "WAN"
+      },
+      "actions": {
+        "importCsv": "Nhập CSV",
+        "addDevice": "Thêm thiết bị",
+        "refresh": "Làm mới",
+        "clearFilters": "Xóa bộ lọc",
+        "view": "Xem"
+      },
+      "table": {
+        "name": "Tên",
+        "vendor": "Nhà cung cấp",
+        "role": "Vai trò",
+        "site": "Site",
+        "mgmtIp": "IP quản lý",
+        "lastSnapshot": "Ảnh chụp cuối",
+        "actions": "Hành động"
+      },
+      "empty": "Không tìm thấy thiết bị",
+      "emptyCta": "Thêm thiết bị đầu tiên của bạn",
+      "modals": {
+        "createTitle": "Thêm thiết bị mới",
+        "fields": {
+          "name": "Tên",
+          "vendor": "Nhà cung cấp",
+          "model": "Mô hình",
+          "osVersion": "Phiên bản OS",
+          "site": "Site",
+          "role": "Vai trò",
+          "mgmtIp": "IP quản lý"
+        },
+        "actions": {
+          "cancel": "Hủy",
+          "create": "Tạo thiết bị",
+          "creating": "Đang tạo..."
+        },
+        "importTitle": "Nhập thiết bị từ CSV",
+        "csvFile": "Tệp CSV",
+        "formatTitle": "Định dạng CSV:",
+        "formatExample": "name,vendor,model,os_version,site,role,mgmt_ip\ncore-sw-01,cisco,C9300,17.6.3,HQ,core,192.168.1.1"
+      }
+    },
+    "deviceDetail": {
+      "actions": {
+        "pullConfig": "Kéo cấu hình",
+        "pulling": "Đang kéo...",
+        "collectFacts": "Thu thập Facts",
+        "collecting": "Đang thu thập...",
+        "runLint": "Chạy lint"
+      },
+      "tabs": {
+        "facts": "Facts",
+        "configs": "Phiên bản cấu hình"
+      },
+      "facts": {
+        "empty": "Chưa thu thập facts. Nhấn \"Thu thập Facts\" để lấy thông tin thiết bị."
+      },
+      "configs": {
+        "empty": "Chưa có cấu hình. Nhấn \"Kéo cấu hình\" để lấy cấu hình hiện tại.",
+        "table": {
+          "collectedAt": "Thu thập lúc",
+          "source": "Nguồn",
+          "createdBy": "Tạo bởi",
+          "note": "Ghi chú",
+          "actions": "Hành động"
+        }
+      },
+      "lint": {
+        "title": "Chạy lint",
+        "selectRulepack": "Chọn Rulepack",
+        "alert": "Hành động này sẽ chạy lint trên phiên bản cấu hình mới nhất.",
+        "actions": {
+          "cancel": "Hủy",
+          "run": "Chạy lint",
+          "running": "Đang chạy..."
+        },
+        "noConfigs": "Không có cấu hình. Kéo cấu hình trước khi chạy lint."
+      }
+    },
+    "changeDetail": {
+      "applySteps": "Các bước áp dụng",
+      "approvalDecision": "Quyết định phê duyệt",
+      "candidateConfiguration": "Cấu hình đề xuất",
+      "configurationDiff": "So sánh cấu hình",
+      "deviceChangeSets": "Thay đổi theo thiết bị",
+      "intentParameters": "Tham số ý định",
+      "planResults": "Kết quả lập kế hoạch",
+      "postcheckSteps": "Các bước kiểm tra sau",
+      "precheckSteps": "Các bước kiểm tra trước",
+      "rollbackPlan": "Kế hoạch hoàn tác",
+      "verificationResults": "Kết quả xác minh"
+    },
+    "configsDetail": {
+      "compareConfigurations": "So sánh cấu hình",
+      "compareWith": "So sánh với",
+      "configurationDiff": "So sánh cấu hình",
+      "lintResults": "Kết quả lint",
+      "normalizedConfiguration": "Cấu hình chuẩn hoá",
+      "rawConfiguration": "Cấu hình thô",
+      "runLintCheck": "Chạy lint",
+      "selectRulepack": "Chọn Rulepack"
+    },
+    "netopsCopilot": "Trợ lý NetOps",
+    "backTo": "Quay lại",
+    "backToChanges": "Quay lại danh sách thay đổi",
+    "compare": "So sánh",
+    "compareConfigs": "So sánh cấu hình",
+    "compareWith": "So sánh với",
+    "comparing": "Đang so sánh...",
+    "noOtherConfigs": "Không có cấu hình khác",
+    "parseNormalize": "Phân tích & Chuẩn hoá",
+    "parsing": "Đang phân tích...",
+    "runLint": "Chạy lint",
+    "running": "Đang chạy...",
+    "selectConfigVersion": "Chọn phiên bản cấu hình",
+    "generator": {
+      "title": "Trình tạo CLI mạng",
+      "subtitle": "Sinh CLI theo vendor, an toàn mặc định cho thiết bị mạng.",
+      "deviceContext": "Bối cảnh thiết bị",
+      "device": "Thiết bị",
+      "deviceEmpty": "Không có thiết bị",
+      "deviceHelp": "Chọn thiết bị mục tiêu.",
+      "vendor": "Hãng",
+      "vendorHelp": "Renderer quyết định CLI đầu ra.",
+      "environment": "Môi trường",
+      "environmentHelp": "Prod yêu cầu phê duyệt và kiểm tra lệnh nguy hiểm.",
+      "requireDevice": "Cần chọn thiết bị và hostname trước khi generate CLI.",
+      "actions": {
+        "openSsh": "Mở SSH Terminal",
+        "generate": "Generate CLI"
+      },
+      "profile": {
+        "label": "CLI Profile",
+        "help": "Áp dụng profile để điền nhanh cấu hình.",
+        "apply": "Chọn profile...",
+        "save": "Lưu profile",
+        "active": "Profile",
+        "name": "Tên profile",
+        "includeHostname": "Bao gồm hostname trong profile",
+        "saveTitle": "Lưu CLI Profile"
+      },
+      "intent": {
+        "title": "Nhập ý định",
+        "badge": "AI hỗ trợ",
+        "placeholder": "VD: Tạo VLAN 30 cho imaging, subnet 10.30.0.0/24, gateway 10.30.0.1",
+        "apply": "Áp dụng ý định",
+        "applied": "Đã áp dụng ý định. Vui lòng kiểm tra lại trước khi generate."
+      },
+      "step": {
+        "configured": "Đã cấu hình",
+        "empty": "Trống"
+      },
+      "playbook": {
+        "toggle": "Chế độ playbook",
+        "bootstrap": "Bootstrap",
+        "hardening": "Hardening",
+        "maintenance": "Maintenance",
+        "rollback": "Rollback"
+      },
+      "base": {
+        "title": "Cấu hình cơ bản",
+        "description": "Định danh, phạm vi quản trị và bảo mật nền.",
+        "hostname": "Hostname",
+        "hostnameHelp": "Dùng làm định danh thiết bị trong CLI.",
+        "mgmtCidr": "CIDR quản trị",
+        "mgmtHelp": "Giới hạn truy cập quản trị theo dải tin cậy.",
+        "firewall": "Bật firewall baseline",
+        "snmp": "SNMP Community"
+      },
+      "services": {
+        "title": "Dịch vụ",
+        "description": "Cấu hình SSH, DNS và NTP.",
+        "sshEnabled": "Bật SSH",
+        "sshVersion": "Phiên bản SSH",
+        "allowPassword": "Cho phép mật khẩu",
+        "passwordWarning": "Đang bật xác thực mật khẩu",
+        "ntpServers": "Máy chủ NTP",
+        "dnsServers": "Máy chủ DNS"
+      },
+      "network": {
+        "title": "Mạng",
+        "description": "VLAN và gán interface.",
+        "vlans": "VLAN",
+        "interfaces": "Interface",
+        "routes": "Static Route",
+        "addVlan": "Thêm VLAN",
+        "addInterface": "Thêm Interface",
+        "addRoute": "Thêm Route",
+        "emptyVlansTitle": "Chưa có VLAN",
+        "emptyVlansDescription": "Thêm VLAN để map subnet và gateway.",
+        "emptyInterfacesTitle": "Chưa có interface",
+        "emptyInterfacesDescription": "Thêm role và IP quản trị cho interface.",
+        "emptyRoutesTitle": "Chưa có static route",
+        "emptyRoutesDescription": "Thêm default hoặc site route khi cần.",
+        "vlanId": "VLAN ID",
+        "vlanName": "Tên",
+        "vlanSubnet": "Subnet",
+        "vlanGateway": "Gateway",
+        "interfaceName": "Interface",
+        "interfaceRole": "Vai trò",
+        "interfaceIp": "IP",
+        "interfaceMask": "Subnet mask",
+        "interfaceVlan": "VLAN",
+        "interfaceDescription": "Mô tả",
+        "roleUplink": "Uplink",
+        "roleAccess": "Access",
+        "routeDestination": "Đích",
+        "routeNetmask": "Netmask",
+        "routeNextHop": "Next hop"
+      },
+      "routing": {
+        "title": "Routing",
+        "description": "Chính sách định tuyến tĩnh và động.",
+        "static": "Static Routes",
+        "ospfEnabled": "Bật OSPF",
+        "ospfRouterId": "OSPF Router ID",
+        "addOspfArea": "Thêm OSPF Area",
+        "emptyOspfTitle": "Chưa có OSPF area",
+        "emptyOspfDescription": "Thêm area và network để quảng bá.",
+        "ospfArea": "Area",
+        "ospfNetworks": "Networks",
+        "bgpEnabled": "Bật BGP",
+        "bgpLocalAs": "Local AS",
+        "addBgpNeighbor": "Thêm BGP Neighbor",
+        "emptyBgpNeighborsTitle": "Chưa có BGP neighbor",
+        "emptyBgpNeighborsDescription": "Thêm neighbor IP và remote AS.",
+        "bgpNeighbor": "Neighbor",
+        "bgpRemoteAs": "Remote AS",
+        "bgpNetworks": "BGP Networks",
+        "addBgpNetwork": "Thêm Network",
+        "emptyBgpNetworksTitle": "Chưa có network BGP",
+        "emptyBgpNetworksDescription": "Thêm network để quảng bá.",
+        "bgpNetwork": "Network",
+        "ripEnabled": "Bật RIP",
+        "ripVersion": "RIP Version",
+        "ripNetwork": "RIP Network"
+      },
+      "security": {
+        "title": "Firewall & NAT",
+        "description": "Chính sách bảo mật và NAT.",
+        "firewallRules": "Firewall Rules",
+        "natRules": "NAT Rules",
+        "addFirewallRule": "Thêm Firewall Rule",
+        "addNatRule": "Thêm NAT Rule",
+        "emptyFirewallTitle": "Chưa có firewall rule",
+        "emptyFirewallDescription": "Thêm rule input/output/forward.",
+        "emptyNatTitle": "Chưa có NAT rule",
+        "emptyNatDescription": "Thêm chính sách NAT.",
+        "chain": "Chain",
+        "protocol": "Protocol",
+        "source": "Source",
+        "destination": "Destination",
+        "port": "Port",
+        "action": "Action",
+        "natType": "Loại NAT",
+        "translate": "Translate To",
+        "interface": "Interface",
+        "comment": "Ghi chú"
+      },
+      "vpn": {
+        "title": "VPN & Tunnels",
+        "description": "Tunnel site-to-site và remote access.",
+        "ipsecTunnels": "IPsec Tunnels",
+        "wireguardTunnels": "WireGuard Tunnels",
+        "l2tpServers": "L2TP Servers",
+        "addIpsec": "Thêm IPsec Tunnel",
+        "addWireguard": "Thêm WireGuard Tunnel",
+        "addL2tp": "Thêm L2TP Server",
+        "emptyIpsecTitle": "Chưa có IPsec tunnel",
+        "emptyIpsecDescription": "Thêm tunnel IPsec cho site-to-site.",
+        "emptyWireguardTitle": "Chưa có WireGuard tunnel",
+        "emptyWireguardDescription": "Thêm WireGuard tunnel.",
+        "emptyL2tpTitle": "Chưa có L2TP server",
+        "emptyL2tpDescription": "Thêm cấu hình L2TP.",
+        "tunnelName": "Tên",
+        "local": "Local",
+        "remote": "Remote",
+        "localSubnet": "Local subnet",
+        "remoteSubnet": "Remote subnet",
+        "ikeVersion": "IKE Version",
+        "psk": "Pre-shared key",
+        "interfaceAddress": "Interface address",
+        "listenPort": "Listen port",
+        "privateKey": "Private key",
+        "peerPublicKey": "Peer public key",
+        "peerAllowedIps": "Peer allowed IPs",
+        "peerEndpoint": "Peer endpoint",
+        "peerCount": "Peers",
+        "pool": "Address pool"
+      },
+      "qos": {
+        "title": "QoS",
+        "description": "Chính sách queue và ưu tiên lưu lượng.",
+        "queues": "Queues",
+        "addQueue": "Thêm Queue",
+        "emptyTitle": "Chưa có QoS queue",
+        "emptyDescription": "Thêm queue để giới hạn hoặc ưu tiên.",
+        "name": "Tên",
+        "target": "Target",
+        "limit": "Max limit",
+        "priority": "Priority",
+        "comment": "Ghi chú"
+      },
+      "monitoring": {
+        "title": "Monitoring & Management",
+        "description": "SNMP, syslog, NetFlow, sFlow.",
+        "snmpVersion": "SNMP Version",
+        "snmpCommunity": "SNMP Community",
+        "snmpUsers": "SNMP v3 Users",
+        "addSnmpUser": "Thêm SNMP User",
+        "emptySnmpUsersTitle": "Chưa có SNMP v3 user",
+        "emptySnmpUsersDescription": "Thêm user để SNMP v3 an toàn.",
+        "snmpUser": "Username",
+        "snmpAuth": "Auth protocol",
+        "snmpAuthPass": "Auth password",
+        "snmpPriv": "Privacy protocol",
+        "snmpPrivPass": "Privacy password",
+        "syslog": "Syslog servers",
+        "netflow": "NetFlow",
+        "sflow": "sFlow",
+        "collector": "Collector",
+        "port": "Port"
+      },
+      "summary": {
+        "title": "Tóm tắt & Preview",
+        "subtitle": "Xem lại cấu hình, cảnh báo và output.",
+        "config": "Tóm tắt cấu hình",
+        "device": "Thiết bị",
+        "vendor": "Hãng",
+        "environment": "Môi trường",
+        "vlans": "VLAN",
+        "interfaces": "Interface",
+        "routes": "Routes",
+        "ospf": "OSPF Areas",
+        "bgp": "BGP Neighbors",
+        "firewallRules": "Firewall rules",
+        "natRules": "NAT rules",
+        "vpn": "VPNs",
+        "qos": "QoS queues",
+        "safety": "Kiểm tra an toàn",
+        "output": "Output",
+        "noWarnings": "Không có cảnh báo",
+        "unselected": "Chưa chọn"
+      },
+      "risk": {
+        "level": "Rủi ro",
+        "subtitle": "Dựa trên policy và môi trường.",
+        "none": "Không có rủi ro",
+        "sshPassword": "Bật xác thực mật khẩu SSH",
+        "sshPasswordDetail": "Mật khẩu tăng nguy cơ brute-force.",
+        "noNtp": "Chưa có NTP",
+        "noNtpDetail": "Sai lệch thời gian ảnh hưởng audit/log.",
+        "firewallOff": "Tắt firewall baseline",
+        "firewallOffDetail": "Cần baseline input rules để an toàn.",
+        "mgmtMissing": "Chưa có CIDR quản trị",
+        "mgmtMissingDetail": "Giới hạn truy cập theo dải tin cậy.",
+        "mgmtOpen": "CIDR quản trị mở rộng",
+        "mgmtOpenDetail": "0.0.0.0/0 mở mặt bằng quản trị.",
+        "mgmtWide": "CIDR quản trị quá rộng",
+        "mgmtWideDetail": "Nên /24 hoặc hẹp hơn.",
+        "bgpEnabled": "BGP đang bật",
+        "bgpEnabledDetail": "Cần policy lọc route và peer filtering.",
+        "ospfLarge": "Nhiều OSPF area",
+        "ospfLargeDetail": "Xác minh thiết kế area để tránh lỗi adjacency.",
+        "firewallAllowAny": "Firewall allow any-any",
+        "firewallAllowAnyDetail": "Rule allow any-any tăng bề mặt tấn công.",
+        "natOpen": "DNAT không giới hạn port",
+        "natOpenDetail": "DNAT mở có thể lộ hở các dịch vụ nội bộ.",
+        "vpnNoPsk": "VPN thiếu pre-shared key",
+        "vpnNoPskDetail": "Cần PSK mạnh cho IPsec.",
+        "qosEnabled": "QoS đang bật",
+        "qosEnabledDetail": "Đảm bảo queue phù hợp nhu cầu ưu tiên.",
+        "snmpPublic": "SNMP community = public",
+        "snmpPublicDetail": "Nên đổi community sang giá trị an toàn."
+      },
+      "preview": {
+        "title": "CLI đã generate",
+        "empty": "Generate CLI để xem output.",
+        "hiddenTitle": "Preview đang ẩn",
+        "hiddenDescription": "Bật để xem CLI đã generate."
+      },
+      "explain": {
+        "title": "Giải thích lệnh",
+        "placeholder": "Chọn lệnh cần giải thích",
+        "route": "Thêm hoặc cập nhật tuyến đường.",
+        "ospf": "Cấu hình OSPF cho các network quảng bá.",
+        "bgp": "Cấu hình BGP neighbor và prefix quảng bá.",
+        "firewall": "Áp dụng rule firewall.",
+        "nat": "Thêm rule NAT.",
+        "vpn": "Cấu hình tunnel VPN.",
+        "monitoring": "Cấu hình SNMP/syslog/flow export.",
+        "generic": "Kiểm tra lệnh kỹ trước khi áp dụng."
+      },
+      "lint": {
+        "title": "Kiểm tra compliance",
+        "run": "Chạy lint",
+        "emptyTitle": "Không có lỗi lint",
+        "emptyDescription": "Chạy lint để kiểm tra tuân thủ.",
+        "suggestion": "Gợi ý:"
+      },
+      "validation": {
+        "title": "Kiểm tra hợp lệ",
+        "run": "Validate cấu hình",
+        "emptyTitle": "Không có lỗi validation",
+        "emptyDescription": "Validate để phát hiện VLAN trùng hay overlap.",
+        "suggestion": "Gợi ý:",
+        "blocked": "Có lỗi validation. Cần sửa trước khi generate."
+      },
+      "diff": {
+        "title": "Diff",
+        "refresh": "Cập nhật diff",
+        "emptyTitle": "Không có diff",
+        "empty": "Chưa có diff."
+      },
+      "dryRun": {
+        "title": "Xác minh dry-run",
+        "verify": "Lệnh kiểm tra",
+        "empty": "Generate CLI để xem lệnh kiểm tra."
+      },
+      "push": {
+        "title": "Push & Rollback",
+        "backend": "Push qua Backend",
+        "ssh": "Push qua SSH",
+        "help": "Đảm bảo SSH session đang hoạt động trước khi push."
+      },
+      "warnings": {
+        "sshPassword": "Đang bật xác thực mật khẩu SSH",
+        "noNtp": "Chưa cấu hình NTP",
+        "noMgmt": "Chưa cấu hình CIDR quản trị",
+        "mgmtOpen": "CIDR quản trị mở rộng"
+      },
+      "checks": {
+        "mgmtLimited": "CIDR quản trị đã giới hạn",
+        "ntpConfigured": "Đã cấu hình NTP",
+        "passwordDisabled": "Tắt xác thực mật khẩu"
+      },
+      "tabs": {
+        "preview": "Preview",
+        "lint": "Lint",
+        "validate": "Validate",
+        "diff": "Diff",
+        "dryRun": "Dry-run",
+        "push": "Push"
+      },
+      "modals": {
+        "vlanTitle": "Thêm VLAN",
+        "interfaceTitle": "Thêm Interface",
+        "routeTitle": "Thêm Route",
+        "ospfTitle": "Thêm OSPF Area",
+        "bgpNeighborTitle": "Thêm BGP Neighbor",
+        "bgpNetworkTitle": "Thêm BGP Network",
+        "firewallTitle": "Thêm Firewall Rule",
+        "natTitle": "Thêm NAT Rule",
+        "ipsecTitle": "Thêm IPsec Tunnel",
+        "wireguardTitle": "Thêm WireGuard Tunnel",
+        "l2tpTitle": "Thêm L2TP Server",
+        "qosTitle": "Thêm QoS Queue",
+        "snmpUserTitle": "Thêm SNMP User"
+      },
+      "guardrails": {
+        "title": "Guardrail lệnh",
+        "detected": "Phát hiện lệnh nguy hiểm:",
+        "override": "Yêu cầu override",
+        "overridden": "Đã override",
+        "blocked": "Guardrail đang chặn thao tác.",
+        "overrideTitle": "Override Guardrails",
+        "overrideHelp": "Cung cấp lý do override. Hành động sẽ được audit.",
+        "reason": "Lý do override",
+        "reasonPlaceholder": "Mô tả vì sao cần override."
+      },
+      "approval": {
+        "title": "Phê duyệt",
+        "help": "Prod yêu cầu phê duyệt trước khi push.",
+        "request": "Yêu cầu phê duyệt",
+        "approve": "Phê duyệt",
+        "reject": "Từ chối",
+        "blocked": "Cần phê duyệt trước khi push.",
+        "reasonPlaceholder": "Lý do yêu cầu (tùy chọn).",
+        "requestedBy": "Yêu cầu bởi",
+        "decidedBy": "Quyết định bởi",
+        "status": {
+          "none": "Chưa yêu cầu",
+          "pending": "Đang chờ duyệt",
+          "approved": "Đã phê duyệt",
+          "rejected": "Đã từ chối"
+        }
+      }
+    },
+    "mikrotik": {
+      "title": "MikroTik – Cấu hình đầy đủ",
+      "subtitle": "Intent → plan → config → validate → rollback (RouterOS 7).",
+      "steps": {
+        "device": "Thiết bị",
+        "network": "Interface & VLAN",
+        "routing": "Routing & Internet",
+        "preview": "Preview"
+      },
+      "device": "Thiết bị",
+      "deviceHelp": "Chọn thiết bị MikroTik từ CMDB để tự điền mặc định.",
+      "role": "Role template",
+      "roleHelp": "Role quyết định module được bật và mặc định an toàn.",
+      "environment": "Môi trường",
+      "environmentHelp": "Prod áp dụng safeguard nghiêm ngặt và yêu cầu phê duyệt.",
+      "hostname": "Hostname",
+      "routerOsVersion": "Phiên bản RouterOS",
+      "securityPreset": "Preset bảo mật",
+      "labMode": "Lab mode",
+      "labModeWarn": "Lab mode có thể nới lỏng guardrail. Cẩn trọng khi dùng.",
+      "mgmtSubnet": "Mạng quản trị (CIDR)",
+      "mgmtHelp": "Dùng để mở quyền quản trị và bảo vệ management plane.",
+      "allowedSubnets": "Subnet được phép (mỗi dòng một subnet)",
+      "allowedHelp": "Chỉ các subnet này được truy cập dịch vụ quản trị.",
+      "interfaces": "Interfaces",
+      "interfacesEmpty": "Chưa có interface",
+      "interfacesEmptyHelp": "Thêm WAN / trunk / access / mgmt đúng theo đấu nối thực tế.",
+      "vlans": "VLANs",
+      "vlansEmpty": "Chưa có VLAN",
+      "vlansEmptyHelp": "Thêm VLAN để sinh bridge/VLAN filtering và gateway/DHCP.",
+      "staticRoutes": "Static routes",
+      "routesEmpty": "Chưa có static route",
+      "routesEmptyHelp": "Thêm route cho upstream hoặc kết nối nội bộ.",
+      "internet": "Internet / WAN",
+      "publicType": "Loại WAN",
+      "wanInterface": "WAN interface",
+      "wanAddress": "Địa chỉ WAN",
+      "wanGateway": "Gateway WAN",
+      "pppoeUser": "Tài khoản PPPoE",
+      "pppoePassword": "Mật khẩu PPPoE",
+      "dnsServers": "DNS servers",
+      "ospf": "OSPF",
+      "ospfRouterId": "Router ID",
+      "ospfArea": "Area",
+      "ospfNetworks": "Networks (mỗi dòng một CIDR)",
+      "ospfPassive": "Passive interfaces (mỗi dòng một interface)",
+      "requirements": "Cần chọn thiết bị và hostname trước khi generate.",
+      "risk": "Rủi ro",
+      "errors": "lỗi",
+      "warnings": "cảnh báo",
+      "validationErrors": "Lỗi validation",
+      "validationWarnings": "Cảnh báo validation",
+      "preview": {
+        "apply": "Script áp dụng",
+        "rollback": "Script rollback"
+      },
+      "actions": {
+        "generate": "Generate cấu hình",
+        "downloadApply": "Tải script apply",
+        "downloadRollback": "Tải script rollback",
+        "pushDryRun": "Dry-run push"
+      },
+      "diff": {
+        "title": "Diff với running config",
+        "placeholder": "Dán running config vào đây…",
+        "run": "Chạy diff",
+        "summary": "Tóm tắt diff"
+      },
+      "empty": {
+        "title": "Chưa có output",
+        "subtitle": "Generate để xem preview, validation và diff."
+      },
+      "summary": {
+        "title": "Tóm tắt",
+        "subtitle": "Thông tin và số lượng (read-only).",
+        "device": "Thiết bị",
+        "role": "Role",
+        "environment": "Môi trường",
+        "vlans": "VLANs",
+        "interfaces": "Interfaces",
+        "routes": "Routes"
+      },
+      "modals": {
+        "optional": "Tùy chọn",
+        "interfaceTitle": "Thêm interface",
+        "interfaceName": "Tên interface",
+        "interfacePurpose": "Mục đích",
+        "purpose": {
+          "wan": "WAN / uplink",
+          "trunk": "Trunk",
+          "access": "Access",
+          "mgmt": "Quản trị"
+        },
+        "interfaceAccessVlan": "VLAN access",
+        "interfaceTrunkVlans": "VLAN trunk",
+        "interfaceComment": "Ghi chú",
+        "vlanTitle": "Thêm VLAN",
+        "vlanId": "VLAN ID",
+        "vlanName": "Tên VLAN",
+        "vlanSubnet": "Subnet (CIDR)",
+        "vlanGateway": "Gateway",
+        "vlanGroup": "Nhóm",
+        "vlanDhcp": "Bật DHCP",
+        "routeTitle": "Thêm static route",
+        "routeDst": "Destination (CIDR)",
+        "routeGateway": "Next hop / gateway",
+        "routeDistance": "Distance",
+        "routeComment": "Ghi chú"
+      }
+    },
+    "ssh": {
+      "title": "SSH Terminal",
+      "subtitle": "Terminal realtime qua SSH proxy kèm audit.",
+      "searchDevices": "Tìm thiết bị",
+      "sessions": "Phiên",
+      "noSessions": "Chưa có phiên.",
+      "commandPolicy": "Chính sách lệnh",
+      "liveTerminal": "Terminal trực tiếp",
+      "sessionLabel": "Phiên:",
+      "connected": "Đang kết nối",
+      "idle": "Chưa kết nối",
+      "noOutput": "Chưa có output.",
+      "history": "Lịch sử",
+      "noCommands": "Chưa có lệnh.",
+      "reuseHint": "Nhấn để dùng lại lệnh.",
+      "policy": {
+        "allowList": "Allowlist (mỗi dòng một lệnh)",
+        "denyList": "Denylist (mỗi dòng một lệnh)",
+        "dangerList": "Lệnh nguy hiểm",
+        "enforced": "Policy được áp dụng trước khi chạy lệnh."
+      },
+      "openSession": "Mở phiên",
+      "downloadLog": "Tải log",
+      "exportJson": "Export JSON",
+      "commandPlaceholder": "show ip interface brief",
+      "send": "Gửi",
+      "notConnected": "Chưa kết nối"
+    }
+  }
+}

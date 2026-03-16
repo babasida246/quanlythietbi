@@ -722,7 +722,7 @@
     "any": "Any",
     "value": "Value",
     "description": "Description",
-    "specifications": "Specifications",
+    "specifications": "Technical Specifications",
     "noCategory": "No category",
     "noVendor": "No vendor",
     "specVersion": "Spec Version",
@@ -857,8 +857,7 @@
       "timeline": "Timeline events",
       "maintenance": "Maintenance tickets"
     },
-    "specifications": "Technical Specifications",
-    "noSpecsDefined": "No technical specifications recorded.",
+    "noSpecsDefined": "No specifications defined",
     "repairOrders": {
       "empty": "No repair orders found.",
       "type": "Repair type",
@@ -1042,7 +1041,6 @@
       "basicInfo": "Basic Information",
       "classification": "Classification"
     },
-    "noSpecsDefined": "No specifications defined",
     "createAssetHint": "Fill in the details below. Fields marked * are required.",
     "assetNamePlaceholder": "e.g. PC-Finance-01",
     "createSuccessTitle": "Asset created successfully!",
@@ -1600,15 +1598,24 @@
     "pagination": "Page {page} / {totalPages} · {total} documents",
     "purchasePlan": {
       "title": "Purchase Plans",
-      "subtitle": "Auto-suggest purchases based on minimum stock levels",
+      "subtitle": "Auto-suggest purchases from stock level, minimum threshold, and workflow request demand",
       "reload": "Reload",
       "exportCsv": "Export CSV",
       "statsItems": "Items to purchase",
       "statsTotalQty": "Total quantity to order",
+      "statsSuggestedQty": "Total suggested qty",
+      "statsDemandQty": "Demand from requests",
       "statsTotalCost": "Total estimated cost",
       "emptyState": "All parts have sufficient stock. No purchases needed.",
       "loadError": "Failed to load purchase plan",
       "exportSuccess": "Purchase plan exported",
+      "applySuggested": "Apply suggested qty",
+      "settingsTitle": "Suggestion settings",
+      "coverageDays": "Demand coverage days",
+      "safetyFactor": "Safety factor",
+      "includeWorkflowDemand": "Include workflow request demand",
+      "showOnlySuggested": "Show only suggested rows",
+      "settingsHint": "After changing settings, click Reload to recalculate suggestions.",
       "colPartCode": "Part Code",
       "colPartName": "Part Name",
       "colUom": "UoM",
@@ -1616,10 +1623,46 @@
       "colStock": "Stock",
       "colMin": "Min",
       "colDeficit": "Deficit",
+      "colRequestDemand": "Request demand",
+      "colSuggested": "Suggested",
       "colOrderQty": "Order Qty",
       "colEstCost": "Cost (VND)",
+      "colReason": "Reason",
       "totalLabel": "Total:",
-      "csvHeader": "Part Code,Part Name,UoM,Warehouse,Stock,Min Level,Order Qty,Est. Cost"
+      "csvHeader": "Part Code,Part Name,UoM,Warehouse,Stock,Min Level,Order Qty,Est. Cost",
+      "reasonMinStock": "Min stock deficit {deficit}",
+      "reasonWorkflowDemand": "Workflow demand {demand}",
+      "reasonHealthyStock": "Current stock is healthy"
+    },
+    "reconciliation": {
+      "title": "Stock Reconciliation",
+      "subtitle": "Compare system stock and physical count",
+      "reload": "Reload",
+      "markAllCounted": "Mark all as counted",
+      "reset": "Reset values",
+      "submitting": "Submitting...",
+      "createAdjustment": "Create adjustment ({count})",
+      "filterWarehouse": "Warehouse",
+      "allWarehouses": "All warehouses",
+      "filterSearch": "Search part",
+      "searchPlaceholder": "Part code or name...",
+      "varianceOnly": "Only show variance rows",
+      "statsRows": "Rows",
+      "statsCounted": "Counted",
+      "statsSystem": "System qty",
+      "statsPhysical": "Physical qty",
+      "statsNetVariance": "Net variance",
+      "colPartCode": "Part code",
+      "colPartName": "Part name",
+      "colWarehouse": "Warehouse",
+      "colSystem": "System",
+      "colPhysical": "Physical",
+      "colVariance": "Variance",
+      "empty": "No reconciliation records",
+      "noVariance": "No stock variance to adjust",
+      "loadError": "Failed to load reconciliation data",
+      "submitError": "Failed to create adjustment document",
+      "submitSuccess": "Created {documents} adjustment documents for {variances} variance rows"
     }
   },
   "requests": {
@@ -2093,8 +2136,8 @@
     }
   },
   "admin": {
-    "title": "Admin Users",
-    "subtitle": "Manage accounts, roles, and access status",
+    "title": "Admin Console",
+    "subtitle": "Manage OU directory, policies and audit logs",
     "sectionLabel": "Section",
     "sections": {
       "quickWins": "Quick Wins",
@@ -2167,7 +2210,49 @@
     "tab": {
       "users": "Users",
       "rbac": "Permissions",
-      "logs": "Audit Logs"
+      "adRbac": "AD RBAC (OU)",
+      "logs": "Audit Logs",
+      "directory": "Directory (AD)",
+      "policies": "Policy Library",
+      "effective": "Effective Perms"
+    },
+    "effective": {
+      "subtitle": "View effective permissions after merging Classic RBAC + Policy System (DENY > ALLOW).",
+      "selectUser": "Select system user"
+    },
+    "policyLib": {
+      "searchPlaceholder": "Search policies...",
+      "createTitle": "Create new Policy",
+      "namePlaceholder": "Policy name",
+      "descPlaceholder": "Description (optional)",
+      "creating": "Creating...",
+      "create": "Create",
+      "cancel": "Cancel",
+      "noPolicies": "No policies found",
+      "edit": "Edit",
+      "delete": "Delete",
+      "selectPrompt": "Select a policy from the list to edit",
+      "revert": "Revert changes",
+      "save": "Save",
+      "saving": "Saving...",
+      "tabPermissions": "Permissions",
+      "tabAssignments": "Assignments",
+      "filterPlaceholder": "Filter...",
+      "grantAll": "Grant all",
+      "clearAll": "Clear all",
+      "noPerms": "No permissions found",
+      "addAssignment": "Add Assignment",
+      "principalType": "Principal type",
+      "principal": "Principal",
+      "effect": "Effect",
+      "scope": "Scope",
+      "selectOption": "Select",
+      "inheritSubOUs": "Inherit sub-OUs",
+      "adding": "Adding...",
+      "add": "Add",
+      "bulkAssign": "Bulk assign by OU",
+      "noAssignments": "No assignments yet",
+      "inherit": "Inherit"
     }
   },
   "adminRbac": {
@@ -2182,6 +2267,84 @@
     },
     "common": {
       "danger": "Danger"
+    },
+    "registry": {
+      "title": "Resource Registry",
+      "subtitle": "Auto-discovered route/site/feature keys for ACL RESOURCE scope.",
+      "searchPlaceholder": "Search key/type...",
+      "filters": {
+        "all": "All",
+        "valid": "Valid only",
+        "invalid": "Invalid only"
+      },
+      "exportCsv": "Export CSV",
+      "columns": {
+        "key": "Key",
+        "type": "Type",
+        "valid": "Valid",
+        "actions": "Actions"
+      },
+      "valid": "valid",
+      "invalid": "invalid",
+      "copy": "Copy",
+      "empty": "No resources discovered yet",
+      "grantOuTitle": "Grant by OU",
+      "grantOuSubtitle": "Link classic RBAC roles to AD RBAC roles and grant at OU scope.",
+      "targetUsers": "Target users in OU",
+      "targetGroups": "Target groups in OU",
+      "granting": "Granting...",
+      "grantUsers": "Grant role to OU users",
+      "grantGroups": "Grant role to OU groups",
+      "messages": {
+        "grantedGroups": "Granted to groups: {count}"
+      },
+      "errors": {
+        "chooseOuRole": "Choose OU and RBAC role first.",
+        "missingMap": "No AD role mapping found for selected RBAC role.",
+        "emptyOuGroups": "Selected OU has no groups to grant.",
+        "grantFailedGroups": "Failed to grant RBAC role to OU groups."
+      }
+    },
+    "adPanel": {
+      "modal": {
+        "createOu": "New Organizational Unit",
+        "editOu": "Edit OU",
+        "createGroup": "New Group",
+        "editGroup": "Edit Group",
+        "addMember": "Add Member",
+        "assignAcl": "Assign ACL",
+        "create": "Create",
+        "save": "Save",
+        "cancel": "Cancel"
+      },
+      "toolbar": {
+        "search": "Search...",
+        "newUser": "New User",
+        "newGroup": "New Group",
+        "assignAcl": "Assign ACL",
+        "savePerms": "Save Permissions",
+        "saving": "Saving..."
+      },
+      "tabs": {
+        "users": "Users",
+        "groups": "Groups",
+        "acl": "Access Rules",
+        "roles": "AD Roles",
+        "effective": "Effective Perms"
+      },
+      "empty": {
+        "noRoles": "No AD roles found.",
+        "selectRole": "← Select an AD Role to manage its permissions",
+        "noPermissions": "No permissions defined yet.",
+        "noLinkedAccount": "This user has no linked system account."
+      },
+      "form": {
+        "parentOu": "Parent: {name}",
+        "memberType": "Member Type",
+        "memberUser": "User",
+        "memberGroup": "Group (nested)",
+        "hint": "Auto-detected resources include routes/sites/tabs and permission keys."
+      }
     },
     "matrix": {
       "title": "Role & Permission Matrix",
@@ -2383,7 +2546,8 @@
       "admin": "Administration",
       "cmdb": "CMDB",
       "warehouse": "Warehouse",
-      "checkout": "Check-out / Return"
+      "checkout": "Check-out / Return",
+      "site": "Page & Tab Visibility"
     },
     "actions": {
       "view": "View",
@@ -2401,7 +2565,8 @@
       "update": "Edit",
       "users": "Users",
       "roles": "Roles",
-      "settings": "Configure"
+      "settings": "Configure",
+      "show": "Show"
     },
     "roleLabels": {
       "user": "User",
@@ -3543,7 +3708,9 @@
       "modMaintenance": "Maintenance — work orders, statuses, downtime, cost.",
       "modRequests": "Requests — approval workflows, request handling.",
       "modReports": "Reports — filter, export CSV/PDF.",
-      "arch": "Architecture: Web UI → API Server → PostgreSQL Database"
+      "arch": "Architecture: Web UI → API Server → PostgreSQL Database",
+      "standardProcessLabel": "Standard process",
+      "standardProcessFlow": "Catalogs → Assets → Stock in → Work Order → Close → Reports"
     },
     "quickStart": {
       "title": "Quick Start",
@@ -3661,6 +3828,159 @@
         "who": "Manager / Admin",
         "where": "WO Detail → Close",
         "data": "Cost, downtime, notes"
+      }
+    },
+    "tocItems": {
+      "intro": "Project Introduction",
+      "prerequisites": "Prerequisites",
+      "quickstart": "Quick Start (5 steps)",
+      "roleJourneys": "Role Journeys",
+      "systemMap": "Module/Route/API Map",
+      "rbac": "Permissions & RBAC",
+      "policySystem": "Unified Policy System",
+      "modules": "Module Guide",
+      "assetDetail": "Asset Detail Management",
+      "businessProcess": "Business Process (SOP)",
+      "playbooks": "Work Order Playbooks",
+      "fieldGuide": "Field Input Mapping",
+      "charts": "Charts & Statistics",
+      "diagrams": "Flow Diagrams (Mermaid)",
+      "faq": "Troubleshooting"
+    },
+    "roleJourneys": {
+      "title": "Role Journeys",
+      "checklistTitle": "Daily checklist",
+      "controlTitle": "Control points",
+      "shortcutsTitle": "Quick shortcuts",
+      "openPath": "Open",
+      "printSettings": "Open /settings/print",
+      "roles": {
+        "admin": {
+          "label": "Admin",
+          "badge": "System access",
+          "goal": "Keep the system stable, enforce role-based access, and maintain complete audit trails.",
+          "daily": {
+            "1": "Check approval inbox and important notifications.",
+            "2": "Review new users, reset passwords, and role changes.",
+            "3": "Review incident dashboard and maintenance trends.",
+            "4": "Verify sensitive changes in security/audit logs."
+          },
+          "control": {
+            "1": "Do not grant permissions above necessity.",
+            "2": "All sensitive actions require justification and audit trail.",
+            "3": "Production changes should pass approval flow."
+          }
+        },
+        "asset": {
+          "label": "IT Asset Manager",
+          "badge": "Asset lifecycle",
+          "goal": "Manage the full asset lifecycle from onboarding and assignment to maintenance and reporting.",
+          "daily": {
+            "1": "Update catalogs when new models/vendors appear.",
+            "2": "Track assets approaching warranty expiration.",
+            "3": "Monitor assets waiting for work-order handling.",
+            "4": "Finalize utilization and asset status reports."
+          },
+          "control": {
+            "1": "Asset code and serial must be unique.",
+            "2": "Do not delete assets with transactional history.",
+            "3": "Synchronize asset status with work-order outcomes."
+          }
+        },
+        "warehouse": {
+          "label": "Warehouse Keeper",
+          "badge": "Warehouse and parts",
+          "goal": "Keep stock accurate, process inbound/outbound documents correctly, and support work orders on time.",
+          "daily": {
+            "1": "Monitor low-stock and critical parts.",
+            "2": "Reconcile inbound/outbound documents pending processing.",
+            "3": "Review stock discrepancies and record adjustments.",
+            "4": "Review parts issue history for work orders."
+          },
+          "control": {
+            "1": "Post documents only when line items are complete.",
+            "2": "Every adjustment must have a clear reason.",
+            "3": "Run periodic stock checks by warehouse/part group."
+          }
+        },
+        "technician": {
+          "label": "Technician",
+          "badge": "Incident handling",
+          "goal": "Handle work orders quickly, follow process, and log diagnosis/results completely.",
+          "daily": {
+            "1": "Check new work orders by priority.",
+            "2": "Update work-order status according to real progress.",
+            "3": "Record used parts/test cost after repair.",
+            "4": "Sync repair outcomes into asset history."
+          },
+          "control": {
+            "1": "Never skip post-repair testing.",
+            "2": "Do not close a work order without clear results.",
+            "3": "Escalate when cost exceeds threshold."
+          }
+        },
+        "requester": {
+          "label": "Requester/User",
+          "badge": "Requests and tracking",
+          "goal": "Create complete requests, track status, and communicate effectively with processing teams.",
+          "daily": {
+            "1": "Create requests with clear description and correct type.",
+            "2": "Track status and provide extra details when requested.",
+            "3": "Review assigned assets in My Assets."
+          },
+          "control": {
+            "1": "Avoid duplicate requests for the same issue.",
+            "2": "Keep contact and department info updated.",
+            "3": "Read processing outcomes before closing discussion."
+          }
+        }
+      }
+    },
+    "systemMap": {
+      "title": "System map (Module -> Route -> API)",
+      "columns": {
+        "module": "Module",
+        "frontend": "Frontend",
+        "apiPrefix": "API Prefix",
+        "highlights": "Highlights"
+      },
+      "rows": {
+        "assets": {
+          "module": "Assets",
+          "highlights": "CRUD, assign/return, timeline, import, attachments"
+        },
+        "cmdb": {
+          "module": "CMDB",
+          "highlights": "CI types, CI, relationships, services, changes"
+        },
+        "warehouse": {
+          "module": "Warehouse",
+          "highlights": "Stock docs, ledger, reconciliation, parts, repairs"
+        },
+        "maintenance": {
+          "module": "Maintenance",
+          "highlights": "Work orders, status transitions, cost tracking"
+        },
+        "inventory": {
+          "module": "Inventory",
+          "highlights": "Sessions, scan, reconcile, close session"
+        },
+        "workflow": {
+          "module": "Workflow",
+          "highlights": "Request lifecycle, approval steps, inbox actions"
+        },
+        "analytics": {
+          "module": "Analytics/Reports",
+          "highlights": "Dashboard, trends, reminders, export"
+        },
+        "admin": {
+          "module": "Admin/Security",
+          "highlights": "Users, RBAC, AD/ACL, audit"
+        },
+        "automation": {
+          "module": "Automation/Integrations",
+          "highlights": "Rules, tasks, notifications, connectors, webhooks"
+        }
       }
     },
     "gettingStarted": {
@@ -4113,7 +4433,7 @@
       "password": "Password",
       "confirmPassword": "Confirm Password",
       "locale": "Language",
-      "commandDocker": "Docker compose start command",
+      "commandDocker": "Services startup command",
       "commandManual": "Manual migrate + seed commands",
       "linkLogin": "Login Page",
       "copy": "Copy",
@@ -4136,6 +4456,7 @@
       "seed": "Seed data",
       "admin": "Admin",
       "linkPgAdmin": "pgAdmin",
+      "linkSwagger": "API Docs (Swagger)",
       "orgInfoTitle": "Organization Information",
       "adminAccountTitle": "Administrator Account",
       "orgName": "Organization name",
@@ -4519,7 +4840,36 @@
       "sidebarAccentText": "Active sidebar item text"
     },
     "sectionTitle": "Advanced Color Overrides",
-    "sectionSubtitle": "Fine-tune individual color tokens on top of the selected theme"
+    "sectionSubtitle": "Fine-tune individual color tokens on top of the selected theme",
+    "tabs": {
+      "presets": "Theme presets",
+      "tokens": "Advanced colors",
+      "hiddenSites": "Hidden sites & tabs"
+    },
+    "hiddenSites": {
+      "title": "Hidden sites & tabs management",
+      "subtitle": "Show or hide navigation routes and functional tab paths.",
+      "hideAll": "Hide all catalog entries",
+      "showAll": "Show all catalog entries",
+      "resetDefault": "Reset to default hidden list",
+      "customTitle": "Custom paths",
+      "customPlaceholder": "/module/path",
+      "addPath": "Add hidden path",
+      "customHint": "Use for route or virtual tab paths that are not in the catalog.",
+      "defaultInfo": "Default hidden entries loaded from local-ui-hidden-sites.json",
+      "pathInvalid": "Path must start with /",
+      "pathAdded": "Hidden path added.",
+      "groups": {
+        "navigation": "Main navigation",
+        "warehouseTabs": "Warehouse tabs",
+        "automationTabs": "Workflow tabs"
+      }
+    },
+    "automationTabs": {
+      "title": "Workflow tab visibility",
+      "subtitle": "Show or hide tabs in the Business Workflows page.",
+      "hint": "Hidden tabs disappear immediately from the workflow screen."
+    }
   },
   "themePresets": {
     "title": "Color Themes",

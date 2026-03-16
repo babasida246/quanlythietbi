@@ -34,8 +34,11 @@
 -- 10. Ops: alerts, notifications, integrations, sessions, RBAC
 \i seed-ops.sql
 
--- 11. CMDB & WF demo data (depends on assets existing)
+-- 11. AD RBAC resource directives + role mapping helpers
+\i seed-ad-rbac-resources.sql
+
+-- 12. CMDB & WF demo data (depends on assets existing)
 \i seed-qlts-demo.sql
 
--- 12. CMDB services extended data
+-- 13. CMDB services extended data
 \i seed-cmdb.sql

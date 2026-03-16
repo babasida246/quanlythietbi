@@ -797,7 +797,7 @@
       "maintenance": "Phiếu bảo trì"
     },
     "specifications": "Thông số kỹ thuật",
-    "noSpecsDefined": "Chưa có thông số kỹ thuật nào được ghi nhận.",
+    "noSpecsDefined": "Chưa có thông số kỹ thuật",
     "repairOrders": {
       "empty": "Chưa có đơn sửa chữa.",
       "type": "Loại sửa chữa",
@@ -947,7 +947,6 @@
       "computedHint": "Gợi ý tự động trích xuất (tùy chọn)."
     },
     "specVersion": "Phiên bản thông số",
-    "specifications": "Thông số kỹ thuật",
     "step": "Bước nhảy",
     "taxCode": "Mã số thuế",
     "toDepartment": "Đến khoa/phòng",
@@ -1042,7 +1041,6 @@
       "basicInfo": "Thông tin cơ bản",
       "classification": "Phân loại"
     },
-    "noSpecsDefined": "Chưa có thông số kỹ thuật",
     "createAssetHint": "Điền các thông tin bên dưới. Các trường có * là bắt buộc.",
     "assetNamePlaceholder": "Ví dụ: PC-KeToan-01",
     "createSuccessTitle": "Tạo tài sản thành công!",
@@ -1600,15 +1598,24 @@
     "pagination": "Trang {page} / {totalPages} · {total} chứng từ",
     "purchasePlan": {
       "title": "Kế hoạch mua sắm",
-      "subtitle": "Tự động đề xuất mua hàng dựa trên mức tồn kho tối thiểu",
+      "subtitle": "Tự động đề xuất mua hàng dựa trên tồn kho, mức tối thiểu và nhu cầu từ phiếu đề nghị",
       "reload": "Tải lại",
       "exportCsv": "Xuất CSV",
       "statsItems": "Số mặt hàng cần mua",
       "statsTotalQty": "Tổng số lượng cần mua",
+      "statsSuggestedQty": "Tổng SL đề xuất",
+      "statsDemandQty": "Nhu cầu từ yêu cầu",
       "statsTotalCost": "Tổng chi phí dự kiến",
       "emptyState": "Tất cả linh kiện đều đủ tồn kho. Không cần mua thêm.",
       "loadError": "Không thể tải kế hoạch mua sắm",
       "exportSuccess": "Đã xuất kế hoạch mua sắm",
+      "applySuggested": "Áp dụng SL đề xuất",
+      "settingsTitle": "Thiết lập đề xuất mua",
+      "coverageDays": "Số ngày bao phủ nhu cầu",
+      "safetyFactor": "Hệ số an toàn",
+      "includeWorkflowDemand": "Tính nhu cầu từ phiếu đề nghị",
+      "showOnlySuggested": "Chỉ hiện dòng có đề xuất",
+      "settingsHint": "Sau khi đổi thông số, nhấn Tải lại để tính lại đề xuất.",
       "colPartCode": "Mã LK",
       "colPartName": "Tên linh kiện",
       "colUom": "ĐVT",
@@ -1616,10 +1623,46 @@
       "colStock": "Tồn kho",
       "colMin": "Min",
       "colDeficit": "Thiếu",
+      "colRequestDemand": "Nhu cầu YC",
+      "colSuggested": "Đề xuất",
       "colOrderQty": "Cần mua",
       "colEstCost": "Chi phí (VND)",
+      "colReason": "Lý do đề xuất",
       "totalLabel": "Tổng cộng:",
-      "csvHeader": "Mã LK,Tên linh kiện,ĐVT,Kho,Tồn kho,Mức tối thiểu,Cần mua,Chi phí dự kiến"
+      "csvHeader": "Mã LK,Tên linh kiện,ĐVT,Kho,Tồn kho,Mức tối thiểu,Cần mua,Chi phí dự kiến",
+      "reasonMinStock": "Thiếu tồn tối thiểu {deficit}",
+      "reasonWorkflowDemand": "Nhu cầu từ yêu cầu {demand}",
+      "reasonHealthyStock": "Tồn kho hiện ổn"
+    },
+    "reconciliation": {
+      "title": "Kiểm kê kho",
+      "subtitle": "So sánh tồn kho hệ thống và kiểm đếm thực tế",
+      "reload": "Tải lại",
+      "markAllCounted": "Đánh dấu đã kiểm toàn bộ",
+      "reset": "Đặt lại số liệu",
+      "submitting": "Đang xử lý...",
+      "createAdjustment": "Tạo phiếu điều chỉnh ({count})",
+      "filterWarehouse": "Kho hàng",
+      "allWarehouses": "Tất cả kho",
+      "filterSearch": "Tìm linh kiện",
+      "searchPlaceholder": "Mã hoặc tên linh kiện...",
+      "varianceOnly": "Chỉ hiển thị dòng chênh lệch",
+      "statsRows": "Số dòng",
+      "statsCounted": "Đã kiểm",
+      "statsSystem": "Tồn hệ thống",
+      "statsPhysical": "Tồn thực tế",
+      "statsNetVariance": "Chênh lệch ròng",
+      "colPartCode": "Mã LK",
+      "colPartName": "Tên linh kiện",
+      "colWarehouse": "Kho",
+      "colSystem": "Hệ thống",
+      "colPhysical": "Thực tế",
+      "colVariance": "Chênh lệch",
+      "empty": "Không có dữ liệu kiểm kê",
+      "noVariance": "Không có chênh lệch cần điều chỉnh",
+      "loadError": "Không thể tải dữ liệu kiểm kê",
+      "submitError": "Không thể tạo phiếu điều chỉnh",
+      "submitSuccess": "Đã tạo {documents} phiếu điều chỉnh cho {variances} dòng chênh lệch"
     }
   },
   "requests": {
@@ -2093,8 +2136,8 @@
     }
   },
   "admin": {
-    "title": "Người dùng quản trị",
-    "subtitle": "Quản lý tài khoản, vai trò và trạng thái truy cập",
+    "title": "Bảng điều khiển Quản trị",
+    "subtitle": "Quản lý thư mục OU, policy và nhật ký hoạt động",
     "sectionLabel": "Mục",
     "sections": {
       "quickWins": "Quick Wins",
@@ -2167,7 +2210,49 @@
     "tab": {
       "users": "Người dùng",
       "rbac": "Phân quyền",
-      "logs": "Nhật ký"
+      "adRbac": "AD RBAC (OU)",
+      "logs": "Nhật ký",
+      "directory": "Thư mục (AD)",
+      "policies": "Thư viện Policy",
+      "effective": "Quyền thực tế"
+    },
+    "effective": {
+      "subtitle": "Xem quyền thực tế sau khi hợp nhất Classic RBAC + Policy System (DENY > ALLOW).",
+      "selectUser": "Chọn system user"
+    },
+    "policyLib": {
+      "searchPlaceholder": "Tìm policy...",
+      "createTitle": "Tạo Policy mới",
+      "namePlaceholder": "Tên policy",
+      "descPlaceholder": "Mô tả (tuỳ chọn)",
+      "creating": "Đang tạo...",
+      "create": "Tạo",
+      "cancel": "Huỷ",
+      "noPolicies": "Không có policy nào",
+      "edit": "Sửa",
+      "delete": "Xóa",
+      "selectPrompt": "Chọn một policy từ danh sách để chỉnh sửa",
+      "revert": "Huỷ thay đổi",
+      "save": "Lưu",
+      "saving": "Đang lưu...",
+      "tabPermissions": "Permissions",
+      "tabAssignments": "Assignments",
+      "filterPlaceholder": "Lọc...",
+      "grantAll": "Cấp tất cả",
+      "clearAll": "Xóa tất cả",
+      "noPerms": "Không tìm thấy permission nào",
+      "addAssignment": "Thêm Assignment",
+      "principalType": "Loại principal",
+      "principal": "Principal",
+      "effect": "Hiệu lực",
+      "scope": "Phạm vi",
+      "selectOption": "Chọn",
+      "inheritSubOUs": "Kế thừa sub-OUs",
+      "adding": "Đang thêm...",
+      "add": "Thêm",
+      "bulkAssign": "Gán hàng loạt theo OU",
+      "noAssignments": "Chưa có assignment nào",
+      "inherit": "Kế thừa"
     }
   },
   "adminRbac": {
@@ -2182,6 +2267,84 @@
     },
     "common": {
       "danger": "Nguy hiểm"
+    },
+    "registry": {
+      "title": "Resource Registry",
+      "subtitle": "Tự động phát hiện key route/site/tính năng cho ACL scope RESOURCE.",
+      "searchPlaceholder": "Tìm key hoặc loại...",
+      "filters": {
+        "all": "Tất cả",
+        "valid": "Chỉ hợp lệ",
+        "invalid": "Chỉ không hợp lệ"
+      },
+      "exportCsv": "Xuất CSV",
+      "columns": {
+        "key": "Key",
+        "type": "Loại",
+        "valid": "Hợp lệ",
+        "actions": "Thao tác"
+      },
+      "valid": "hợp lệ",
+      "invalid": "không hợp lệ",
+      "copy": "Sao chép",
+      "empty": "Chưa phát hiện tài nguyên",
+      "grantOuTitle": "Cấp quyền theo OU",
+      "grantOuSubtitle": "Liên kết RBAC role với AD RBAC role và cấp theo phạm vi OU.",
+      "targetUsers": "Số user trong OU",
+      "targetGroups": "Số group trong OU",
+      "granting": "Đang cấp...",
+      "grantUsers": "Cấp role cho Users trong OU",
+      "grantGroups": "Cấp role cho Groups trong OU",
+      "messages": {
+        "grantedGroups": "Đã cấp cho {count} nhóm"
+      },
+      "errors": {
+        "chooseOuRole": "Vui lòng chọn OU và RBAC role trước.",
+        "missingMap": "Không tìm thấy ánh xạ AD role cho RBAC role đã chọn.",
+        "emptyOuGroups": "OU được chọn chưa có nhóm để cấp.",
+        "grantFailedGroups": "Không thể cấp RBAC role cho các group trong OU."
+      }
+    },
+    "adPanel": {
+      "modal": {
+        "createOu": "Tạo Organizational Unit",
+        "editOu": "Chỉnh sửa OU",
+        "createGroup": "Tạo Group",
+        "editGroup": "Chỉnh sửa Group",
+        "addMember": "Thêm thành viên",
+        "assignAcl": "Gán ACL",
+        "create": "Tạo mới",
+        "save": "Lưu",
+        "cancel": "Hủy"
+      },
+      "toolbar": {
+        "search": "Tìm kiếm...",
+        "newUser": "Tạo User",
+        "newGroup": "Tạo Group",
+        "assignAcl": "Gán ACL",
+        "savePerms": "Lưu quyền",
+        "saving": "Đang lưu..."
+      },
+      "tabs": {
+        "users": "Users",
+        "groups": "Groups",
+        "acl": "Access Rules",
+        "roles": "AD Roles",
+        "effective": "Effective Perms"
+      },
+      "empty": {
+        "noRoles": "Chưa có AD role nào.",
+        "selectRole": "← Chọn AD Role để quản lý quyền",
+        "noPermissions": "Chưa có permission nào được định nghĩa.",
+        "noLinkedAccount": "User này chưa có tài khoản hệ thống."
+      },
+      "form": {
+        "parentOu": "OU cha: {name}",
+        "memberType": "Loại thành viên",
+        "memberUser": "User",
+        "memberGroup": "Group (lồng nhau)",
+        "hint": "Tài nguyên phát hiện tự động gồm route/site/tab và các permission key."
+      }
     },
     "matrix": {
       "title": "Ma Trận Vai Trò & Quyền",
@@ -2383,7 +2546,8 @@
       "admin": "Quản trị",
       "cmdb": "CMDB",
       "warehouse": "Kho hàng",
-      "checkout": "Mượn / Trả"
+      "checkout": "Mượn / Trả",
+      "site": "Hiển thị trang / tab"
     },
     "actions": {
       "view": "Xem",
@@ -2401,7 +2565,8 @@
       "update": "Sửa",
       "users": "Người dùng",
       "roles": "Vai trò",
-      "settings": "Cấu hình"
+      "settings": "Cấu hình",
+      "show": "Hiện"
     },
     "roleLabels": {
       "user": "Người dùng",
@@ -3539,7 +3704,9 @@
       "modMaintenance": "Bảo trì — work order, trạng thái, downtime, chi phí.",
       "modRequests": "Yêu cầu — luồng phê duyệt, xử lý yêu cầu.",
       "modReports": "Báo cáo — filter, export CSV/PDF.",
-      "arch": "Kiến trúc: Web UI → API Server → PostgreSQL Database"
+      "arch": "Kiến trúc: Web UI → API Server → PostgreSQL Database",
+      "standardProcessLabel": "Quy trình chuẩn",
+      "standardProcessFlow": "Danh mục → Tài sản → Nhập kho → Work Order → Đóng → Báo cáo"
     },
     "quickStart": {
       "title": "Hướng dẫn nhanh (Quick Start)",
@@ -3657,6 +3824,159 @@
         "who": "Quản lý / Admin",
         "where": "Chi tiết WO → Đóng",
         "data": "Chi phí, downtime, ghi chú"
+      }
+    },
+    "tocItems": {
+      "intro": "Giới thiệu dự án",
+      "prerequisites": "Trước khi bắt đầu",
+      "quickstart": "Quick Start (5 bước)",
+      "roleJourneys": "Lộ trình theo vai trò",
+      "systemMap": "Bản đồ module/route/API",
+      "rbac": "Phân quyền & RBAC",
+      "policySystem": "Hệ thống Policy thống nhất",
+      "modules": "Hướng dẫn theo module",
+      "assetDetail": "Quản lý chi tiết tài sản",
+      "businessProcess": "Quy trình nghiệp vụ (SOP)",
+      "playbooks": "Kịch bản Work Order",
+      "fieldGuide": "Bảng mapping trường nhập",
+      "charts": "Biểu đồ & Thống kê",
+      "diagrams": "Flow Diagrams (Mermaid)",
+      "faq": "Troubleshooting"
+    },
+    "roleJourneys": {
+      "title": "Lộ trình theo vai trò",
+      "checklistTitle": "Checklist hàng ngày",
+      "controlTitle": "Điểm kiểm soát",
+      "shortcutsTitle": "Lối tắt thao tác",
+      "openPath": "Mở",
+      "printSettings": "Mở /settings/print",
+      "roles": {
+        "admin": {
+          "label": "Admin",
+          "badge": "Quyền hệ thống",
+          "goal": "Đảm bảo hệ thống vận hành ổn định, quyền truy cập đúng vai trò, dữ liệu audit đầy đủ.",
+          "daily": {
+            "1": "Kiểm tra inbox phê duyệt và thông báo quan trọng.",
+            "2": "Rà soát user mới, reset password, role changes.",
+            "3": "Xem dashboard sự cố và trend bảo trì.",
+            "4": "Kiểm tra các thay đổi nhạy cảm trên security/audit."
+          },
+          "control": {
+            "1": "Không cấp quyền vượt mức cần thiết.",
+            "2": "Mọi thao tác nhạy cảm phải có lý do và audit trail.",
+            "3": "Prod change nên qua flow phê duyệt."
+          }
+        },
+        "asset": {
+          "label": "IT Asset Manager",
+          "badge": "Vòng đời tài sản",
+          "goal": "Quản lý vòng đời tài sản từ đăng ký, cấp phát, bảo trì đến báo cáo.",
+          "daily": {
+            "1": "Cập nhật danh mục nếu có model/vendor mới.",
+            "2": "Theo dõi tài sản sắp hết bảo hành.",
+            "3": "Kiểm tra tài sản đang chờ xử lý WO.",
+            "4": "Chốt report sử dụng và tình trạng tài sản."
+          },
+          "control": {
+            "1": "Mã tài sản và serial phải duy nhất.",
+            "2": "Không xóa tài sản đã có lịch sử giao dịch.",
+            "3": "Đồng bộ status tài sản với kết quả WO."
+          }
+        },
+        "warehouse": {
+          "label": "Warehouse Keeper",
+          "badge": "Kho và linh kiện",
+          "goal": "Đảm bảo tồn kho đúng, phiếu nhập/xuất chính xác, hỗ trợ WO kịp thời.",
+          "daily": {
+            "1": "Theo dõi low-stock và linh kiện critical.",
+            "2": "Đối chiếu phiếu nhập/xuất đang chờ xử lý.",
+            "3": "Kiểm tra sai lệch tồn kho và ghi nhận adjustment.",
+            "4": "Rà soát lịch sử xuất linh kiện cho WO."
+          },
+          "control": {
+            "1": "Chỉ post phiếu khi line item đầy đủ.",
+            "2": "Mọi adjustment cần lý do rõ ràng.",
+            "3": "Kiểm kê định kỳ theo kho/nhóm part."
+          }
+        },
+        "technician": {
+          "label": "Technician",
+          "badge": "Xử lý sự cố",
+          "goal": "Xử lý work order nhanh, đúng quy trình, ghi nhận đầy đủ chẩn đoán và kết quả.",
+          "daily": {
+            "1": "Kiểm tra WO mới theo mức độ ưu tiên.",
+            "2": "Cập nhật trạng thái WO theo tiến độ thực tế.",
+            "3": "Ghi nhận linh kiện/chi phí test sau sửa.",
+            "4": "Đồng bộ kết quả sửa chữa vào lịch sử tài sản."
+          },
+          "control": {
+            "1": "Không bỏ qua bước test sau sửa.",
+            "2": "Không đóng WO khi chưa có kết quả rõ ràng.",
+            "3": "Escalate nếu chi phí vượt ngưỡng."
+          }
+        },
+        "requester": {
+          "label": "Requester/User",
+          "badge": "Yêu cầu và theo dõi",
+          "goal": "Tạo yêu cầu đúng thông tin, theo dõi trạng thái và hoàn tất giao tiếp với bộ phận xử lý.",
+          "daily": {
+            "1": "Tạo request với mô tả rõ ràng, đúng loại yêu cầu.",
+            "2": "Theo dõi trạng thái và phản hồi bổ sung khi được yêu cầu.",
+            "3": "Kiểm tra tài sản được cấp phát trong My Assets."
+          },
+          "control": {
+            "1": "Không tạo duplicate request cho cùng một vấn đề.",
+            "2": "Luôn cập nhật thông tin liên hệ và bộ phận.",
+            "3": "Đọc kết quả xử lý trước khi đóng trao đổi."
+          }
+        }
+      }
+    },
+    "systemMap": {
+      "title": "Bản đồ hệ thống (Module -> Route -> API)",
+      "columns": {
+        "module": "Module",
+        "frontend": "Frontend",
+        "apiPrefix": "API Prefix",
+        "highlights": "Highlights"
+      },
+      "rows": {
+        "assets": {
+          "module": "Assets",
+          "highlights": "CRUD, gán/trả, timeline, import, attachment"
+        },
+        "cmdb": {
+          "module": "CMDB",
+          "highlights": "CI types, CI, quan hệ, services, changes"
+        },
+        "warehouse": {
+          "module": "Warehouse",
+          "highlights": "Phiếu kho, sổ kho, đối chiếu, linh kiện, sửa chữa"
+        },
+        "maintenance": {
+          "module": "Maintenance",
+          "highlights": "Work orders, chuyển trạng thái, theo dõi chi phí"
+        },
+        "inventory": {
+          "module": "Inventory",
+          "highlights": "Phiên kiểm kê, scan, đối chiếu, đóng phiên"
+        },
+        "workflow": {
+          "module": "Workflow",
+          "highlights": "Vòng đời request, các bước duyệt, xử lý inbox"
+        },
+        "analytics": {
+          "module": "Analytics/Reports",
+          "highlights": "Dashboard, trend, reminders, export"
+        },
+        "admin": {
+          "module": "Admin/Security",
+          "highlights": "Users, RBAC, AD/ACL, audit"
+        },
+        "automation": {
+          "module": "Automation/Integrations",
+          "highlights": "Rules, tasks, notifications, connectors, webhooks"
+        }
       }
     },
     "gettingStarted": {
@@ -4109,7 +4429,7 @@
       "password": "Mật khẩu",
       "confirmPassword": "Xác nhận mật khẩu",
       "locale": "Ngôn ngữ",
-      "commandDocker": "Lệnh khởi động docker compose",
+      "commandDocker": "Lệnh khởi động services",
       "commandManual": "Lệnh migrate + seed thủ công",
       "linkLogin": "Trang đăng nhập",
       "copy": "Sao chép",
@@ -4132,6 +4452,7 @@
       "seed": "Seed data",
       "admin": "Admin",
       "linkPgAdmin": "pgAdmin",
+      "linkSwagger": "API Docs (Swagger)",
       "orgInfoTitle": "Thông tin đơn vị",
       "adminAccountTitle": "Tài khoản quản trị viên",
       "orgName": "Tên đơn vị / tổ chức",
@@ -4515,7 +4836,36 @@
       "sidebarAccentText": "Chữ item active sidebar"
     },
     "sectionTitle": "Tùy chỉnh màu sắc nâng cao",
-    "sectionSubtitle": "Tinh chỉnh từng token màu, áp dụng trên theme đang chọn"
+    "sectionSubtitle": "Tinh chỉnh từng token màu, áp dụng trên theme đang chọn",
+    "tabs": {
+      "presets": "Chủ đề nhanh",
+      "tokens": "Màu nâng cao",
+      "hiddenSites": "Ẩn site và tab"
+    },
+    "hiddenSites": {
+      "title": "Quản lý ẩn/hiện site và tab",
+      "subtitle": "Bật/tắt nhanh các route điều hướng và các tab chức năng.",
+      "hideAll": "Ẩn toàn bộ danh mục",
+      "showAll": "Hiện toàn bộ danh mục",
+      "resetDefault": "Khôi phục danh sách ẩn mặc định",
+      "customTitle": "Đường dẫn tùy chỉnh",
+      "customPlaceholder": "/module/path",
+      "addPath": "Thêm đường dẫn ẩn",
+      "customHint": "Dùng cho route hoặc tab ảo chưa có trong danh mục.",
+      "defaultInfo": "Số mục ẩn mặc định từ local-ui-hidden-sites.json",
+      "pathInvalid": "Đường dẫn phải bắt đầu bằng /",
+      "pathAdded": "Đã thêm đường dẫn ẩn.",
+      "groups": {
+        "navigation": "Điều hướng chính",
+        "warehouseTabs": "Tab Kho hàng",
+        "automationTabs": "Tab Quy trình"
+      }
+    },
+    "automationTabs": {
+      "title": "Hiển thị tab quy trình",
+      "subtitle": "Bật/tắt các tab trong trang Quy trình nghiệp vụ.",
+      "hint": "Tab bị ẩn sẽ biến mất ngay trên trang quy trình."
+    }
   },
   "themePresets": {
     "title": "Bộ màu giao diện",

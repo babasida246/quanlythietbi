@@ -1,0 +1,337 @@
+{
+  "requests": {
+    "pageTitle": "Yêu cầu",
+    "pageSubtitle": "Quản lý và theo dõi yêu cầu quy trình",
+    "tab": {
+      "mine": "Của tôi",
+      "inbox": "Hộp duyệt",
+      "all": "Tất cả"
+    },
+    "title": "Yêu cầu quy trình",
+    "total": "{{count}} yêu cầu",
+    "new": "Yêu cầu mới",
+    "newTitle": "Yêu cầu quy trình mới",
+    "detailTitle": "Yêu cầu quy trình",
+    "emptyTitle": "Không có yêu cầu",
+    "emptySubtitle": "Không có yêu cầu nào phù hợp bộ lọc hiện tại.",
+    "request": "Yêu cầu",
+    "requestType": "Loại yêu cầu",
+    "requestedBy": "Được yêu cầu bởi",
+    "approvedBy": "Được phê duyệt bởi",
+    "createdAt": "Được tạo",
+    "approve": "Phê duyệt",
+    "approving": "Đang phê duyệt...",
+    "reject": "Từ chối",
+    "rejecting": "Đang từ chối...",
+    "execute": "Thực hiện",
+    "executing": "Đang thực hiện...",
+    "rejectReason": "Lý do từ chối",
+    "filters": {
+      "allStatuses": "Tất cả trạng thái",
+      "allTypes": "Tất cả loại"
+    },
+    "status": {
+      "submitted": "Đã gửi",
+      "approved": "Được phê duyệt",
+      "rejected": "Bị từ chối",
+      "inProgress": "Đang tiến hành",
+      "done": "Hoàn thành",
+      "canceled": "Đã hủy"
+    },
+    "type": {
+      "assign": "Gán",
+      "return": "Trả",
+      "move": "Di chuyển",
+      "repair": "Sửa chữa",
+      "dispose": "Thanh lý"
+    },
+    "placeholders": {
+      "rejectReason": "Lý do tùy chọn"
+    },
+    "errors": {
+      "loadFailed": "Tải yêu cầu thất bại",
+      "loadDetailFailed": "Tải yêu cầu chi tiết thất bại",
+      "approveFailed": "Phê duyệt thất bại",
+      "rejectFailed": "Từ chối thất bại",
+      "executeFailed": "Thực hiện thất bại",
+      "deleteFailed": "Xóa yêu cầu thất bại"
+    },
+    "loadFailed": "Không tải được danh sách yêu cầu",
+    "toast": {
+      "submitted": "Đã gửi yêu cầu để phê duyệt",
+      "submitFailed": "Gửi yêu cầu thất bại",
+      "canceled": "Đã hủy yêu cầu",
+      "cancelFailed": "Hủy yêu cầu thất bại",
+      "withdrawn": "Đã rút lại yêu cầu về nháp",
+      "withdrawFailed": "Rút lại thất bại",
+      "createSuccess": "Tạo yêu cầu thành công",
+      "createFailed": "Tạo yêu cầu thất bại"
+    },
+    "myRequests": "Yêu cầu của tôi",
+    "myRequestsSubtitle": "Theo dõi và quản lý yêu cầu bạn đã gửi.",
+    "createRequest": "Tạo yêu cầu",
+    "emptyState": "Chưa có yêu cầu nào. Nhấn \"Tạo yêu cầu\" để bắt đầu.",
+    "workflowTitle": "Yêu cầu Workflow",
+    "workflowSubtitle": "Tất cả yêu cầu trong hệ thống.",
+    "allStatuses": "Tất cả trạng thái",
+    "allTypes": "Tất cả loại",
+    "workflowEmpty": "Chưa có yêu cầu nào.",
+    "header": {
+      "code": "Mã / Tiêu đề",
+      "codeTitle": "Mã / Tiêu đề",
+      "type": "Loại",
+      "priority": "Ưu tiên",
+      "status": "Trạng thái",
+      "requester": "Người yêu cầu",
+      "createdAt": "Ngày tạo",
+      "actions": "Thao tác",
+      "sender": "Người gửi"
+    },
+    "loadingDetail": "Đang tải chi tiết...",
+    "linesList": "Danh sách yêu cầu ({count} dòng)",
+    "lineItem": "Dòng {n}",
+    "fulfillment": {
+      "fulfilled": "Hoàn thành",
+      "partial": "Một phần",
+      "cancelled": "Hủy",
+      "pending": "Chờ"
+    },
+    "submitHint": "Gửi yêu cầu để bắt đầu quy trình phê duyệt.",
+    "submitting": "Đang gửi...",
+    "submit": "Gửi yêu cầu",
+    "withdrawHint": "Rút lại yêu cầu (chuyển về nháp):",
+    "withdrawReasonPlaceholder": "Lý do rút lại (tuỳ chọn)",
+    "processing": "Đang xử lý...",
+    "withdraw": "Rút lại",
+    "cancelHint": "Hủy yêu cầu:",
+    "cancelReasonPlaceholder": "Lý do hủy (tuỳ chọn)",
+    "canceling": "Đang hủy...",
+    "cancelRequest": "Hủy yêu cầu",
+    "actionBusy": {
+      "submitting": "Đang gửi...",
+      "withdrawing": "Đang xử lý...",
+      "canceling": "Đang hủy..."
+    },
+    "detail": {
+      "title": "Tiêu đề",
+      "status": "Trạng thái",
+      "type": "Loại",
+      "priority": "Ưu tiên",
+      "createdAt": "Ngày tạo",
+      "submittedAt": "Đã gửi lúc",
+      "currentStep": "Đang ở bước",
+      "info": "Thông tin yêu cầu",
+      "requestInfo": "Thông tin yêu cầu",
+      "loading": "Đang tải chi tiết...",
+      "lineNo": "Dòng",
+      "saved": "Đã lưu",
+      "lines": "Danh sách vật tư / thiết bị"
+    },
+    "newRequest": "Tạo yêu cầu mới",
+    "newRequestHint": "Điền thông tin rồi nhấn \"Lưu nháp\" hoặc \"Tạo & Gửi ngay\"",
+    "saveDraft": "Lưu nháp",
+    "createAndSubmit": "Tạo & Gửi ngay",
+    "validation": {
+      "titleRequired": "Vui lòng nhập tiêu đề yêu cầu"
+    },
+    "field": {
+      "title": "Tiêu đề",
+      "requestType": "Loại yêu cầu",
+      "priority": "Ưu tiên",
+      "dueDate": "Hạn xử lý",
+      "assignModel": "Model thiết bị cần cấp",
+      "returnDevice": "Mã / tên thiết bị thu hồi",
+      "noteReason": "Ghi chú / Lý do",
+      "reclaimDevice": "Mã / tên thiết bị thu hồi"
+    },
+    "placeholder": {
+      "title": "Mô tả ngắn gọn nội dung yêu cầu...",
+      "note": "Mô tả chi tiết lý do, mục đích yêu cầu..."
+    },
+    "linesSection": "Danh sách vật tư / thiết bị yêu cầu",
+    "linesHint": "Tuỳ chọn — để trống nếu chỉ cần mô tả bằng tiêu đề/ghi chú",
+    "loadingCatalogs": "Đang tải danh mục...",
+    "wfStatus": {
+      "draft": "Nháp",
+      "submitted": "Đã gửi",
+      "inReview": "Đang duyệt",
+      "approved": "Đã duyệt",
+      "rejected": "Từ chối",
+      "cancelled": "Đã hủy",
+      "closed": "Đã đóng"
+    },
+    "wfPriority": {
+      "low": "Thấp",
+      "normal": "Bình thường",
+      "high": "Cao",
+      "urgent": "Khẩn cấp"
+    },
+    "wfType": {
+      "assetRequest": "Cấp phát tài sản",
+      "repairRequest": "Sửa chữa / Bảo trì",
+      "disposalRequest": "Thanh lý tài sản",
+      "purchase": "Mua sắm",
+      "other": "Khác"
+    },
+    "lineStatus": {
+      "fulfilled": "Hoàn thành",
+      "partial": "Một phần",
+      "cancelled": "Hủy",
+      "pending": "Chờ"
+    }
+  },
+  "inbox": {
+    "title": "Hộp phê duyệt",
+    "subtitle": "Xem và phê duyệt các yêu cầu workflow đang chờ.",
+    "lastUpdated": "Cập nhật gần nhất",
+    "reply": "Trả lời",
+    "send": "Gửi",
+    "replyPlaceholder": "Nhập nội dung phản hồi...",
+    "emptyThread": "Không có tin nhắn trong cuộc hội thoại này.",
+    "submitted": "Yêu cầu đã gửi",
+    "empty": "Không có yêu cầu đang chờ.",
+    "errors": {
+      "loadFailed": "Tải hộp phê duyệt thất bại",
+      "approveFailed": "Phê duyệt thất bại",
+      "rejectFailed": "Từ chối thất bại"
+    },
+    "approvedSuccess": "Phê duyệt thành công",
+    "approvedFailed": "Phê duyệt thất bại",
+    "rejectedSuccess": "Đã từ chối",
+    "rejectedFailed": "Từ chối thất bại",
+    "claimedSuccess": "Đã nhận việc",
+    "claimedFailed": "Không thể nhận việc",
+    "pending": "Chờ duyệt",
+    "urgent": "Khẩn cấp",
+    "overdue": "Quá hạn",
+    "unassigned": "Chưa nhận",
+    "stepNo": "Bước {n}",
+    "unassignedNote": "Chưa có người nhận",
+    "dueDate": "Hạn: {date}",
+    "pagination": "Tổng: {total} | Trang {page}",
+    "approvalTitle": "Phê duyệt: {code}",
+    "detail": {
+      "title": "Tiêu đề",
+      "type": "Loại",
+      "requester": "Người yêu cầu",
+      "priority": "Ưu tiên",
+      "approvalStep": "Bước duyệt",
+      "deadline": "Hạn xử lý",
+      "attachments": "Thông tin đính kèm",
+      "noteOptional": "Ghi chú (tùy chọn)"
+    },
+    "tableHeaders": {
+      "request": "Yêu cầu",
+      "type": "Loại",
+      "priority": "Ưu tiên",
+      "status": "Trạng thái",
+      "step": "Bước",
+      "submitted": "Ngày gửi",
+      "actions": "Thao tác"
+    },
+    "approve": "Phê duyệt",
+    "reject": "Từ chối",
+    "claim": "Nhận việc",
+    "refresh": "Làm mới",
+    "pendingApproval": "Chờ duyệt",
+    "request": "Yêu cầu",
+    "type": "Loại",
+    "priorityCol": "Ưu tiên",
+    "step": "Bước",
+    "dateSent": "Ngày gửi",
+    "details": "Chi tiết",
+    "noAssignee": "Chưa có người nhận",
+    "deadline": "Hạn:",
+    "total": "Tổng:",
+    "page": "Trang",
+    "prev": "Trước",
+    "next": "Sau",
+    "processing": "Đang xử lý...",
+    "commentPlaceholder": "Lý do phê duyệt hoặc từ chối...",
+    "close": "Đóng"
+  },
+  "workflow": {
+    "pageTitle": "Quy trình nghiệp vụ",
+    "pageSubtitle": "Quản lý quy trình, quy tắc tự động và lập lịch tác vụ",
+    "tabs": {
+      "workflows": "Quy trình",
+      "rules": "Quy tắc tự động",
+      "notifications": "Thông báo",
+      "tasks": "Tác vụ lập lịch"
+    },
+    "diagrams": {
+      "assetLifecycle": "Vòng đời tài sản",
+      "repairWorkflow": "Quy trình sửa chữa",
+      "procurement": "Quy trình mua sắm",
+      "inventoryMgmt": "Quy trình kho vật tư",
+      "assetAllocation": "Phân bổ & Gán tài sản",
+      "assetDisposal": "Thanh lý & Loại bỏ tài sản"
+    },
+    "diagramDesc": {
+      "assetLifecycle": "Luồng xử lý từ tiếp nhận, kiểm tra, phân bổ đến thanh lý tài sản",
+      "repairWorkflow": "Luồng xử lý yêu cầu sửa chữa từ tạo phiếu đến hoàn thành",
+      "procurement": "Luồng mua sắm từ kiểm tra tồn kho đến nhập kho và thanh toán",
+      "inventoryMgmt": "Quản lý nhập, xuất, kiểm kê và điều chuyển kho vật tư",
+      "assetAllocation": "Quy trình cấp phát thiết bị từ yêu cầu đến bàn giao người dùng",
+      "assetDisposal": "Quy trình thanh lý thiết bị hết hạn sử dụng hoặc hỏng vĩnh viễn"
+    },
+    "clickExpand": "Nhấn để mở",
+    "clickCollapse": "Nhấn để thu gọn",
+    "rendering": "Đang render sơ đồ...",
+    "keySteps": "Các bước chính trong quản lý tài sản",
+    "steps": {
+      "receive": "Tiếp nhận",
+      "inspect": "Kiểm tra",
+      "assign": "Phân bổ",
+      "track": "Theo dõi"
+    },
+    "stepDesc": {
+      "receive": "Nhận tài sản từ nhà cung cấp, kiểm tra số lượng và chứng từ",
+      "inspect": "Kiểm tra chất lượng, thông số kỹ thuật và tình trạng",
+      "assign": "Gán mã tài sản, phân bổ đến đơn vị sử dụng",
+      "track": "Theo dõi trạng thái, bảo trì định kỳ và chi phí vận hành"
+    },
+    "newRule": "Thêm quy tắc",
+    "noRules": "Chưa có quy tắc tự động",
+    "noNotifications": "Không có thông báo",
+    "newTask": "Thêm tác vụ",
+    "noTasks": "Chưa có tác vụ lập lịch",
+    "never": "Chưa chạy",
+    "scheduleTip": "Ví dụ: 0 9 * * 1 = mỗi thứ Hai lúc 9h sáng",
+    "deleteConfirm": "Bạn có chắc chắn muốn xóa \"{name}\"?",
+    "ruleCols": {
+      "name": "Tên quy tắc",
+      "event": "Sự kiện",
+      "priority": "Ưu tiên",
+      "status": "Trạng thái"
+    },
+    "taskCols": {
+      "name": "Tên tác vụ",
+      "type": "Loại",
+      "schedule": "Lịch trình",
+      "status": "Trạng thái",
+      "lastRun": "Lần chạy cuối"
+    },
+    "modal": {
+      "newRule": "Thêm quy tắc mới",
+      "editRule": "Sửa quy tắc",
+      "newTask": "Thêm tác vụ lập lịch"
+    },
+    "field": {
+      "ruleName": "Tên quy tắc",
+      "eventType": "Loại sự kiện",
+      "priority": "Độ ưu tiên (1-10)",
+      "conditions": "Điều kiện (JSON)",
+      "actions": "Hành động (JSON)",
+      "taskName": "Tên tác vụ",
+      "taskType": "Loại tác vụ",
+      "schedule": "Lịch trình Cron",
+      "config": "Cấu hình (JSON)"
+    },
+    "toast": {
+      "ruleSaved": "Đã lưu quy tắc thành công",
+      "taskCreated": "Đã tạo tác vụ thành công",
+      "deleted": "Đã xóa thành công"
+    }
+  }
+}

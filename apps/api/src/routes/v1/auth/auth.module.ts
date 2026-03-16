@@ -7,6 +7,7 @@ import type { PgClient } from '@qltb/infra-postgres'
 import { authRoutes } from './auth.routes.js'
 import { adminRoutes } from '../admin/admin.routes.js'
 import { rbacAdRoutes } from '../admin/rbac-ad.routes.js'
+import { permissionCenterRoutes } from '../admin/permission-center.routes.js'
 
 interface AuthModuleDeps {
     pgClient?: PgClient
@@ -33,6 +34,11 @@ export async function registerAuthModule(
 
     await fastify.register(rbacAdRoutes, {
         prefix: '/api/v1/admin/ad-rbac',
+        pgClient: deps.pgClient
+    })
+
+    await fastify.register(permissionCenterRoutes, {
+        prefix: '/api/v1/admin/permissions',
         pgClient: deps.pgClient
     })
 

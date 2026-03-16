@@ -14,6 +14,12 @@
   let error = $state<string | null>(null);
   let systemInitialized = $state(false);
 
+  function isSafePostLoginRedirect(path: string | null): path is string {
+    if (!path || !path.startsWith('/')) return false;
+    if (path.startsWith('/login') || path.startsWith('/setup') || path.startsWith('/logout')) return false;
+    return true;
+  }
+
   async function handleLogin(): Promise<void> {
     if (!email.trim() || !password) {
       error = $i18nLoading ? 'Email and password are required' : $_('auth.errors.required', { default: 'Email và mật khẩu là bắt buộc' });
@@ -26,7 +32,7 @@
       const result = await login(email.trim(), password);
       const query = new URLSearchParams(window.location.search);
       const redirect = query.get('redirect');
-      if (redirect && redirect.startsWith('/')) {
+      if (isSafePostLoginRedirect(redirect)) {
         goto(redirect, { replaceState: true });
         return;
       }

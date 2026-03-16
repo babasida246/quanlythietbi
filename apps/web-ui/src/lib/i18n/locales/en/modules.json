@@ -1,0 +1,706 @@
+{
+  "tools": {
+    "title": "Tools & Utils",
+    "subtitle": "Quick helpers for diagrams, network troubleshooting, and SSH access",
+    "sections": "Sections",
+    "configGenerator": "Config generator",
+    "mikrotikFullConfig": "MikroTik full config",
+    "mermaid": "Mermaid",
+    "fieldKit": "Field kit",
+    "sshTerminal": "SSH terminal",
+    "diagram": "Diagram",
+    "mermaidPlayground": "Mermaid playground",
+    "mermaidDefinition": "Mermaid definition",
+    "render": "Render",
+    "rendering": "Rendering...",
+    "renderPreview": "Render to preview your diagram",
+    "quickHelp": "Quick help",
+    "mermaidTips": "Mermaid tips",
+    "tipsDescription": "Use subgraphs, links, and styles to keep diagrams readable",
+    "networkQuickCommands": "Network quick commands",
+    "sshTerminalUI": "SSH terminal (UI)",
+    "sshDescription": "Frontend shell; backend proxy needed to run commands",
+    "host": "Host",
+    "port": "Port",
+    "username": "Username",
+    "auth": "Auth",
+    "password": "Password",
+    "sshKey": "SSH key",
+    "privateKey": "Private key",
+    "command": "Command",
+    "connect": "Connect",
+    "reconnect": "Reconnect",
+    "send": "Send",
+    "noOutput": "No session output yet",
+    "remote": "Remote",
+    "placeholders": {
+      "host": "hostname or IP"
+    },
+    "mermaidTipsList": {
+      "subgraph": "Group flows with subgraph blocks.",
+      "flow": "Align left-to-right with flowchart LR or top-down with TD.",
+      "style": "Use style for emphasis and linkStyle for edges."
+    },
+    "ssh": {
+      "connecting": "[local] Connecting to {{user}}@{{host}}:{{port}} ({{auth}})",
+      "commandEcho": "$ {{command}}"
+    },
+    "errors": {
+      "sshBackendMissing": "SSH backend not wired yet — please connect to server API.",
+      "sshProxyMissing": "! Backend missing: add server-side SSH proxy to enable execution.",
+      "sshNotConnected": "Not connected.",
+      "sshPending": "... awaiting backend implementation ..."
+    },
+    "cli": {
+      "nmapFast": {
+        "title": "nmap: fast service scan",
+        "description": "Skip host discovery (-Pn) and fingerprint common services quickly."
+      },
+      "nmapUdp": {
+        "title": "nmap: top UDP ports",
+        "description": "Quick UDP sweep for common ports that are often missed."
+      },
+      "snmpBaseline": {
+        "title": "snmpwalk baseline",
+        "description": "Enumerate standard MIB-2 tree; swap OID for vendor-specific branches."
+      },
+      "snmpBulk": {
+        "title": "snmp interface table (bulk)",
+        "description": "Walk IF-MIB efficiently; increase -Cr for larger batches."
+      },
+      "mtr": {
+        "title": "Path & loss check (mtr)",
+        "description": "Continuous traceroute+ping to find loss/latency across hops."
+      },
+      "tcpdump": {
+        "title": "Packet capture with rotation",
+        "description": "Rotate pcap every 5 minutes, keep 4 files, focused on TLS traffic."
+      },
+      "httpProbe": {
+        "title": "HTTP health probe",
+        "description": "Simple health check you can drop into cron or monitoring."
+      }
+    }
+  },
+  "models": {
+    "title": "AI Models & Orchestration",
+    "subtitle": "Configure models, providers, and routing rules",
+    "activeModels": "{{count}} active models",
+    "providers": "{{count}} providers",
+    "rules": "{{count}} rules",
+    "tabs": {
+      "models": "Models",
+      "providers": "Providers",
+      "orchestration": "Orchestration",
+      "openrouter": "OpenRouter"
+    },
+    "search": "Search models...",
+    "statusFilter": "Status filter",
+    "providerFilter": "Provider filter",
+    "groupBy": "Group by",
+    "noGrouping": "No grouping",
+    "active": "Active",
+    "inactive": "Inactive",
+    "deprecated": "Deprecated",
+    "createModel": "Create model",
+    "newModel": "New model",
+    "createProvider": "Create provider",
+    "createRule": "Create rule",
+    "enabled": "Enabled",
+    "disabled": "Disabled",
+    "priority": "Priority",
+    "tier": "Tier",
+    "displayName": "Display name",
+    "description": "Description",
+    "strategy": "Strategy",
+    "fallback": "Fallback (try models in order)",
+    "loadBalancing": "Load Balance",
+    "costOptimized": "Cost Optimize",
+    "qualityFirst": "Quality First",
+    "custom": "Custom",
+    "modelSequence": "Model Sequence",
+    "apiEndpoint": "API endpoint",
+    "apiKey": "API Key",
+    "healthCheck": "Health check",
+    "history": "History",
+    "deleteModel": "Delete model",
+    "deleteProvider": "Delete provider",
+    "deleteRule": "Delete rule",
+    "importModel": "Import model",
+    "remoteModels": "Remote models",
+    "accountActivity": "Account activity",
+    "credits": "Credits",
+    "allStatuses": "All statuses",
+    "allProviders": "All providers",
+    "table": {
+      "model": "MODEL",
+      "provider": "PROVIDER",
+      "tier": "TIER",
+      "priority": "PRIORITY",
+      "status": "STATUS",
+      "context": "CONTEXT",
+      "costPer1k": "COST $/1K",
+      "capabilities": "CAPABILITIES",
+      "actions": "ACTIONS",
+      "streaming": "Streaming",
+      "functions": "Functions",
+      "vision": "Vision"
+    },
+    "actions": {
+      "minusTen": "-10",
+      "plusTen": "+10",
+      "edit": "Edit",
+      "delete": "Delete"
+    },
+    "form": {
+      "friendlyName": "Friendly name",
+      "contextWindow": "Context window",
+      "maxTokens": "Max tokens",
+      "costPerInputK": "Cost /1k input",
+      "costPerOutputK": "Cost /1k output",
+      "status": "Status",
+      "edit": "Edit",
+      "create": "Create",
+      "save": "Save",
+      "cancel": "Cancel"
+    },
+    "usage": {
+      "usageHistory": "Usage history (30d)",
+      "loadingHistory": "Loading history...",
+      "noUsageRecords": "No usage records",
+      "recentLogs": "Recent usage logs"
+    },
+    "openrouter": {
+      "browseRemoteModels": "Browse remote models and import into your catalog.",
+      "limit": "Limit",
+      "refresh": "Refresh",
+      "loading": "Loading...",
+      "noModels": "No models",
+      "promptCost": "Prompt $/1k",
+      "completionCost": "Completion $/1k",
+      "title": "OpenRouter Available Models"
+    },
+    "placeholders": {
+      "providerName": "e.g. 'OpenAI (primary)'",
+      "ruleName": "e.g. 'Cost-optimized'",
+      "optionalDescription": "Optional description",
+      "searchProvider": "Search provider",
+      "searchModels": "Search models",
+      "displayName": "display Name"
+    },
+    "orchestrationDiagram": "Orchestration Flow Diagram",
+    "orchestrationDescription": "Define model selection and fallback strategies",
+    "auth": "Auth",
+    "rateLimit": "Rate limit",
+    "health": {
+      "label": "Health",
+      "checking": "Checking health..."
+    },
+    "maintenance": "Maintenance",
+    "errors": {
+      "diagramRenderFailed": "Failed to render diagram"
+    },
+    "capabilities": {
+      "streaming": "Streaming",
+      "functions": "Functions",
+      "vision": "Vision"
+    },
+    "context": "Context",
+    "contextWindow": "Context Window",
+    "costPer1K": "Cost $/1K",
+    "costPer1kInput": "Cost $/1k Input",
+    "costPer1kOutput": "Cost $/1k Output",
+    "groupByProvider": "Group by Provider",
+    "groupByStatus": "Group by Status",
+    "maxTokens": "Max Tokens",
+    "model": "Model",
+    "models": "Models",
+    "noModelsFound": "No models found",
+    "orchestration": "Orchestration",
+    "provider": "Provider",
+    "saveModel": "Save Model",
+    "searchPlaceholder": "Search models...",
+    "searchProvider": "Search provider...",
+    "viewDiagram": "View Diagram"
+  },
+  "chat": {
+    "title": "AI Chat",
+    "workspace": "Chat workspace",
+    "netopsConversations": "NetOpsAI Conversations",
+    "fastWorkspace": "Fast chat workspace with cost and model controls",
+    "newChat": "New Chat",
+    "deleteChat": "Delete",
+    "typeMessage": "Type a message...",
+    "send": "Send",
+    "selectModel": "Select Model",
+    "todayStats": "Today's Stats",
+    "messages": "Messages",
+    "tokens": "Tokens",
+    "cost": "Cost",
+    "acrossModels": "Across {{count}} models",
+    "activeModel": "Active model",
+    "conversations": "Conversations",
+    "threads": "{{count}} threads",
+    "noConversations": "No conversations yet",
+    "startNewConversation": "Start a new conversation",
+    "conversation": "Conversation",
+    "startConversation": "Start the conversation with a message",
+    "thinking": "Thinking...",
+    "enterToSend": "Press Enter to send, Shift+Enter for new line",
+    "untitledChat": "Untitled Chat",
+    "noConversationsYet": "No conversations yet",
+    "createToBegin": "Create a new chat to begin"
+  },
+  "stats": {
+    "title": "Usage Statistics",
+    "subtitle": "Track AI usage, costs, and performance metrics",
+    "usageInsights": "Usage insights",
+    "aiStatsCost": "AI Statistics & Cost",
+    "usageCostVolume": "Usage, cost, and volume by model",
+    "period": "Period",
+    "today": "Today",
+    "week": "Last 7 days",
+    "month": "Last 30 days",
+    "last7Days": "Last 7 days",
+    "last30Days": "Last 30 days",
+    "records": "{{count}} records",
+    "totalTokens": "Total Tokens",
+    "todaysTokens": "Today's Tokens",
+    "todaysCost": "Today's Cost",
+    "totalCost": "Total Cost",
+    "periodTotal": "Period Total",
+    "totalMessages": "Total Messages",
+    "totalConversations": "Conversations",
+    "byModel": "Usage by Model",
+    "usageByModel": "Usage by Model",
+    "topSpend": "Top spend",
+    "model": "Model",
+    "provider": "Provider",
+    "tokens": "Tokens",
+    "cost": "Cost",
+    "messages": "Messages",
+    "modelsUsed": "{{count}} models used",
+    "perMsg": "${{amount}}/msg",
+    "tokensPerMsg": "{{count}} tokens/msg",
+    "avgCostPerMsg": "Avg Cost/Msg",
+    "dailyBreakdown": "Daily Breakdown",
+    "entries": "{{count}} entries",
+    "date": "Date",
+    "noUsageData": "No usage data for selected period"
+  },
+  "drivers": {
+    "navLabel": "Drivers",
+    "title": "Driver Packages",
+    "subtitle": "Manage driver artifacts with approvals, risk flags, and audit trails.",
+    "new": "Add driver",
+    "download": "Download",
+    "filters": {
+      "searchPlaceholder": "Search vendor, model, version, tags…"
+    },
+    "fields": {
+      "deviceType": "Device type",
+      "component": "Component",
+      "os": "OS",
+      "arch": "Arch",
+      "platform": "Platform",
+      "version": "Version",
+      "approval": "Approval",
+      "risk": "Risk",
+      "support": "Support status",
+      "tags": "Tags",
+      "compatibilityNotes": "Compatibility notes",
+      "links": "Links",
+      "installDetect": "Install & Detect",
+      "silentInstallCmd": "Silent install command",
+      "silentUninstallCmd": "Silent uninstall command",
+      "updatedAt": "Updated",
+      "approvalReason": "Approval reason"
+    },
+    "columns": {
+      "vendorModel": "Vendor / Model",
+      "platform": "OS / Arch",
+      "version": "Version",
+      "status": "Support",
+      "approval": "Approval",
+      "risk": "Risk",
+      "updated": "Updated"
+    },
+    "bulk": {
+      "tag": "Tag",
+      "reason": "Reason",
+      "reasonPlaceholder": "Provide a reason (required for block/unblock/delete).",
+      "noExtra": "No extra input required for this action."
+    },
+    "create": {
+      "title": "New driver package",
+      "subtitle": "Create a draft package, upload the file, then submit for approval."
+    },
+    "detailTitle": "Driver package",
+    "detailSubtitle": "Metadata, file, approval, and audit.",
+    "tabs": {
+      "files": "Files",
+      "approval": "Approval",
+      "audit": "Audit"
+    },
+    "files": {
+      "title": "Driver file",
+      "subtitle": "Upload once. Approved artifacts are immutable.",
+      "size": "Size",
+      "empty": "No file uploaded yet.",
+      "upload": "Upload file"
+    },
+    "approval": {
+      "title": "Approval workflow",
+      "submit": "Submit for approval",
+      "approve": "Approve",
+      "reject": "Reject"
+    },
+    "danger": {
+      "title": "Dangerous actions",
+      "badge": "Danger",
+      "block": "Block",
+      "unblock": "Unblock",
+      "deleteApprovedReason": "Reason required to delete an approved driver:",
+      "deleteReason": "Delete reason (optional):"
+    },
+    "audit": {
+      "title": "Audit log",
+      "subtitle": "All privileged actions are logged.",
+      "empty": "No audit entries yet.",
+      "time": "Time",
+      "action": "Action",
+      "details": "Details"
+    },
+    "actions": {
+      "title": "Confirm action",
+      "reason": "Reason",
+      "reasonPlaceholder": "Explain why this is necessary.",
+      "reasonRequiredHighRisk": "Reason required for high/critical risk approvals.",
+      "reasonRequired": "Reason required.",
+      "reasonRequiredApprovedDelete": "Reason required when deleting approved artifacts.",
+      "noteOptional": "Note (optional)",
+      "notePlaceholder": "Optional note for reviewers."
+    }
+  },
+  "docs": {
+    "navLabel": "Documents",
+    "title": "Documents",
+    "subtitle": "SOPs, templates, and operational docs with approvals and audit.",
+    "new": "Add document",
+    "filters": {
+      "searchPlaceholder": "Search title, tags…"
+    },
+    "fields": {
+      "title": "Title",
+      "summary": "Summary",
+      "type": "Type",
+      "contentType": "Content type",
+      "visibility": "Visibility",
+      "approval": "Approval",
+      "tags": "Tags",
+      "markdown": "Markdown",
+      "externalUrl": "External URL",
+      "approvalReason": "Approval reason"
+    },
+    "columns": {
+      "title": "Title",
+      "type": "Type",
+      "visibility": "Visibility",
+      "approval": "Approval",
+      "updated": "Updated"
+    },
+    "bulk": {
+      "tag": "Tag",
+      "reason": "Reason",
+      "reasonPlaceholderOrg": "Reason required for org-wide visibility.",
+      "reasonPlaceholderDelete": "Reason (required if deleting approved docs).",
+      "noExtra": "No extra input required for this action."
+    },
+    "create": {
+      "title": "New document",
+      "subtitle": "Create a draft document, then upload content and submit for approval."
+    },
+    "detailTitle": "Document",
+    "detailSubtitle": "Content, attachments, relations, approval, and audit.",
+    "tabs": {
+      "content": "Content",
+      "files": "Files",
+      "relations": "Relations",
+      "approval": "Approval",
+      "audit": "Audit"
+    },
+    "openLink": "Open link",
+    "files": {
+      "help": "Attach files, markdown, or a link depending on content type.",
+      "title": "Attachments",
+      "subtitle": "Files are required before approval for file-type documents.",
+      "empty": "No files uploaded yet.",
+      "filename": "Filename",
+      "download": "Download"
+    },
+    "relations": {
+      "help": "Attach documents to assets/models/sites/services for contextual recommendations.",
+      "assets": "Related assets",
+      "models": "Related models",
+      "sites": "Related sites",
+      "services": "Related services"
+    },
+    "approval": {
+      "title": "Approval workflow",
+      "submit": "Submit for approval",
+      "approve": "Approve",
+      "reject": "Reject"
+    },
+    "danger": {
+      "title": "Dangerous actions",
+      "badge": "Danger",
+      "deleteApprovedReason": "Reason required to delete an approved document:",
+      "deleteReason": "Delete reason (optional):"
+    },
+    "audit": {
+      "title": "Audit log",
+      "subtitle": "All privileged actions are logged.",
+      "empty": "No audit entries yet.",
+      "time": "Time",
+      "action": "Action",
+      "details": "Details"
+    },
+    "actions": {
+      "title": "Confirm action",
+      "reason": "Reason",
+      "reasonPlaceholder": "Explain why this is necessary.",
+      "reasonRequiredOrg": "Reason required for org-wide publish.",
+      "reasonRequired": "Reason required.",
+      "reasonRequiredApprovedDelete": "Reason required when deleting approved docs.",
+      "noteOptional": "Note (optional)",
+      "notePlaceholder": "Optional note for reviewers."
+    }
+  },
+  "qlts": {
+    "purchasePlans": {
+      "title": "Purchase Plans",
+      "subtitle": "Review and create purchase plans.",
+      "empty": "No purchase plans yet."
+    },
+    "purchasePlansNew": {
+      "title": "New Purchase Plan",
+      "subtitle": "Create a new purchase plan.",
+      "empty": "Form coming soon."
+    },
+    "assetIncreasesNew": {
+      "title": "New Asset Increase",
+      "subtitle": "Register a new asset increase.",
+      "empty": "Form coming soon."
+    },
+    "assetIncrease": {
+      "form": {
+        "createTitle": "Create Asset Increase Document",
+        "basicInfo": "Basic Information",
+        "increaseType": "Increase Type",
+        "invoiceNo": "Invoice Number",
+        "invoiceDate": "Invoice Date",
+        "purchasePlanRef": "Purchase Plan Ref",
+        "assetLines": "Asset Lines",
+        "vendor": "Vendor",
+        "selectVendor": "Select vendor"
+      }
+    },
+    "common": {
+      "docDate": "Document Date",
+      "orgUnit": "Organization Unit",
+      "note": "Note",
+      "addLine": "+ Add Line",
+      "assetName": "Asset Name",
+      "serialNumber": "Serial Number",
+      "quantity": "Quantity",
+      "unit": "Unit",
+      "originalCost": "Original Cost",
+      "location": "Location",
+      "custodian": "Custodian",
+      "total": "Total",
+      "saveDraft": "Save Draft",
+      "saveAndSubmit": "Save & Submit"
+    },
+    "increaseType": {
+      "purchase": "Purchase",
+      "donation": "Donation / Sponsor",
+      "transfer_in": "Transfer In",
+      "found": "Found / Inventory",
+      "other": "Other"
+    }
+  },
+  "themeCustomizer": {
+    "title": "Theme Color Customizer",
+    "subtitle": "Pick global design-token colors and apply to all components",
+    "enable": "Enable custom palette",
+    "enableHint": "Enable customization to apply your global color palette instantly.",
+    "resetMode": "Reset current mode",
+    "resetAll": "Reset all",
+    "dark": "Dark mode",
+    "light": "Light mode",
+    "preview": "Preview",
+    "surfaceSample": "Surface sample",
+    "mutedSample": "Muted text sample",
+    "groups": {
+      "surfaces": "Surfaces",
+      "textBorder": "Text & Borders",
+      "brandStatus": "Brand & Status",
+      "sidebarHeader": "Sidebar & Header"
+    },
+    "tokens": {
+      "colorBg": "App background",
+      "colorSurface": "Card/panel surface",
+      "colorSurface2": "Secondary layer surface",
+      "colorElevated": "Elevated surface (dropdown/popover)",
+      "colorText": "Primary text",
+      "colorTextMuted": "Secondary text",
+      "colorTextDim": "Dim/placeholder text",
+      "colorBorder": "Default border",
+      "colorBorderStrong": "Strong border",
+      "colorPrimary": "Primary",
+      "colorPrimaryHover": "Primary hover",
+      "colorPrimaryActive": "Primary active",
+      "colorSuccess": "Success",
+      "colorWarning": "Warning",
+      "colorDanger": "Danger",
+      "colorInfo": "Info",
+      "sidebarBg": "Sidebar background",
+      "sidebarSurface": "Secondary sidebar/header surface",
+      "sidebarAccent": "Active sidebar item background",
+      "sidebarAccentText": "Active sidebar item text"
+    },
+    "sectionTitle": "Advanced Color Overrides",
+    "sectionSubtitle": "Fine-tune individual color tokens on top of the selected theme",
+    "tabs": {
+      "presets": "Theme presets",
+      "tokens": "Advanced colors",
+      "hiddenSites": "Hidden sites & tabs"
+    },
+    "hiddenSites": {
+      "title": "Hidden sites & tabs management",
+      "subtitle": "Show or hide navigation routes and functional tab paths.",
+      "hideAll": "Hide all catalog entries",
+      "showAll": "Show all catalog entries",
+      "resetDefault": "Reset to default hidden list",
+      "customTitle": "Custom paths",
+      "customPlaceholder": "/module/path",
+      "addPath": "Add hidden path",
+      "customHint": "Use for route or virtual tab paths that are not in the catalog.",
+      "defaultInfo": "Default hidden entries loaded from local-ui-hidden-sites.json",
+      "pathInvalid": "Path must start with /",
+      "pathAdded": "Hidden path added.",
+      "groups": {
+        "navigation": "Main navigation",
+        "warehouseTabs": "Warehouse tabs",
+        "automationTabs": "Workflow tabs"
+      }
+    },
+    "automationTabs": {
+      "title": "Workflow tab visibility",
+      "subtitle": "Show or hide tabs in the Business Workflows page.",
+      "hint": "Hidden tabs disappear immediately from the workflow screen."
+    }
+  },
+  "themePresets": {
+    "title": "Color Themes",
+    "subtitle": "Select a preset color scheme for the entire application. You can still customize individual tokens below.",
+    "recommended": "Recommended",
+    "sky": {
+      "name": "Sky Pro",
+      "desc": "Professional sky blue — the default palette"
+    },
+    "teal": {
+      "name": "Ocean Teal",
+      "desc": "Elegant teal — suitable for medical environments"
+    },
+    "violet": {
+      "name": "Violet Enterprise",
+      "desc": "Refined violet — corporate, sophisticated"
+    },
+    "slate": {
+      "name": "Slate Clean",
+      "desc": "Minimalist slate — data-focused"
+    },
+    "amber": {
+      "name": "Amber Warm",
+      "desc": "Warm amber — dynamic, great for dashboards"
+    }
+  },
+  "printCustomizer": {
+    "title": "Print Template Customization",
+    "subtitle": "Customize layout, typography and labels for all print templates.",
+    "reset": "Reset to defaults",
+    "openSample": "Open sample print",
+    "tipTitle": "Tip:",
+    "tip": "Changes are saved automatically and applied to all print templates.",
+    "header": {
+      "title": "Header labels",
+      "showLogo": "Show logo placeholder",
+      "logoText": "Logo text",
+      "addressLabel": "Address label",
+      "phoneLabel": "Phone label",
+      "taxLabel": "Tax label",
+      "numberLabel": "Document number label",
+      "codeLabel": "Code label",
+      "dateLabel": "Date label"
+    },
+    "typography": {
+      "title": "Typography and spacing",
+      "fontFamily": "Font family",
+      "fontSize": "Base font size (pt)",
+      "lineHeight": "Line height",
+      "titleSize": "Title size (pt)",
+      "tableFontSize": "Table font size (pt)"
+    },
+    "layout": {
+      "title": "Page padding (mm)"
+    },
+    "signature": {
+      "title": "Signature and footer",
+      "defaultTitleLine": "Default signature note",
+      "datePrefix": "Date prefix",
+      "footerNote": "Footer note"
+    },
+    "templates": {
+      "title": "Custom Word templates",
+      "subtitle": "Import .docx templates with {{field_name}} placeholders, map values, then print/PDF.",
+      "nameLabel": "Template name (optional)",
+      "namePlaceholder": "Example: Asset handover v2",
+      "importLabel": "Import .docx file",
+      "selectedFile": "Selected file",
+      "importing": "Importing template...",
+      "onlyDocx": "Only .docx files are supported.",
+      "importedPrefix": "Template imported",
+      "empty": "No custom templates yet.",
+      "table": {
+        "name": "Template",
+        "fields": "Fields",
+        "updatedAt": "Updated",
+        "actions": "Actions"
+      },
+      "actions": {
+        "select": "Select",
+        "rename": "Rename",
+        "delete": "Delete"
+      },
+      "deleteConfirm": "Are you sure you want to delete this template?",
+      "renamePrompt": "Enter a new template name",
+      "mappingTitle": "Field mapping",
+      "mappingSubtitle": "Fill values for each {{field_name}} placeholder.",
+      "fillSample": "Auto-fill sample",
+      "sampleSource": "Sample data source",
+      "sampleRecord": "Sample record",
+      "autoMapFromSource": "Auto-map from source",
+      "exportPdf": "Export PDF",
+      "exportingPdf": "Exporting PDF...",
+      "pdfExportSuccess": "PDF exported successfully.",
+      "openPreview": "Preview / Print",
+      "noFields": "No placeholders were found in this template.",
+      "sampleSources": {
+        "asset": "Asset sample",
+        "warehouseDoc": "Warehouse document sample",
+        "user": "User sample"
+      }
+    }
+  }
+}

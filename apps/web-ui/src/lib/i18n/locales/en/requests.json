@@ -1,0 +1,337 @@
+{
+  "requests": {
+    "pageTitle": "Requests",
+    "pageSubtitle": "Manage and track workflow requests",
+    "tab": {
+      "mine": "My Requests",
+      "inbox": "Approval Inbox",
+      "all": "All Requests"
+    },
+    "title": "Workflow Requests",
+    "total": "{{count}} requests",
+    "new": "New Request",
+    "newTitle": "New Workflow Request",
+    "detailTitle": "Workflow Request",
+    "emptyTitle": "No workflow requests",
+    "emptySubtitle": "No request matches your filter.",
+    "request": "Request",
+    "requestType": "Request Type",
+    "requestedBy": "Requested By",
+    "approvedBy": "Approved By",
+    "createdAt": "Created",
+    "approve": "Approve",
+    "approving": "Approving...",
+    "reject": "Reject",
+    "rejecting": "Rejecting...",
+    "execute": "Execute",
+    "executing": "Executing...",
+    "rejectReason": "Reject Reason",
+    "filters": {
+      "allStatuses": "All statuses",
+      "allTypes": "All types"
+    },
+    "status": {
+      "submitted": "Submitted",
+      "approved": "Approved",
+      "rejected": "Rejected",
+      "inProgress": "In progress",
+      "done": "Done",
+      "canceled": "Canceled"
+    },
+    "type": {
+      "assign": "Assign",
+      "return": "Return",
+      "move": "Move",
+      "repair": "Repair",
+      "dispose": "Dispose"
+    },
+    "placeholders": {
+      "rejectReason": "Optional reason"
+    },
+    "errors": {
+      "loadFailed": "Failed to load requests",
+      "loadDetailFailed": "Failed to load request",
+      "approveFailed": "Failed to approve",
+      "rejectFailed": "Failed to reject",
+      "executeFailed": "Failed to execute",
+      "deleteFailed": "Failed to delete request"
+    },
+    "loadFailed": "Failed to load requests",
+    "toast": {
+      "submitted": "Request submitted for approval",
+      "submitFailed": "Submit request failed",
+      "canceled": "Request canceled",
+      "cancelFailed": "Cancel request failed",
+      "withdrawn": "Request withdrawn to draft",
+      "withdrawFailed": "Withdraw failed",
+      "createSuccess": "Request created successfully",
+      "createFailed": "Create request failed"
+    },
+    "myRequests": "My Requests",
+    "myRequestsSubtitle": "Track and manage requests you have submitted.",
+    "createRequest": "Create Request",
+    "emptyState": "No requests yet. Click \"Create Request\" to start.",
+    "workflowTitle": "Workflow Requests",
+    "workflowSubtitle": "All requests in the system.",
+    "allStatuses": "All Statuses",
+    "allTypes": "All Types",
+    "workflowEmpty": "No requests yet.",
+    "header": {
+      "code": "Code / Title",
+      "codeTitle": "Code / Title",
+      "type": "Type",
+      "priority": "Priority",
+      "status": "Status",
+      "requester": "Requester",
+      "createdAt": "Created Date",
+      "actions": "Actions",
+      "sender": "Sender"
+    },
+    "loadingDetail": "Loading detail...",
+    "linesList": "Request Lines ({count} lines)",
+    "lineItem": "Line {n}",
+    "fulfillment": {
+      "fulfilled": "Fulfilled",
+      "partial": "Partial",
+      "cancelled": "Cancelled",
+      "pending": "Pending"
+    },
+    "submitHint": "Submit request to start the approval process.",
+    "submitting": "Submitting...",
+    "submit": "Submit Request",
+    "withdrawHint": "Withdraw request (move to draft):",
+    "withdrawReasonPlaceholder": "Withdraw reason (optional)",
+    "processing": "Processing...",
+    "withdraw": "Withdraw",
+    "cancelHint": "Cancel request:",
+    "cancelReasonPlaceholder": "Cancel reason (optional)",
+    "canceling": "Canceling...",
+    "cancelRequest": "Cancel Request",
+    "actionBusy": {
+      "submitting": "Submitting...",
+      "withdrawing": "Processing...",
+      "canceling": "Canceling..."
+    },
+    "detail": {
+      "title": "Title",
+      "status": "Status",
+      "type": "Type",
+      "priority": "Priority",
+      "createdAt": "Created Date",
+      "submittedAt": "Submitted at",
+      "currentStep": "Current Step",
+      "info": "Request Information",
+      "requestInfo": "Request Info",
+      "loading": "Loading details...",
+      "lineNo": "Line",
+      "saved": "Saved",
+      "lines": "Request Lines"
+    },
+    "newRequest": "Create New Request",
+    "newRequestHint": "Fill in information then click \"Save Draft\" or \"Create & Submit\"",
+    "saveDraft": "Save Draft",
+    "createAndSubmit": "Create & Submit",
+    "validation": {
+      "titleRequired": "Please enter request title"
+    },
+    "field": {
+      "title": "Title",
+      "requestType": "Request Type",
+      "priority": "Priority",
+      "dueDate": "Due Date",
+      "assignModel": "Device model to assign",
+      "returnDevice": "Device code/name to return",
+      "noteReason": "Note / Reason",
+      "reclaimDevice": "Device code/name to reclaim"
+    },
+    "placeholder": {
+      "title": "Brief description of the request...",
+      "note": "Describe the purpose and reason for this request..."
+    },
+    "linesSection": "Requested Items",
+    "linesHint": "Optional — leave empty if only title/note description is needed",
+    "loadingCatalogs": "Loading catalogs...",
+    "wfStatus": {
+      "draft": "Draft",
+      "submitted": "Submitted",
+      "inReview": "In Review",
+      "approved": "Approved",
+      "rejected": "Rejected",
+      "cancelled": "Cancelled",
+      "closed": "Closed"
+    },
+    "wfPriority": {
+      "low": "Low",
+      "normal": "Normal",
+      "high": "High",
+      "urgent": "Urgent"
+    },
+    "wfType": {
+      "assetRequest": "Asset Assignment",
+      "repairRequest": "Repair / Maintenance",
+      "disposalRequest": "Asset Disposal",
+      "purchase": "Procurement",
+      "other": "Other"
+    },
+    "lineStatus": {
+      "fulfilled": "Fulfilled",
+      "partial": "Partial",
+      "cancelled": "Cancelled",
+      "pending": "Pending"
+    }
+  },
+  "inbox": {
+    "title": "Inbox",
+    "subtitle": "Review and approve pending workflow requests.",
+    "lastUpdated": "Last updated",
+    "reply": "Reply",
+    "send": "Send",
+    "replyPlaceholder": "Type your reply...",
+    "emptyThread": "No messages in this thread.",
+    "submitted": "Submitted requests",
+    "empty": "No pending requests.",
+    "errors": {
+      "loadFailed": "Failed to load inbox",
+      "approveFailed": "Failed to approve request",
+      "rejectFailed": "Failed to reject request"
+    },
+    "approvedSuccess": "Approved successfully",
+    "approvedFailed": "Approval failed",
+    "rejectedSuccess": "Rejected",
+    "rejectedFailed": "Rejection failed",
+    "claimedSuccess": "Claimed",
+    "claimedFailed": "Failed to claim",
+    "pending": "Pending",
+    "urgent": "Urgent",
+    "overdue": "Overdue",
+    "unassigned": "Unassigned",
+    "stepNo": "Step {n}",
+    "unassignedNote": "No assignee yet",
+    "dueDate": "Due: {date}",
+    "pagination": "Total: {total} | Page {page}",
+    "approvalTitle": "Approval: {code}",
+    "detail": {
+      "title": "Title",
+      "type": "Type",
+      "requester": "Requester",
+      "priority": "Priority",
+      "approvalStep": "Approval step",
+      "deadline": "Deadline",
+      "attachments": "Attachments",
+      "noteOptional": "Note (optional)"
+    },
+    "tableHeaders": {
+      "request": "Request",
+      "type": "Type",
+      "priority": "Priority",
+      "status": "Status",
+      "step": "Step",
+      "submitted": "Submitted",
+      "actions": "Actions"
+    },
+    "approve": "Approve",
+    "reject": "Reject",
+    "claim": "Claim",
+    "refresh": "Refresh",
+    "pendingApproval": "Pending",
+    "request": "Request",
+    "type": "Type",
+    "priorityCol": "Priority",
+    "step": "Step",
+    "dateSent": "Date sent",
+    "details": "Details",
+    "noAssignee": "No assignee",
+    "deadline": "Deadline:",
+    "total": "Total:",
+    "page": "Page",
+    "prev": "Prev",
+    "next": "Next",
+    "processing": "Processing...",
+    "commentPlaceholder": "Reason for approval or rejection...",
+    "close": "Close"
+  },
+  "workflow": {
+    "pageTitle": "Business Workflows",
+    "pageSubtitle": "Manage processes, automation rules, and scheduled tasks",
+    "tabs": {
+      "workflows": "Workflows",
+      "rules": "Automation Rules",
+      "notifications": "Notifications",
+      "tasks": "Scheduled Tasks"
+    },
+    "diagrams": {
+      "assetLifecycle": "Asset Lifecycle",
+      "repairWorkflow": "Repair Workflow",
+      "procurement": "Procurement Process",
+      "inventoryMgmt": "Inventory Management",
+      "assetAllocation": "Asset Allocation & Assignment",
+      "assetDisposal": "Asset Disposal & Retirement"
+    },
+    "diagramDesc": {
+      "assetLifecycle": "Flow from receiving, inspecting, assigning to retiring assets",
+      "repairWorkflow": "Repair request flow from ticket creation to completion",
+      "procurement": "Procurement from stock check to warehouse receipt and payment",
+      "inventoryMgmt": "Manage receipts, issues, stock counts and transfers",
+      "assetAllocation": "Allocation process from request to user handover",
+      "assetDisposal": "Disposal process for end-of-life or irreparable equipment"
+    },
+    "clickExpand": "Click to expand",
+    "clickCollapse": "Click to collapse",
+    "rendering": "Rendering diagram...",
+    "keySteps": "Key Steps in Asset Management",
+    "steps": {
+      "receive": "Receive",
+      "inspect": "Inspect",
+      "assign": "Assign",
+      "track": "Track"
+    },
+    "stepDesc": {
+      "receive": "Receive assets from suppliers, verify quantities and documents",
+      "inspect": "Check quality, specifications and condition",
+      "assign": "Tag assets, assign to departments or users",
+      "track": "Monitor status, schedule maintenance and track costs"
+    },
+    "newRule": "New Rule",
+    "noRules": "No automation rules yet",
+    "noNotifications": "No notifications",
+    "newTask": "New Task",
+    "noTasks": "No scheduled tasks yet",
+    "never": "Never",
+    "scheduleTip": "Example: 0 9 * * 1 = every Monday at 9am",
+    "deleteConfirm": "Are you sure you want to delete \"{name}\"?",
+    "ruleCols": {
+      "name": "Rule Name",
+      "event": "Event",
+      "priority": "Priority",
+      "status": "Status"
+    },
+    "taskCols": {
+      "name": "Task Name",
+      "type": "Type",
+      "schedule": "Schedule",
+      "status": "Status",
+      "lastRun": "Last Run"
+    },
+    "modal": {
+      "newRule": "New Automation Rule",
+      "editRule": "Edit Rule",
+      "newTask": "New Scheduled Task"
+    },
+    "field": {
+      "ruleName": "Rule Name",
+      "eventType": "Event Type",
+      "priority": "Priority (1-10)",
+      "conditions": "Conditions (JSON)",
+      "actions": "Actions (JSON)",
+      "taskName": "Task Name",
+      "taskType": "Task Type",
+      "schedule": "Cron Schedule",
+      "config": "Configuration (JSON)"
+    },
+    "toast": {
+      "ruleSaved": "Rule saved successfully",
+      "taskCreated": "Task created successfully",
+      "deleted": "Deleted successfully"
+    }
+  }
+}

@@ -1,4 +1,5 @@
 ﻿<script lang="ts">
+  import { onMount } from 'svelte';
   import { _, isLoading } from '$lib/i18n';
   import {
     HelpCircle, BookOpen, Link2, Check
@@ -14,25 +15,37 @@
   import HelpFAQ from './HelpFAQ.svelte';
   import HelpAssetDetail from './HelpAssetDetail.svelte';
   import HelpBusinessProcess from './HelpBusinessProcess.svelte';
+  import HelpRoleJourneys from './HelpRoleJourneys.svelte';
+  import HelpSystemMap from './HelpSystemMap.svelte';
+  import HelpRbac from './HelpRbac.svelte';
+  import HelpPolicy from './HelpPolicy.svelte';
 
   type TocItem = { id: string; label: string; level: number };
 
   let searchQuery = $state('');
   let copiedId = $state('');
 
-  const tocItems: TocItem[] = [
-    { id: 'intro',           label: 'Giới thiệu dự án',             level: 1 },
-    { id: 'prerequisites',   label: 'Trước khi bắt đầu',            level: 1 },
-    { id: 'quickstart',      label: 'Quick Start (5 bước)',          level: 1 },
-    { id: 'modules',         label: 'Hướng dẫn theo module',         level: 1 },
-    { id: 'asset-detail',    label: 'Quản lý chi tiết tài sản',      level: 1 },
-    { id: 'business-process',label: 'Quy trình nghiệp vụ (SOP)',     level: 1 },
-    { id: 'playbooks',       label: 'Kịch bản Work Order',           level: 1 },
-    { id: 'field-guide',     label: 'Bảng mapping trường nhập',      level: 1 },
-    { id: 'charts',          label: 'Biểu đồ & Thống kê',            level: 1 },
-    { id: 'diagrams',        label: 'Flow Diagrams (Mermaid)',        level: 1 },
-    { id: 'faq',             label: 'Troubleshooting',               level: 1 }
-  ];
+  function t(key: string, fallback: string): string {
+    return $isLoading ? fallback : $_(key, { default: fallback });
+  }
+
+  const tocItems = $derived.by((): TocItem[] => [
+    { id: 'intro',            label: t('help.tocItems.intro', 'Giới thiệu dự án'), level: 1 },
+    { id: 'prerequisites',    label: t('help.tocItems.prerequisites', 'Trước khi bắt đầu'), level: 1 },
+    { id: 'quickstart',       label: t('help.tocItems.quickstart', 'Quick Start (5 bước)'), level: 1 },
+    { id: 'role-journeys',    label: t('help.tocItems.roleJourneys', 'Lộ trình theo vai trò'), level: 1 },
+    { id: 'system-map',       label: t('help.tocItems.systemMap', 'Bản đồ module/route/API'), level: 1 },
+    { id: 'rbac',             label: t('help.tocItems.rbac', 'Phân quyền & RBAC'), level: 1 },
+    { id: 'policy-system',   label: t('help.tocItems.policySystem', 'Unified Policy System'), level: 1 },
+    { id: 'modules',          label: t('help.tocItems.modules', 'Hướng dẫn theo module'), level: 1 },
+    { id: 'asset-detail',     label: t('help.tocItems.assetDetail', 'Quản lý chi tiết tài sản'), level: 1 },
+    { id: 'business-process', label: t('help.tocItems.businessProcess', 'Quy trình nghiệp vụ (SOP)'), level: 1 },
+    { id: 'playbooks',        label: t('help.tocItems.playbooks', 'Kịch bản Work Order'), level: 1 },
+    { id: 'field-guide',      label: t('help.tocItems.fieldGuide', 'Bảng mapping trường nhập'), level: 1 },
+    { id: 'charts',           label: t('help.tocItems.charts', 'Biểu đồ & Thống kê'), level: 1 },
+    { id: 'diagrams',         label: t('help.tocItems.diagrams', 'Flow Diagrams (Mermaid)'), level: 1 },
+    { id: 'faq',              label: t('help.tocItems.faq', 'Troubleshooting'), level: 1 }
+  ]);
 
   let activeSection = $state('intro');
 
@@ -48,6 +61,48 @@
     copiedId = id;
     setTimeout(() => { copiedId = ''; }, 1500);
   }
+
+  onMount(() => {
+    const sectionIds = tocItems.map((i) => i.id);
+    const sections = sectionIds
+      .map((id) => document.getElementById(id))
+      .filter((el): el is HTMLElement => !!el);
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((a, b) => b.intersectionRatio - a.intersectionRatio);
+        if (visible[0]?.target?.id) {
+          activeSection = visible[0].target.id;
+        }
+      },
+      {
+        root: null,
+        threshold: [0.2, 0.5, 0.8],
+        rootMargin: '-20% 0px -60% 0px'
+      }
+    );
+
+    for (const section of sections) {
+      observer.observe(section);
+    }
+
+    const hash = window.location.hash.replace('#', '');
+    if (hash && sectionIds.includes(hash)) {
+      const target = document.getElementById(hash);
+      if (target) {
+        requestAnimationFrame(() => {
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          activeSection = hash;
+        });
+      }
+    }
+
+    return () => {
+      observer.disconnect();
+    };
+  });
 </script>
 
 <div class="flex gap-6 relative">
@@ -70,7 +125,7 @@
       <input
         type="text"
         class="input-base text-sm w-full"
-        placeholder="Tìm kiếm trong hướng dẫn..."
+        placeholder={$isLoading ? 'Search...' : $_('help.searchPlaceholder')}
         bind:value={searchQuery}
       />
     </div>
@@ -92,7 +147,7 @@
         <p class="text-slate-200 font-medium">{$isLoading ? '' : $_('help.intro.desc')}</p>
         <p class="text-slate-300">{$isLoading ? '' : $_('help.intro.goal')}</p>
         <div class="bg-blue-500/10 border border-blue-500/20 rounded-md p-3 text-xs text-blue-300 mt-2">
-          Quy trình chuẩn: <span class="font-semibold text-blue-200">Danh mục → Tài sản → Nhập kho → Work Order → Đóng → Báo cáo</span>
+          {$_('help.intro.standardProcessLabel', { default: 'Quy trình chuẩn' })}: <span class="font-semibold text-blue-200">{$_('help.intro.standardProcessFlow', { default: 'Danh mục → Tài sản → Nhập kho → Work Order → Đóng → Báo cáo' })}</span>
         </div>
       </div>
     </section>
@@ -103,7 +158,19 @@
     <!-- 3. Quick Start Stepper -->
     <HelpQuickStart {copyAnchor} {copiedId} />
 
-    <!-- 4. Module Guide -->
+    <!-- 3b. Role Journeys -->
+    <HelpRoleJourneys {copyAnchor} {copiedId} />
+
+    <!-- 3c. System Map -->
+    <HelpSystemMap {copyAnchor} {copiedId} />
+
+    <!-- 4. RBAC Guide -->
+    <HelpRbac {copyAnchor} {copiedId} />
+
+    <!-- 4b. Policy System Guide -->
+    <HelpPolicy {copyAnchor} {copiedId} />
+
+    <!-- 5. Module Guide -->
     <HelpModules {copyAnchor} {copiedId} />
 
     <!-- 4b. Asset Detail Management Guide -->
