@@ -33,21 +33,7 @@ INSTALL_NGINX="${INSTALL_NGINX:-false}"
 API_SERVICE_NAME="qltb-api"
 WEB_SERVICE_NAME="qltb-web"
 
-# Ensure all required variables are initialized with defaults
-: "${TARGET_USER:=${SUDO_USER:-${USER}}}"  # Default to current user
-: "${PUBLIC_HOST:=${1:-}}"  # Default to first argument or empty
-
-# Ensure openssl is available before using it
-command_exists openssl || fail "openssl is required but not installed. Please install it."
-
-log() {
-    printf '\n[%s] %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$*"
-}
-
-warn() {
-    printf '\n[WARN] %s\n' "$*" >&2
-}
-
+# Ensure utility functions are defined at the top of the script
 fail() {
     printf '\n[ERROR] %s\n' "$*" >&2
     exit 1
