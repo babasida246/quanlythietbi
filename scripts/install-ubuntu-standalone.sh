@@ -33,6 +33,10 @@ INSTALL_NGINX="${INSTALL_NGINX:-false}"
 API_SERVICE_NAME="qltb-api"
 WEB_SERVICE_NAME="qltb-web"
 
+# Ensure all required variables are initialized with defaults
+: "${TARGET_USER:=${SUDO_USER:-${USER}}}"  # Default to current user
+: "${PUBLIC_HOST:=${1:-}}"  # Default to first argument or empty
+
 log() {
     printf '\n[%s] %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$*"
 }
@@ -47,7 +51,7 @@ fail() {
 }
 
 command_exists() {
-    command -v "$1" >/dev/null 2>&1
+    command -v "$1" >/dev/null 2>&1 || fail "Command '$1' not found. Please install it."
 }
 
 run_sudo() {
@@ -73,7 +77,10 @@ require_repo_root() {
 
 generate_secret() {
     local bytes="$1"
-    openssl rand -hex "${bytes}"
+    if [[ -z "$bytes" || ! "$bytes" =~ ^[0-9]+$ ]]; then
+        fail "Invalid input to generate_secret. Expected a positive integer."
+    fi
+    openssl rand -hex "$bytes"
 }
 
 detect_public_host() {
