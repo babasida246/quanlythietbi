@@ -104,23 +104,53 @@ export interface RbacPermission {
     description: string | null
 }
 
+const PERMISSIONS_CLASSIC_BASE = `${API_BASE}/v1/admin/permissions/classic`
+
 export async function listRbacRoles(): Promise<{ data: RbacRole[] }> {
-    return authJson(`${API_BASE}/v1/admin/rbac/roles`)
+    return authJson(`${PERMISSIONS_CLASSIC_BASE}/roles`)
 }
 
 export async function listRbacPermissions(): Promise<{ data: RbacPermission[] }> {
-    return authJson(`${API_BASE}/v1/admin/rbac/permissions`)
+    return authJson(`${PERMISSIONS_CLASSIC_BASE}/permissions`)
 }
 
 export async function getRolePermissions(roleSlug: string): Promise<{ data: Array<{ permission_id: string; name: string; resource: string; action: string }> }> {
-    return authJson(`${API_BASE}/v1/admin/rbac/roles/${roleSlug}/permissions`)
+    return authJson(`${PERMISSIONS_CLASSIC_BASE}/roles/${roleSlug}/permissions`)
 }
 
 export async function setRolePermissions(roleSlug: string, permissionIds: string[]): Promise<{ data: { success: boolean; roleSlug: string; permissionCount: number } }> {
-    return authJson(`${API_BASE}/v1/admin/rbac/roles/${roleSlug}/permissions`, {
+    return authJson(`${PERMISSIONS_CLASSIC_BASE}/roles/${roleSlug}/permissions`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ permissionIds })
+    })
+}
+
+export async function createRole(data: { slug: string; name: string; description?: string }): Promise<{ data: RbacRole }> {
+    return authJson(`${PERMISSIONS_CLASSIC_BASE}/roles`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+    })
+}
+
+export async function updateRole(slug: string, data: { name?: string; description?: string }): Promise<{ data: { success: boolean } }> {
+    return authJson(`${PERMISSIONS_CLASSIC_BASE}/roles/${slug}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+    })
+}
+
+export async function deleteRole(slug: string): Promise<{ data: { success: boolean } }> {
+    return authJson(`${PERMISSIONS_CLASSIC_BASE}/roles/${slug}`, { method: 'DELETE' })
+}
+
+export async function assignOuRole(ouId: string, roleSlug: string, includeSubOUs = true): Promise<{ data: { success: boolean; updatedCount: number } }> {
+    return authJson(`${PERMISSIONS_CLASSIC_BASE}/ou-assign`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ouId, roleSlug, includeSubOUs })
     })
 }
 
@@ -165,7 +195,7 @@ export interface EffectivePermsResult {
     denied: string[]; allowed: string[];
 }
 
-const RBAC_AD_BASE = `${API_BASE}/v1/admin/ad-rbac`
+const RBAC_AD_BASE = `${API_BASE}/v1/admin/permissions/directory`
 
 // ── OU ───────────────────────────────────────
 export async function getAdOuTree(): Promise<{ data: AdOrgUnit[] }> {
@@ -293,4 +323,160 @@ export async function getMyAdEffectivePerms(): Promise<{ data: EffectivePermsRes
 }
 export async function getUserAdEffectivePerms(userId: string): Promise<{ data: EffectivePermsResult }> {
     return authJson(`${RBAC_AD_BASE}/users/${userId}/effective-permissions`)
+}
+
+// ──── Unified Policy System ────────────────────────────────────────────────────
+
+export interface Policy {
+    id: string
+    slug: string
+    name: string
+    description: string | null
+    isSystem: boolean
+    permissionCount: number
+    createdAt: string
+}
+
+export interface PolicyPermission {
+    permission_id: string
+    name: string
+    resource: string
+    action: string
+}
+
+export interface PolicyAssignment {
+    id: string
+    principalType: 'USER' | 'GROUP' | 'OU'
+    principalId: string
+    principalName: string | null
+    scopeType: 'GLOBAL' | 'OU' | 'RESOURCE'
+    scopeOuId: string | null
+    scopeResource: string | null
+    effect: 'ALLOW' | 'DENY'
+    inherit: boolean
+    createdAt: string
+}
+
+export interface PolicyPrincipal {
+    users: Array<{ id: string; name: string; email: string; role: string | null }>
+    groups: Array<{ id: string; name: string; description: string | null }>
+    ous: Array<{ id: string; name: string; path: string }>
+}
+
+const POLICIES_BASE = `${API_BASE}/v1/admin/permissions/policies`
+
+export async function listPolicies(): Promise<{ data: Policy[] }> {
+    return authJson(POLICIES_BASE)
+}
+
+export async function createPolicy(data: { slug: string; name: string; description?: string }): Promise<{ data: Policy }> {
+    return authJson(POLICIES_BASE, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data)
+    })
+}
+
+export async function updatePolicy(id: string, data: { name?: string; description?: string }): Promise<{ data: { success: boolean } }> {
+    return authJson(`${POLICIES_BASE}/${id}`, {
+        method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data)
+    })
+}
+
+export async function deletePolicy(id: string): Promise<{ data: { success: boolean } }> {
+    return authJson(`${POLICIES_BASE}/${id}`, { method: 'DELETE' })
+}
+
+export async function getPolicyPermissions(policyId: string): Promise<{ data: PolicyPermission[] }> {
+    return authJson(`${POLICIES_BASE}/${policyId}/permissions`)
+}
+
+export async function setPolicyPermissions(policyId: string, permissionIds: string[]): Promise<{ data: { success: boolean; permissionCount: number } }> {
+    return authJson(`${POLICIES_BASE}/${policyId}/permissions`, {
+        method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ permissionIds })
+    })
+}
+
+export async function listPolicyAssignments(policyId: string): Promise<{ data: PolicyAssignment[] }> {
+    return authJson(`${POLICIES_BASE}/${policyId}/assignments`)
+}
+
+export async function addPolicyAssignment(policyId: string, data: {
+    principalType: 'USER' | 'GROUP' | 'OU'
+    principalId: string
+    scopeType?: 'GLOBAL' | 'OU' | 'RESOURCE'
+    scopeOuId?: string
+    scopeResource?: string
+    effect?: 'ALLOW' | 'DENY'
+    inherit?: boolean
+}): Promise<{ data: { id: string; createdAt: string } }> {
+    return authJson(`${POLICIES_BASE}/${policyId}/assignments`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data)
+    })
+}
+
+export async function removePolicyAssignment(policyId: string, assignmentId: string): Promise<{ data: { success: boolean } }> {
+    return authJson(`${POLICIES_BASE}/${policyId}/assignments/${assignmentId}`, { method: 'DELETE' })
+}
+
+export async function listPolicyPermissionCatalog(): Promise<{ data: RbacPermission[] }> {
+    return authJson(`${POLICIES_BASE}/permission-catalog`)
+}
+
+export async function listPolicyPrincipals(): Promise<{ data: PolicyPrincipal }> {
+    return authJson(`${POLICIES_BASE}/principals`)
+}
+
+export async function bulkAssignPolicyToOu(policyId: string, data: {
+    ouId: string
+    includeSubOUs?: boolean
+    effect?: 'ALLOW' | 'DENY'
+}): Promise<{ data: { success: boolean; inserted: number } }> {
+    return authJson(`${POLICIES_BASE}/${policyId}/assignments/bulk-ou`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data)
+    })
+}
+
+// ── Unified Permission Center ─────────────────────────────────────────────────
+// Calls PermissionCenterService — merges classic RBAC + AD directory permissions
+// for a system user. Returns allowed/denied arrays (DENY > ALLOW).
+export interface UnifiedEffectivePerms {
+    systemUserId: string
+    linkedRbacUserId: string | null
+    roleSlug: string | null
+    sources: {
+        classic: string[]
+        directoryAllowed: string[]
+        directoryDenied: string[]
+        policyAllowed: string[]
+        policyDenied: string[]
+    }
+    allowed: string[]
+    denied: string[]
+}
+export async function getUnifiedEffectivePerms(systemUserId: string): Promise<{ data: UnifiedEffectivePerms }> {
+    return authJson(`${API_BASE}/v1/admin/permissions/effective/system-users/${systemUserId}`)
+}
+
+// ── OU-level policy linking ───────────────────────────────────────────────────
+
+export interface OuPolicyLink {
+    policyId: string
+    slug: string
+    name: string
+    description: string | null
+    isSystem: boolean
+    permissionCount: number
+    assignmentId: string
+    principalType: 'OU' | 'GROUP'
+    principalId: string
+    scopeType: string
+    scopeOuId: string | null
+    effect: 'ALLOW' | 'DENY'
+    inherit: boolean
+    assignedAt: string
+    linkReason: 'direct' | 'inherited' | 'via_group'
+    principalName: string | null
+}
+
+export async function listPoliciesByOu(ouId: string): Promise<{ data: OuPolicyLink[] }> {
+    return authJson(`${POLICIES_BASE}/by-ou/${ouId}`)
 }

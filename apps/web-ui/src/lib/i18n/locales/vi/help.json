@@ -1,0 +1,315 @@
+{
+  "help": {
+    "title": "Hướng dẫn sử dụng",
+    "subtitle": "Tài liệu hướng dẫn, quy trình và các sơ đồ luồng thao tác.",
+    "searchPlaceholder": "Tìm kiếm nội dung...",
+    "copyLink": "Sao chép liên kết",
+    "copied": "Đã sao chép!",
+    "toc": "Mục lục",
+    "intro": {
+      "title": "Giới thiệu dự án",
+      "desc": "Hệ thống quản lý tài sản CNTT + Kho + CMDB + Bảo trì/Sửa chữa.",
+      "goal": "Mục tiêu: Tập trung hóa dữ liệu tài sản, theo dõi vòng đời, lịch sử kho, quy trình work order và báo cáo.",
+      "modules": "Các module chính",
+      "modAssets": "Tài sản — quản lý thiết bị CNTT, gán/trả, lịch sử.",
+      "modCatalogs": "Danh mục — loại tài sản, mẫu (model), hãng sản xuất.",
+      "modCmdb": "CMDB — CI Types, phiên bản schema, quan hệ, dịch vụ.",
+      "modWarehouse": "Kho hàng — nhập/xuất/kiểm kê, phụ tùng dự phòng.",
+      "modMaintenance": "Bảo trì — work order, trạng thái, downtime, chi phí.",
+      "modRequests": "Yêu cầu — luồng phê duyệt, xử lý yêu cầu.",
+      "modReports": "Báo cáo — filter, export CSV/PDF.",
+      "arch": "Kiến trúc: Web UI → API Server → PostgreSQL Database",
+      "standardProcessLabel": "Quy trình chuẩn",
+      "standardProcessFlow": "Danh mục → Tài sản → Nhập kho → Work Order → Đóng → Báo cáo"
+    },
+    "quickStart": {
+      "title": "Hướng dẫn nhanh (Quick Start)",
+      "desc": "5 bước cơ bản để bắt đầu sử dụng hệ thống.",
+      "step1": "Bước 1: Tạo danh mục — Vào Danh mục → Tạo loại tài sản, model, hãng.",
+      "step2": "Bước 2: Tạo tài sản — Vào Tài sản → Thêm mới, chọn model/loại đã tạo.",
+      "step3": "Bước 3: Nhập kho — Vào Kho hàng → Tạo phiếu nhập cho tài sản/phụ tùng.",
+      "step4": "Bước 4: Tạo Work Order — Vào Bảo trì → Mở work order khi có sự cố.",
+      "step5": "Bước 5: Đóng & Báo cáo — Hoàn tất WO, ghi nhận chi phí, xem báo cáo."
+    },
+    "modules": {
+      "title": "Hướng dẫn theo module",
+      "assets": {
+        "title": "Tài sản",
+        "create": "Tạo tài sản: Tài sản → Thêm mới → Nhập thông tin → Lưu.",
+        "edit": "Sửa: Click vào tài sản → Chỉnh sửa → Lưu.",
+        "delete": "Xóa: Chỉ admin. Tài sản → chọn → Xóa.",
+        "assign": "Gán tài sản: Chi tiết tài sản → Gán cho nhân viên/phòng ban.",
+        "history": "Lịch sử: Tab Vòng đời hiển thị toàn bộ sự kiện."
+      },
+      "catalogs": {
+        "title": "Danh mục",
+        "types": "Loại tài sản: Danh mục → Quản lý loại tài sản.",
+        "models": "Model: Danh mục → Thêm model, gán hãng sản xuất.",
+        "brands": "Hãng: Danh mục → Quản lý nhà sản xuất/vendor."
+      },
+      "warehouse": {
+        "title": "Kho hàng",
+        "import": "Nhập kho: Kho → Tạo phiếu nhập → Nhập phụ tùng/tài sản.",
+        "export": "Xuất kho: Kho → Tạo phiếu xuất → Chọn tài sản.",
+        "inventory": "Kiểm kê: Kho → Phiên kiểm kê → Quét thiết bị.",
+        "spareParts": "Phụ tùng dự phòng: Quản lý linh kiện thay thế."
+      },
+      "maintenance": {
+        "title": "Sửa chữa (Work Orders)",
+        "create": "Tạo WO: Bảo trì → Thêm mới → Nhập tiêu đề, mức độ.",
+        "statuses": "Trạng thái: open → diagnosing → waiting_parts → repaired → closed / canceled.",
+        "downtime": "Downtime: Tự động tính thời gian từ mở đến đóng WO.",
+        "cost": "Chi phí: Ghi nhận chi phí sửa chữa khi đóng WO."
+      },
+      "cmdb": {
+        "title": "CMDB",
+        "ciTypes": "CI Types: CMDB → Tab Loại → Tạo loại CI mới.",
+        "versions": "Phiên bản: Mỗi CI Type có schema version.",
+        "attrs": "Thuộc tính: Định nghĩa các trường dữ liệu cho CI.",
+        "instances": "CI: Tạo instance từ CI Type đã publish.",
+        "relations": "Quan hệ: Liên kết giữa các CI instance.",
+        "services": "Dịch vụ: Mapping CI → dịch vụ CNTT."
+      },
+      "reports": {
+        "title": "Báo cáo",
+        "filter": "Lọc: Sử dụng bộ lọc theo trạng thái, loại, thời gian.",
+        "export": "Xuất: Export dữ liệu ra CSV."
+      }
+    },
+    "charts": {
+      "title": "Biểu đồ & Thống kê",
+      "funnel": "Quy trình chuẩn",
+      "funnelDesc": "Luồng xử lý từ Danh mục → Tài sản → Kho → Work Order → Đóng → Báo cáo.",
+      "woStatus": "Phân bố trạng thái Work Order",
+      "woStatusDesc": "Tỷ lệ các trạng thái WO hiện tại trong hệ thống.",
+      "avgTime": "Thời gian xử lý trung bình",
+      "avgTimeDesc": "Thời gian từ mở đến đóng WO theo mức độ ưu tiên.",
+      "mockNote": "Dữ liệu minh họa. Sẽ kết nối API thực tế sau."
+    },
+    "flow": {
+      "title": "Sơ đồ luồng thao tác",
+      "repairFlow": "Quy trình sửa chữa (Repair Order)",
+      "repairFlowDesc": "Flowchart mô tả luồng xử lý Work Order từ đầu đến cuối.",
+      "sequence": "Trình tự tương tác hệ thống",
+      "sequenceDesc": "Sequence diagram: User → Web UI → API → Database."
+    },
+    "faq": {
+      "title": "Câu hỏi thường gặp (FAQ)",
+      "q1": "Không đăng nhập được?",
+      "a1": "Kiểm tra tài khoản/mật khẩu. Liên hệ admin nếu bị khóa.",
+      "q2": "Dữ liệu không cập nhật?",
+      "a2": "Thử Ctrl+Shift+R để xóa cache trình duyệt. Kiểm tra kết nối mạng.",
+      "q3": "Không thấy menu/chức năng?",
+      "a3": "Quyền truy cập phụ thuộc vào vai trò (role). Liên hệ admin để cấp quyền.",
+      "q4": "Chuyển ngôn ngữ ở đâu?",
+      "a4": "Click biểu tượng ngôn ngữ trên thanh tiêu đề (Topbar) để chuyển Tiếng Việt / English.",
+      "q5": "Export báo cáo lỗi?",
+      "a5": "Kiểm tra bộ lọc, đảm bảo có dữ liệu. Thử lại hoặc liên hệ admin.",
+      "q6": "Work Order bị kẹt trạng thái?",
+      "a6": "Admin có thể chuyển trạng thái thủ công. Kiểm tra log để biết nguyên nhân."
+    },
+    "repairSteps": {
+      "step1": {
+        "title": "Tạo Work Order",
+        "who": "Người dùng / Kỹ thuật viên",
+        "where": "Bảo trì → Thêm mới",
+        "data": "WO ID, tiêu đề, mức độ"
+      },
+      "step2": {
+        "title": "Chẩn đoán",
+        "who": "Kỹ thuật viên",
+        "where": "Chi tiết WO → Cập nhật",
+        "data": "Kết quả chẩn đoán"
+      },
+      "step3": {
+        "title": "Chờ linh kiện",
+        "who": "Bộ phận kho",
+        "where": "Kho hàng → Xuất phụ tùng",
+        "data": "Phiếu xuất kho"
+      },
+      "step4": {
+        "title": "Sửa xong / Kiểm thử",
+        "who": "Kỹ thuật viên",
+        "where": "Chi tiết WO",
+        "data": "Kết quả kiểm thử"
+      },
+      "step5": {
+        "title": "Đóng Work Order",
+        "who": "Quản lý / Admin",
+        "where": "Chi tiết WO → Đóng",
+        "data": "Chi phí, downtime, ghi chú"
+      }
+    },
+    "tocItems": {
+      "intro": "Giới thiệu dự án",
+      "prerequisites": "Trước khi bắt đầu",
+      "quickstart": "Quick Start (5 bước)",
+      "roleJourneys": "Lộ trình theo vai trò",
+      "systemMap": "Bản đồ module/route/API",
+      "rbac": "Phân quyền & RBAC",
+      "policySystem": "Hệ thống Policy thống nhất",
+      "modules": "Hướng dẫn theo module",
+      "assetDetail": "Quản lý chi tiết tài sản",
+      "businessProcess": "Quy trình nghiệp vụ (SOP)",
+      "playbooks": "Kịch bản Work Order",
+      "fieldGuide": "Bảng mapping trường nhập",
+      "charts": "Biểu đồ & Thống kê",
+      "diagrams": "Flow Diagrams (Mermaid)",
+      "faq": "Troubleshooting"
+    },
+    "roleJourneys": {
+      "title": "Lộ trình theo vai trò",
+      "checklistTitle": "Checklist hàng ngày",
+      "controlTitle": "Điểm kiểm soát",
+      "shortcutsTitle": "Lối tắt thao tác",
+      "openPath": "Mở",
+      "printSettings": "Mở /settings/print",
+      "roles": {
+        "admin": {
+          "label": "Admin",
+          "badge": "Quyền hệ thống",
+          "goal": "Đảm bảo hệ thống vận hành ổn định, quyền truy cập đúng vai trò, dữ liệu audit đầy đủ.",
+          "daily": {
+            "1": "Kiểm tra inbox phê duyệt và thông báo quan trọng.",
+            "2": "Rà soát user mới, reset password, role changes.",
+            "3": "Xem dashboard sự cố và trend bảo trì.",
+            "4": "Kiểm tra các thay đổi nhạy cảm trên security/audit."
+          },
+          "control": {
+            "1": "Không cấp quyền vượt mức cần thiết.",
+            "2": "Mọi thao tác nhạy cảm phải có lý do và audit trail.",
+            "3": "Prod change nên qua flow phê duyệt."
+          }
+        },
+        "asset": {
+          "label": "IT Asset Manager",
+          "badge": "Vòng đời tài sản",
+          "goal": "Quản lý vòng đời tài sản từ đăng ký, cấp phát, bảo trì đến báo cáo.",
+          "daily": {
+            "1": "Cập nhật danh mục nếu có model/vendor mới.",
+            "2": "Theo dõi tài sản sắp hết bảo hành.",
+            "3": "Kiểm tra tài sản đang chờ xử lý WO.",
+            "4": "Chốt report sử dụng và tình trạng tài sản."
+          },
+          "control": {
+            "1": "Mã tài sản và serial phải duy nhất.",
+            "2": "Không xóa tài sản đã có lịch sử giao dịch.",
+            "3": "Đồng bộ status tài sản với kết quả WO."
+          }
+        },
+        "warehouse": {
+          "label": "Warehouse Keeper",
+          "badge": "Kho và linh kiện",
+          "goal": "Đảm bảo tồn kho đúng, phiếu nhập/xuất chính xác, hỗ trợ WO kịp thời.",
+          "daily": {
+            "1": "Theo dõi low-stock và linh kiện critical.",
+            "2": "Đối chiếu phiếu nhập/xuất đang chờ xử lý.",
+            "3": "Kiểm tra sai lệch tồn kho và ghi nhận adjustment.",
+            "4": "Rà soát lịch sử xuất linh kiện cho WO."
+          },
+          "control": {
+            "1": "Chỉ post phiếu khi line item đầy đủ.",
+            "2": "Mọi adjustment cần lý do rõ ràng.",
+            "3": "Kiểm kê định kỳ theo kho/nhóm part."
+          }
+        },
+        "technician": {
+          "label": "Technician",
+          "badge": "Xử lý sự cố",
+          "goal": "Xử lý work order nhanh, đúng quy trình, ghi nhận đầy đủ chẩn đoán và kết quả.",
+          "daily": {
+            "1": "Kiểm tra WO mới theo mức độ ưu tiên.",
+            "2": "Cập nhật trạng thái WO theo tiến độ thực tế.",
+            "3": "Ghi nhận linh kiện/chi phí test sau sửa.",
+            "4": "Đồng bộ kết quả sửa chữa vào lịch sử tài sản."
+          },
+          "control": {
+            "1": "Không bỏ qua bước test sau sửa.",
+            "2": "Không đóng WO khi chưa có kết quả rõ ràng.",
+            "3": "Escalate nếu chi phí vượt ngưỡng."
+          }
+        },
+        "requester": {
+          "label": "Requester/User",
+          "badge": "Yêu cầu và theo dõi",
+          "goal": "Tạo yêu cầu đúng thông tin, theo dõi trạng thái và hoàn tất giao tiếp với bộ phận xử lý.",
+          "daily": {
+            "1": "Tạo request với mô tả rõ ràng, đúng loại yêu cầu.",
+            "2": "Theo dõi trạng thái và phản hồi bổ sung khi được yêu cầu.",
+            "3": "Kiểm tra tài sản được cấp phát trong My Assets."
+          },
+          "control": {
+            "1": "Không tạo duplicate request cho cùng một vấn đề.",
+            "2": "Luôn cập nhật thông tin liên hệ và bộ phận.",
+            "3": "Đọc kết quả xử lý trước khi đóng trao đổi."
+          }
+        }
+      }
+    },
+    "systemMap": {
+      "title": "Bản đồ hệ thống (Module -> Route -> API)",
+      "columns": {
+        "module": "Module",
+        "frontend": "Frontend",
+        "apiPrefix": "API Prefix",
+        "highlights": "Highlights"
+      },
+      "rows": {
+        "assets": {
+          "module": "Assets",
+          "highlights": "CRUD, gán/trả, timeline, import, attachment"
+        },
+        "cmdb": {
+          "module": "CMDB",
+          "highlights": "CI types, CI, quan hệ, services, changes"
+        },
+        "warehouse": {
+          "module": "Warehouse",
+          "highlights": "Phiếu kho, sổ kho, đối chiếu, linh kiện, sửa chữa"
+        },
+        "maintenance": {
+          "module": "Maintenance",
+          "highlights": "Work orders, chuyển trạng thái, theo dõi chi phí"
+        },
+        "inventory": {
+          "module": "Inventory",
+          "highlights": "Phiên kiểm kê, scan, đối chiếu, đóng phiên"
+        },
+        "workflow": {
+          "module": "Workflow",
+          "highlights": "Vòng đời request, các bước duyệt, xử lý inbox"
+        },
+        "analytics": {
+          "module": "Analytics/Reports",
+          "highlights": "Dashboard, trend, reminders, export"
+        },
+        "admin": {
+          "module": "Admin/Security",
+          "highlights": "Users, RBAC, AD/ACL, audit"
+        },
+        "automation": {
+          "module": "Automation/Integrations",
+          "highlights": "Rules, tasks, notifications, connectors, webhooks"
+        }
+      }
+    },
+    "gettingStarted": {
+      "title": "Bắt đầu",
+      "subtitle": "Đăng nhập, điều hướng và quy trình cơ bản."
+    },
+    "tools": {
+      "title": "Công cụ",
+      "subtitle": "Trình tạo CLI, SSH terminal và Field Kit."
+    },
+    "security": {
+      "title": "Bảo mật",
+      "subtitle": "Audit, phê duyệt và vận hành an toàn mặc định."
+    },
+    "notesTitle": "Ghi chú",
+    "notes": {
+      "audit": "Mọi thao tác đặc quyền đều phải có audit trail.",
+      "approvals": "Thay đổi môi trường PROD nên đi qua phê duyệt.",
+      "fieldKit": "Dùng Field Kit để chẩn đoán theo hướng dẫn, an toàn."
+    }
+  }
+}

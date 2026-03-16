@@ -1,0 +1,476 @@
+{
+  "admin": {
+    "title": "Admin Console",
+    "subtitle": "Manage OU directory, policies and audit logs",
+    "sectionLabel": "Section",
+    "sections": {
+      "quickWins": "Quick Wins",
+      "coreAdmin": "Core Admin",
+      "stats": "Stats",
+      "models": "Models",
+      "security": "Security",
+      "ops": "Ops",
+      "ux": "UX"
+    },
+    "sectionDescriptions": {
+      "quickWins": "Health, users, audit",
+      "coreAdmin": "Roles, sessions, impersonation",
+      "stats": "Usage & cost insights",
+      "models": "Providers, governance, routing",
+      "security": "MFA, SSO, compliance",
+      "ops": "Metrics, flags, notifications",
+      "ux": "Search & activity"
+    },
+    "addUser": "Add user",
+    "closeForm": "Close",
+    "email": "Email",
+    "name": "Name",
+    "password": "Password",
+    "role": "Role",
+    "user": "User",
+    "admin": "Admin",
+    "superAdmin": "Super Admin",
+    "active": "Active",
+    "disabled": "Disabled",
+    "lastLogin": "Last login",
+    "lock": "Lock",
+    "unlock": "Unlock",
+    "resetPassword": "Reset password",
+    "delete": "Delete",
+    "auditLogs": "Audit Logs",
+    "recentActions": "Recent admin actions",
+    "time": "Time",
+    "action": "Action",
+    "resource": "Resource",
+    "actor": "Actor",
+    "ip": "IP",
+    "noAuditEntries": "No audit entries",
+    "createUser": "Create",
+    "failedToLoadUsers": "Failed to load users",
+    "failedToLoadAuditLogs": "Failed to load audit logs",
+    "createUserFailed": "Create user failed",
+    "resetPasswordPrompt": "New password for {{email}}:",
+    "deleteUserConfirm": "Delete user {{email}}?",
+    "userManagement": "User Management",
+    "userSubtitle": "Manage accounts, roles, and access status.",
+    "searchPlaceholder": "Search user",
+    "allRoles": "All roles",
+    "allStatus": "All status",
+    "loadingUsers": "Loading users...",
+    "noUsers": "No users found.",
+    "applyRole": "Apply Role",
+    "roles": {
+      "user": "User (requester)",
+      "viewer": "Viewer",
+      "technician": "Technician",
+      "storekeeper": "Storekeeper",
+      "itManager": "IT Manager",
+      "admin": "Admin"
+    },
+    "selectAll": "Select all",
+    "selected": "Selected {count}",
+    "cancel": "Cancel",
+    "userLegacy": "User (legacy)",
+    "tab": {
+      "users": "Users",
+      "rbac": "Permissions",
+      "adRbac": "AD RBAC (OU)",
+      "logs": "Audit Logs",
+      "directory": "Directory (AD)",
+      "policies": "Policy Library",
+      "effective": "Effective Perms"
+    },
+    "effective": {
+      "subtitle": "View effective permissions after merging Classic RBAC + Policy System (DENY > ALLOW).",
+      "selectUser": "Select system user"
+    },
+    "policyLib": {
+      "searchPlaceholder": "Search policies...",
+      "createTitle": "Create new Policy",
+      "namePlaceholder": "Policy name",
+      "descPlaceholder": "Description (optional)",
+      "creating": "Creating...",
+      "create": "Create",
+      "cancel": "Cancel",
+      "noPolicies": "No policies found",
+      "edit": "Edit",
+      "delete": "Delete",
+      "selectPrompt": "Select a policy from the list to edit",
+      "revert": "Revert changes",
+      "save": "Save",
+      "saving": "Saving...",
+      "tabPermissions": "Permissions",
+      "tabAssignments": "Assignments",
+      "filterPlaceholder": "Filter...",
+      "grantAll": "Grant all",
+      "clearAll": "Clear all",
+      "noPerms": "No permissions found",
+      "addAssignment": "Add Assignment",
+      "principalType": "Principal type",
+      "principal": "Principal",
+      "effect": "Effect",
+      "scope": "Scope",
+      "selectOption": "Select",
+      "inheritSubOUs": "Inherit sub-OUs",
+      "adding": "Adding...",
+      "add": "Add",
+      "bulkAssign": "Bulk assign by OU",
+      "noAssignments": "No assignments yet",
+      "inherit": "Inherit",
+      "resources": {
+        "assets": "Assets",
+        "categories": "Categories",
+        "cmdb": "CMDB",
+        "warehouse": "Warehouse",
+        "inventory": "Inventory",
+        "licenses": "Licenses",
+        "accessories": "Accessories",
+        "consumables": "Consumables",
+        "components": "Components",
+        "checkout": "Checkout",
+        "requests": "Requests",
+        "maintenance": "Maintenance",
+        "reports": "Reports",
+        "analytics": "Analytics",
+        "depreciation": "Depreciation",
+        "labels": "Labels",
+        "documents": "Documents",
+        "automation": "Automation",
+        "integrations": "Integrations",
+        "security": "Security",
+        "admin": "Admin",
+        "rbac": "RBAC"
+      }
+    }
+  },
+  "adminRbac": {
+    "navLabel": "RBAC",
+    "title": "Admin RBAC",
+    "subtitle": "Roles, permissions, and auditability",
+    "tabs": {
+      "matrix": "Role Matrix",
+      "groups": "Group Assignment",
+      "explain": "Explain Access",
+      "audit": "Audit Log"
+    },
+    "common": {
+      "danger": "Danger"
+    },
+    "registry": {
+      "title": "Resource Registry",
+      "subtitle": "Auto-discovered route/site/feature keys for ACL RESOURCE scope.",
+      "searchPlaceholder": "Search key/type...",
+      "filters": {
+        "all": "All",
+        "valid": "Valid only",
+        "invalid": "Invalid only"
+      },
+      "exportCsv": "Export CSV",
+      "columns": {
+        "key": "Key",
+        "type": "Type",
+        "valid": "Valid",
+        "actions": "Actions"
+      },
+      "valid": "valid",
+      "invalid": "invalid",
+      "copy": "Copy",
+      "empty": "No resources discovered yet",
+      "grantOuTitle": "Grant by OU",
+      "grantOuSubtitle": "Link classic RBAC roles to AD RBAC roles and grant at OU scope.",
+      "targetUsers": "Target users in OU",
+      "targetGroups": "Target groups in OU",
+      "granting": "Granting...",
+      "grantUsers": "Grant role to OU users",
+      "grantGroups": "Grant role to OU groups",
+      "messages": {
+        "grantedGroups": "Granted to groups: {count}"
+      },
+      "errors": {
+        "chooseOuRole": "Choose OU and RBAC role first.",
+        "missingMap": "No AD role mapping found for selected RBAC role.",
+        "emptyOuGroups": "Selected OU has no groups to grant.",
+        "grantFailedGroups": "Failed to grant RBAC role to OU groups."
+      }
+    },
+    "adPanel": {
+      "modal": {
+        "createOu": "New Organizational Unit",
+        "editOu": "Edit OU",
+        "createGroup": "New Group",
+        "editGroup": "Edit Group",
+        "addMember": "Add Member",
+        "assignAcl": "Assign ACL",
+        "create": "Create",
+        "save": "Save",
+        "cancel": "Cancel"
+      },
+      "toolbar": {
+        "search": "Search...",
+        "newUser": "New User",
+        "newGroup": "New Group",
+        "assignAcl": "Assign ACL",
+        "savePerms": "Save Permissions",
+        "saving": "Saving..."
+      },
+      "tabs": {
+        "users": "Users",
+        "groups": "Groups",
+        "acl": "Access Rules",
+        "roles": "AD Roles",
+        "effective": "Effective Perms"
+      },
+      "empty": {
+        "noRoles": "No AD roles found.",
+        "selectRole": "← Select an AD Role to manage its permissions",
+        "noPermissions": "No permissions defined yet.",
+        "noLinkedAccount": "This user has no linked system account."
+      },
+      "form": {
+        "parentOu": "Parent: {name}",
+        "memberType": "Member Type",
+        "memberUser": "User",
+        "memberGroup": "Group (nested)",
+        "hint": "Auto-detected resources include routes/sites/tabs and permission keys."
+      }
+    },
+    "matrix": {
+      "title": "Role & Permission Matrix",
+      "subtitle": "Configure permissions by role and preview effective access.",
+      "actions": {
+        "save": "Save changes",
+        "discard": "Discard",
+        "export": "Export CSV",
+        "openAudit": "Open Audit"
+      },
+      "search": "Search permissions",
+      "searchPlaceholder": "Search resource.action, title, or description...",
+      "dirty": "changes",
+      "toggles": {
+        "differences": "Show only differences",
+        "inherited": "Show inherited",
+        "compact": "Compact mode"
+      },
+      "filters": {
+        "resource": "Resource",
+        "action": "Action",
+        "tag": "Tag"
+      },
+      "bulk": {
+        "selected": "Selected {{count}} cells",
+        "clearOverride": "Clear override",
+        "clearSelection": "Clear selection"
+      },
+      "columns": {
+        "permission": "Permission"
+      },
+      "roleMenu": {
+        "title": "Role actions",
+        "setVisible": "Set all visible → {{scope}}",
+        "clearVisible": "Clear overrides (visible)",
+        "inherits": "Inherits: {{base}}"
+      }
+    },
+    "review": {
+      "title": "Review changes",
+      "empty": "No changes to review.",
+      "subtitle": "Preview the diff before saving. Sensitive permissions require a reason.",
+      "columns": {
+        "role": "Role",
+        "permission": "Permission",
+        "before": "Before",
+        "after": "After",
+        "source": "Source"
+      },
+      "dangerTitle": "Sensitive permission changes",
+      "dangerHelp": "You are granting dangerous permissions. This action will be audited and should be justified.",
+      "acknowledge": "I understand this is sensitive",
+      "reason": "Reason",
+      "reasonPlaceholder": "Explain why this change is required...",
+      "reasonHint": "Minimum 10 characters."
+    },
+    "groups": {
+      "title": "Group Assignment",
+      "subtitle": "Assign roles per group and manage memberships.",
+      "tabs": {
+        "byGroup": "By group",
+        "byUser": "By user"
+      },
+      "groupList": "Groups",
+      "searchGroups": "Search groups...",
+      "noGroupSelected": "Select a group to view members.",
+      "actions": {
+        "addMembers": "Add members"
+      },
+      "bulk": {
+        "role": "Role for selection",
+        "apply": "Apply",
+        "selected": "{{count}} selected"
+      },
+      "members": {
+        "user": "User",
+        "role": "Role in group",
+        "empty": "No members."
+      },
+      "add": {
+        "title": "Add members",
+        "users": "Users",
+        "usersHint": "Hold Ctrl/Cmd to select multiple users.",
+        "role": "Role"
+      },
+      "userPicker": "User view",
+      "searchUsers": "Search users...",
+      "noUserSelected": "Select a user to edit roles.",
+      "user": {
+        "globalRole": "Global role",
+        "memberships": "Memberships",
+        "noMemberships": "No memberships yet.",
+        "addMembership": "Add membership",
+        "group": "Group",
+        "role": "Role"
+      }
+    },
+    "explain": {
+      "title": "Explain Access",
+      "subtitle": "Explain effective access for a user in a given context.",
+      "inputs": "Inputs",
+      "inputsHelp": "Select a user, permission, and optional context to explain.",
+      "user": "User",
+      "userSearch": "Search users...",
+      "globalRole": "Global role",
+      "permission": "Permission",
+      "permissionSearch": "Search permissions...",
+      "contextGroup": "Context group",
+      "contextDepartment": "Department",
+      "ownerUserId": "Owner user id (optional)",
+      "ownerPlaceholder": "Optional owner user id",
+      "actions": {
+        "explain": "Explain",
+        "openMatrix": "Open in Matrix"
+      },
+      "empty": "Run an explanation to see the trace.",
+      "result": "Effective result",
+      "effective": "Effective scope",
+      "source": "Decision source",
+      "role": "Role",
+      "trace": "Trace steps",
+      "inheritChain": "Inheritance chain"
+    },
+    "audit": {
+      "title": "RBAC Audit Log",
+      "subtitle": "Read-only timeline of RBAC changes.",
+      "filters": {
+        "dangerousOnly": "Dangerous only",
+        "search": "Search",
+        "searchPlaceholder": "Search actor, action, target, reason..."
+      },
+      "count": "events",
+      "empty": "No audit entries found.",
+      "columns": {
+        "time": "Time",
+        "actor": "Actor",
+        "target": "Target",
+        "action": "Action",
+        "reason": "Reason"
+      },
+      "detailTitle": "Audit detail"
+    },
+    "panelTitle": "Role-based Access Control (RBAC)",
+    "panelSubtitle": "{roleCount} roles · {permCount} permissions",
+    "unsavedRoles": "{count} unsaved roles",
+    "loading": "Loading permission tree...",
+    "roles": "Roles",
+    "userCount": "{count} users",
+    "systemRoles": "System roles",
+    "unsaved": "Unsaved",
+    "synced": "Synced",
+    "granted": "Granted:",
+    "notGranted": "Not granted:",
+    "pendingChanges": "{count} unsaved changes",
+    "saveRole": "Save role",
+    "revert": "Revert",
+    "searchPermissions": "Search permissions...",
+    "grantAll": "Grant all",
+    "revokeAll": "Revoke all",
+    "expandAll": "Expand all",
+    "collapseAll": "Collapse all",
+    "onlyChanges": "Only changes",
+    "noResults": "No results for \"{query}\"",
+    "noChanges": "No changes",
+    "noPermissions": "No permissions",
+    "justGranted": "Just granted",
+    "justRevoked": "Just revoked",
+    "legendFullGrant": "Full group grant",
+    "legendPartialGrant": "Partial grant",
+    "legendNotGranted": "Not granted",
+    "legendUnsaved": "Unsaved changes",
+    "helpTip": "Click group to expand/collapse · Click group checkbox to toggle all",
+    "selectRoleHint": "Select a role on the left to view the permission tree",
+    "errors": {
+      "loadFailed": "Failed to load RBAC data",
+      "saveFailed": "Failed to save permissions"
+    },
+    "savedSuccess": "Saved permissions for role \"{role}\"",
+    "resources": {
+      "assets": "Assets",
+      "categories": "Categories",
+      "warehouses": "Warehouses",
+      "inventory": "Inventory",
+      "licenses": "Licenses",
+      "accessories": "Accessories",
+      "consumables": "Consumables",
+      "components": "Components",
+      "checkouts": "Check-out / Return",
+      "requests": "Requests",
+      "maintenance": "Maintenance",
+      "reports": "Reports",
+      "analytics": "Analytics",
+      "depreciation": "Depreciation",
+      "labels": "Labels",
+      "documents": "Documents",
+      "automation": "Automation",
+      "integrations": "Integrations",
+      "security": "Security",
+      "admin": "Administration",
+      "cmdb": "CMDB",
+      "warehouse": "Warehouse",
+      "checkout": "Check-out / Return",
+      "site": "Page & Tab Visibility"
+    },
+    "actions": {
+      "view": "View",
+      "create": "Create",
+      "edit": "Edit",
+      "delete": "Delete",
+      "manage": "Manage",
+      "approve": "Approve",
+      "export": "Export",
+      "import": "Import",
+      "assign": "Assign",
+      "upload": "Upload",
+      "configure": "Configure",
+      "read": "View",
+      "update": "Edit",
+      "users": "Users",
+      "roles": "Roles",
+      "settings": "Configure",
+      "show": "Show"
+    },
+    "roleLabels": {
+      "user": "User",
+      "viewer": "Viewer",
+      "technician": "Technician",
+      "storekeeper": "Storekeeper",
+      "itManager": "IT Manager",
+      "admin": "Admin",
+      "requester": "User",
+      "warehouse_keeper": "Storekeeper",
+      "it_asset_manager": "IT Manager"
+    },
+    "saveAll": "Save all",
+    "saving": "Saving...",
+    "grantAllInGroup": "Grant all in group",
+    "revokeAllInGroup": "Revoke all in group",
+    "permCountLabel": "{shown} / {total} permissions"
+  }
+}

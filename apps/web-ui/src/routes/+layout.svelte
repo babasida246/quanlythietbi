@@ -3,7 +3,8 @@
   import { onMount } from 'svelte';
   import { page } from '$app/state';
   import { defaultLandingPath, getCapabilities, isRouteAllowed } from '$lib/auth/capabilities';
-  import { isPathHidden, loadHiddenSiteHrefs } from '$lib/config/hiddenSites';
+  import { getUnifiedEffectivePerms } from '$lib/api/admin';
+  import { effectivePermsStore } from '$lib/stores/effectivePermsStore';
   import { locale, _, isLoading } from '$lib/i18n';
   import LanguageSwitcher from '$lib/components/LanguageSwitcher.svelte';
   import ToastHost from '$lib/components/ToastHost.svelte';
@@ -30,9 +31,7 @@
   let isDesktop = $state(false);
   let userEmail = $state('');
   let userRole = $state('');
-  let hiddenHrefs = $state<string[]>([]);
-  let mainContentEl = $state<HTMLElement | null>(null);
-  const shelllessPaths = ['/login', '/setup', '/print'];
+  const shelllessPaths = ['/login', '/setup', '/logout', '/print'];
   const legacyRedirectPrefixes = [
     '/chat',
     '/stats',
@@ -48,7 +47,11 @@
   ];
   const legacyRedirectTarget = '/me/assets';
 
-  const capabilities = $derived.by(() => getCapabilities(userRole));
+  // Capabilities: dùng unified effective perms khi đã cache, fallback về hardcode
+  const capabilities = $derived.by(() => {
+    const allowed = effectivePermsStore.getAllowed();
+    return getCapabilities(userRole, allowed.length > 0 ? allowed : undefined);
+  });
   const isShelllessRoute = $derived.by(() => shelllessPaths.some((path) => page.url.pathname.startsWith(path)));
 
   $effect(() => {
@@ -79,16 +82,39 @@
     themeCustomizer.init();
     printTemplate.init();
     printWordTemplates.init();
-    void loadHiddenSiteHrefs().then((hrefs) => {
-      hiddenHrefs = hrefs;
-    });
 
-    return () => media.removeEventListener('change', update);
+    // Load unified effective perms (Classic RBAC + Policy System)
+    void (async () => {
+      const userId = localStorage.getItem('userId') || '';
+      if (!userId || effectivePermsStore.hasCache(userId)) return;
+      try {
+        const res = await getUnifiedEffectivePerms(userId);
+        effectivePermsStore.set({
+          userId,
+          allowed: res.data.allowed,
+          denied: res.data.denied,
+          cachedAt: Date.now(),
+        });
+      } catch { /* non-critical — fallback to hardcoded ROLE_PERMISSIONS */ }
+    })();
+
+    return () => {
+      media.removeEventListener('change', update);
+    };
   });
+
+  function sanitizeLoginRedirectTarget(targetPath: string): string | null {
+    if (!targetPath.startsWith('/')) return null;
+    if (targetPath.startsWith('/login') || targetPath.startsWith('/setup') || targetPath.startsWith('/logout')) {
+      return null;
+    }
+    return targetPath;
+  }
 
   function redirectToLogin(targetPath: string) {
     if (typeof window === 'undefined') return;
-    const redirectTo = `/login?redirect=${encodeURIComponent(targetPath)}`;
+    const safeTarget = sanitizeLoginRedirectTarget(targetPath);
+    const redirectTo = safeTarget ? `/login?redirect=${encodeURIComponent(safeTarget)}` : '/login';
     if (!window.location.pathname.startsWith('/login')) {
       window.location.replace(redirectTo);
     }
@@ -96,74 +122,6 @@
 
   function isLegacyPath(pathname: string): boolean {
     return legacyRedirectPrefixes.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));
-  }
-
-  function toHiddenCheckPath(rawHref: string | null): string | null {
-    if (!rawHref) return null;
-    const value = rawHref.trim();
-    if (!value || value.startsWith('#')) return null;
-
-    try {
-      const url = new URL(value, window.location.origin);
-      if (url.origin !== window.location.origin) return null;
-      return url.pathname;
-    } catch {
-      return null;
-    }
-  }
-
-  function getElementNavPath(el: Element): string | null {
-    const href = el.getAttribute('href');
-    if (href) return toHiddenCheckPath(href);
-
-    const dataHref = el.getAttribute('data-href')
-      ?? el.getAttribute('data-route')
-      ?? el.getAttribute('data-url')
-      ?? el.getAttribute('formaction');
-    return toHiddenCheckPath(dataHref);
-  }
-
-  function setElementHiddenByConfig(el: Element, hidden: boolean): void {
-    if (hidden) {
-      el.setAttribute('data-ui-hidden-route', 'true');
-      if (el instanceof HTMLElement) {
-        el.style.display = 'none';
-      }
-      return;
-    }
-
-    if (!el.hasAttribute('data-ui-hidden-route')) return;
-    el.removeAttribute('data-ui-hidden-route');
-    if (el instanceof HTMLElement) {
-      el.style.removeProperty('display');
-    }
-  }
-
-  function applyHiddenRouteContentGuard(): void {
-    if (!mainContentEl) return;
-
-    if (hiddenHrefs.length === 0) {
-      const previouslyHidden = mainContentEl.querySelectorAll('[data-ui-hidden-route="true"]');
-      for (const el of previouslyHidden) {
-        setElementHiddenByConfig(el, false);
-      }
-      return;
-    }
-
-    const selectors = [
-      'a[href]',
-      '[data-href]',
-      '[data-route]',
-      '[data-url]',
-      'button[formaction]'
-    ].join(',');
-
-    const targets = mainContentEl.querySelectorAll(selectors);
-    for (const target of targets) {
-      const path = getElementNavPath(target);
-      const shouldHide = !!path && isPathHidden(path, hiddenHrefs);
-      setElementHiddenByConfig(target, shouldHide);
-    }
   }
 
   $effect(() => {
@@ -179,7 +137,7 @@
       return;
     }
 
-    const publicPaths = ['/login', '/setup'];
+    const publicPaths = ['/login', '/setup', '/logout'];
     const isPublicPath = publicPaths.some((path) => pathname.startsWith(path));
 
     // Dev bypass: khi VITE_DISABLE_AUTH=true, tự động inject mock admin và bỏ qua login
@@ -201,14 +159,6 @@
     if (!token || isPublicPath) return;
 
     const caps = getCapabilities(localStorage.getItem('userRole') || userRole);
-    if (isPathHidden(pathname, hiddenHrefs)) {
-      const fallback = defaultLandingPath(caps);
-      if (pathname !== fallback) {
-        window.location.replace(fallback);
-      }
-      return;
-    }
-
     const routeId = page.route.id ?? '';
     const isLegacyNotFoundRoute = routeId === '/[legacy]' || routeId === '/[legacy]/[...rest]';
     if (!isRouteAllowed(pathname, caps)) {
@@ -243,61 +193,6 @@
     if (typeof window !== 'undefined') {
       localStorage.setItem('sidebarPinned', String(sidebarPinned));
     }
-  });
-
-  onMount(() => {
-    if (typeof window === 'undefined') return;
-
-    const redirectToFallback = () => {
-      const caps = getCapabilities(localStorage.getItem('userRole') || userRole);
-      const fallback = defaultLandingPath(caps);
-      if (window.location.pathname !== fallback) {
-        window.location.replace(fallback);
-      }
-    };
-
-    const handleDocumentClick = (event: MouseEvent) => {
-      if (!mainContentEl || hiddenHrefs.length === 0) return;
-      const target = event.target;
-      if (!(target instanceof Element)) return;
-
-      const clickable = target.closest('a[href], [data-href], [data-route], [data-url], button[formaction]');
-      if (!clickable || !mainContentEl.contains(clickable)) return;
-
-      const navPath = getElementNavPath(clickable);
-      if (!navPath || !isPathHidden(navPath, hiddenHrefs)) return;
-
-      event.preventDefault();
-      event.stopPropagation();
-      redirectToFallback();
-    };
-
-    const observer = new MutationObserver(() => {
-      applyHiddenRouteContentGuard();
-    });
-
-    document.addEventListener('click', handleDocumentClick, true);
-    if (mainContentEl) {
-      observer.observe(mainContentEl, {
-        childList: true,
-        subtree: true,
-        attributes: true,
-        attributeFilter: ['href', 'data-href', 'data-route', 'data-url', 'formaction']
-      });
-    }
-
-    applyHiddenRouteContentGuard();
-
-    return () => {
-      document.removeEventListener('click', handleDocumentClick, true);
-      observer.disconnect();
-    };
-  });
-
-  $effect(() => {
-    page.url.pathname;
-    hiddenHrefs;
-    applyHiddenRouteContentGuard();
   });
 </script>
 
@@ -393,7 +288,6 @@
       {/if}
 
       <main
-        bind:this={mainContentEl}
         id="main-content"
         class={`flex-1 min-w-0 transition-[margin] duration-200 ${isDesktop && sidebarPinned ? 'lg:ml-64' : 'lg:ml-0'}`}
       >

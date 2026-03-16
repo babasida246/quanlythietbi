@@ -1,0 +1,315 @@
+{
+  "help": {
+    "title": "User Guide",
+    "subtitle": "Documentation, workflows, and operation flow diagrams.",
+    "searchPlaceholder": "Search content...",
+    "copyLink": "Copy link",
+    "copied": "Copied!",
+    "toc": "Table of Contents",
+    "intro": {
+      "title": "Project Introduction",
+      "desc": "IT Asset Management + Warehouse + CMDB + Maintenance/Repair System.",
+      "goal": "Goal: Centralize asset data, lifecycle tracking, warehouse history, work order processes, and reporting.",
+      "modules": "Main Modules",
+      "modAssets": "Assets — manage IT devices, assign/return, history.",
+      "modCatalogs": "Catalogs — asset types, models, manufacturers.",
+      "modCmdb": "CMDB — CI Types, schema versions, relationships, services.",
+      "modWarehouse": "Warehouse — import/export/inventory, spare parts.",
+      "modMaintenance": "Maintenance — work orders, statuses, downtime, cost.",
+      "modRequests": "Requests — approval workflows, request handling.",
+      "modReports": "Reports — filter, export CSV/PDF.",
+      "arch": "Architecture: Web UI → API Server → PostgreSQL Database",
+      "standardProcessLabel": "Standard process",
+      "standardProcessFlow": "Catalogs → Assets → Stock in → Work Order → Close → Reports"
+    },
+    "quickStart": {
+      "title": "Quick Start",
+      "desc": "5 basic steps to get started with the system.",
+      "step1": "Step 1: Create catalogs — Go to Catalogs → Create asset types, models, brands.",
+      "step2": "Step 2: Create assets — Go to Assets → Add new, select model/type created.",
+      "step3": "Step 3: Stock in — Go to Warehouse → Create receipt for assets/parts.",
+      "step4": "Step 4: Create Work Order — Go to Maintenance → Open WO for incidents.",
+      "step5": "Step 5: Close & Report — Complete WO, record costs, view reports."
+    },
+    "modules": {
+      "title": "Module Guide",
+      "assets": {
+        "title": "Assets",
+        "create": "Create asset: Assets → Add new → Fill info → Save.",
+        "edit": "Edit: Click asset → Edit → Save.",
+        "delete": "Delete: Admin only. Assets → select → Delete.",
+        "assign": "Assign: Asset detail → Assign to employee/department.",
+        "history": "History: Lifecycle tab shows all events."
+      },
+      "catalogs": {
+        "title": "Catalogs",
+        "types": "Asset types: Catalogs → Manage asset types.",
+        "models": "Models: Catalogs → Add model, assign manufacturer.",
+        "brands": "Brands: Catalogs → Manage manufacturers/vendors."
+      },
+      "warehouse": {
+        "title": "Warehouse",
+        "import": "Stock in: Warehouse → Create receipt → Add parts/assets.",
+        "export": "Stock out: Warehouse → Create issue → Select assets.",
+        "inventory": "Inventory: Warehouse → Inventory session → Scan devices.",
+        "spareParts": "Spare parts: Manage replacement components."
+      },
+      "maintenance": {
+        "title": "Repair (Work Orders)",
+        "create": "Create WO: Maintenance → Add new → Enter title, severity.",
+        "statuses": "Statuses: open → diagnosing → waiting_parts → repaired → closed / canceled.",
+        "downtime": "Downtime: Auto-calculated from WO open to close.",
+        "cost": "Cost: Record repair cost when closing WO."
+      },
+      "cmdb": {
+        "title": "CMDB",
+        "ciTypes": "CI Types: CMDB → Types tab → Create new CI type.",
+        "versions": "Versions: Each CI Type has schema versions.",
+        "attrs": "Attributes: Define data fields for CI.",
+        "instances": "CI: Create instance from published CI Type.",
+        "relations": "Relations: Link between CI instances.",
+        "services": "Services: Map CI → IT services."
+      },
+      "reports": {
+        "title": "Reports",
+        "filter": "Filter: Use filters by status, type, date range.",
+        "export": "Export: Export data to CSV."
+      }
+    },
+    "charts": {
+      "title": "Charts & Statistics",
+      "funnel": "Standard Process",
+      "funnelDesc": "Flow from Catalog → Asset → Stock → Work Order → Close → Report.",
+      "woStatus": "Work Order Status Distribution",
+      "woStatusDesc": "Current WO status ratios in the system.",
+      "avgTime": "Average Resolution Time",
+      "avgTimeDesc": "Time from WO open to close by priority level.",
+      "mockNote": "Illustrative data. Will connect to real API later."
+    },
+    "flow": {
+      "title": "Operation Flow Diagrams",
+      "repairFlow": "Repair Order Process",
+      "repairFlowDesc": "Flowchart describing WO processing from start to finish.",
+      "sequence": "System Interaction Sequence",
+      "sequenceDesc": "Sequence diagram: User → Web UI → API → Database."
+    },
+    "faq": {
+      "title": "FAQ & Troubleshooting",
+      "q1": "Cannot log in?",
+      "a1": "Check username/password. Contact admin if locked.",
+      "q2": "Data not updating?",
+      "a2": "Try Ctrl+Shift+R to clear browser cache. Check network connection.",
+      "q3": "Missing menu/features?",
+      "a3": "Access depends on role. Contact admin for permissions.",
+      "q4": "Where to change language?",
+      "a4": "Click the language icon on the Topbar to switch Vietnamese / English.",
+      "q5": "Report export error?",
+      "a5": "Check filters, ensure data exists. Retry or contact admin.",
+      "q6": "Work Order stuck in status?",
+      "a6": "Admin can manually change status. Check logs for cause."
+    },
+    "repairSteps": {
+      "step1": {
+        "title": "Create Work Order",
+        "who": "User / Technician",
+        "where": "Maintenance → Add new",
+        "data": "WO ID, title, severity"
+      },
+      "step2": {
+        "title": "Diagnose",
+        "who": "Technician",
+        "where": "WO Detail → Update",
+        "data": "Diagnosis result"
+      },
+      "step3": {
+        "title": "Wait for Parts",
+        "who": "Warehouse team",
+        "where": "Warehouse → Issue parts",
+        "data": "Issue receipt"
+      },
+      "step4": {
+        "title": "Repaired / Test",
+        "who": "Technician",
+        "where": "WO Detail",
+        "data": "Test result"
+      },
+      "step5": {
+        "title": "Close Work Order",
+        "who": "Manager / Admin",
+        "where": "WO Detail → Close",
+        "data": "Cost, downtime, notes"
+      }
+    },
+    "tocItems": {
+      "intro": "Project Introduction",
+      "prerequisites": "Prerequisites",
+      "quickstart": "Quick Start (5 steps)",
+      "roleJourneys": "Role Journeys",
+      "systemMap": "Module/Route/API Map",
+      "rbac": "Permissions & RBAC",
+      "policySystem": "Unified Policy System",
+      "modules": "Module Guide",
+      "assetDetail": "Asset Detail Management",
+      "businessProcess": "Business Process (SOP)",
+      "playbooks": "Work Order Playbooks",
+      "fieldGuide": "Field Input Mapping",
+      "charts": "Charts & Statistics",
+      "diagrams": "Flow Diagrams (Mermaid)",
+      "faq": "Troubleshooting"
+    },
+    "roleJourneys": {
+      "title": "Role Journeys",
+      "checklistTitle": "Daily checklist",
+      "controlTitle": "Control points",
+      "shortcutsTitle": "Quick shortcuts",
+      "openPath": "Open",
+      "printSettings": "Open /settings/print",
+      "roles": {
+        "admin": {
+          "label": "Admin",
+          "badge": "System access",
+          "goal": "Keep the system stable, enforce role-based access, and maintain complete audit trails.",
+          "daily": {
+            "1": "Check approval inbox and important notifications.",
+            "2": "Review new users, reset passwords, and role changes.",
+            "3": "Review incident dashboard and maintenance trends.",
+            "4": "Verify sensitive changes in security/audit logs."
+          },
+          "control": {
+            "1": "Do not grant permissions above necessity.",
+            "2": "All sensitive actions require justification and audit trail.",
+            "3": "Production changes should pass approval flow."
+          }
+        },
+        "asset": {
+          "label": "IT Asset Manager",
+          "badge": "Asset lifecycle",
+          "goal": "Manage the full asset lifecycle from onboarding and assignment to maintenance and reporting.",
+          "daily": {
+            "1": "Update catalogs when new models/vendors appear.",
+            "2": "Track assets approaching warranty expiration.",
+            "3": "Monitor assets waiting for work-order handling.",
+            "4": "Finalize utilization and asset status reports."
+          },
+          "control": {
+            "1": "Asset code and serial must be unique.",
+            "2": "Do not delete assets with transactional history.",
+            "3": "Synchronize asset status with work-order outcomes."
+          }
+        },
+        "warehouse": {
+          "label": "Warehouse Keeper",
+          "badge": "Warehouse and parts",
+          "goal": "Keep stock accurate, process inbound/outbound documents correctly, and support work orders on time.",
+          "daily": {
+            "1": "Monitor low-stock and critical parts.",
+            "2": "Reconcile inbound/outbound documents pending processing.",
+            "3": "Review stock discrepancies and record adjustments.",
+            "4": "Review parts issue history for work orders."
+          },
+          "control": {
+            "1": "Post documents only when line items are complete.",
+            "2": "Every adjustment must have a clear reason.",
+            "3": "Run periodic stock checks by warehouse/part group."
+          }
+        },
+        "technician": {
+          "label": "Technician",
+          "badge": "Incident handling",
+          "goal": "Handle work orders quickly, follow process, and log diagnosis/results completely.",
+          "daily": {
+            "1": "Check new work orders by priority.",
+            "2": "Update work-order status according to real progress.",
+            "3": "Record used parts/test cost after repair.",
+            "4": "Sync repair outcomes into asset history."
+          },
+          "control": {
+            "1": "Never skip post-repair testing.",
+            "2": "Do not close a work order without clear results.",
+            "3": "Escalate when cost exceeds threshold."
+          }
+        },
+        "requester": {
+          "label": "Requester/User",
+          "badge": "Requests and tracking",
+          "goal": "Create complete requests, track status, and communicate effectively with processing teams.",
+          "daily": {
+            "1": "Create requests with clear description and correct type.",
+            "2": "Track status and provide extra details when requested.",
+            "3": "Review assigned assets in My Assets."
+          },
+          "control": {
+            "1": "Avoid duplicate requests for the same issue.",
+            "2": "Keep contact and department info updated.",
+            "3": "Read processing outcomes before closing discussion."
+          }
+        }
+      }
+    },
+    "systemMap": {
+      "title": "System map (Module -> Route -> API)",
+      "columns": {
+        "module": "Module",
+        "frontend": "Frontend",
+        "apiPrefix": "API Prefix",
+        "highlights": "Highlights"
+      },
+      "rows": {
+        "assets": {
+          "module": "Assets",
+          "highlights": "CRUD, assign/return, timeline, import, attachments"
+        },
+        "cmdb": {
+          "module": "CMDB",
+          "highlights": "CI types, CI, relationships, services, changes"
+        },
+        "warehouse": {
+          "module": "Warehouse",
+          "highlights": "Stock docs, ledger, reconciliation, parts, repairs"
+        },
+        "maintenance": {
+          "module": "Maintenance",
+          "highlights": "Work orders, status transitions, cost tracking"
+        },
+        "inventory": {
+          "module": "Inventory",
+          "highlights": "Sessions, scan, reconcile, close session"
+        },
+        "workflow": {
+          "module": "Workflow",
+          "highlights": "Request lifecycle, approval steps, inbox actions"
+        },
+        "analytics": {
+          "module": "Analytics/Reports",
+          "highlights": "Dashboard, trends, reminders, export"
+        },
+        "admin": {
+          "module": "Admin/Security",
+          "highlights": "Users, RBAC, AD/ACL, audit"
+        },
+        "automation": {
+          "module": "Automation/Integrations",
+          "highlights": "Rules, tasks, notifications, connectors, webhooks"
+        }
+      }
+    },
+    "gettingStarted": {
+      "title": "Getting started",
+      "subtitle": "Login, navigation, and basic workflows."
+    },
+    "tools": {
+      "title": "Tools",
+      "subtitle": "CLI generator, SSH terminal, and Field Kit."
+    },
+    "security": {
+      "title": "Security",
+      "subtitle": "Audit, approvals, and safe-by-default operations."
+    },
+    "notesTitle": "Notes",
+    "notes": {
+      "audit": "All privileged actions require audit trails.",
+      "approvals": "Production changes should use approvals.",
+      "fieldKit": "Use the Field Kit for guided, safe troubleshooting."
+    }
+  }
+}

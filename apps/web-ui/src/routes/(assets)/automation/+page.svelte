@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
   import { _ } from '$lib/i18n';
   import Button from '$lib/components/ui/Button.svelte';
   import PageHeader from '$lib/components/PageHeader.svelte';

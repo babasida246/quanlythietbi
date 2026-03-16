@@ -40,6 +40,8 @@ export function clearStoredSession(): void {
     localStorage.removeItem('userEmail')
     localStorage.removeItem('userRole')
     localStorage.removeItem('userName')
+    // Clear effective perms cache (sessionStorage)
+    sessionStorage.removeItem('qltb_effective_perms_v1')
 }
 
 export function requireAccessToken(): string {
@@ -51,6 +53,37 @@ export function requireAccessToken(): string {
 }
 
 let refreshingPromise: Promise<string | null> | null = null
+
+function normalizePath(value: string): string {
+    return value.endsWith('/') && value.length > 1 ? value.slice(0, -1) : value
+}
+
+function isPublicAuthPath(pathname: string): boolean {
+    const normalized = normalizePath(pathname)
+    return normalized === '/login' || normalized === '/setup' || normalized === '/logout'
+}
+
+function buildSafeLoginRedirectTarget(pathname: string, search: string, hash: string): string | null {
+    const normalizedPath = normalizePath(pathname)
+    if (!normalizedPath.startsWith('/') || isPublicAuthPath(normalizedPath)) {
+        return null
+    }
+    return `${normalizedPath}${search}${hash}`
+}
+
+function redirectToLoginOnUnauthorized(): void {
+    if (typeof window === 'undefined') return
+
+    const { pathname, search, hash } = window.location
+    if (normalizePath(pathname) === '/login') return
+
+    const target = buildSafeLoginRedirectTarget(pathname, search, hash)
+    const destination = target
+        ? `/login?redirect=${encodeURIComponent(target)}`
+        : '/login'
+
+    window.location.replace(destination)
+}
 
 export async function refreshAccessToken(fetchImpl: typeof fetch = fetch): Promise<string | null> {
     if (typeof window === 'undefined') return null
@@ -105,6 +138,11 @@ export async function authorizedFetch(input: RequestInfo, init: RequestInit = {}
     if (newToken) {
         headers.set('Authorization', `Bearer ${newToken}`)
         response = await doFetch()
+    }
+
+    if (response.status === 401 && accessToken && !isRefreshCall) {
+        clearStoredSession()
+        redirectToLoginOnUnauthorized()
     }
 
     return response

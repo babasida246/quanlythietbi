@@ -339,6 +339,12 @@ export async function listAllWfRequests(params: {
     });
 }
 
+export async function getAdminWfRequestDetail(id: string): Promise<{ success: boolean; data: WfRequestDetail }> {
+    return apiJson<{ success: boolean; data: WfRequestDetail }>(`${WF_BASE}/wf/admin/requests/${id}`, {
+        headers: authHeaders(),
+    });
+}
+
 export async function listWfDefinitions(): Promise<{ success: boolean; data: WfDefinition[] }> {
     return apiJson<{ success: boolean; data: WfDefinition[] }>(`${WF_BASE}/wf/admin/definitions`, {
         headers: authHeaders(),

@@ -1,0 +1,476 @@
+{
+  "admin": {
+    "title": "Bảng điều khiển Quản trị",
+    "subtitle": "Quản lý thư mục OU, policy và nhật ký hoạt động",
+    "sectionLabel": "Mục",
+    "sections": {
+      "quickWins": "Quick Wins",
+      "coreAdmin": "Core Admin",
+      "stats": "Thống kê",
+      "models": "Models",
+      "security": "Bảo mật",
+      "ops": "Ops",
+      "ux": "UX"
+    },
+    "sectionDescriptions": {
+      "quickWins": "Sức khỏe, người dùng, audit",
+      "coreAdmin": "Vai trò, phiên, giả lập",
+      "stats": "Thông tin sử dụng & chi phí",
+      "models": "Nhà cung cấp, quản trị, điều phối",
+      "security": "MFA, SSO, tuân thủ",
+      "ops": "Metrics, cờ tính năng, thông báo",
+      "ux": "Tìm kiếm & hoạt động"
+    },
+    "addUser": "Thêm người dùng",
+    "closeForm": "Đóng",
+    "email": "Email",
+    "name": "Tên",
+    "password": "Mật khẩu",
+    "role": "Vai trò",
+    "user": "Người dùng",
+    "admin": "Quản trị viên",
+    "superAdmin": "Siêu quản trị viên",
+    "active": "Hoạt động",
+    "disabled": "Tắt",
+    "lastLogin": "Lần đăng nhập cuối",
+    "lock": "Khóa",
+    "unlock": "Mở khóa",
+    "resetPassword": "Đặt lại mật khẩu",
+    "delete": "Xóa",
+    "auditLogs": "Nhật ký kiểm toán",
+    "recentActions": "Hành động quản trị gần đây",
+    "time": "Thời gian",
+    "action": "Hành động",
+    "resource": "Tài nguyên",
+    "actor": "Diễn viên",
+    "ip": "IP",
+    "noAuditEntries": "Không có mục kiểm toán",
+    "createUser": "Tạo",
+    "failedToLoadUsers": "Tải người dùng thất bại",
+    "failedToLoadAuditLogs": "Tải nhật ký kiểm toán thất bại",
+    "createUserFailed": "Tạo người dùng thất bại",
+    "resetPasswordPrompt": "Mật khẩu mới cho {{email}}:",
+    "deleteUserConfirm": "Xóa người dùng {{email}}?",
+    "userManagement": "Quản lý người dùng",
+    "userSubtitle": "Quản lý tài khoản, vai trò và trạng thái truy cập.",
+    "searchPlaceholder": "Tìm người dùng",
+    "allRoles": "Tất cả vai trò",
+    "allStatus": "Tất cả trạng thái",
+    "loadingUsers": "Đang tải danh sách...",
+    "noUsers": "Không tìm thấy người dùng.",
+    "applyRole": "Áp dụng vai trò",
+    "roles": {
+      "user": "Người dùng (requester)",
+      "viewer": "Chỉ xem (viewer)",
+      "technician": "Kỹ thuật viên",
+      "storekeeper": "Thủ kho",
+      "itManager": "Quản lý CNTT",
+      "admin": "Quản trị viên"
+    },
+    "selectAll": "Chọn tất cả",
+    "selected": "Đã chọn {count}",
+    "cancel": "Hủy",
+    "userLegacy": "User (legacy)",
+    "tab": {
+      "users": "Người dùng",
+      "rbac": "Phân quyền",
+      "adRbac": "AD RBAC (OU)",
+      "logs": "Nhật ký",
+      "directory": "Thư mục (AD)",
+      "policies": "Thư viện Policy",
+      "effective": "Quyền thực tế"
+    },
+    "effective": {
+      "subtitle": "Xem quyền thực tế sau khi hợp nhất Classic RBAC + Policy System (DENY > ALLOW).",
+      "selectUser": "Chọn system user"
+    },
+    "policyLib": {
+      "searchPlaceholder": "Tìm policy...",
+      "createTitle": "Tạo Policy mới",
+      "namePlaceholder": "Tên policy",
+      "descPlaceholder": "Mô tả (tuỳ chọn)",
+      "creating": "Đang tạo...",
+      "create": "Tạo",
+      "cancel": "Huỷ",
+      "noPolicies": "Không có policy nào",
+      "edit": "Sửa",
+      "delete": "Xóa",
+      "selectPrompt": "Chọn một policy từ danh sách để chỉnh sửa",
+      "revert": "Huỷ thay đổi",
+      "save": "Lưu",
+      "saving": "Đang lưu...",
+      "tabPermissions": "Permissions",
+      "tabAssignments": "Assignments",
+      "filterPlaceholder": "Lọc...",
+      "grantAll": "Cấp tất cả",
+      "clearAll": "Xóa tất cả",
+      "noPerms": "Không tìm thấy permission nào",
+      "addAssignment": "Thêm Assignment",
+      "principalType": "Loại principal",
+      "principal": "Principal",
+      "effect": "Hiệu lực",
+      "scope": "Phạm vi",
+      "selectOption": "Chọn",
+      "inheritSubOUs": "Kế thừa sub-OUs",
+      "adding": "Đang thêm...",
+      "add": "Thêm",
+      "bulkAssign": "Gán hàng loạt theo OU",
+      "noAssignments": "Chưa có assignment nào",
+      "inherit": "Kế thừa",
+      "resources": {
+        "assets": "Tài sản",
+        "categories": "Danh mục",
+        "cmdb": "CMDB",
+        "warehouse": "Kho",
+        "inventory": "Kiểm kê",
+        "licenses": "Bản quyền phần mềm",
+        "accessories": "Phụ kiện",
+        "consumables": "Vật tư tiêu hao",
+        "components": "Linh kiện",
+        "checkout": "Mượn/trả",
+        "requests": "Yêu cầu",
+        "maintenance": "Bảo trì",
+        "reports": "Báo cáo",
+        "analytics": "Phân tích",
+        "depreciation": "Khấu hao",
+        "labels": "Nhãn",
+        "documents": "Tài liệu",
+        "automation": "Tự động hóa",
+        "integrations": "Tích hợp",
+        "security": "Bảo mật",
+        "admin": "Quản trị",
+        "rbac": "Phân quyền"
+      }
+    }
+  },
+  "adminRbac": {
+    "navLabel": "RBAC",
+    "title": "RBAC Quản trị",
+    "subtitle": "Vai trò, phân quyền và kiểm toán",
+    "tabs": {
+      "matrix": "Ma trận quyền",
+      "groups": "Gán theo nhóm",
+      "explain": "Giải thích quyền",
+      "audit": "Nhật ký"
+    },
+    "common": {
+      "danger": "Nguy hiểm"
+    },
+    "registry": {
+      "title": "Resource Registry",
+      "subtitle": "Tự động phát hiện key route/site/tính năng cho ACL scope RESOURCE.",
+      "searchPlaceholder": "Tìm key hoặc loại...",
+      "filters": {
+        "all": "Tất cả",
+        "valid": "Chỉ hợp lệ",
+        "invalid": "Chỉ không hợp lệ"
+      },
+      "exportCsv": "Xuất CSV",
+      "columns": {
+        "key": "Key",
+        "type": "Loại",
+        "valid": "Hợp lệ",
+        "actions": "Thao tác"
+      },
+      "valid": "hợp lệ",
+      "invalid": "không hợp lệ",
+      "copy": "Sao chép",
+      "empty": "Chưa phát hiện tài nguyên",
+      "grantOuTitle": "Cấp quyền theo OU",
+      "grantOuSubtitle": "Liên kết RBAC role với AD RBAC role và cấp theo phạm vi OU.",
+      "targetUsers": "Số user trong OU",
+      "targetGroups": "Số group trong OU",
+      "granting": "Đang cấp...",
+      "grantUsers": "Cấp role cho Users trong OU",
+      "grantGroups": "Cấp role cho Groups trong OU",
+      "messages": {
+        "grantedGroups": "Đã cấp cho {count} nhóm"
+      },
+      "errors": {
+        "chooseOuRole": "Vui lòng chọn OU và RBAC role trước.",
+        "missingMap": "Không tìm thấy ánh xạ AD role cho RBAC role đã chọn.",
+        "emptyOuGroups": "OU được chọn chưa có nhóm để cấp.",
+        "grantFailedGroups": "Không thể cấp RBAC role cho các group trong OU."
+      }
+    },
+    "adPanel": {
+      "modal": {
+        "createOu": "Tạo Organizational Unit",
+        "editOu": "Chỉnh sửa OU",
+        "createGroup": "Tạo Group",
+        "editGroup": "Chỉnh sửa Group",
+        "addMember": "Thêm thành viên",
+        "assignAcl": "Gán ACL",
+        "create": "Tạo mới",
+        "save": "Lưu",
+        "cancel": "Hủy"
+      },
+      "toolbar": {
+        "search": "Tìm kiếm...",
+        "newUser": "Tạo User",
+        "newGroup": "Tạo Group",
+        "assignAcl": "Gán ACL",
+        "savePerms": "Lưu quyền",
+        "saving": "Đang lưu..."
+      },
+      "tabs": {
+        "users": "Users",
+        "groups": "Groups",
+        "acl": "Access Rules",
+        "roles": "AD Roles",
+        "effective": "Effective Perms"
+      },
+      "empty": {
+        "noRoles": "Chưa có AD role nào.",
+        "selectRole": "← Chọn AD Role để quản lý quyền",
+        "noPermissions": "Chưa có permission nào được định nghĩa.",
+        "noLinkedAccount": "User này chưa có tài khoản hệ thống."
+      },
+      "form": {
+        "parentOu": "OU cha: {name}",
+        "memberType": "Loại thành viên",
+        "memberUser": "User",
+        "memberGroup": "Group (lồng nhau)",
+        "hint": "Tài nguyên phát hiện tự động gồm route/site/tab và các permission key."
+      }
+    },
+    "matrix": {
+      "title": "Ma Trận Vai Trò & Quyền",
+      "subtitle": "Cấu hình quyền theo vai trò và xem quyền hiệu lực.",
+      "actions": {
+        "save": "Lưu thay đổi",
+        "discard": "Hủy",
+        "export": "Xuất CSV",
+        "openAudit": "Mở nhật ký"
+      },
+      "search": "Tìm quyền",
+      "searchPlaceholder": "Tìm resource.action, tiêu đề hoặc mô tả...",
+      "dirty": "thay đổi",
+      "toggles": {
+        "differences": "Chỉ hiện khác biệt",
+        "inherited": "Hiện kế thừa",
+        "compact": "Chế độ gọn"
+      },
+      "filters": {
+        "resource": "Tài nguyên",
+        "action": "Hành động",
+        "tag": "Tag"
+      },
+      "bulk": {
+        "selected": "Đã chọn {{count}} ô",
+        "clearOverride": "Xóa override",
+        "clearSelection": "Bỏ chọn"
+      },
+      "columns": {
+        "permission": "Quyền"
+      },
+      "roleMenu": {
+        "title": "Thao tác vai trò",
+        "setVisible": "Đặt tất cả đang hiện → {{scope}}",
+        "clearVisible": "Xóa overrides (đang hiện)",
+        "inherits": "Kế thừa: {{base}}"
+      }
+    },
+    "review": {
+      "title": "Xem lại thay đổi",
+      "empty": "Không có thay đổi để xem.",
+      "subtitle": "Xem trước diff trước khi lưu. Quyền nhạy cảm yêu cầu lý do.",
+      "columns": {
+        "role": "Vai trò",
+        "permission": "Quyền",
+        "before": "Trước",
+        "after": "Sau",
+        "source": "Nguồn"
+      },
+      "dangerTitle": "Thay đổi quyền nhạy cảm",
+      "dangerHelp": "Bạn đang cấp các quyền nguy hiểm. Thao tác này sẽ được audit và cần có lý do rõ ràng.",
+      "acknowledge": "Tôi hiểu đây là quyền nhạy cảm",
+      "reason": "Lý do",
+      "reasonPlaceholder": "Giải thích vì sao cần thay đổi này...",
+      "reasonHint": "Tối thiểu 10 ký tự."
+    },
+    "groups": {
+      "title": "Gán Vai Trò Theo Nhóm",
+      "subtitle": "Gán vai trò theo nhóm và quản lý membership.",
+      "tabs": {
+        "byGroup": "Theo nhóm",
+        "byUser": "Theo người dùng"
+      },
+      "groupList": "Nhóm",
+      "searchGroups": "Tìm nhóm...",
+      "noGroupSelected": "Chọn một nhóm để xem thành viên.",
+      "actions": {
+        "addMembers": "Thêm thành viên"
+      },
+      "bulk": {
+        "role": "Vai trò cho lựa chọn",
+        "apply": "Áp dụng",
+        "selected": "{{count}} đã chọn"
+      },
+      "members": {
+        "user": "Người dùng",
+        "role": "Vai trò trong nhóm",
+        "empty": "Chưa có thành viên."
+      },
+      "add": {
+        "title": "Thêm thành viên",
+        "users": "Người dùng",
+        "usersHint": "Giữ Ctrl/Cmd để chọn nhiều người dùng.",
+        "role": "Vai trò"
+      },
+      "userPicker": "Xem theo người dùng",
+      "searchUsers": "Tìm người dùng...",
+      "noUserSelected": "Chọn một người dùng để chỉnh sửa.",
+      "user": {
+        "globalRole": "Vai trò toàn cục",
+        "memberships": "Memberships",
+        "noMemberships": "Chưa thuộc nhóm nào.",
+        "addMembership": "Thêm vào nhóm",
+        "group": "Nhóm",
+        "role": "Vai trò"
+      }
+    },
+    "explain": {
+      "title": "Giải Thích Quyền",
+      "subtitle": "Giải thích quyền hiệu lực của người dùng theo ngữ cảnh.",
+      "inputs": "Đầu vào",
+      "inputsHelp": "Chọn người dùng, quyền và ngữ cảnh (tuỳ chọn) để giải thích.",
+      "user": "Người dùng",
+      "userSearch": "Tìm người dùng...",
+      "globalRole": "Vai trò toàn cục",
+      "permission": "Quyền",
+      "permissionSearch": "Tìm quyền...",
+      "contextGroup": "Nhóm ngữ cảnh",
+      "contextDepartment": "Phòng ban",
+      "ownerUserId": "Owner user id (tuỳ chọn)",
+      "ownerPlaceholder": "Tuỳ chọn owner user id",
+      "actions": {
+        "explain": "Giải thích",
+        "openMatrix": "Mở trong ma trận"
+      },
+      "empty": "Chạy giải thích để xem trace.",
+      "result": "Kết quả hiệu lực",
+      "effective": "Scope hiệu lực",
+      "source": "Nguồn quyết định",
+      "role": "Vai trò",
+      "trace": "Các bước truy vết",
+      "inheritChain": "Chuỗi kế thừa"
+    },
+    "audit": {
+      "title": "Nhật Ký RBAC",
+      "subtitle": "Timeline read-only cho các thay đổi RBAC.",
+      "filters": {
+        "dangerousOnly": "Chỉ quyền nguy hiểm",
+        "search": "Tìm kiếm",
+        "searchPlaceholder": "Tìm theo người thực hiện, hành động, đối tượng, lý do..."
+      },
+      "count": "sự kiện",
+      "empty": "Không có mục nhật ký.",
+      "columns": {
+        "time": "Thời gian",
+        "actor": "Người thực hiện",
+        "target": "Đối tượng",
+        "action": "Hành động",
+        "reason": "Lý do"
+      },
+      "detailTitle": "Chi tiết nhật ký"
+    },
+    "panelTitle": "Quản lý phân quyền (RBAC)",
+    "panelSubtitle": "{roleCount} vai trò · {permCount} quyền hạn",
+    "unsavedRoles": "{count} vai trò chưa lưu",
+    "loading": "Đang tải cây phân quyền...",
+    "roles": "Vai trò",
+    "userCount": "{count} người",
+    "systemRoles": "Vai trò hệ thống",
+    "unsaved": "Chưa lưu",
+    "synced": "Đã đồng bộ",
+    "granted": "Đã cấp:",
+    "notGranted": "Chưa cấp:",
+    "pendingChanges": "{count} thay đổi chưa lưu",
+    "saveRole": "Lưu vai trò",
+    "revert": "Hoàn tác",
+    "searchPermissions": "Tìm quyền hạn...",
+    "grantAll": "Cấp hết",
+    "revokeAll": "Thu hồi hết",
+    "expandAll": "Mở tất cả",
+    "collapseAll": "Thu tất cả",
+    "onlyChanges": "Chỉ thay đổi",
+    "noResults": "Không tìm thấy kết quả cho \"{query}\"",
+    "noChanges": "Không có thay đổi nào",
+    "noPermissions": "Không có quyền hạn nào",
+    "justGranted": "Vừa cấp",
+    "justRevoked": "Vừa thu hồi",
+    "legendFullGrant": "Cấp toàn nhóm",
+    "legendPartialGrant": "Cấp một phần",
+    "legendNotGranted": "Chưa cấp",
+    "legendUnsaved": "Thay đổi chưa lưu",
+    "helpTip": "Click nhóm để mở/đóng · Click checkbox nhóm để bật/tắt toàn bộ",
+    "selectRoleHint": "Chọn một vai trò bên trái để xem cây phân quyền",
+    "errors": {
+      "loadFailed": "Không thể tải dữ liệu RBAC",
+      "saveFailed": "Lỗi khi lưu phân quyền"
+    },
+    "savedSuccess": "Đã lưu phân quyền cho vai trò \"{role}\"",
+    "resources": {
+      "assets": "Tài sản",
+      "categories": "Danh mục",
+      "warehouses": "Kho hàng",
+      "inventory": "Kiểm kê",
+      "licenses": "Giấy phép",
+      "accessories": "Phụ kiện",
+      "consumables": "Vật tư tiêu hao",
+      "components": "Linh kiện",
+      "checkouts": "Mượn / Trả",
+      "requests": "Yêu cầu",
+      "maintenance": "Bảo trì",
+      "reports": "Báo cáo",
+      "analytics": "Phân tích",
+      "depreciation": "Khấu hao",
+      "labels": "Nhãn",
+      "documents": "Tài liệu",
+      "automation": "Tự động hóa",
+      "integrations": "Tích hợp",
+      "security": "Bảo mật",
+      "admin": "Quản trị",
+      "cmdb": "CMDB",
+      "warehouse": "Kho hàng",
+      "checkout": "Mượn / Trả",
+      "site": "Hiển thị trang / tab"
+    },
+    "actions": {
+      "view": "Xem",
+      "create": "Tạo",
+      "edit": "Sửa",
+      "delete": "Xóa",
+      "manage": "Quản lý",
+      "approve": "Duyệt",
+      "export": "Xuất",
+      "import": "Nhập",
+      "assign": "Gán",
+      "upload": "Tải lên",
+      "configure": "Cấu hình",
+      "read": "Xem",
+      "update": "Sửa",
+      "users": "Người dùng",
+      "roles": "Vai trò",
+      "settings": "Cấu hình",
+      "show": "Hiện"
+    },
+    "roleLabels": {
+      "user": "Người dùng",
+      "viewer": "Chỉ xem",
+      "technician": "Kỹ thuật viên",
+      "storekeeper": "Thủ kho",
+      "itManager": "Quản lý CNTT",
+      "admin": "Quản trị viên",
+      "requester": "Người dùng",
+      "warehouse_keeper": "Thủ kho",
+      "it_asset_manager": "Quản lý CNTT"
+    },
+    "saveAll": "Lưu tất cả",
+    "saving": "Đang lưu...",
+    "grantAllInGroup": "Cấp tất cả trong nhóm",
+    "revokeAllInGroup": "Thu hồi tất cả trong nhóm",
+    "permCountLabel": "{shown} / {total} quyền"
+  }
+}

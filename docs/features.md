@@ -2,7 +2,26 @@
 
 ## Tổng quan
 
-Hệ thống có **48 routes** chính, chia thành các module chức năng:
+Hệ thống hiện có **59 trang Svelte (`+page.svelte`)** đã implement trong `apps/web-ui/src/routes`, chia thành các module chức năng.
+
+Để xem danh sách đầy đủ theo codebase (frontend + backend + packages), xem thêm:
+- `feature-inventory.md`
+- `huong-dan-day-du.md`
+
+## Bản đồ nhanh route theo nhóm
+
+### Public/Shellless
+- `/`, `/login`, `/logout`, `/setup`, `/forbidden`
+- `/print/custom/[id]`, `/print/[type]/[id]`
+- `/[legacy]`, `/[legacy]/[...rest]`
+- `/inbox`, `/inbox/[id]`, `/notifications`
+
+### Main app shell (group `(assets)`)
+- `/admin`, `/analytics`, `/automation`, `/help`, `/integrations`, `/security`
+- `/assets/*` (list, new, detail, catalogs, purchase plans, asset increases)
+- `/cmdb/*` (cis, types, services, changes, reports, relationships/import)
+- `/warehouse/*` (warehouses, parts, stock, documents, ledger, reconciliation, repairs, reports)
+- `/maintenance/*`, `/inventory/*`, `/requests`, `/me/*`, `/reports/*`, `/settings/*`
 
 ## Sơ đồ Module
 
@@ -42,6 +61,7 @@ Hệ thống có **48 routes** chính, chia thành các module chức năng:
 ### Logout (`/logout`)
 - Xóa session/token khỏi localStorage
 - Redirect về `/login`
+- Route public để tránh vòng lặp `logout -> login -> logout`
 
 ### Forbidden (`/forbidden`)
 - Trang hiển thị khi user không có quyền truy cập

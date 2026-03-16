@@ -1,0 +1,187 @@
+{
+  "analytics": {
+    "pageTitle": "Analytics",
+    "pageSubtitle": "Asset analytics, cost tracking, and anomaly insights",
+    "validation": {
+      "assetRequired": "Asset is required",
+      "amountPositive": "Amount must be > 0"
+    },
+    "toast": {
+      "snapshotCreated": "Snapshot created successfully",
+      "costAdded": "Cost record added successfully"
+    },
+    "actions": {
+      "snapshot": "Take Snapshot",
+      "addCost": "Add Cost"
+    },
+    "stats": {
+      "totalAssets": "Total Assets",
+      "active": "Active",
+      "inRepair": "In Repair",
+      "retired": "Retired",
+      "totalCost": "Total Cost"
+    },
+    "tabs": {
+      "overview": "Overview",
+      "snapshots": "Snapshots",
+      "costs": "Costs",
+      "anomalies": "Anomalies"
+    },
+    "costBreakdown": "Cost Breakdown",
+    "noCostData": "No cost data available",
+    "anomalySummary": "Anomaly Summary",
+    "noAnomalies": "No anomalies detected",
+    "assetTrend": "Asset Trend (30 days)",
+    "noSnapshots": "No snapshots yet",
+    "createFirstSnapshot": "Create first snapshot",
+    "noCosts": "No cost records yet",
+    "addFirstCost": "Add first cost record",
+    "severity": {
+      "critical": "Critical",
+      "high": "High",
+      "medium": "Medium",
+      "low": "Low"
+    },
+    "snapshotCols": {
+      "date": "Date",
+      "total": "Total",
+      "active": "Active",
+      "inRepair": "In Repair",
+      "retired": "Retired",
+      "totalCost": "Total Cost"
+    },
+    "costCols": {
+      "asset": "Asset",
+      "type": "Type",
+      "amount": "Amount",
+      "currency": "Currency",
+      "date": "Date",
+      "description": "Description"
+    },
+    "modal": {
+      "addCostTitle": "Add Cost Record"
+    },
+    "field": {
+      "assetId": "Asset ID",
+      "costType": "Cost Type",
+      "amount": "Amount",
+      "currency": "Currency",
+      "description": "Description"
+    },
+    "costTypes": {
+      "purchase": "Purchase",
+      "maintenance": "Maintenance",
+      "license": "License",
+      "insurance": "Insurance",
+      "depreciation": "Depreciation",
+      "other": "Other"
+    }
+  },
+  "reports": {
+    "noData": "No data",
+    "unknownError": "Unknown error",
+    "results": "{count} results",
+    "exportCsv": "Export CSV",
+    "showingOfTotal": "Showing {shown} / {total} —",
+    "forAll": "for all",
+    "vsPreviousPeriod": "vs previous period",
+    "showingResults": "Showing {from}–{to} / {total} results",
+    "appliedView": "Applied view: ",
+    "sidebar": {
+      "heading": "Reports",
+      "saved": "Saved"
+    },
+    "title": "Reports",
+    "refreshData": "Refresh data",
+    "detailData": "Detail Data",
+    "updatedAt": "Updated at",
+    "col": {
+      "assetCode": "Asset Code",
+      "category": "Category",
+      "location": "Location",
+      "status": "Status",
+      "createdAt": "Created Date",
+      "month": "Month",
+      "created": "Created",
+      "retired": "Retired",
+      "assetCodeShort": "Asset Code",
+      "name": "Name",
+      "warrantyEnd": "Warranty Expiry",
+      "total": "Total",
+      "inUse": "In Use",
+      "inStock": "In Stock",
+      "code": "Code",
+      "partName": "Item Name",
+      "warehouse": "Warehouse",
+      "onHand": "On Hand",
+      "reserved": "Reserved",
+      "receipts": "Receipts",
+      "issues": "Issues",
+      "minLevel": "Min Level",
+      "shortfall": "Shortfall",
+      "severity": "Severity",
+      "closed": "Closed",
+      "avgHours": "Avg (hours)",
+      "title": "Title",
+      "openedAt": "Opened Date",
+      "asset": "Asset",
+      "requestType": "Request Type",
+      "ciType": "CI Type",
+      "totalCis": "Total CIs",
+      "active": "Active",
+      "ciName": "CI Name",
+      "type": "Type",
+      "attrCount": "Attribute Count",
+      "materialGroup": "Material Group",
+      "unit": "Unit",
+      "totalQty": "Total Qty",
+      "unitCost": "Unit Cost",
+      "totalValue": "Total Value",
+      "reorderPoint": "Reorder Point",
+      "lotNumber": "Lot Number",
+      "expiryDate": "Expiry Date",
+      "quantity": "Quantity",
+      "available": "Available"
+    },
+    "chart": {
+      "byStatus": "By Status",
+      "byCategoryTop10": "By Category (Top 10)",
+      "byLocationTop10": "By Location (Top 10)",
+      "monthlyTrend": "Monthly Trend",
+      "warrantyExpiring": "Warranty Expiring",
+      "assetsByLocation": "Assets by Location",
+      "topStockItems": "Top 10 Stock Items",
+      "monthlyMovement": "Monthly Receipts / Issues",
+      "lowStockTop10": "Low Stock Items (Top 10)",
+      "bySeverity": "Tickets by Severity",
+      "avgProcessingHours": "Avg Processing Time (hours)",
+      "maintenanceStatus": "Maintenance Ticket Status",
+      "requestsByStatus": "Requests by Status",
+      "byRequestType": "By Request Type",
+      "cisByType": "CIs by Type",
+      "activeVsOther": "Active vs Other",
+      "stockByWarehouse": "Stock by Warehouse",
+      "stockByMaterialGroup": "Stock by Material Group",
+      "valuationByWarehouse": "Valuation by Warehouse",
+      "valuationByGroup": "Valuation by Material Group",
+      "shortfallTop10": "Shortfall (Top 10)",
+      "expiringByMonth": "Expiring by Month",
+      "availableByWarehouse": "Available by Warehouse"
+    },
+    "filter": {
+      "savedFilter": "Saved filter: ",
+      "title": "Filters",
+      "category": "Category",
+      "location": "Location",
+      "warehouse": "Warehouse",
+      "status": "Status",
+      "statusPlaceholder": "Status...",
+      "saveFilter": "Save filter",
+      "savedView": "Saved filter",
+      "saveView": "Save filter"
+    },
+    "drilldownTitle": "Drilldown: {dimension} = {value}",
+    "totalResults": "{total} results",
+    "showingPartial": "Showing {shown} / {total} — Export CSV for all"
+  }
+}

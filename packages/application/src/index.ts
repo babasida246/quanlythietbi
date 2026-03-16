@@ -96,3 +96,4 @@ export { SecurityService } from './compliance/SecurityService.js'
 // Feature: AD-style RBAC
 export { AuthorizationService } from './rbac/AuthorizationService.js'
 export { RbacAdminService } from './rbac/RbacAdminService.js'
+export { PermissionCenterService } from './rbac/PermissionCenterService.js'

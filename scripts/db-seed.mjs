@@ -25,6 +25,7 @@ const SEED_FILES = [
     'seed-analytics.sql',       // 6. Analytics: reports, dashboards
     'seed-chat-ai.sql',         // 7. AI/Chat: providers, models, channels
     'seed-ops.sql',             // 8. Ops: alerts, notifications, RBAC
+    'seed-ad-rbac-resources.sql', // 9. AD RBAC resource directives + role mapping
     'seed-qlts-demo.sql',       // 9. CMDB CIs, wf_definitions (needed by next files)
     'seed-workflows.sql',       // 10. wf_requests + automation (depends on wf_definitions)
     'seed-inventory-audit.sql', // 11. Inventory audit (depends on cmdb_cis)

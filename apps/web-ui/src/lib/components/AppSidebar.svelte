@@ -1,15 +1,12 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
   import { page } from '$app/state';
   import { _, isLoading } from '$lib/i18n';
   import type { Capabilities } from '$lib/auth/capabilities';
-  import { loadHiddenSiteHrefs } from '$lib/config/hiddenSites';
   import {
     Bell,
     ClipboardList,
     Database,
     HardDrive,
-    Inbox,
     Layers,
     LogIn,
     LogOut,
@@ -18,7 +15,6 @@
     Wrench,
     BarChart3,
     TrendingUp,
-    Zap,
     Link,
     ShieldCheck,
     HelpCircle,
@@ -44,7 +40,6 @@
   };
 
   let { visible, capabilities, userEmail, userRole, onclose }: Props = $props();
-  let hiddenHrefs = $state<string[]>([]);
 
   const myItems: NavItem[] = [
     { href: '/me/assets', labelKey: 'nav.myAssets', icon: HardDrive, testId: 'nav-my-assets', requires: (caps) => caps.assets.read },
@@ -87,21 +82,9 @@
     { href: '/help', labelKey: 'nav.help', icon: HelpCircle, testId: 'nav-help' }
   ];
 
-  onMount(async () => {
-    try {
-      hiddenHrefs = await loadHiddenSiteHrefs();
-    } catch {
-      hiddenHrefs = [];
-    }
-  });
-
-  function isTemporarilyHidden(item: NavItem): boolean {
-    return hiddenHrefs.includes(item.href);
-  }
-
-  const visibleMyItems = $derived.by(() => myItems.filter((item) => (!item.requires || item.requires(capabilities)) && !isTemporarilyHidden(item)));
-  const visibleAssetItems = $derived.by(() => assetItems.filter((item) => (!item.requires || item.requires(capabilities)) && !isTemporarilyHidden(item)));
-  const visibleSupportItems = $derived.by(() => supportItems.filter((item) => (!item.requires || item.requires(capabilities)) && !isTemporarilyHidden(item)));
+  const visibleMyItems = $derived(myItems.filter((item) => !item.requires || item.requires(capabilities)));
+  const visibleAssetItems = $derived(assetItems.filter((item) => !item.requires || item.requires(capabilities)));
+  const visibleSupportItems = $derived(supportItems.filter((item) => !item.requires || item.requires(capabilities)));
 
   const activeItemClass = 'sidebar-nav-active';
   const inactiveItemClass = 'sidebar-nav-item';

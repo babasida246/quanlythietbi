@@ -1,0 +1,815 @@
+{
+  "netops": {
+    "title": "NetOps",
+    "netopsCopilot": "NetOps Copilot",
+    "devices": "Devices",
+    "changes": "Changes",
+    "rulepacks": "Rulepacks",
+    "tools": "Tools",
+    "fieldKit": "Field Kit",
+    "configs": "Configs",
+    "field": {
+      "title": "Field Kit",
+      "subtitle": "Guided, safe troubleshooting for field engineers.",
+      "errors": {
+        "loadDevicesFailed": "Failed to load devices"
+      }
+    },
+    "toolsPage": {
+      "title": "NetOps Config Generator",
+      "subtitle": "Generate vendor-specific CLI snippets for network devices.",
+      "vendor": "Vendor",
+      "vendorOptions": {
+        "cisco": "Cisco",
+        "fortigate": "Fortigate",
+        "mikrotik": "MikroTik"
+      },
+      "action": "Action",
+      "params": "Params (JSON)",
+      "generate": "Generate",
+      "generating": "Generating...",
+      "command": "Command",
+      "errors": {
+        "generateFailed": "Failed to generate"
+      },
+      "actions": {
+        "secureBaseline": "Secure baseline",
+        "baseline": "Baseline",
+        "wanUplink": "WAN uplink",
+        "lanVlan": "LAN VLAN",
+        "dhcpServer": "DHCP server",
+        "staticRoute": "Static route",
+        "ospf": "OSPF",
+        "natOverload": "NAT overload",
+        "firewallBasic": "Basic firewall",
+        "loadBalancing": "Load balancing",
+        "bridge": "Bridge"
+      }
+    },
+    "rulepacksPage": {
+      "total": "{{count}} rulepacks",
+      "activeLabel": "{{name}} is active",
+      "emptyTitle": "No rulepacks found",
+      "emptySubtitle": "Rulepacks define lint rules for configuration validation.",
+      "version": "Version",
+      "vendorScope": "Vendor Scope",
+      "rules": "Rules",
+      "created": "Created",
+      "summary": "Rule Summary",
+      "viewJson": "View JSON",
+      "activate": "Activate",
+      "activating": "Activating...",
+      "severity": {
+        "critical": "Critical",
+        "high": "High",
+        "med": "Med",
+        "low": "Low"
+      },
+      "errors": {
+        "loadFailed": "Failed to load rulepacks",
+        "activateFailed": "Failed to activate rulepack"
+      }
+    },
+    "changesPage": {
+      "title": "Change Requests",
+      "summary": "{{count}} changes",
+      "filters": {
+        "search": "Search",
+        "searchPlaceholder": "Search title...",
+        "status": "Status",
+        "risk": "Risk Tier",
+        "allStatuses": "All Statuses",
+        "allRiskLevels": "All Risk Levels"
+      },
+      "statuses": {
+        "draft": "Draft",
+        "planned": "Planned",
+        "candidate_ready": "Candidate Ready",
+        "verified": "Verified",
+        "waiting_approval": "Waiting Approval",
+        "approved": "Approved",
+        "deploying": "Deploying",
+        "deployed": "Deployed",
+        "closed": "Closed",
+        "rejected": "Rejected"
+      },
+      "risks": {
+        "low": "Low",
+        "med": "Medium",
+        "high": "High"
+      },
+      "actions": {
+        "newChange": "New Change",
+        "refresh": "Refresh",
+        "clearFilters": "Clear Filters",
+        "view": "View",
+        "createFirst": "Create your first change"
+      },
+      "empty": "No change requests found",
+      "table": {
+        "title": "Title",
+        "status": "Status",
+        "risk": "Risk",
+        "intentType": "Intent Type",
+        "devices": "Devices",
+        "created": "Created",
+        "actions": "Actions"
+      }
+    },
+    "changeForm": {
+      "back": "Back to Changes",
+      "title": "Create Change Request",
+      "subtitle": "Define your network change intent and scope",
+      "steps": {
+        "basics": "Basics",
+        "scope": "Scope",
+        "parameters": "Parameters",
+        "review": "Review"
+      },
+      "stepDescriptions": {
+        "basics": "Title and intent type",
+        "scope": "Select devices",
+        "parameters": "Configure intent",
+        "review": "Confirm and create"
+      },
+      "fields": {
+        "title": "Title",
+        "titlePlaceholder": "e.g., Add VLAN 100 for PACS network",
+        "intentType": "Intent Type",
+        "intentPlaceholder": "Select intent type...",
+        "riskTier": "Risk Tier",
+        "riskNote": "Risk tier determines approval requirements",
+        "selectDevices": "Select Devices",
+        "selectDevicesSubtitle": "Choose devices this change will affect",
+        "intentParameters": "Intent Parameters",
+        "parameters": "Parameters (JSON)",
+        "parametersHelp": "Provide intent-specific parameters in JSON format",
+        "reviewConfirm": "Review and Confirm",
+        "devices": "Devices",
+        "selectedCount": "Selected: {{count}} devices",
+        "parametersLabel": "Parameters"
+      },
+      "intents": {
+        "VLAN_CREATE_AND_TRUNK": "Create VLAN and Trunk",
+        "FORTIGATE_POLICY_ALLOW_SERVICE_WITH_LOG": "FortiGate Allow Policy with Logging",
+        "FORTIGATE_NAT_SNAT_DNAT": "FortiGate NAT (SNAT/DNAT)",
+        "CUSTOM": "Custom Intent"
+      },
+      "cta": {
+        "cancel": "Cancel",
+        "previous": "Previous",
+        "next": "Next",
+        "create": "Create Change",
+        "creating": "Creating..."
+      },
+      "alerts": {
+        "noDevices": "No devices available. Add devices first before creating changes.",
+        "selectedDevices": "Selected: {{count}} devices"
+      }
+    },
+    "devicesPage": {
+      "title": "NetOps Devices",
+      "summary": "{{count}} devices",
+      "filters": {
+        "search": "Search",
+        "searchPlaceholder": "Name or IP...",
+        "vendor": "Vendor",
+        "site": "Site",
+        "role": "Role",
+        "allVendors": "All Vendors",
+        "allSites": "All Sites",
+        "allRoles": "All Roles"
+      },
+      "roles": {
+        "core": "Core",
+        "distribution": "Distribution",
+        "access": "Access",
+        "edge": "Edge",
+        "firewall": "Firewall",
+        "wan": "WAN"
+      },
+      "actions": {
+        "importCsv": "Import CSV",
+        "addDevice": "Add Device",
+        "refresh": "Refresh",
+        "clearFilters": "Clear Filters",
+        "view": "View"
+      },
+      "table": {
+        "name": "Name",
+        "vendor": "Vendor",
+        "role": "Role",
+        "site": "Site",
+        "mgmtIp": "Management IP",
+        "lastSnapshot": "Last Snapshot",
+        "actions": "Actions"
+      },
+      "empty": "No devices found",
+      "emptyCta": "Add your first device",
+      "modals": {
+        "createTitle": "Add New Device",
+        "fields": {
+          "name": "Name",
+          "vendor": "Vendor",
+          "model": "Model",
+          "osVersion": "OS Version",
+          "site": "Site",
+          "role": "Role",
+          "mgmtIp": "Management IP"
+        },
+        "actions": {
+          "cancel": "Cancel",
+          "create": "Create Device",
+          "creating": "Creating..."
+        },
+        "importTitle": "Import Devices from CSV",
+        "csvFile": "CSV File",
+        "formatTitle": "CSV Format:",
+        "formatExample": "name,vendor,model,os_version,site,role,mgmt_ip\ncore-sw-01,cisco,C9300,17.6.3,HQ,core,192.168.1.1"
+      }
+    },
+    "deviceDetail": {
+      "actions": {
+        "pullConfig": "Pull Config",
+        "pulling": "Pulling...",
+        "collectFacts": "Collect Facts",
+        "collecting": "Collecting...",
+        "runLint": "Run Lint"
+      },
+      "tabs": {
+        "facts": "Facts",
+        "configs": "Config Versions"
+      },
+      "facts": {
+        "empty": "No facts collected yet. Click \"Collect Facts\" to gather device information."
+      },
+      "configs": {
+        "empty": "No configs found. Click \"Pull Config\" to fetch the current configuration.",
+        "table": {
+          "collectedAt": "Collected At",
+          "source": "Source",
+          "createdBy": "Created By",
+          "note": "Note",
+          "actions": "Actions"
+        }
+      },
+      "lint": {
+        "title": "Run Lint Check",
+        "selectRulepack": "Select Rulepack",
+        "alert": "This will run lint checks on the latest config version.",
+        "actions": {
+          "cancel": "Cancel",
+          "run": "Run Lint",
+          "running": "Running..."
+        },
+        "noConfigs": "No configs available. Pull a config first before running lint."
+      }
+    },
+    "changeDetail": {
+      "intentParameters": "Intent Parameters",
+      "planResults": "Plan Results",
+      "verificationResults": "Verification Results",
+      "approvalDecision": "Approval Decision",
+      "deviceChangeSets": "Device Change Sets",
+      "candidateConfiguration": "Candidate Configuration",
+      "configurationDiff": "Configuration Diff",
+      "precheckSteps": "Precheck Steps",
+      "applySteps": "Apply Steps",
+      "postcheckSteps": "Postcheck Steps",
+      "rollbackPlan": "Rollback Plan"
+    },
+    "configsDetail": {
+      "rawConfiguration": "Raw Configuration",
+      "normalizedConfiguration": "Normalized Configuration",
+      "lintResults": "Lint Results",
+      "configurationDiff": "Configuration Diff",
+      "runLintCheck": "Run Lint Check",
+      "selectRulepack": "Select Rulepack",
+      "compareConfigurations": "Compare Configurations",
+      "compareWith": "Compare with"
+    },
+    "backTo": "back To",
+    "backToChanges": "back To Changes",
+    "compare": "compare",
+    "compareConfigs": "compare Configs",
+    "compareWith": "compare With",
+    "comparing": "comparing",
+    "noOtherConfigs": "no Other Configs",
+    "parseNormalize": "parse Normalize",
+    "parsing": "parsing",
+    "runLint": "run Lint",
+    "running": "running",
+    "selectConfigVersion": "select Config Version",
+    "generator": {
+      "title": "Network CLI Generator",
+      "subtitle": "Vendor-aware, safe-by-default CLI generation for network devices.",
+      "deviceContext": "Device Context",
+      "device": "Device",
+      "deviceEmpty": "No devices",
+      "deviceHelp": "Select the target device profile.",
+      "vendor": "Vendor",
+      "vendorHelp": "Renderer determines CLI output.",
+      "environment": "Environment",
+      "environmentHelp": "Prod enforces approval and dangerous command checks.",
+      "requireDevice": "Device and hostname are required to generate CLI.",
+      "actions": {
+        "openSsh": "Open SSH Terminal",
+        "generate": "Generate CLI"
+      },
+      "profile": {
+        "label": "CLI Profile",
+        "help": "Apply a saved baseline to pre-fill settings.",
+        "apply": "Apply profile...",
+        "save": "Save as profile",
+        "active": "Profile",
+        "name": "Profile name",
+        "includeHostname": "Include hostname in profile",
+        "saveTitle": "Save CLI Profile"
+      },
+      "intent": {
+        "title": "Intent Input",
+        "badge": "AI assist",
+        "placeholder": "e.g. Create VLAN 30 for imaging, subnet 10.30.0.0/24, gateway 10.30.0.1",
+        "apply": "Apply intent",
+        "applied": "Intent applied. Review summary before generating."
+      },
+      "step": {
+        "configured": "Configured",
+        "empty": "Empty"
+      },
+      "playbook": {
+        "toggle": "Playbook mode",
+        "bootstrap": "Bootstrap",
+        "hardening": "Hardening",
+        "maintenance": "Maintenance",
+        "rollback": "Rollback"
+      },
+      "base": {
+        "title": "Base Configuration",
+        "description": "Identity, management scope, and baseline security.",
+        "hostname": "Hostname",
+        "hostnameHelp": "Used as device identity in generated CLI.",
+        "mgmtCidr": "Management allowlist (CIDR)",
+        "mgmtHelp": "Limit admin access to trusted ranges.",
+        "firewall": "Enable baseline firewall",
+        "snmp": "SNMP Community"
+      },
+      "services": {
+        "title": "Services",
+        "description": "SSH, DNS, and NTP configuration.",
+        "sshEnabled": "SSH enabled",
+        "sshVersion": "SSH version",
+        "allowPassword": "Allow password auth",
+        "passwordWarning": "Password auth enabled",
+        "ntpServers": "NTP servers",
+        "dnsServers": "DNS servers"
+      },
+      "network": {
+        "title": "Network",
+        "description": "VLANs and interface assignments.",
+        "vlans": "VLANs",
+        "interfaces": "Interfaces",
+        "routes": "Static Routes",
+        "addVlan": "Add VLAN",
+        "addInterface": "Add Interface",
+        "addRoute": "Add Route",
+        "emptyVlansTitle": "No VLANs configured",
+        "emptyVlansDescription": "Add VLANs to map subnets and gateways.",
+        "emptyInterfacesTitle": "No interfaces configured",
+        "emptyInterfacesDescription": "Add interface roles and management IPs.",
+        "emptyRoutesTitle": "No static routes configured",
+        "emptyRoutesDescription": "Add default or site routes as needed.",
+        "vlanId": "VLAN ID",
+        "vlanName": "Name",
+        "vlanSubnet": "Subnet",
+        "vlanGateway": "Gateway",
+        "interfaceName": "Interface",
+        "interfaceRole": "Role",
+        "interfaceIp": "IP Address",
+        "interfaceMask": "Subnet Mask",
+        "interfaceVlan": "VLAN",
+        "interfaceDescription": "Description",
+        "roleUplink": "Uplink",
+        "roleAccess": "Access",
+        "routeDestination": "Destination",
+        "routeNetmask": "Netmask",
+        "routeNextHop": "Next Hop"
+      },
+      "routing": {
+        "title": "Routing",
+        "description": "Static and dynamic routing policies.",
+        "static": "Static Routes",
+        "ospfEnabled": "Enable OSPF",
+        "ospfRouterId": "OSPF Router ID",
+        "addOspfArea": "Add OSPF Area",
+        "emptyOspfTitle": "No OSPF areas defined",
+        "emptyOspfDescription": "Add areas and networks to advertise.",
+        "ospfArea": "Area",
+        "ospfNetworks": "Networks",
+        "bgpEnabled": "Enable BGP",
+        "bgpLocalAs": "Local AS",
+        "addBgpNeighbor": "Add BGP Neighbor",
+        "emptyBgpNeighborsTitle": "No BGP neighbors",
+        "emptyBgpNeighborsDescription": "Add neighbor IPs and remote AS values.",
+        "bgpNeighbor": "Neighbor",
+        "bgpRemoteAs": "Remote AS",
+        "bgpNetworks": "Advertised Networks",
+        "addBgpNetwork": "Add Network",
+        "emptyBgpNetworksTitle": "No BGP networks",
+        "emptyBgpNetworksDescription": "Add networks to advertise via BGP.",
+        "bgpNetwork": "Network",
+        "ripEnabled": "Enable RIP",
+        "ripVersion": "RIP Version",
+        "ripNetwork": "RIP Network"
+      },
+      "security": {
+        "title": "Firewall & NAT",
+        "description": "Policy rules and address translation.",
+        "firewallRules": "Firewall Rules",
+        "natRules": "NAT Rules",
+        "addFirewallRule": "Add Firewall Rule",
+        "addNatRule": "Add NAT Rule",
+        "emptyFirewallTitle": "No firewall rules",
+        "emptyFirewallDescription": "Add input/output/forward rules.",
+        "emptyNatTitle": "No NAT rules",
+        "emptyNatDescription": "Add source/destination NAT policies.",
+        "chain": "Chain",
+        "protocol": "Protocol",
+        "source": "Source",
+        "destination": "Destination",
+        "port": "Port",
+        "action": "Action",
+        "natType": "NAT Type",
+        "translate": "Translate To",
+        "interface": "Interface",
+        "comment": "Comment"
+      },
+      "vpn": {
+        "title": "VPN & Tunnels",
+        "description": "Site-to-site and remote access tunnels.",
+        "ipsecTunnels": "IPsec Tunnels",
+        "wireguardTunnels": "WireGuard Tunnels",
+        "l2tpServers": "L2TP Servers",
+        "addIpsec": "Add IPsec Tunnel",
+        "addWireguard": "Add WireGuard Tunnel",
+        "addL2tp": "Add L2TP Server",
+        "emptyIpsecTitle": "No IPsec tunnels",
+        "emptyIpsecDescription": "Add IPsec tunnels for site-to-site VPN.",
+        "emptyWireguardTitle": "No WireGuard tunnels",
+        "emptyWireguardDescription": "Add WireGuard tunnels for modern VPN.",
+        "emptyL2tpTitle": "No L2TP servers",
+        "emptyL2tpDescription": "Add L2TP server profiles.",
+        "tunnelName": "Name",
+        "local": "Local",
+        "remote": "Remote",
+        "localSubnet": "Local subnet",
+        "remoteSubnet": "Remote subnet",
+        "ikeVersion": "IKE Version",
+        "psk": "Pre-shared key",
+        "interfaceAddress": "Interface address",
+        "listenPort": "Listen port",
+        "privateKey": "Private key",
+        "peerPublicKey": "Peer public key",
+        "peerAllowedIps": "Peer allowed IPs",
+        "peerEndpoint": "Peer endpoint",
+        "peerCount": "Peers",
+        "pool": "Address pool"
+      },
+      "qos": {
+        "title": "QoS",
+        "description": "Queue and traffic shaping policies.",
+        "queues": "Queues",
+        "addQueue": "Add Queue",
+        "emptyTitle": "No QoS queues",
+        "emptyDescription": "Add queues to shape or prioritize traffic.",
+        "name": "Name",
+        "target": "Target",
+        "limit": "Max limit",
+        "priority": "Priority",
+        "comment": "Comment"
+      },
+      "monitoring": {
+        "title": "Monitoring & Management",
+        "description": "SNMP, syslog, NetFlow, and sFlow.",
+        "snmpVersion": "SNMP Version",
+        "snmpCommunity": "SNMP Community",
+        "snmpUsers": "SNMP v3 Users",
+        "addSnmpUser": "Add SNMP User",
+        "emptySnmpUsersTitle": "No SNMP v3 users",
+        "emptySnmpUsersDescription": "Add v3 users for secure SNMP.",
+        "snmpUser": "Username",
+        "snmpAuth": "Auth protocol",
+        "snmpAuthPass": "Auth password",
+        "snmpPriv": "Privacy protocol",
+        "snmpPrivPass": "Privacy password",
+        "syslog": "Syslog servers",
+        "netflow": "NetFlow",
+        "sflow": "sFlow",
+        "collector": "Collector",
+        "port": "Port"
+      },
+      "summary": {
+        "title": "Summary & Preview",
+        "subtitle": "Review configuration, warnings, and output.",
+        "config": "Config Summary",
+        "device": "Device",
+        "vendor": "Vendor",
+        "environment": "Environment",
+        "vlans": "VLANs",
+        "interfaces": "Interfaces",
+        "routes": "Routes",
+        "ospf": "OSPF Areas",
+        "bgp": "BGP Neighbors",
+        "firewallRules": "Firewall rules",
+        "natRules": "NAT rules",
+        "vpn": "VPNs",
+        "qos": "QoS queues",
+        "safety": "Safety Checks",
+        "output": "Output",
+        "noWarnings": "No warnings detected",
+        "unselected": "Unselected"
+      },
+      "risk": {
+        "level": "Risk",
+        "subtitle": "Based on policy and environment safeguards.",
+        "none": "No risks detected",
+        "sshPassword": "SSH password auth enabled",
+        "sshPasswordDetail": "Password auth increases brute-force exposure.",
+        "noNtp": "No NTP configured",
+        "noNtpDetail": "Clock drift affects audit and log accuracy.",
+        "firewallOff": "Baseline firewall disabled",
+        "firewallOffDetail": "Baseline input rules are required for safety.",
+        "mgmtMissing": "Management CIDR missing",
+        "mgmtMissingDetail": "Limit admin access to trusted ranges.",
+        "mgmtOpen": "Management CIDR wide open",
+        "mgmtOpenDetail": "0.0.0.0/0 exposes management plane.",
+        "mgmtWide": "Management CIDR too broad",
+        "mgmtWideDetail": "Prefer /24 or narrower for admin ranges.",
+        "bgpEnabled": "BGP enabled",
+        "bgpEnabledDetail": "Ensure peer filtering and route policies are defined.",
+        "ospfLarge": "Multiple OSPF areas",
+        "ospfLargeDetail": "Validate area design to avoid adjacency issues.",
+        "firewallAllowAny": "Firewall allow any-any",
+        "firewallAllowAnyDetail": "Allow any-any rules increase attack surface.",
+        "natOpen": "DNAT rule without port restriction",
+        "natOpenDetail": "Open DNAT rules can expose internal services.",
+        "vpnNoPsk": "VPN missing pre-shared key",
+        "vpnNoPskDetail": "Provide a strong PSK for IPsec tunnels.",
+        "qosEnabled": "QoS enabled",
+        "qosEnabledDetail": "Ensure queues align with business priorities.",
+        "snmpPublic": "SNMP community is public",
+        "snmpPublicDetail": "Change SNMP community to a secure value."
+      },
+      "preview": {
+        "title": "Generated CLI Preview",
+        "empty": "Generate CLI to preview output.",
+        "hiddenTitle": "Preview hidden",
+        "hiddenDescription": "Toggle to view generated CLI."
+      },
+      "explain": {
+        "title": "Explain command",
+        "placeholder": "Select a command to explain",
+        "route": "Adds or updates routing entries.",
+        "ospf": "Configures OSPF routing for advertised networks.",
+        "bgp": "Configures BGP neighbors and advertised prefixes.",
+        "firewall": "Applies firewall filter rules.",
+        "nat": "Adds NAT translation rules.",
+        "vpn": "Configures VPN tunnel settings.",
+        "monitoring": "Configures SNMP/syslog/flow export.",
+        "generic": "Review the command before applying in production."
+      },
+      "lint": {
+        "title": "Compliance Lint",
+        "run": "Run lint",
+        "emptyTitle": "No lint findings",
+        "emptyDescription": "Run lint to validate policy compliance.",
+        "suggestion": "Suggestion:"
+      },
+      "validation": {
+        "title": "Validation Checks",
+        "run": "Validate config",
+        "emptyTitle": "No validation issues",
+        "emptyDescription": "Validate to catch duplicate VLANs and overlaps.",
+        "suggestion": "Suggestion:",
+        "blocked": "Validation errors detected. Fix before generating."
+      },
+      "diff": {
+        "title": "Diff",
+        "refresh": "Refresh diff",
+        "emptyTitle": "No diff available",
+        "empty": "No diff yet."
+      },
+      "dryRun": {
+        "title": "Dry-run Verification",
+        "verify": "Verify Commands",
+        "empty": "Generate CLI to view verify commands."
+      },
+      "push": {
+        "title": "Push & Rollback",
+        "backend": "Push via Backend",
+        "ssh": "Push via SSH",
+        "help": "Ensure SSH session is active before pushing."
+      },
+      "warnings": {
+        "sshPassword": "SSH password auth enabled",
+        "noNtp": "No NTP servers configured",
+        "noMgmt": "Management CIDR missing",
+        "mgmtOpen": "Management CIDR is wide open"
+      },
+      "checks": {
+        "mgmtLimited": "Management CIDR limited",
+        "ntpConfigured": "NTP configured",
+        "passwordDisabled": "Password auth disabled"
+      },
+      "tabs": {
+        "preview": "Preview",
+        "lint": "Lint",
+        "validate": "Validate",
+        "diff": "Diff",
+        "dryRun": "Dry-run",
+        "push": "Push"
+      },
+      "modals": {
+        "vlanTitle": "Add VLAN",
+        "interfaceTitle": "Add Interface",
+        "routeTitle": "Add Route",
+        "ospfTitle": "Add OSPF Area",
+        "bgpNeighborTitle": "Add BGP Neighbor",
+        "bgpNetworkTitle": "Add BGP Network",
+        "firewallTitle": "Add Firewall Rule",
+        "natTitle": "Add NAT Rule",
+        "ipsecTitle": "Add IPsec Tunnel",
+        "wireguardTitle": "Add WireGuard Tunnel",
+        "l2tpTitle": "Add L2TP Server",
+        "qosTitle": "Add QoS Queue",
+        "snmpUserTitle": "Add SNMP User"
+      },
+      "guardrails": {
+        "title": "Command Guardrails",
+        "detected": "Guardrail trigger:",
+        "override": "Request override",
+        "overridden": "Override active",
+        "blocked": "Guardrails blocked this operation.",
+        "overrideTitle": "Override Guardrails",
+        "overrideHelp": "Provide a reason to override blocked commands. This action will be audited.",
+        "reason": "Override reason",
+        "reasonPlaceholder": "Describe why this override is necessary."
+      },
+      "approval": {
+        "title": "Approval Workflow",
+        "help": "Prod requires approval before push.",
+        "request": "Request approval",
+        "approve": "Approve",
+        "reject": "Reject",
+        "blocked": "Approval required before push.",
+        "reasonPlaceholder": "Reason for approval request (optional).",
+        "requestedBy": "Requested by",
+        "decidedBy": "Decided by",
+        "status": {
+          "none": "Not requested",
+          "pending": "Pending",
+          "approved": "Approved",
+          "rejected": "Rejected"
+        }
+      }
+    },
+    "mikrotik": {
+      "title": "MikroTik Full Config",
+      "subtitle": "Intent → plan → config → validate → rollback (RouterOS 7).",
+      "steps": {
+        "device": "Device",
+        "network": "Interfaces & VLAN",
+        "routing": "Routing & Internet",
+        "preview": "Preview"
+      },
+      "device": "Device",
+      "deviceHelp": "Select a MikroTik device from CMDB to prefill defaults.",
+      "role": "Role template",
+      "roleHelp": "Role controls which modules are enabled and safe defaults.",
+      "environment": "Environment",
+      "environmentHelp": "Prod enforces stricter safeguards and requires approvals.",
+      "hostname": "Hostname",
+      "routerOsVersion": "RouterOS version",
+      "securityPreset": "Security preset",
+      "labMode": "Lab mode",
+      "labModeWarn": "Lab mode may relax security guardrails. Use with caution.",
+      "mgmtSubnet": "Management subnet (CIDR)",
+      "mgmtHelp": "Used to allow admin access and protect the management plane.",
+      "allowedSubnets": "Allowed subnets (one per line)",
+      "allowedHelp": "Only these subnets can access management services.",
+      "interfaces": "Interfaces",
+      "interfacesEmpty": "No interfaces defined",
+      "interfacesEmptyHelp": "Add WAN / trunk / access / mgmt interfaces to match wiring.",
+      "vlans": "VLANs",
+      "vlansEmpty": "No VLANs defined",
+      "vlansEmptyHelp": "Add VLANs to generate bridge/VLAN filtering and VLAN gateways.",
+      "staticRoutes": "Static routes",
+      "routesEmpty": "No static routes defined",
+      "routesEmptyHelp": "Add routes for upstream or internal reachability.",
+      "internet": "Internet / WAN",
+      "publicType": "WAN type",
+      "wanInterface": "WAN interface",
+      "wanAddress": "WAN address",
+      "wanGateway": "WAN gateway",
+      "pppoeUser": "PPPoE username",
+      "pppoePassword": "PPPoE password",
+      "dnsServers": "DNS servers",
+      "ospf": "OSPF",
+      "ospfRouterId": "Router ID",
+      "ospfArea": "Area",
+      "ospfNetworks": "Networks (one per line)",
+      "ospfPassive": "Passive interfaces (one per line)",
+      "requirements": "Select a device and hostname before generating.",
+      "risk": "Risk",
+      "errors": "errors",
+      "warnings": "warnings",
+      "validationErrors": "Validation errors",
+      "validationWarnings": "Validation warnings",
+      "preview": {
+        "apply": "Apply script",
+        "rollback": "Rollback script"
+      },
+      "actions": {
+        "generate": "Generate config",
+        "downloadApply": "Download apply",
+        "downloadRollback": "Download rollback",
+        "pushDryRun": "Dry-run push"
+      },
+      "diff": {
+        "title": "Diff vs running config",
+        "placeholder": "Paste running config here…",
+        "run": "Run diff",
+        "summary": "Diff summary"
+      },
+      "empty": {
+        "title": "No output yet",
+        "subtitle": "Generate config to view preview, validation, and diff."
+      },
+      "summary": {
+        "title": "Summary",
+        "subtitle": "Read-only context and counts.",
+        "device": "Device",
+        "role": "Role",
+        "environment": "Environment",
+        "vlans": "VLANs",
+        "interfaces": "Interfaces",
+        "routes": "Routes"
+      },
+      "modals": {
+        "optional": "Optional",
+        "interfaceTitle": "Add interface",
+        "interfaceName": "Interface name",
+        "interfacePurpose": "Purpose",
+        "purpose": {
+          "wan": "WAN / uplink",
+          "trunk": "Trunk",
+          "access": "Access",
+          "mgmt": "Management"
+        },
+        "interfaceAccessVlan": "Access VLAN ID",
+        "interfaceTrunkVlans": "Trunk VLAN IDs",
+        "interfaceComment": "Comment",
+        "vlanTitle": "Add VLAN",
+        "vlanId": "VLAN ID",
+        "vlanName": "VLAN name",
+        "vlanSubnet": "Subnet (CIDR)",
+        "vlanGateway": "Gateway",
+        "vlanGroup": "Group",
+        "vlanDhcp": "Enable DHCP",
+        "routeTitle": "Add static route",
+        "routeDst": "Destination (CIDR)",
+        "routeGateway": "Next hop / gateway",
+        "routeDistance": "Distance",
+        "routeComment": "Comment"
+      }
+    },
+    "ssh": {
+      "title": "SSH Terminal",
+      "subtitle": "Realtime terminal via SSH proxy with audit trails.",
+      "searchDevices": "Search devices",
+      "sessions": "Sessions",
+      "noSessions": "No sessions.",
+      "commandPolicy": "Command policy",
+      "liveTerminal": "Live Terminal",
+      "sessionLabel": "Session:",
+      "connected": "Connected",
+      "idle": "Idle",
+      "noOutput": "No session output yet.",
+      "history": "History",
+      "noCommands": "No commands yet.",
+      "reuseHint": "Click a command to reuse.",
+      "policy": {
+        "allowList": "Allowlist (one per line)",
+        "denyList": "Denylist (one per line)",
+        "dangerList": "Dangerous commands",
+        "enforced": "Policy enforced before command execution."
+      },
+      "openSession": "Open Session",
+      "downloadLog": "Download log",
+      "exportJson": "Export JSON",
+      "commandPlaceholder": "show ip interface brief",
+      "send": "Send",
+      "notConnected": "Not connected"
+    }
+  }
+}

@@ -237,6 +237,9 @@ export function normalizeRole(role: string | null | undefined): string {
   const value = (role ?? '').trim().toLowerCase()
   if (!value) return 'viewer'
   if (value === 'manager') return 'it_asset_manager'
+  if (value === 'it_manager') return 'it_asset_manager'
+  if (value === 'storekeeper' || value === 'warehouse_staff') return 'warehouse_keeper'
+  if (value === 'it_staff') return 'technician'
   return value
 }
 
