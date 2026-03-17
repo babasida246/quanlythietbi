@@ -1,5 +1,8 @@
 import { API_BASE, apiJson, apiJsonData } from './httpClient'
 import { buildQuery, getAssetHeaders, type Asset } from './assets'
+import type { StockDocType, StockDocStatus, MovementType, RepairStatus, RepairSeverity, RepairType } from '@qltb/contracts'
+
+export type { StockDocType, StockDocStatus, MovementType, RepairStatus, RepairSeverity, RepairType }
 
 export type WarehouseRecord = {
     id: string
@@ -102,9 +105,9 @@ export type ValuationResult = {
 
 export type StockDocumentRecord = {
     id: string
-    docType: 'receipt' | 'issue' | 'adjust' | 'transfer'
+    docType: StockDocType
     code: string
-    status: 'draft' | 'submitted' | 'approved' | 'posted' | 'canceled'
+    status: StockDocStatus
     warehouseId?: string | null
     targetWarehouseId?: string | null
     docDate: string
@@ -143,7 +146,7 @@ export type StockMovementRecord = {
     id: string
     warehouseId: string
     partId: string
-    movementType: 'in' | 'out' | 'adjust_in' | 'adjust_out' | 'transfer_in' | 'transfer_out' | 'reserve' | 'release'
+    movementType: MovementType
     qty: number
     unitCost?: number | null
     refType?: string | null
@@ -160,13 +163,13 @@ export type RepairOrderRecord = {
     code: string
     title: string
     description?: string | null
-    severity: 'low' | 'medium' | 'high' | 'critical'
-    status: 'open' | 'diagnosing' | 'waiting_parts' | 'repaired' | 'closed' | 'canceled'
+    severity: RepairSeverity
+    status: RepairStatus
     openedAt: string
     closedAt?: string | null
     diagnosis?: string | null
     resolution?: string | null
-    repairType: 'internal' | 'vendor'
+    repairType: RepairType
     technicianName?: string | null
     vendorId?: string | null
     laborCost?: number | null

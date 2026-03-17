@@ -92,7 +92,7 @@
   let showRepairModal = $state(false);
   let repairTitle = $state('');
   let repairSeverity = $state<'low' | 'medium' | 'high' | 'critical'>('medium');
-  let repairType = $state<'preventive' | 'corrective' | 'emergency'>('corrective');
+  let repairType = $state<'internal' | 'vendor'>('internal');
   let repairTechnician = $state('');
   let repairCreating = $state(false);
   let repairError = $state('');
@@ -1123,9 +1123,8 @@
         <div>
           <label class="label-base mb-2" for="repair-type">{$isLoading ? 'Type' : $_('assets.repairOrders.type')}</label>
           <select id="repair-type" class="select-base" bind:value={repairType}>
-            <option value="corrective">{$isLoading ? 'Corrective' : $_('assets.repairOrders.corrective')}</option>
-            <option value="preventive">{$isLoading ? 'Preventive' : $_('assets.repairOrders.preventive')}</option>
-            <option value="emergency">{$isLoading ? 'Emergency' : $_('assets.repairOrders.emergency')}</option>
+            <option value="internal">{$isLoading ? 'Internal' : $_('assets.repairOrders.internal')}</option>
+            <option value="vendor">{$isLoading ? 'Vendor' : $_('assets.repairOrders.vendor')}</option>
           </select>
         </div>
       </div>

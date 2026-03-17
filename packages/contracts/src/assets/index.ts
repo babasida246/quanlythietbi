@@ -1,3 +1,12 @@
+export type {
+    AssetStatus,
+    AssigneeType,
+    MaintenanceSeverity,
+    MaintenanceStatus,
+    AssetEventType,
+    InventorySessionStatus,
+    InventoryItemStatus,
+} from '@qltb/domain'
 import type { AssetStatus, AssigneeType, MaintenanceSeverity, MaintenanceStatus, AssetEventType } from '@qltb/domain'
 
 export const AssetSortValues = ['newest', 'asset_code_asc', 'asset_code_desc', 'warranty_end_asc'] as const

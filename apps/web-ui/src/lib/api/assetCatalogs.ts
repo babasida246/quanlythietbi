@@ -1,14 +1,14 @@
 import { API_BASE, apiJson } from './httpClient'
 import { getAssetHeaders } from './assets'
+import type { SpecFieldType, NormalizeMode, SpecVersionStatus } from '@qltb/contracts'
+
+export type { SpecFieldType, NormalizeMode, SpecVersionStatus }
 
 export type Vendor = { id: string; name: string; taxCode?: string | null; phone?: string | null; email?: string | null; address?: string | null }
 export type Location = { id: string; name: string; parentId?: string | null; path: string }
 export type AssetCategory = { id: string; name: string }
 export type AssetModel = { id: string; model: string; brand?: string | null; categoryId?: string | null; specVersionId?: string | null; vendorId?: string | null; spec: Record<string, unknown> }
 export type AssetStatusCatalog = { id: string; name: string; code: string; isTerminal: boolean; color?: string | null; createdAt?: string }
-export type SpecFieldType = 'string' | 'number' | 'boolean' | 'enum' | 'date' | 'ip' | 'mac' | 'hostname' | 'cidr' | 'port' | 'regex' | 'json' | 'multi_enum'
-export type NormalizeMode = 'trim' | 'upper' | 'lower'
-export type SpecVersionStatus = 'draft' | 'active' | 'retired'
 export type CategorySpecVersion = {
     id: string
     categoryId: string

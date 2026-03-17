@@ -1,10 +1,8 @@
 import { API_BASE, apiJson, authorizedFetch, requireAccessToken } from './httpClient'
+import type { AssetStatus, AssigneeType, MaintenanceSeverity, MaintenanceStatus } from '@qltb/contracts'
 
-export type AssetStatus = 'in_stock' | 'in_use' | 'in_repair' | 'retired' | 'disposed' | 'lost'
+export type { AssetStatus, AssigneeType, MaintenanceSeverity, MaintenanceStatus }
 export type AssetStatusCounts = Record<AssetStatus, number>
-export type AssigneeType = 'person' | 'department' | 'system'
-export type MaintenanceSeverity = 'low' | 'medium' | 'high' | 'critical'
-export type MaintenanceStatus = 'open' | 'in_progress' | 'closed' | 'canceled'
 
 export type Asset = {
     id: string

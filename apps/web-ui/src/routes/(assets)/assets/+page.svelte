@@ -226,7 +226,7 @@
   async function handleReport(data: { title: string; severity: MaintenanceSeverity; diagnosis?: string; resolution?: string }) {
     if (!reportingAsset) return;
     try {
-      await openMaintenanceTicket(reportingAsset.id, data);
+      await openMaintenanceTicket({ assetId: reportingAsset.id, ...data });
       toast.success($isLoading ? 'Incident reported' : $_('assets.toast.incidentReported'));
       reportOpen = false;
       reportingAsset = null;

@@ -1,7 +1,6 @@
-import type { NormalizeMode, SpecFieldType } from '@qltb/domain'
+export type { NormalizeMode, SpecFieldType, SpecVersionStatus } from '@qltb/domain'
+import type { NormalizeMode, SpecFieldType, SpecVersionStatus } from '@qltb/domain'
 import type { ICatalogRepo } from './catalogs.js'
-
-export type SpecVersionStatus = 'draft' | 'active' | 'retired'
 
 export interface CategorySpecVersionRecord {
     id: string

@@ -1,11 +1,12 @@
 <script lang="ts">
   import { Button } from '$lib/components/ui';
   import { _, isLoading } from '$lib/i18n';
+  import type { CmdbFieldType } from '$lib/api/cmdb';
 
   export type CmdbFieldDraft = {
     key: string;
     label: string;
-    fieldType: string;
+    fieldType: CmdbFieldType;
     required: boolean;
     isSearchable: boolean;
     isFilterable: boolean;
@@ -22,14 +23,14 @@
       isFilterable: false,
       enumValues: ''
     }),
-    fieldTypes = [],
+    fieldTypes = [] as CmdbFieldType[],
     disabled = false,
     saving = false,
     onSave = () => {},
     onClear = () => {}
   } = $props<{
     draft?: CmdbFieldDraft;
-    fieldTypes?: string[];
+    fieldTypes?: CmdbFieldType[];
     disabled?: boolean;
     saving?: boolean;
     onSave?: () => void;

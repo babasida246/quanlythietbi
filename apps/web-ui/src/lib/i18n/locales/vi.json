@@ -810,6 +810,8 @@
       "corrective": "Sửa chữa khắc phục",
       "preventive": "Sửa chữa phòng ngừa",
       "emergency": "Sửa chữa khẩn cấp",
+      "internal": "Nội bộ",
+      "vendor": "Nhà cung cấp",
       "downtime": "Thời gian ngừng",
       "diagnosis": "Chẩn đoán",
       "resolution": "Hướng xử lý",

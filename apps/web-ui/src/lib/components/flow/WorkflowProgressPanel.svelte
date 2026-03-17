@@ -222,7 +222,7 @@
             {#if editable}
               <select
                 value={step.status}
-                onchange={(e) => updateStepStatus(step.id, e.target.value)}
+                onchange={(e) => updateStepStatus(step.id, (e.target as HTMLSelectElement).value as WorkflowStep['status'])}
                 class="text-xs border rounded px-2 py-1"
               >
                 <option value="pending">Pending</option>

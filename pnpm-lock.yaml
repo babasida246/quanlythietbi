@@ -141,6 +141,12 @@ importers:
 
   apps/web-ui:
     dependencies:
+      '@qltb/contracts':
+        specifier: workspace:*
+        version: link:../../packages/contracts
+      '@qltb/domain':
+        specifier: workspace:*
+        version: link:../../packages/domain
       '@xyflow/svelte':
         specifier: ^1.5.1
         version: 1.5.1(svelte@5.50.0)

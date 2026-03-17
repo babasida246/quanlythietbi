@@ -1,3 +1,13 @@
+export type {
+    CiStatus,
+    Environment,
+    CmdbFieldType,
+    SpecVersionStatus,
+    RelationshipStatus,
+    RelationshipDirection,
+    CmdbChangeRisk,
+    CmdbChangeStatus,
+} from '@qltb/domain'
 import type {
     CiStatus,
     Environment,

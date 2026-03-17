@@ -1,3 +1,4 @@
+export type { PartAction, RepairSeverity, RepairStatus, RepairType } from '@qltb/domain'
 import type { PartAction, RepairSeverity, RepairStatus, RepairType } from '@qltb/domain'
 
 export interface RepairOrderRecord {

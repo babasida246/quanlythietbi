@@ -870,6 +870,8 @@
       "corrective": "Corrective",
       "preventive": "Preventive",
       "emergency": "Emergency",
+      "internal": "Internal",
+      "vendor": "Vendor",
       "downtime": "Downtime",
       "diagnosis": "Diagnosis",
       "resolution": "Resolution",

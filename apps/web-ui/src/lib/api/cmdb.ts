@@ -1,14 +1,17 @@
 import { API_BASE, apiJson } from './httpClient'
 import { getAssetHeaders } from './assets'
+import type { CiStatus, Environment, CmdbFieldType, SpecVersionStatus, CmdbChangeStatus, CmdbChangeRisk } from '@qltb/contracts'
+
+export type { CiStatus, Environment, CmdbFieldType, SpecVersionStatus, CmdbChangeStatus, CmdbChangeRisk }
 
 export type CmdbType = { id: string; code: string; name: string; description?: string | null; createdAt?: string }
-export type CmdbVersion = { id: string; typeId: string; version: number; status: 'draft' | 'active' | 'retired'; createdBy?: string | null; createdAt?: string }
+export type CmdbVersion = { id: string; typeId: string; version: number; status: SpecVersionStatus; createdBy?: string | null; createdAt?: string }
 export type CmdbAttrDef = {
     id: string
     versionId: string
     key: string
     label: string
-    fieldType: string
+    fieldType: CmdbFieldType
     required: boolean
     unit?: string | null
     enumValues?: string[] | null
@@ -29,8 +32,8 @@ export type CiRecord = {
     typeId: string
     name: string
     ciCode: string
-    status: string
-    environment: string
+    status: CiStatus
+    environment: Environment
     assetId?: string | null
     locationId?: string | null
     ownerTeam?: string | null
@@ -76,8 +79,8 @@ export type CmdbChangeRecord = {
     code: string
     title: string
     description?: string | null
-    status: 'draft' | 'submitted' | 'approved' | 'implemented' | 'closed' | 'canceled'
-    risk: 'low' | 'medium' | 'high' | 'critical'
+    status: CmdbChangeStatus
+    risk: CmdbChangeRisk
     primaryCiId?: string | null
     impactSnapshot?: unknown
     implementationPlan?: string | null

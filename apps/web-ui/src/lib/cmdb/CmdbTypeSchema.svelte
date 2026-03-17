@@ -12,10 +12,11 @@
     publishTypeVersion,
     updateAttrDef,
     type CmdbAttrDef,
+    type CmdbFieldType,
     type CmdbType,
     type CmdbVersion
   } from '$lib/api/cmdb';
-  const fieldTypes = [
+  const fieldTypes: CmdbFieldType[] = [
     'string',
     'number',
     'boolean',
@@ -134,7 +135,7 @@
   async function saveDef() {
     if (!selectedVersionId || !draft.key || !draft.label) return;
     const isEnum = draft.fieldType === 'enum' || draft.fieldType === 'multi_enum';
-    const payload: Partial<CmdbAttrDef> & { key: string; label: string; fieldType: string } = {
+    const payload: Partial<CmdbAttrDef> & { key: string; label: string; fieldType: CmdbFieldType } = {
       key: draft.key.trim(),
       label: draft.label.trim(),
       fieldType: draft.fieldType,

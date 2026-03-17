@@ -31,6 +31,8 @@
         "vitest": "^4.0.16"
     },
     "dependencies": {
+        "@qltb/contracts": "workspace:*",
+        "@qltb/domain": "workspace:*",
         "@xyflow/svelte": "^1.5.1",
         "@xyflow/system": "^0.0.75",
         "clsx": "^2.1.1",
