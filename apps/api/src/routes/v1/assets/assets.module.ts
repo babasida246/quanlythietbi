@@ -8,6 +8,7 @@ import {
     ApprovalRepo,
     AssetIncreaseRepo,
     CatalogRepo,
+    DocumentRepo,
     CategorySpecRepo,
     CategorySpecVersionRepo,
     CiAttrValueRepo,
@@ -52,7 +53,17 @@ import {
     DiscoveryRuleRepo,
     DiscoveryResultRepo,
     SmartTagRepo,
-    ChangeAssessmentRepo
+    ChangeAssessmentRepo,
+    LabelsRepository,
+    AccessoryRepo,
+    AuditRepo,
+    CheckoutRepo,
+    ComponentRepo,
+    ConsumableRepo,
+    DepreciationRepo,
+    LicenseRepo,
+    WfRepo,
+    WfApproverResolverRepo
 } from '@qltb/infra-postgres'
 import {
     AssetService,
@@ -84,7 +95,20 @@ import {
     AnalyticsService,
     IntegrationService,
     SecurityService,
-    CmdbEnhancementService
+    CmdbEnhancementService,
+    // Documents
+    DocumentService,
+    // Labels
+    LabelsService,
+    // Migrated modules
+    AccessoryService,
+    AuditService,
+    CheckoutService,
+    ComponentService,
+    ConsumableService,
+    DepreciationService,
+    LicenseService,
+    WfService
 } from '@qltb/application'
 import { assetsRoutes } from './assets.routes.js'
 import { catalogRoutes } from './catalogs.routes.js'
@@ -108,19 +132,16 @@ import { automationRoutes } from '../automation/automation.routes.js'
 import { integrationRoutes } from '../integrations/integrations.routes.js'
 import { securityRoutes } from '../security/security.routes.js'
 import { cmdbEnhancementRoutes } from '../cmdb/cmdb-enhancement.routes.js'
-// Self-contained module imports
-import { AccessoryService, accessoryRoutes } from '../../../modules/accessories/index.js'
-import { AuditRepository, AuditService, auditRoutes } from '../../../modules/audit/index.js'
-import { CheckoutService, checkoutRoutes } from '../../../modules/checkout/index.js'
-import { ComponentService, componentRoutes } from '../../../modules/components/index.js'
-import { ConsumableService, consumableRoutes } from '../../../modules/consumables/index.js'
-import { DepreciationRepository, DepreciationService, depreciationRoutes } from '../../../modules/depreciation/index.js'
-import { documentsRoutes } from '../../../modules/documents/index.js'
-import { LabelsRepository, LabelsService, labelsRoutes } from '../../../modules/labels/index.js'
-import { LicenseService, licenseRoutes } from '../../../modules/licenses/index.js'
-import { WfRepository, WfService, ApproverResolver, wfMeRoutes, wfInboxRoutes, wfAdminRoutes } from '../../../modules/wf/index.js'
-import { createAuthService } from '../../../modules/auth/index.js'
-import { createEntitlementService } from '../../../modules/entitlements/entitlement.service.js'
+import { documentsRoute } from '../documents/documents.route.js'
+import { labelsRoute } from '../labels/labels.route.js'
+import { accessoriesRoute } from '../accessories/accessories.route.js'
+import { auditRoute } from '../audit/audit.route.js'
+import { checkoutRoute } from '../checkout/checkout.route.js'
+import { componentsRoute } from '../components/components.route.js'
+import { consumablesRoute } from '../consumables/consumables.route.js'
+import { depreciationRoute } from '../depreciation/depreciation.route.js'
+import { licensesRoute } from '../licenses/licenses.route.js'
+import { wfRoute } from '../wf/wf.route.js'
 
 export interface AssetModuleDeps {
     pgClient: PgClient
@@ -183,6 +204,8 @@ export async function registerAssetModule(
     const discoveryResultRepo = new DiscoveryResultRepo(deps.pgClient)
     const smartTagRepo = new SmartTagRepo(deps.pgClient)
     const changeAssessmentRepo = new ChangeAssessmentRepo(deps.pgClient)
+    const documentRepo = new DocumentRepo(deps.pgClient)
+    const labelsRepo = new LabelsRepository(deps.pgClient)
 
     const assetService = new AssetService(assetRepo, assignmentRepo, assetEventRepo, maintenanceRepo)
     const maintenanceService = new MaintenanceService(assetRepo, assignmentRepo, maintenanceRepo, assetEventRepo)
@@ -224,6 +247,8 @@ export async function registerAssetModule(
     const integrationService = new IntegrationService(integrationConnectorRepo, syncRuleRepo, webhookRepo as any)
     const securityService = new SecurityService(rbacPermissionRepo as any, securityAuditRepo, complianceRepo)
     const cmdbEnhancementService = new CmdbEnhancementService(discoveryRuleRepo as any, discoveryResultRepo, smartTagRepo as any, changeAssessmentRepo)
+    const documentService = new DocumentService(documentRepo)
+    const labelsService = new LabelsService(labelsRepo)
 
     // Report services
     const ciInventoryReportService = new CiInventoryReportService(ciRepo, relRepo, ciTypeRepo)
@@ -279,59 +304,40 @@ export async function registerAssetModule(
     await fastify.register(securityRoutes, { prefix: '/api/v1', securityService })
     await fastify.register(cmdbEnhancementRoutes, { prefix: '/api/v1', cmdbEnhancementService })
 
-    // ==================== Self-contained Modules ====================
-    const pool = deps.pgClient.getPool()
-    const authService = createAuthService(deps.pgClient)
-    const entitlementService = createEntitlementService()
+    // Documents (migrated to packages)
+    await fastify.register(documentsRoute, { prefix: '/api/v1', documentService, pgClient: deps.pgClient })
 
-    // Wrap all self-contained modules under /api/v1 prefix
-    await fastify.register(async (v1) => {
-        // Accessories
-        const accessoryService = new AccessoryService(pool)
-        await accessoryRoutes(v1, accessoryService, authService)
+    // Labels (migrated to packages)
+    await fastify.register(labelsRoute, { prefix: '/api/v1', labelsService })
 
-        // Checkout
-        const checkoutService = new CheckoutService(pool)
-        await checkoutRoutes(v1, checkoutService, authService)
+    // ==================== Migrated Modules (P1-C Clean Architecture) ====================
+    const accessoryRepo = new AccessoryRepo(deps.pgClient)
+    const auditRepo = new AuditRepo(deps.pgClient)
+    const checkoutRepo = new CheckoutRepo(deps.pgClient)
+    const componentRepo = new ComponentRepo(deps.pgClient)
+    const consumableRepo = new ConsumableRepo(deps.pgClient)
+    const depreciationRepo = new DepreciationRepo(deps.pgClient)
+    const licenseRepo = new LicenseRepo(deps.pgClient)
+    const wfRepo = new WfRepo(deps.pgClient)
+    const wfApproverResolverRepo = new WfApproverResolverRepo(deps.pgClient)
 
-        // Components
-        const componentService = new ComponentService(pool)
-        await componentRoutes(v1, componentService, authService)
+    const accessoryService = new AccessoryService(accessoryRepo)
+    const auditService = new AuditService(auditRepo)
+    const checkoutService = new CheckoutService(checkoutRepo)
+    const componentService = new ComponentService(componentRepo)
+    const consumableService = new ConsumableService(consumableRepo)
+    const depreciationService = new DepreciationService(depreciationRepo)
+    const licenseService = new LicenseService(licenseRepo)
+    const wfService = new WfService(wfRepo, wfApproverResolverRepo)
 
-        // Consumables
-        const consumableService = new ConsumableService(pool)
-        await consumableRoutes(v1, consumableService, authService)
-
-        // Licenses
-        const licenseService = new LicenseService(pool)
-        await licenseRoutes(v1, licenseService, authService, entitlementService)
-
-        // Audit
-        const auditRepository = new AuditRepository(pool)
-        const auditService = new AuditService(auditRepository)
-        await auditRoutes(v1, { auditService })
-
-        // Depreciation
-        const depreciationRepository = new DepreciationRepository(pool)
-        const depreciationService = new DepreciationService(depreciationRepository)
-        await depreciationRoutes(v1, { depreciationService })
-
-        // Documents
-        await documentsRoutes(v1, { db: pool, authService })
-
-        // Labels
-        const labelsRepository = new LabelsRepository(pool)
-        const labelsService = new LabelsService(labelsRepository)
-        await labelsRoutes(v1, { labelsService })
-
-        // Workflow Request & Approval (wf_*)
-        const wfRepository = new WfRepository(pool)
-        const wfApproverResolver = new ApproverResolver(pool)
-        const wfService = new WfService(wfRepository, wfApproverResolver)
-        await wfMeRoutes(v1, { wfService })
-        await wfInboxRoutes(v1, { wfService })
-        await wfAdminRoutes(v1, { wfService })
-    }, { prefix: '/api/v1' })
+    await fastify.register(accessoriesRoute, { prefix: '/api/v1', accessoryService })
+    await fastify.register(auditRoute, { prefix: '/api/v1', auditService })
+    await fastify.register(checkoutRoute, { prefix: '/api/v1', checkoutService })
+    await fastify.register(componentsRoute, { prefix: '/api/v1', componentService })
+    await fastify.register(consumablesRoute, { prefix: '/api/v1', consumableService })
+    await fastify.register(depreciationRoute, { prefix: '/api/v1', depreciationService })
+    await fastify.register(licensesRoute, { prefix: '/api/v1', licenseService })
+    await fastify.register(wfRoute, { prefix: '/api/v1', wfService })
 
     await fastify.register(async (qltsApp) => {
         qltsApp.decorate('diContainer', {

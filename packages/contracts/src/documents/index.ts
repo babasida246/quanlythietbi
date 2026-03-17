@@ -1,6 +1,8 @@
 // Purchase Planning & Asset Input Documents - Type Definitions
 // Part of simplified asset management system
 
+export * from './knowledgeBase.js'
+
 export const PurchasePlanStatusValues = ['draft', 'submitted', 'approved', 'rejected', 'posted', 'cancelled'] as const
 export type PurchasePlanStatus = typeof PurchasePlanStatusValues[number]
 

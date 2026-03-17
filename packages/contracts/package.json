@@ -8,6 +8,18 @@
         ".": {
             "import": "./dist/index.js",
             "types": "./dist/index.d.ts"
+        },
+        "./checkout": {
+            "import": "./dist/checkout/index.js",
+            "types": "./dist/checkout/index.d.ts"
+        },
+        "./components": {
+            "import": "./dist/components/index.js",
+            "types": "./dist/components/index.d.ts"
+        },
+        "./consumables": {
+            "import": "./dist/consumables/index.js",
+            "types": "./dist/consumables/index.d.ts"
         }
     },
     "scripts": {
