@@ -47,12 +47,12 @@
   {/if}
   <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
     <div>
-      <label class="label-base mb-2">{$isLoading ? 'Asset Code' : $_('assets.assetCode')}</label>
-      <input class="input-base" bind:value={assetCode} placeholder="ASSET-001" />
+      <label for="scan-asset-code" class="label-base mb-2">{$isLoading ? 'Asset Code' : $_('assets.assetCode')}</label>
+      <input id="scan-asset-code" class="input-base" bind:value={assetCode} placeholder="ASSET-001" />
     </div>
     <div>
-      <label class="label-base mb-2">{$isLoading ? 'Scanned Location' : $_('assets.scannedLocation')}</label>
-      <select class="select-base" bind:value={scannedLocationId}>
+      <label for="scan-location" class="label-base mb-2">{$isLoading ? 'Scanned Location' : $_('assets.scannedLocation')}</label>
+      <select id="scan-location" class="select-base" bind:value={scannedLocationId}>
         <option value="">{$isLoading ? 'Select location' : $_('assets.placeholders.selectLocation')}</option>
         {#each locations as location}
           <option value={location.id}>{location.name}</option>

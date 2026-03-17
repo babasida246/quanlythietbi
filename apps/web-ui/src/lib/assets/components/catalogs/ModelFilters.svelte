@@ -142,8 +142,9 @@
 <div class="bg-surface-2 border border-slate-700 rounded-lg p-4 space-y-4">
   <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
     <div>
-        <label class="label-base mb-2">{$isLoading ? 'Category Filter' : $_('assets.categoryFilter')}</label>
+        <label for="model-filter-category" class="label-base mb-2">{$isLoading ? 'Category Filter' : $_('assets.categoryFilter')}</label>
       <select
+        id="model-filter-category"
         class="select-base"
         bind:value={categoryId}
         onchange={(event) => loadSpecDefs((event.currentTarget as HTMLSelectElement).value)}
@@ -166,7 +167,7 @@
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
       {#each filterDefs as def}
         <div class="space-y-1">
-          <label class="label-base mb-1">{def.label}</label>
+          <p class="label-base mb-1">{def.label}</p>
           {#if def.fieldType === 'enum'}
             <select class="select-base" value={getStringValue(def.key)} onchange={(event) => setValue(def.key, (event.currentTarget as HTMLSelectElement).value)}>
               <option value="">{$isLoading ? 'Any' : $_('assets.any')}</option>

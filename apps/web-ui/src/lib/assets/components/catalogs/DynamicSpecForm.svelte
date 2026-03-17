@@ -119,9 +119,9 @@
   {#each specDefs as def}
     <div class="space-y-1">
       {#if def.fieldType !== 'boolean'}
-        <label class="label-base mb-1">
+        <p class="label-base mb-1">
           {def.label}{def.required ? ' *' : ''}{def.unit ? ` (${def.unit})` : ''}
-        </label>
+        </p>
       {/if}
 
       {#if def.fieldType === 'string'}

@@ -187,7 +187,7 @@
   }
 </script>
 
-<Modal bind:open title="{$isLoading ? 'Import Assets' : $_('assets.importAssets')}" size="lg">
+<Modal bind:open title={$isLoading ? 'Import Assets' : $_('assets.importAssets')} size="lg">
 
   {#if error}
     <div class="alert alert-error mb-4">{error}</div>

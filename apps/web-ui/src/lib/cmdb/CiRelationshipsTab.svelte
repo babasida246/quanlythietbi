@@ -236,7 +236,7 @@
     <div class="space-y-4">
       <!-- Direction Selection -->
       <div>
-        <label class="label-base">{$isLoading ? 'Direction' : $_('cmdb.rel.directionLabel')}</label>
+        <p class="label-base">{$isLoading ? 'Direction' : $_('cmdb.rel.directionLabel')}</p>
         <div class="mt-2 flex gap-4">
           <label class="flex items-center text-slate-300">
             <input

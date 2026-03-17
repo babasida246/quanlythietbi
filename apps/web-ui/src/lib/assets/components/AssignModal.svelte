@@ -36,28 +36,28 @@
   });
 </script>
 
-<Modal bind:open title="{$isLoading ? 'Assign Asset' : $_('assets.assignAsset')} {assetCode ? `(${assetCode})` : ''}">
+<Modal bind:open title={($isLoading ? 'Assign Asset' : $_('assets.assignAsset')) + (assetCode ? ` (${assetCode})` : '')}>
 
   <div class="space-y-4">
     <div>
-      <label class="label-base mb-2">{$isLoading ? 'Assignee Type' : $_('assets.assigneeType')}</label>
-      <select class="select-base" bind:value={assigneeType}>
+      <label for="assign-type" class="label-base mb-2">{$isLoading ? 'Assignee Type' : $_('assets.assigneeType')}</label>
+      <select id="assign-type" class="select-base" bind:value={assigneeType}>
         <option value="person">{$isLoading ? 'Person' : $_('assets.person')}</option>
         <option value="department">{$isLoading ? 'Department' : $_('assets.department')}</option>
         <option value="system">{$isLoading ? 'System' : $_('assets.system')}</option>
       </select>
     </div>
     <div>
-      <label class="label-base mb-2">{$isLoading ? 'Assignee Name' : $_('assets.assigneeName')}</label>
-      <input class="input-base" bind:value={assigneeName} placeholder={$isLoading ? 'e.g. Nguyen Van A' : $_('assets.placeholders.assigneeName')} />
+      <label for="assign-name" class="label-base mb-2">{$isLoading ? 'Assignee Name' : $_('assets.assigneeName')}</label>
+      <input id="assign-name" class="input-base" bind:value={assigneeName} placeholder={$isLoading ? 'e.g. Nguyen Van A' : $_('assets.placeholders.assigneeName')} />
     </div>
     <div>
-      <label class="label-base mb-2">{$isLoading ? 'Assignee ID' : $_('assets.assigneeId')}</label>
-      <input class="input-base" bind:value={assigneeId} placeholder={$isLoading ? 'Employee ID / Dept ID' : $_('assets.placeholders.assigneeId')} />
+      <label for="assign-id" class="label-base mb-2">{$isLoading ? 'Assignee ID' : $_('assets.assigneeId')}</label>
+      <input id="assign-id" class="input-base" bind:value={assigneeId} placeholder={$isLoading ? 'Employee ID / Dept ID' : $_('assets.placeholders.assigneeId')} />
     </div>
     <div>
-      <label class="label-base mb-2">{$isLoading ? 'Note' : $_('assets.note')}</label>
-      <input class="input-base" bind:value={note} placeholder={$isLoading ? 'Optional note' : $_('assets.placeholders.note')} />
+      <label for="assign-note" class="label-base mb-2">{$isLoading ? 'Note' : $_('assets.note')}</label>
+      <input id="assign-note" class="input-base" bind:value={note} placeholder={$isLoading ? 'Optional note' : $_('assets.placeholders.note')} />
     </div>
   </div>
 
