@@ -16,7 +16,7 @@ const mapWarehouse = (row: WarehouseRow): WarehouseRecord => ({
     code: row.code,
     name: row.name,
     locationId: row.location_id,
-    createdAt: row.created_at
+    createdAt: row.created_at.toISOString()
 })
 
 function buildUpdates(patch: WarehouseUpdatePatch): Update[] {

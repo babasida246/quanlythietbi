@@ -67,8 +67,8 @@ const mapRepairOrder = (row: RepairOrderRow): RepairOrderRecord => ({
     description: row.description,
     severity: row.severity,
     status: row.status,
-    openedAt: row.opened_at,
-    closedAt: row.closed_at,
+    openedAt: row.opened_at.toISOString(),
+    closedAt: row.closed_at ? row.closed_at.toISOString() : null,
     diagnosis: row.diagnosis,
     resolution: row.resolution,
     repairType: row.repair_type,
@@ -79,8 +79,8 @@ const mapRepairOrder = (row: RepairOrderRow): RepairOrderRecord => ({
     downtimeMinutes: row.downtime_minutes ?? null,
     createdBy: row.created_by,
     correlationId: row.correlation_id,
-    createdAt: row.created_at,
-    updatedAt: row.updated_at
+    createdAt: row.created_at.toISOString(),
+    updatedAt: row.updated_at.toISOString()
 })
 
 function buildUpdates(patch: RepairOrderUpdatePatch): Update[] {

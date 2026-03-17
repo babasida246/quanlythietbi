@@ -16,7 +16,7 @@ const mapRow = (row: VersionRow): CiTypeVersionRecord => ({
     version: row.version,
     status: row.status,
     createdBy: row.created_by,
-    createdAt: row.created_at
+    createdAt: row.created_at.toISOString()
 })
 
 export class CiTypeVersionRepo implements ICiTypeVersionRepo {

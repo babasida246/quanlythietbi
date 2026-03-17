@@ -63,8 +63,8 @@ const mapDocument = (row: DocumentRow): StockDocumentRecord => ({
     createdBy: row.created_by,
     approvedBy: row.approved_by,
     correlationId: row.correlation_id,
-    createdAt: row.created_at,
-    updatedAt: row.updated_at
+    createdAt: row.created_at.toISOString(),
+    updatedAt: row.updated_at.toISOString()
 })
 const mapLine = (row: LineRow): StockDocumentLineRecord => ({
     id: row.id,

@@ -16,7 +16,7 @@ const mapRow = (row: AttrRow): CiAttrValueRecord => ({
     versionId: row.ci_type_version_id,
     key: row.key,
     value: row.value ?? undefined,
-    updatedAt: row.updated_at
+    updatedAt: row.updated_at.toISOString()
 })
 
 export class CiAttrValueRepo implements ICiAttrValueRepo {

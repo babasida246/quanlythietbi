@@ -30,7 +30,7 @@ const mapService = (row: ServiceRow): CmdbServiceRecord => ({
     owner: row.owner,
     sla: row.sla,
     status: row.status,
-    createdAt: row.created_at
+    createdAt: row.created_at.toISOString()
 })
 
 const mapMember = (row: MemberRow): CmdbServiceMemberRecord => ({
@@ -38,7 +38,7 @@ const mapMember = (row: MemberRow): CmdbServiceMemberRecord => ({
     serviceId: row.service_id,
     ciId: row.ci_id,
     role: row.role,
-    createdAt: row.created_at
+    createdAt: row.created_at.toISOString()
 })
 
 function normalizePagination(page?: number, limit?: number): { page: number; limit: number; offset: number } {

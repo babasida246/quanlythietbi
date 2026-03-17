@@ -1,16 +1,15 @@
 import { API_BASE, apiJson, apiJsonData } from './httpClient'
 import { buildQuery, getAssetHeaders, type Asset } from './assets'
-import type { StockDocType, StockDocStatus, MovementType, RepairStatus, RepairSeverity, RepairType } from '@qltb/contracts'
+import type {
+    StockDocType, StockDocStatus, MovementType, RepairStatus, RepairSeverity, RepairType,
+    WarehouseRecord, StockDocumentRecord, StockDocumentLineRecord, StockDocumentDetail,
+    RepairOrderRecord, RepairOrderPartRecord, RepairOrderDetail, RepairOrderSummary
+} from '@qltb/contracts'
 
 export type { StockDocType, StockDocStatus, MovementType, RepairStatus, RepairSeverity, RepairType }
-
-export type WarehouseRecord = {
-    id: string
-    code: string
-    name: string
-    locationId?: string | null
-    createdAt: string
-}
+export type { WarehouseRecord, StockDocumentRecord, StockDocumentLineRecord, StockDocumentDetail }
+export type { RepairOrderRecord, RepairOrderPartRecord, RepairOrderDetail, RepairOrderSummary }
+export type StockDocumentLine = StockDocumentLineRecord
 
 export type SparePartRecord = {
     id: string
@@ -103,44 +102,6 @@ export type ValuationResult = {
     }>
 }
 
-export type StockDocumentRecord = {
-    id: string
-    docType: StockDocType
-    code: string
-    status: StockDocStatus
-    warehouseId?: string | null
-    targetWarehouseId?: string | null
-    docDate: string
-    refType?: string | null
-    refId?: string | null
-    note?: string | null
-    supplier?: string | null
-    submitterName?: string | null
-    receiverName?: string | null
-    department?: string | null
-    createdBy?: string | null
-    approvedBy?: string | null
-    correlationId?: string | null
-    createdAt: string
-    updatedAt: string
-}
-
-export type StockDocumentLine = {
-    id?: string
-    documentId?: string
-    partId: string
-    qty: number
-    unitCost?: number | null
-    serialNo?: string | null
-    note?: string | null
-    adjustDirection?: 'plus' | 'minus' | null
-    specFields?: Record<string, unknown> | null
-}
-
-export type StockDocumentDetail = {
-    document: StockDocumentRecord
-    lines: StockDocumentLine[]
-}
 
 export type StockMovementRecord = {
     id: string
@@ -156,51 +117,6 @@ export type StockMovementRecord = {
     createdAt: string
 }
 
-export type RepairOrderRecord = {
-    id: string
-    assetId: string
-    ciId?: string | null
-    code: string
-    title: string
-    description?: string | null
-    severity: RepairSeverity
-    status: RepairStatus
-    openedAt: string
-    closedAt?: string | null
-    diagnosis?: string | null
-    resolution?: string | null
-    repairType: RepairType
-    technicianName?: string | null
-    vendorId?: string | null
-    laborCost?: number | null
-    partsCost?: number | null
-    downtimeMinutes?: number | null
-    createdBy?: string | null
-    correlationId?: string | null
-    createdAt: string
-    updatedAt: string
-}
-
-export type RepairOrderPartRecord = {
-    id: string
-    repairOrderId: string
-    partId?: string | null
-    partName?: string | null
-    warehouseId?: string | null
-    action: 'replace' | 'add' | 'remove' | 'upgrade'
-    qty: number
-    unitCost?: number | null
-    serialNo?: string | null
-    note?: string | null
-    stockDocumentId?: string | null
-    createdAt: string
-}
-
-export type RepairOrderDetail = {
-    order: RepairOrderRecord
-    parts: RepairOrderPartRecord[]
-}
-
 export type RepairOrderEvent = {
     id: string
     eventType: string
@@ -208,21 +124,6 @@ export type RepairOrderEvent = {
     createdAt: string
 }
 
-export type RepairOrderSummary = {
-    total: number
-    activeCount: number
-    closedCount: number
-    canceledCount: number
-    totalLaborCost: number
-    totalPartsCost: number
-    totalCost: number
-    totalDowntimeMinutes: number
-    avgDowntimeMinutes: number | null
-    avgResolutionHours: number | null
-    byStatus: Record<RepairOrderRecord['status'], number>
-    bySeverity: Record<RepairOrderRecord['severity'], number>
-    byType: Record<RepairOrderRecord['repairType'], number>
-}
 
 export type StockDocumentCreateInput = {
     docType: StockDocumentRecord['docType']

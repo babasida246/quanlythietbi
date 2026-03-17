@@ -1,100 +1,33 @@
 import { API_BASE, apiJson } from './httpClient'
 import { getAssetHeaders } from './assets'
-import type { CiStatus, Environment, CmdbFieldType, SpecVersionStatus, CmdbChangeStatus, CmdbChangeRisk } from '@qltb/contracts'
+import type {
+    CiStatus, Environment, CmdbFieldType, SpecVersionStatus, CmdbChangeStatus, CmdbChangeRisk,
+    CiTypeRecord, CiTypeVersionRecord, CiAttrDefRecord, CiRecord,
+    RelationshipRecord, RelationshipTypeRecord,
+    CmdbServiceRecord, CmdbServiceMemberRecord, CmdbChangeRecord
+} from '@qltb/contracts'
 
 export type { CiStatus, Environment, CmdbFieldType, SpecVersionStatus, CmdbChangeStatus, CmdbChangeRisk }
+export type { CiRecord, RelationshipRecord, RelationshipTypeRecord, CmdbServiceRecord, CmdbChangeRecord }
 
-export type CmdbType = { id: string; code: string; name: string; description?: string | null; createdAt?: string }
-export type CmdbVersion = { id: string; typeId: string; version: number; status: SpecVersionStatus; createdBy?: string | null; createdAt?: string }
-export type CmdbAttrDef = {
-    id: string
-    versionId: string
-    key: string
-    label: string
-    fieldType: CmdbFieldType
-    required: boolean
-    unit?: string | null
-    enumValues?: string[] | null
-    pattern?: string | null
-    minValue?: number | null
-    maxValue?: number | null
-    stepValue?: number | null
-    minLen?: number | null
-    maxLen?: number | null
-    defaultValue?: unknown
-    isSearchable: boolean
-    isFilterable: boolean
-    sortOrder: number
-    isActive: boolean
-}
-export type CiRecord = {
-    id: string
-    typeId: string
-    name: string
-    ciCode: string
-    status: CiStatus
-    environment: Environment
-    assetId?: string | null
-    locationId?: string | null
-    ownerTeam?: string | null
-    notes?: string | null
-    createdAt?: string
-    updatedAt?: string
-}
+// Aliases for legacy names used throughout the UI
+export type CmdbType = CiTypeRecord
+export type CmdbVersion = CiTypeVersionRecord
+export type CmdbAttrDef = CiAttrDefRecord
+export type CmdbServiceMember = CmdbServiceMemberRecord
+
 export type CiDetail = {
     ci: CiRecord
     attributes: Array<{ key: string; value?: unknown }>
     schema: CmdbAttrDef[]
     version: CmdbVersion
 }
-export type RelationshipRecord = {
-    id: string
-    relTypeId: string
-    fromCiId: string
-    toCiId: string
-    status: string
-    sinceDate?: string | null
-    note?: string | null
-    createdAt?: string
-}
-export type RelationshipTypeRecord = {
-    id: string
-    code: string
-    name: string
-    reverseName?: string | null
-    allowedFromTypeId?: string | null
-    allowedToTypeId?: string | null
-}
 export type CiGraph = { nodes: CiRecord[]; edges: RelationshipRecord[] }
-export type CmdbServiceRecord = { id: string; code: string; name: string; description?: string | null; criticality?: string | null; owner?: string | null; sla?: string | null; status?: string | null; createdAt?: string }
-export type CmdbServiceMember = { id: string; serviceId: string; ciId: string; role?: string | null; createdAt?: string }
 export type CmdbRelationshipImportResult = {
     dryRun: boolean
     total: number
     created: RelationshipRecord[]
     errors: Array<{ index: number; message: string }>
-}
-export type CmdbChangeRecord = {
-    id: string
-    code: string
-    title: string
-    description?: string | null
-    status: CmdbChangeStatus
-    risk: CmdbChangeRisk
-    primaryCiId?: string | null
-    impactSnapshot?: unknown
-    implementationPlan?: string | null
-    rollbackPlan?: string | null
-    plannedStartAt?: string | null
-    plannedEndAt?: string | null
-    requestedBy?: string | null
-    approvedBy?: string | null
-    implementedBy?: string | null
-    implementedAt?: string | null
-    closedAt?: string | null
-    metadata?: Record<string, unknown> | null
-    createdAt?: string
-    updatedAt?: string
 }
 
 type ApiResponse<T> = { data: T; meta?: { total?: number; page?: number; limit?: number; warnings?: unknown[]; defs?: CmdbAttrDef[] } }

@@ -10,8 +10,8 @@ export interface RepairOrderRecord {
     description?: string | null
     severity: RepairSeverity
     status: RepairStatus
-    openedAt: Date
-    closedAt?: Date | null
+    openedAt: string
+    closedAt?: string | null
     diagnosis?: string | null
     resolution?: string | null
     repairType: RepairType
@@ -22,8 +22,8 @@ export interface RepairOrderRecord {
     downtimeMinutes?: number | null
     createdBy?: string | null
     correlationId?: string | null
-    createdAt: Date
-    updatedAt: Date
+    createdAt: string
+    updatedAt: string
 }
 
 export interface RepairOrderPartRecord {
@@ -38,7 +38,7 @@ export interface RepairOrderPartRecord {
     serialNo?: string | null
     note?: string | null
     stockDocumentId?: string | null
-    createdAt: Date
+    createdAt: string
 }
 
 export interface RepairOrderCreateInput {
@@ -69,7 +69,7 @@ export interface RepairOrderUpdatePatch {
     laborCost?: number | null
     partsCost?: number | null
     downtimeMinutes?: number | null
-    closedAt?: Date | null
+    closedAt?: string | null
     correlationId?: string | null
     ciId?: string | null
 }

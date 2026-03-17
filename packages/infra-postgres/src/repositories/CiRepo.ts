@@ -35,8 +35,8 @@ const mapRow = (row: CiRow): CiRecord => ({
     locationId: row.location_id,
     ownerTeam: row.owner_team,
     notes: row.notes,
-    createdAt: row.created_at,
-    updatedAt: row.updated_at
+    createdAt: row.created_at.toISOString(),
+    updatedAt: row.updated_at.toISOString()
 })
 
 function buildUpdates(patch: Partial<CiCreateInput>): Update[] {

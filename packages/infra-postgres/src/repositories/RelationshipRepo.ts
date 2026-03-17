@@ -28,7 +28,7 @@ const mapRow = (row: RelRow): RelationshipRecord => ({
     status: row.status,
     sinceDate: row.since_date ?? null,
     note: row.note ?? null,
-    createdAt: row.created_at
+    createdAt: row.created_at.toISOString()
 })
 
 export class RelationshipRepo implements IRelRepo {
