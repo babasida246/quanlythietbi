@@ -1,6 +1,7 @@
 import type { FastifyRequest } from 'fastify'
 import { ForbiddenError, UnauthorizedError } from '../../../shared/errors/http-errors.js'
 import { normalizeUserRole } from '../../../shared/security/jwt-auth.js'
+import { SYSTEM_ROLE_PERMISSIONS } from '@qltb/contracts'
 
 export function getHeader(request: FastifyRequest, name: string): string | undefined {
     const value = request.headers[name.toLowerCase()]
@@ -36,83 +37,6 @@ export function requireRole(request: FastifyRequest, allowed: string[]): { userI
     return { userId: ctx.userId, correlationId: ctx.correlationId }
 }
 
-// ─── Permission fallback table (mirror migration 050) ─────────────────────────
-// Dùng khi role_permissions chưa được seed vào DB (setup mới / test).
-const ROLE_DEFAULT_PERMISSIONS: Record<string, string[]> = {
-    admin: ['*'],
-    super_admin: ['*'],
-    it_asset_manager: [
-        'assets:read', 'assets:create', 'assets:update', 'assets:delete', 'assets:export', 'assets:import', 'assets:assign',
-        'categories:read', 'categories:manage',
-        'cmdb:read', 'cmdb:create', 'cmdb:update', 'cmdb:delete',
-        'warehouse:read', 'warehouse:create', 'warehouse:approve',
-        'inventory:read', 'inventory:create', 'inventory:manage',
-        'licenses:read', 'licenses:manage',
-        'accessories:read', 'accessories:manage',
-        'consumables:read', 'consumables:manage',
-        'components:read', 'components:manage',
-        'checkout:read', 'checkout:create', 'checkout:approve',
-        'requests:read', 'requests:create', 'requests:approve',
-        'maintenance:read', 'maintenance:create', 'maintenance:manage',
-        'reports:read', 'reports:export', 'analytics:read',
-        'depreciation:read', 'depreciation:manage',
-        'labels:read', 'labels:manage',
-        'documents:read', 'documents:upload', 'documents:delete',
-        'automation:read', 'automation:manage',
-        'integrations:read', 'integrations:manage',
-        'security:read',
-    ],
-    warehouse_keeper: [
-        'assets:read', 'assets:create', 'assets:update', 'assets:export',
-        'categories:read',
-        'warehouse:read', 'warehouse:create',
-        'inventory:read', 'inventory:create',
-        'accessories:read', 'accessories:manage',
-        'consumables:read', 'consumables:manage',
-        'components:read', 'components:manage',
-        'requests:read', 'requests:create',
-        'audit:read', 'audit:create',
-        'maintenance:read',
-        'reports:read', 'reports:export',
-        'depreciation:read',
-        'labels:read', 'labels:manage',
-        'documents:read', 'documents:upload',
-    ],
-    technician: [
-        'assets:read', 'categories:read', 'cmdb:read',
-        'warehouse:read', 'inventory:read',
-        'accessories:read', 'consumables:read',
-        'components:read', 'components:manage',
-        'checkout:read', 'checkout:create',
-        'requests:read', 'requests:create',
-        'maintenance:read', 'maintenance:create', 'maintenance:manage',
-        'reports:read', 'labels:read',
-        'documents:read', 'documents:upload',
-    ],
-    requester: [
-        'assets:read', 'categories:read', 'licenses:read',
-        'checkout:read', 'checkout:create',
-        'requests:read', 'requests:create',
-        'maintenance:read', 'maintenance:create',
-        'reports:read', 'documents:read',
-    ],
-    // 'user' = backward-compat alias cho 'requester'
-    user: [
-        'assets:read', 'categories:read', 'licenses:read',
-        'checkout:read', 'checkout:create',
-        'requests:read', 'requests:create',
-        'maintenance:read', 'maintenance:create',
-        'reports:read', 'documents:read',
-    ],
-    viewer: [
-        'assets:read', 'categories:read', 'cmdb:read',
-        'warehouse:read', 'inventory:read', 'licenses:read',
-        'accessories:read', 'consumables:read', 'components:read',
-        'checkout:read', 'requests:read', 'maintenance:read',
-        'reports:read', 'analytics:read', 'depreciation:read',
-        'labels:read', 'security:read', 'documents:read', 'automation:read',
-    ],
-}
 
 /**
  * Kiểm tra permission cụ thể trên request đã xác thực.
@@ -139,8 +63,8 @@ export function requirePermission(
             throw new ForbiddenError(`Permission required: ${permission}`)
         }
     } else {
-        // Fallback: dùng bảng mặc định
-        const defaults = ROLE_DEFAULT_PERMISSIONS[ctx.role] ?? []
+        // Fallback: dùng bảng mặc định từ contracts
+        const defaults = SYSTEM_ROLE_PERMISSIONS[ctx.role] ?? []
         if (!defaults.includes('*') && !defaults.includes(permission)) {
             throw new ForbiddenError(`Permission required: ${permission}`)
         }

@@ -2,6 +2,8 @@
 // Contracts: RBAC AD — DTOs, Repo Interfaces, Service Interfaces
 // ============================================================================
 
+export * from './roles.js'
+
 import type {
     OrgUnit, RbacUser, RbacGroup, GroupMember,
     RbacRole, RbacAdPermission, AclEntry,
