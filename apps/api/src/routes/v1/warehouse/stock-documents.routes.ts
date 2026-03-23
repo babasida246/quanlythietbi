@@ -70,7 +70,8 @@ export async function stockDocumentRoutes(
             supplier: body.supplier ?? null,
             submitterName: body.submitterName ?? null,
             receiverName: body.receiverName ?? null,
-            department: body.department ?? null
+            department: body.department ?? null,
+            locationId: body.locationId ?? null
         }, body.lines, ctx)
         return reply.status(201).send({ data: detail })
     })
@@ -89,6 +90,7 @@ export async function stockDocumentRoutes(
             submitterName: body.submitterName ?? null,
             receiverName: body.receiverName ?? null,
             department: body.department ?? null,
+            locationId: body.locationId ?? null,
             correlationId: ctx.correlationId
         }, body.lines, ctx)
         return reply.send({ data: detail })
@@ -128,6 +130,46 @@ export async function stockDocumentRoutes(
         const query = stockLedgerSchema.parse(request.query)
         const result = await stockDocumentService.listMovements(query)
         return reply.send({ data: result.items, meta: { total: result.total, page: result.page, limit: result.limit } })
+    })
+
+    // List assets currently in-stock at a warehouse (for issue document line picker)
+    fastify.get('/stock/assets', async (request, reply) => {
+        getUserContext(request)
+        const query = z.object({
+            warehouseId: z.string().uuid(),
+            q: z.string().optional()
+        }).parse(request.query)
+        if (!pgClient) return reply.send({ data: [] })
+        type AssetRow = {
+            id: string; asset_code: string; serial_no: string | null
+            model_name: string | null; category_name: string | null
+        }
+        const params: unknown[] = [query.warehouseId]
+        let qCondition = ''
+        if (query.q) {
+            params.push(`%${query.q}%`)
+            qCondition = ` AND (a.asset_code ILIKE $${params.length} OR a.serial_no ILIKE $${params.length})`
+        }
+        const result = await pgClient.query<AssetRow>(
+            `SELECT a.id, a.asset_code, a.serial_no,
+                    m.name AS model_name, c.name AS category_name
+             FROM assets a
+             LEFT JOIN asset_models m ON m.id = a.model_id
+             LEFT JOIN asset_categories c ON c.id = m.category_id
+             WHERE a.warehouse_id = $1 AND a.status = 'in_stock'${qCondition}
+             ORDER BY a.asset_code ASC
+             LIMIT 200`,
+            params
+        )
+        return reply.send({
+            data: result.rows.map(r => ({
+                id: r.id,
+                assetCode: r.asset_code,
+                serialNo: r.serial_no,
+                modelName: r.model_name,
+                categoryName: r.category_name
+            }))
+        })
     })
 
     // Real-time stock availability check (used by UI for issue/transfer validation)

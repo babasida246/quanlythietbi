@@ -73,7 +73,13 @@
   let breadcrumb = $state<Array<{ id: string; label: string }>>([]);
 
   // Filters
-  let filters: GraphFilters = $state({ ...DEFAULT_FILTERS, depth });
+  let filters: GraphFilters = $state({ ...DEFAULT_FILTERS, depth: 2 });
+
+  $effect(() => {
+    if (filters.depth !== depth) {
+      filters = { ...filters, depth };
+    }
+  });
 
   // Stats
   let stats = $state({ nodes: 0, edges: 0 });

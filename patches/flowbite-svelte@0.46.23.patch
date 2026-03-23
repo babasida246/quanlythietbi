@@ -1,0 +1,33 @@
+diff --git a/dist/carousel/Carousel.svelte b/dist/carousel/Carousel.svelte
+index 2d2f8760fe59aa64793d6fc108d32fde7c71ec34..58eaaa4a485988f0b5378649e9c2ac46fcd72d60 100644
+--- a/dist/carousel/Carousel.svelte
++++ b/dist/carousel/Carousel.svelte
+@@ -18,8 +18,8 @@ export let disableSwipe = false;
+ let divClass = "grid overflow-hidden relative rounded-lg h-56 sm:h-64 xl:h-80 2xl:h-96";
+ export let imgClass = "";
+ const dispatch = createEventDispatcher();
+-const { set, subscribe, update } = writable({ images, index, forward: true, slideDuration, lastSlideChange: /* @__PURE__ */ new Date() });
+-const state = { set: (_state) => set({ index: _state.index, images: _state.images, lastSlideChange: /* @__PURE__ */ new Date(), slideDuration, forward }), subscribe, update };
++const { set, subscribe, update } = writable({ images, index, forward: true, slideDuration, lastSlideChange: new Date() });
++const state = { set: (_state) => set({ index: _state.index, images: _state.images, lastSlideChange: new Date(), slideDuration, forward }), subscribe, update };
+ let forward = true;
+ setContext("state", state);
+ subscribe((_state) => {
+@@ -34,7 +34,7 @@ const nextSlide = () => {
+   update((_state) => {
+     if (!canChangeSlide({ lastSlideChange: _state.lastSlideChange, slideDuration, slideDurationRatio: SLIDE_DURATION_RATIO })) return _state;
+     _state.index = _state.index >= images.length - 1 ? 0 : _state.index + 1;
+-    _state.lastSlideChange = /* @__PURE__ */ new Date();
++    _state.lastSlideChange = new Date();
+     return { ..._state };
+   });
+ };
+@@ -42,7 +42,7 @@ const prevSlide = () => {
+   update((_state) => {
+     if (!canChangeSlide({ lastSlideChange: _state.lastSlideChange, slideDuration, slideDurationRatio: SLIDE_DURATION_RATIO })) return _state;
+     _state.index = _state.index <= 0 ? images.length - 1 : _state.index - 1;
+-    _state.lastSlideChange = /* @__PURE__ */ new Date();
++    _state.lastSlideChange = new Date();
+     return { ..._state };
+   });
+ };

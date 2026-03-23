@@ -81,6 +81,8 @@ export interface AssetUpsertFields {
     vendorId?: string | null
     notes?: string | null
     spec?: Record<string, unknown> | null
+    /** FK to the stock_document_line that created this asset (receipt flow) */
+    sourceDocLineId?: string | null
 }
 
 export type AssetCreateInput = AssetUpsertFields
@@ -98,6 +100,8 @@ export interface AssetAssignmentRecord {
     assignedAt: Date
     returnedAt?: Date | null
     note?: string | null
+    locationId?: string | null
+    organizationId?: string | null
 }
 
 export interface AssetAssignmentInput {
@@ -106,6 +110,8 @@ export interface AssetAssignmentInput {
     assigneeName: string
     assignedAt?: Date
     note?: string | null
+    locationId?: string | null
+    organizationId?: string | null
 }
 
 export interface MaintenanceTicketRecord {

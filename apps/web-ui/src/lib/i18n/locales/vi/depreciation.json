@@ -1,0 +1,164 @@
+{
+  "depreciation": {
+    "title": "Khấu hao tài sản",
+    "subtitle": "Quản lý lịch khấu hao và theo dõi giá trị tài sản",
+    "schedules": "Lịch khấu hao",
+    "schedule": "Lịch khấu hao",
+    "entries": "Bút toán khấu hao",
+    "runs": "Lần tính khấu hao",
+    "createSchedule": "Tạo lịch khấu hao",
+    "newSchedule": "Lịch khấu hao mới",
+    "stopSchedule": "Dừng khấu hao",
+    "previewSchedule": "Xem trước lịch khấu hao",
+    "runMonthly": "Tính khấu hao tháng này",
+    "postEntries": "Ghi sổ bút toán",
+
+    "tab": {
+      "schedules": "Lịch khấu hao",
+      "entries": "Bút toán",
+      "runs": "Lịch sử chạy"
+    },
+
+    "field": {
+      "asset": "Tài sản",
+      "assetTag": "Mã tài sản",
+      "assetName": "Tên tài sản",
+      "method": "Phương pháp khấu hao",
+      "originalCost": "Nguyên giá",
+      "salvageValue": "Giá trị thu hồi",
+      "usefulLifeYears": "Thời gian sử dụng (năm)",
+      "startDate": "Ngày bắt đầu khấu hao",
+      "endDate": "Ngày kết thúc",
+      "annualRate": "Tỉ lệ khấu hao / năm",
+      "monthlyAmount": "Khấu hao / tháng",
+      "annualAmount": "Khấu hao / năm",
+      "accumulated": "Đã khấu hao",
+      "bookValue": "Giá trị còn lại",
+      "remainingMonths": "Số tháng còn lại",
+      "progress": "Tiến độ khấu hao",
+      "status": "Trạng thái",
+      "notes": "Ghi chú",
+      "category": "Danh mục",
+      "stoppedReason": "Lý do dừng",
+      "period": "Kỳ khấu hao",
+      "depreciationAmount": "Số tiền khấu hao",
+      "beginningValue": "Giá trị đầu kỳ",
+      "endingValue": "Giá trị cuối kỳ",
+      "posted": "Đã ghi sổ"
+    },
+
+    "method": {
+      "straight_line": "Đường thẳng",
+      "declining_balance": "Số dư giảm dần",
+      "double_declining": "Số dư giảm dần kép",
+      "sum_of_years": "Tổng số năm",
+      "units_of_production": "Theo sản lượng"
+    },
+
+    "status": {
+      "active": "Đang khấu hao",
+      "fully_depreciated": "Khấu hao hết",
+      "stopped": "Đã dừng"
+    },
+
+    "dashboard": {
+      "totalOriginalCost": "Tổng nguyên giá",
+      "totalAccumulated": "Tổng đã khấu hao",
+      "totalBookValue": "Tổng giá trị còn lại",
+      "activeSchedules": "Lịch đang khấu hao",
+      "fullyDepreciated": "Đã khấu hao hết",
+      "pendingEntries": "Bút toán chờ ghi sổ",
+      "thisMonthAmount": "Khấu hao tháng này",
+      "endingSoon": "Sắp hết khấu hao"
+    },
+
+    "filter": {
+      "allStatus": "Tất cả trạng thái",
+      "allMethods": "Tất cả phương pháp",
+      "endingSoon": "Sắp hết KH"
+    },
+
+    "preview": {
+      "title": "Xem trước lịch khấu hao",
+      "depreciableAmount": "Giá trị khấu hao",
+      "totalMonths": "Tổng số tháng",
+      "monthlyAmount": "Khấu hao / tháng",
+      "schedule": "Bảng khấu hao (36 tháng đầu)",
+      "period": "Kỳ",
+      "amount": "Số tiền",
+      "accumulated": "Luỹ kế",
+      "bookValue": "Còn lại"
+    },
+
+    "entry": {
+      "filterPending": "Chờ ghi sổ",
+      "filterAll": "Tất cả",
+      "postSelected": "Ghi sổ đã chọn ({count})",
+      "noPending": "Không có bút toán chờ ghi sổ",
+      "noPendingHint": "Chạy tính khấu hao tháng để tạo bút toán mới cho tất cả tài sản",
+      "noEntries": "Chưa có bút toán nào",
+      "postedAt": "Ngày ghi sổ",
+      "adjustmentLabel": "Điều chỉnh"
+    },
+
+    "run": {
+      "code": "Mã lần tính",
+      "period": "Kỳ",
+      "type": "Loại",
+      "assets": "Số tài sản",
+      "amount": "Tổng khấu hao",
+      "completedAt": "Hoàn thành lúc",
+      "empty": "Chưa có lần tính khấu hao nào",
+      "emptyHint": "Tính khấu hao tháng để tự động tạo bút toán cho tất cả tài sản đang hoạt động",
+      "status": {
+        "pending": "Chờ xử lý",
+        "processing": "Đang xử lý",
+        "completed": "Hoàn thành",
+        "failed": "Thất bại"
+      },
+      "type_label": {
+        "monthly": "Tháng",
+        "adjustment": "Điều chỉnh",
+        "closing": "Khoá sổ"
+      }
+    },
+
+    "hint": {
+      "originalCost": "Nhập nguyên giá tài sản (giá mua, có thể lấy từ phiếu nhập kho)",
+      "salvageValue": "Giá trị ước tính thu hồi khi tài sản hết hạn sử dụng (mặc định: 0)",
+      "usefulLifeYears": "Thời gian sử dụng hữu ích theo kế hoạch (năm). TT45: TSCĐ CNTT 3–5 năm, máy chủ 5 năm",
+      "startDate": "Thường là ngày đưa vào sử dụng hoặc ngày mua"
+    },
+
+    "confirm": {
+      "stop": "Bạn có chắc muốn dừng lịch khấu hao này? Hành động này không thể hoàn tác.",
+      "runMonthly": "Tính khấu hao cho tất cả tài sản trong tháng {month}/{year}?",
+      "postEntries": "Ghi sổ {count} bút toán đã chọn? Sau khi ghi sổ không thể hoàn tác."
+    },
+
+    "error": {
+      "loadFailed": "Không thể tải dữ liệu khấu hao",
+      "createFailed": "Tạo lịch khấu hao thất bại",
+      "stopFailed": "Dừng lịch khấu hao thất bại",
+      "alreadyActive": "Tài sản đã có lịch khấu hao đang hoạt động",
+      "previewFailed": "Không thể tạo xem trước",
+      "runFailed": "Tính khấu hao thất bại",
+      "postFailed": "Ghi sổ bút toán thất bại",
+      "listEntriesFailed": "Không thể tải danh sách bút toán",
+      "listRunsFailed": "Không thể tải lịch sử chạy"
+    },
+
+    "success": {
+      "created": "Tạo lịch khấu hao thành công",
+      "stopped": "Đã dừng lịch khấu hao",
+      "posted": "Đã ghi sổ {count} bút toán",
+      "run": "Tính KH tháng {month}/{year} hoàn thành: {count} tài sản",
+      "runStarted": "Đã bắt đầu tính khấu hao"
+    },
+
+    "empty": {
+      "schedules": "Chưa có lịch khấu hao nào",
+      "schedulesHint": "Tạo lịch khấu hao cho tài sản để theo dõi giá trị theo thời gian"
+    }
+  }
+}

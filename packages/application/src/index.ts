@@ -136,3 +136,6 @@ export type { ILicenseRepository } from './licenses/LicenseService.js'
 // Feature: Workflow (Requests & Approvals)
 export { WfService, WfError, WfNotFoundError, WfForbiddenError } from './wf/WfService.js'
 export type { IWfRepository, IApproverResolver } from './wf/WfService.js'
+
+// Organizations (OU)
+export { OrganizationService } from './organizations/OrganizationService.js'

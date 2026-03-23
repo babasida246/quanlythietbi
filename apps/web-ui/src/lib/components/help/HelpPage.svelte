@@ -19,6 +19,7 @@
   import HelpSystemMap from './HelpSystemMap.svelte';
   import HelpRbac from './HelpRbac.svelte';
   import HelpPolicy from './HelpPolicy.svelte';
+  import HelpCmdb from './HelpCmdb.svelte';
 
   type TocItem = { id: string; label: string; level: number };
 
@@ -38,6 +39,7 @@
     { id: 'rbac',             label: t('help.tocItems.rbac', 'Phân quyền & RBAC'), level: 1 },
     { id: 'policy-system',   label: t('help.tocItems.policySystem', 'Unified Policy System'), level: 1 },
     { id: 'modules',          label: t('help.tocItems.modules', 'Hướng dẫn theo module'), level: 1 },
+    { id: 'cmdb-guide',       label: t('help.tocItems.cmdbGuide', 'Hướng dẫn CMDB'), level: 1 },
     { id: 'asset-detail',     label: t('help.tocItems.assetDetail', 'Quản lý chi tiết tài sản'), level: 1 },
     { id: 'business-process', label: t('help.tocItems.businessProcess', 'Quy trình nghiệp vụ (SOP)'), level: 1 },
     { id: 'playbooks',        label: t('help.tocItems.playbooks', 'Kịch bản Work Order'), level: 1 },
@@ -172,6 +174,9 @@
 
     <!-- 5. Module Guide -->
     <HelpModules {copyAnchor} {copiedId} />
+
+    <!-- CMDB Guide -->
+    <HelpCmdb {copyAnchor} {copiedId} />
 
     <!-- 4b. Asset Detail Management Guide -->
     <HelpAssetDetail {copyAnchor} {copiedId} />

@@ -29,6 +29,14 @@
   import EmptyState from '$lib/components/EmptyState.svelte';
   import Skeleton from '$lib/components/Skeleton.svelte';
   import { Button } from '$lib/components/ui';
+  import { getCapabilities } from '$lib/auth/capabilities';
+  import { allowedPerms } from '$lib/stores/effectivePermsStore';
+
+  let userRole = $state('');
+  const caps = $derived.by(() => {
+    const perms = $allowedPerms;
+    return getCapabilities(userRole, perms.length > 0 ? perms : undefined);
+  });
 
   const assetSchema = z.object({
     name: z.string().trim().min(1, $isLoading ? 'Asset name is required' : $_('assets.validation.nameRequired')),
@@ -325,6 +333,7 @@
   const statusOptions = $derived(statuses.map((item) => ({ value: item.code, label: `${item.name} (${item.code})` })));
 
   onMount(() => {
+    userRole = localStorage.getItem('userRole') || '';
     void loadPageData();
   });
 </script>
@@ -346,10 +355,12 @@
         {#snippet leftIcon()}<Upload class="h-3.5 w-3.5" />{/snippet}
         {$isLoading ? 'Import CSV' : $_('assets.importCsv')}
       </Button>
-      <Button variant="primary" size="sm" data-testid="btn-create" onclick={() => goto('/assets/new')}>
-        {#snippet leftIcon()}<Plus class="h-3.5 w-3.5" />{/snippet}
-        {$isLoading ? 'Create new' : $_('assets.createNew')}
-      </Button>
+      {#if caps.assets.create}
+        <Button variant="primary" size="sm" data-testid="btn-create" onclick={() => goto('/assets/new')}>
+          {#snippet leftIcon()}<Plus class="h-3.5 w-3.5" />{/snippet}
+          {$isLoading ? 'Create new' : $_('assets.createNew')}
+        </Button>
+      {/if}
       <Button variant="ghost" size="sm" data-testid="btn-refresh" onclick={() => loadPageData()}>
         {#snippet leftIcon()}<RefreshCw class="h-3.5 w-3.5" />{/snippet}
         {$isLoading ? 'Reload' : $_('assets.reload')}
@@ -466,7 +477,7 @@
       icon={HardDrive}
       title={$isLoading ? 'No assets' : $_('assets.noAssets')}
       description={query ? ($isLoading ? 'No matching results. Try different keywords.' : $_('assets.noResults')) : ($isLoading ? 'Start by creating a new asset.' : $_('assets.emptyHint'))}
-      actionLabel={query ? '' : ($isLoading ? 'Create Asset' : $_('assets.createAsset'))}
+      actionLabel={query || !caps.assets.create ? '' : ($isLoading ? 'Create Asset' : $_('assets.createAsset'))}
       onAction={() => goto('/assets/new')}
     />
   {:else}

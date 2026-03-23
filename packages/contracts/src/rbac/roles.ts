@@ -10,6 +10,7 @@
 // ─── System Roles ─────────────────────────────────────────────────────────────
 
 export type SystemRole =
+  | 'root'       // superadmin bất khả xâm phạm — vượt qua mọi DENY policy
   | 'admin'
   | 'super_admin'
   | 'it_asset_manager'
@@ -21,6 +22,7 @@ export type SystemRole =
   | string       // custom roles tương lai
 
 export const SYSTEM_ROLES = [
+  'root',
   'admin',
   'super_admin',
   'it_asset_manager',
@@ -34,6 +36,7 @@ export const SYSTEM_ROLES = [
 // Dùng làm fallback khi role_permissions chưa được seed vào DB.
 
 export const SYSTEM_ROLE_PERMISSIONS: Record<string, readonly string[]> = {
+  root: ['*'],       // bất khả xâm phạm — bypass mọi check
   admin: ['*'],
   super_admin: ['*'],
   it_asset_manager: [

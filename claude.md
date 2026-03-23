@@ -1,7 +1,7 @@
 # Claude Instructions — QuanLyThietBi (QLTB)
 
-> Tài liệu chỉ dẫn cho Claude khi làm việc với codebase này.  
-> Cập nhật lần cuối: 2026-03-12
+> Tài liệu chỉ dẫn cho Claude khi làm việc với codebase này.
+> Cập nhật lần cuối: 2026-03-19
 
 ---
 
@@ -12,19 +12,20 @@
 ### Các module chính
 
 | Module | Đường dẫn UI | Mô tả |
-|--------|-------------|-------|
+| --- | --- | --- |
 | Assets | `/assets` | Vòng đời thiết bị, CRUD, assign, timeline |
 | Catalogs | `/assets/catalogs` | Loại, model, vendor, vị trí, trạng thái |
-| CMDB | `/cmdb` | CIs, types, services, relationships, topology |
-| Warehouse | `/warehouse` | Kho, phiếu nhập/xuất, tồn kho, sổ kho |
+| CMDB | `/cmdb` | Hạng mục cấu hình (CI), loại, dịch vụ, quan hệ, sơ đồ |
+| Warehouse | `/warehouse` | Kho, phiếu nhập/xuất/điều chỉnh/chuyển, tồn kho, sổ kho |
 | Maintenance | `/maintenance` | Ticket bảo trì, lệnh sửa chữa |
 | Inventory | `/inventory` | Kiểm kê tài sản |
+| Organizations | `/admin` | Cơ cấu tổ chức phân cấp (OU tree) |
 | Requests / Workflow | `/requests`, `/inbox` | Phê duyệt đa bước, inbox duyệt |
 | Analytics | `/analytics` | Dashboard, cost analysis, báo cáo |
 | Automation | `/automation` | Rules engine, scheduled tasks |
 | Integrations | `/integrations` | Connectors, sync rules, webhooks |
 | Security | `/security` | Compliance, audit, RBAC permissions |
-| Admin | `/admin` | Quản lý users, roles |
+| Admin | `/admin` | Quản lý users, roles, organizations |
 | Reports | `/reports` | Báo cáo tổng hợp |
 
 ---
@@ -32,11 +33,11 @@
 ## 2. Stack công nghệ
 
 | Layer | Công nghệ | Phiên bản |
-|-------|-----------|-----------|
+| --- | --- | --- |
 | Frontend | SvelteKit 2 + Svelte 5 (runes) | SPA mode |
 | CSS | TailwindCSS 3.4 + custom design tokens | `darkMode: 'class'` |
 | Charts | ECharts 6, Cytoscape 3.30, XYFlow | — |
-| i18n | svelte-i18n 4.0 | vi/en |
+| i18n | svelte-i18n 4.0 | vi/en, split domain files |
 | Backend | Fastify 5 (Node.js 20+) | — |
 | Validation | Zod (cả client lẫn server) | — |
 | Database | PostgreSQL 16 | — |
@@ -50,7 +51,7 @@
 
 ## 3. Cấu trúc Monorepo
 
-```
+```text
 QuanLyThietBi/
 ├── apps/
 │   ├── api/                    # @qltb/api — Fastify backend
@@ -83,8 +84,9 @@ QuanLyThietBi/
 │               ├── api/        # HTTP client modules (~30 files)
 │               ├── auth/       # capabilities.ts — client-side RBAC
 │               ├── components/ # AppSidebar, ToastHost, NotifCenter...
-│               ├── i18n/       # svelte-i18n config + locales/vi.json, en.json
+│               ├── i18n/       # svelte-i18n config + locales/vi/ + locales/en/
 │               ├── rbac/       # RBAC engine helpers
+│               ├── warehouse/  # StockDocumentLines.svelte (dual-mode line editor)
 │               └── stores/     # themeStore.ts, authStore...
 │
 ├── packages/                   # Clean Architecture layers
@@ -98,7 +100,7 @@ QuanLyThietBi/
 │           └── repositories/   # All *Repo classes
 │
 ├── db/
-│   ├── migrations/             # migrations 007–057 + dated patches
+│   ├── migrations/             # migrations 007–057 + dated patches (20260319_*)
 │   ├── seed-data.sql           # Foundation: users, locations, vendors, statuses
 │   ├── seed-assets-management.sql  # ~40 tables: assets, warehouse, maintenance
 │   └── seed-qlts-demo.sql      # CMDB, workflow demo data
@@ -120,7 +122,7 @@ QuanLyThietBi/
 
 ### 4.1 Request HTTP (Frontend → API)
 
-```
+```text
 Browser (SvelteKit SPA)
   │
   │  HTTP/REST — Bearer JWT
@@ -145,7 +147,7 @@ Fastify (apps/api)
 
 ### 4.2 Authentication flow
 
-```
+```text
 1. POST /api/v1/auth/login → { accessToken, refreshToken, user }
    - Tokens lưu vào localStorage: 'authToken', 'refreshToken'
    - User info: 'userEmail', 'userRole', 'userName'
@@ -161,13 +163,14 @@ Fastify (apps/api)
 ### 4.3 Frontend API calls
 
 Tất cả HTTP calls đi qua `apps/web-ui/src/lib/api/httpClient.ts`:
+
 - `getStoredTokens()` / `setStoredTokens()` — quản lý localStorage
 - `refreshAccessToken()` — singleton refresh với promise dedup
 - Mỗi module (assets.ts, cmdb.ts, warehouse.ts...) export typed helper functions
 
 ### 4.4 Luồng Theme (Dark/Light)
 
-```
+```text
 app.html  → inline script đọc localStorage('theme') → toggle class 'dark' trước khi paint
 themeStore.ts → writable store → theme.toggle() → cập nhật html element + localStorage
 tokens.css → :root (dark defaults) + html:not(.dark) { ... } (light overrides)
@@ -179,41 +182,51 @@ tokens.css → :root (dark defaults) + html:not(.dark) { ... } (light overrides)
 
 ### 5.1 Migration order
 
-```
+```text
 pnpm db:reset = pnpm db:empty → pnpm db:migrate → pnpm db:seed
 
 db:migrate chạy theo thứ tự:
   1. packages/infra-postgres/src/schema.sql         (base schema)
   2. packages/infra-postgres/src/migrations/020–042 (11 package migrations)
   3. db/migrations/007–057 (31 app migrations)
-  4. db/migrations/2026xxxx_*.sql (dated patches, nếu có)
+  4. db/migrations/20260319_001 → 004 (dated patches hiện tại)
+  5. db/migrations/2026xxxx_*.sql (dated patches mới, theo thứ tự tên file)
 ```
 
 ### 5.2 Quy tắc migration
 
 - **Chỉ DDL** — Không bao giờ đặt INSERT/seed trong migration
 - **Đánh số tiếp** — File app migration mới: `db/migrations/058_xxx.sql`
-- **Patch tức thời** — Dùng tên dated: `db/migrations/20260312_001_desc.sql`
+- **Patch tức thời** — Dùng tên dated: `db/migrations/20260319_005_desc.sql` (tăng số thứ tự trong ngày)
 - **Idempotent** — Dùng `IF NOT EXISTS` / `IF EXISTS` / `DO $$ IF ... $$`
 - **Không xóa migration cũ** — Chỉ thêm migration mới để sửa
 
-### 5.3 Seed UUIDs chuẩn
+### 5.3 Các dated patches hiện tại (20260319)
+
+| File | Nội dung |
+| --- | --- |
+| `20260319_001_organizations_hierarchy.sql` | Bảng organizations (OU tree), org_path |
+| `20260319_002_assignments_location_org.sql` | Thêm organization_id vào asset_assignments |
+| `20260319_003_locations_organization_link.sql` | FK locations → organizations |
+| `20260319_004_stock_doc_asset_lines.sql` | line_type + asset columns trong stock_document_lines; location_id trong stock_documents; source_doc_line_id trong assets; sequence asset_code_seq |
+
+### 5.4 Seed UUIDs chuẩn
 
 | Entity | UUID pattern |
-|--------|-------------|
+| --- | --- |
 | Users | `00000000-0000-0000-0000-00000000000X` |
 | Statuses | `c0100000-0000-0000-0000-00000000000X` |
 | Locations | `a0000000-0000-0000-0000-00000000000X` |
 | Vendors | `b0000000-0000-0000-0000-00000000000X` |
 | Organizations | `d0000000-0000-0000-0000-00000000000X` |
 
-### 5.4 Default accounts (sau seed)
+### 5.5 Default accounts (sau seed)
 
 | Vai trò | Email | Password |
-|---------|-------|----------|
-| Admin | admin@example.com | Benhvien@121 |
-| IT Manager | it_manager@example.com | Benhvien@121 |
-| User | user@example.com | Benhvien@121 |
+| --- | --- | --- |
+| Admin | `admin@example.com` | `Benhvien@121` |
+| IT Manager | `it_manager@example.com` | `Benhvien@121` |
+| User | `user@example.com` | `Benhvien@121` |
 
 ---
 
@@ -238,12 +251,16 @@ db:migrate chạy theo thứ tự:
 ### 6.3 Các module API chính
 
 | Prefix | Module |
-|--------|--------|
+| --- | --- |
 | `/api/v1/assets` | Tài sản |
-| `/api/v1/cmdb` | CMDB |
-| `/api/v1/warehouse` | Kho |
+| `/api/v1/asset-models` | Model thiết bị |
+| `/api/v1/assets/catalogs` | Danh mục (locations, vendors, categories...) |
+| `/api/v1/cmdb` | Quản lý cấu hình |
+| `/api/v1/warehouse` | Kho hàng, phiếu, tồn kho |
+| `/api/v1/stock` | Stock assets in warehouse |
 | `/api/v1/maintenance` | Bảo trì |
 | `/api/v1/inventory` | Kiểm kê |
+| `/api/v1/organizations` | Cơ cấu tổ chức |
 | `/api/v1/reports` | Báo cáo |
 | `/api/v1/analytics` | Analytics |
 | `/api/v1/automation` | Automation |
@@ -253,7 +270,7 @@ db:migrate chạy theo thứ tự:
 | `/api/v1/communications` | Thông báo |
 | `/api/setup` | Setup wizard |
 
-Swagger UI: `http://localhost:3000/docs` (~221 endpoints)
+Swagger UI: `http://localhost:3000/docs`
 
 ---
 
@@ -269,32 +286,63 @@ let count = $state(0)
 let doubled = $derived(count * 2)
 $effect(() => { localStorage.setItem('x', count) })
 let { children } = $props()
+let { value = $bindable() } = $props()
 
 <!-- ❌ Sai — Svelte 4 syntax -->
 let count = 0; $: doubled = count * 2;
 export let prop;
 ```
 
-- `onMount` (từ svelte) — dùng cho side effects cần DOM, thay vì `$effect` nếu chỉ cần chạy một lần
-- Dùng `$derived.by(() => ...)` khi logic derive phức tạp
+- `onMount` — dùng cho side effects cần DOM hoặc load data một lần khi mount
+- `$effect` — dùng khi cần react với state changes (không phải khởi tạo một lần)
+- `$derived.by(() => ...)` — khi logic derive phức tạp hơn một expression
 
-### 7.2 i18n
+### 7.2 i18n — QUAN TRỌNG: Dùng split domain files
 
-Tất cả text hiển thị ra người dùng PHẢI qua i18n:
+**KHÔNG** sửa `locales/vi.json` hoặc `locales/en.json` (monolithic files — không được load).
+
+Locale files được tách thành các domain files:
+
+```text
+apps/web-ui/src/lib/i18n/locales/
+├── vi/
+│   ├── common.json      # nav.*, common.*, auth.*, table.*, form.*
+│   ├── assets.json      # assets.*
+│   ├── warehouse.json   # warehouse.*, stockDoc.*, wfRequest.*
+│   ├── cmdb.json        # cmdb.*
+│   ├── requests.json    # requests.*
+│   └── ...
+└── en/
+    ├── common.json
+    ├── assets.json
+    ├── warehouse.json
+    └── ...
+```
+
+File `apps/web-ui/src/lib/i18n/index.ts` register từng domain file qua `register()`.
+
+**Khi thêm key mới:**
+
+1. Xác định domain → tìm đúng file (vd: key `warehouse.field.xxx` → `vi/warehouse.json`)
+2. Thêm vào **cả hai** `vi/<domain>.json` VÀ `en/<domain>.json`
+3. Không bao giờ sửa `locales/vi.json` hoặc `locales/en.json`
+
+**Sử dụng trong component:**
 
 ```svelte
 <script>
   import { _, isLoading } from '$lib/i18n'
 </script>
 
-<!-- Có fallback khi đang load -->
+<!-- Luôn có fallback khi đang load -->
 {$isLoading ? 'Fallback text' : $_('module.key')}
+
+<!-- Interpolation -->
+{$isLoading ? `Total (${n}):` : $_('stockDoc.total', { values: { count: n } })}
 ```
 
-- Locale files: `apps/web-ui/src/lib/i18n/locales/vi.json` và `en.json`
-- Khi thêm key mới: **thêm cả vi.json và en.json cùng lúc**
-- Key pattern: `moduleName.subSection.keyName` (camelCase, phân cấp bằng dấu chấm)
-- Missing key sẽ tự convert từ camelCase sang "Title Case" — không crash
+- Key pattern: `domain.subSection.keyName` (camelCase)
+- Missing key → svelte-i18n auto-convert camelCase → "Title Case" (không crash, nhưng trông sai)
 
 ### 7.3 CSS / Design System
 
@@ -302,8 +350,8 @@ Tất cả text hiển thị ra người dùng PHẢI qua i18n:
 
 ```svelte
 <!-- ✅ Đúng -->
-<p class="text-slate-400">...</p>      <!-- tự adapt sáng/tối qua tokens.css -->
-<div class="bg-surface-2">...</div>    <!-- semantic surface -->
+<p class="text-slate-400">...</p>
+<div class="bg-surface-2">...</div>
 <span style="color: var(--color-text-muted)">...</span>
 
 <!-- ❌ Tránh khi có thể -->
@@ -311,10 +359,12 @@ Tất cả text hiển thị ra người dùng PHẢI qua i18n:
 ```
 
 Design token source of truth: `apps/web-ui/src/lib/styles/tokens.css`
+
 - `:root` → dark mode defaults
-- `html:not(.dark)` → light mode overrides (có override cho slate text, text-white, backgrounds, borders, inputs)
+- `html:not(.dark)` → light mode overrides
 
 Tailwind custom colors (`tailwind.config.js`):
+
 - `surface-bg / surface-1 / surface-2 / surface-3` — layered surfaces
 - `primary / success / warning / error / info` — semantic colors
 - `border / border-strong` — semantic borders
@@ -322,9 +372,10 @@ Tailwind custom colors (`tailwind.config.js`):
 Component classes (`app.css`): `.card`, `.btn`, `.btn-primary`, `.badge-*`, `.data-table`, `.tabs-trigger`, `.input-base`, `.select-base`, `.modal-panel`, `.alert-*`, v.v.
 
 **Thứ tự ưu tiên CSS:**
+
 1. Component class trong `app.css` (`.btn-primary`, `.card`...)
-2. Semantic Tailwind (bg-surface-2, text-primary...)
-3. Slate utilities (text-slate-400...) — tự adapt qua tokens.css override
+2. Semantic Tailwind (`bg-surface-2`, `text-primary`...)
+3. Slate utilities (`text-slate-400`...) — tự adapt qua tokens.css override
 4. Hardcode hex — chỉ dùng khi không còn lựa chọn nào
 
 ### 7.4 RBAC client-side
@@ -345,7 +396,7 @@ Capability matrix (`capabilities.ts`) bao gồm: assets, categories, cmdb, wareh
 
 Khi thêm tính năng mới, tuân thủ thứ tự dependency:
 
-```
+```text
 Routes (apps/api/routes/v1/)
   ↓ gọi
 Services (packages/application/)
@@ -361,17 +412,90 @@ Domain (packages/domain/)
   ← chỉ chứa pure business logic, không import packages khác trong monorepo
 ```
 
-**KHÔNG** import Application layer từ Domain.  
+**KHÔNG** import Application layer từ Domain.
 **KHÔNG** import Infrastructure trực tiếp từ Routes (phải qua Service).
+
+### 8.1 WarehouseTransactionContext
+
+`packages/contracts/src/maintenanceWarehouse/transactions.ts` — context được inject vào mỗi database transaction của warehouse:
+
+```typescript
+interface WarehouseTransactionContext {
+    documents:   IStockDocumentRepo
+    stock:       IStockRepo
+    movements:   IMovementRepo
+    repairs:     IRepairOrderRepo
+    repairParts: IRepairPartRepo
+    assets:      IAssetRepo      // để tạo/cập nhật assets khi post phiếu
+    opsEvents?:  IOpsEventRepo
+}
+```
+
+> `IAssignmentRepo` **không** nằm trong WarehouseTransactionContext. Assignment được tạo thủ công qua "Gán tài sản", không tự động từ phiếu kho.
+
+### 8.2 Queryable interface
+
+Các Repo trong `infra-postgres` chấp nhận `Queryable` thay vì `PgClient` cụ thể:
+
+```typescript
+interface Queryable {
+    query<T>(text: string, params?: unknown[]): Promise<QueryResult<T>>
+}
+```
+
+`PgClient` và `PoolClient` (transaction client) đều implement `Queryable`. Dùng `Queryable` trong constructor của Repo khi Repo cần hoạt động cả trong và ngoài transaction.
 
 ---
 
-## 9. Environment Variables
+## 9. Asset Lifecycle — Luồng ITAM chuẩn
+
+```text
+[Phiếu nhập kho — receipt]
+  Post → tự tạo Asset record
+         status: 'in_stock'
+         warehouseId: kho nhận
+         source_doc_line_id: line.id (traceability)
+
+[Phiếu xuất kho — issue]
+  Post → cập nhật Asset record
+         status: 'in_stock' → 'in_use'
+         locationId: document.locationId
+         warehouseId: null (ra khỏi kho)
+  ⚠️ KHÔNG tạo assignment — đây là trách nhiệm của "Gán tài sản"
+
+[Gán tài sản — AssignModal]
+  Thủ công → tạo asset_assignment record
+             assigneeType: person | department | system
+             assigneeName, assigneeId, locationId, organizationId
+  Có thể gán/gán lại bất cứ lúc nào, độc lập với luồng kho
+```
+
+**Phân tách trách nhiệm:**
+
+- **Phiếu kho** = quản lý vật lý (asset ở kho nào, status in_stock/in_use)
+- **Gán tài sản** = quản lý sử dụng (asset do ai dùng, phòng ban nào)
+
+### 9.1 StockDocumentLine types
+
+Mỗi dòng trong phiếu kho có `line_type`:
+
+- `spare_part` — linh kiện dự phòng, tác động lên `spare_part_stock` table
+- `asset` — thiết bị nguyên chiếc, tác động lên `assets` table
+
+Receipt + asset line → tạo mới asset (status: in_stock)
+
+Issue + asset line → cập nhật asset (status: in_use, ra khỏi kho)
+
+Spare_part lines → điều chỉnh số lượng tồn kho như cũ
+
+---
+
+## 10. Environment Variables
 
 File `.env` tại root (copy từ `.env.example`):
 
 | Biến | Bắt buộc | Default | Mô tả |
-|------|----------|---------|-------|
+| --- | --- | --- | --- |
 | `DATABASE_URL` | ✅ | — | `postgresql://postgres:postgres@localhost:5432/qltb` |
 | `JWT_SECRET` | ✅ prod | `dev-access-secret-key` | Access token signing key |
 | `JWT_REFRESH_SECRET` | ✅ prod | — | Refresh token signing key |
@@ -386,7 +510,7 @@ Test environment: `.env.test` (API port 4010, Web port 4011, DB: `qltb_test`)
 
 ---
 
-## 10. Commands tham khảo nhanh
+## 11. Commands tham khảo nhanh
 
 ```bash
 # ── Phát triển ──────────────────────────────────────────────────
@@ -406,6 +530,12 @@ pnpm build:api          # Build API với tsup
 pnpm build:web          # Build Web UI với Vite
 pnpm build              # Build tất cả packages + apps
 
+# ── Package builds (theo thứ tự dependency) ─────────────────────
+pnpm --filter @qltb/contracts build
+pnpm --filter @qltb/domain build
+pnpm --filter @qltb/infra-postgres build
+pnpm --filter @qltb/application build
+
 # ── Testing ─────────────────────────────────────────────────────
 pnpm test               # Vitest unit tests
 pnpm test:e2e           # Playwright tất cả (API + UI)
@@ -421,11 +551,11 @@ pnpm test:lint          # Lint tất cả
 
 ---
 
-## 11. Testing
+## 12. Testing
 
 ### Playwright config
 
-```
+```text
 playwright.config.ts:
   projects:
     - api      → tests/api/    → baseURL: http://localhost:4010
@@ -444,48 +574,54 @@ playwright.config.ts:
 
 ---
 
-## 12. Quy tắc tiên quyết (Prerequisites)
+## 13. Quy tắc tiên quyết (Prerequisites)
 
-### 12.1 Trước khi sửa code
+### 13.1 Trước khi sửa code
 
 1. **Đọc file trước khi sửa** — Không đề xuất thay đổi dựa trên giả định.
 2. **Hiểu clean architecture layer** — Đảm bảo sửa đúng layer.
-3. **Kiểm tra i18n** — Nếu thêm text mới, thêm cả vi.json và en.json.
+3. **Kiểm tra i18n** — Nếu thêm text mới, thêm vào đúng split domain file (vi/ và en/).
 4. **Kiểm tra types** — `packages/contracts/src/` là nguồn truth cho DTOs.
 
-### 12.2 Database changes
+### 13.2 Database changes
 
 1. **Thêm migration mới** — Không sửa migration đã tồn tại.
 2. **Kiểm tra thứ tự** — Migration phải chạy được sau tất cả migration trước.
 3. **Seed data** — Đặt trong `db/seed-*.sql`, không trong migration.
 4. **Idempotent** — Dùng `IF NOT EXISTS` để migration có thể re-run an toàn.
+5. **Patch số tiếp theo hôm nay** — Xem file cuối trong `db/migrations/` để đặt tên đúng.
 
-### 12.3 API changes
+### 13.3 API changes
 
 1. **Schema validation** — Mọi route input phải có Zod schema.
 2. **Response format** — Luôn trả `{ success: true, data: ... }` hoặc `{ success: false, error: ... }`.
 3. **Auth** — `/api/v1/*` routes tự động cần JWT trừ `/api/v1/auth/*`.
 4. **Error types** — Dùng các lớp error có sẵn trong `apps/api/src/shared/errors/`.
 
-### 12.4 Frontend changes
+### 13.4 Frontend changes
 
 1. **Svelte 5 runes** — Không dùng Svelte 4 store syntax cho local state.
 2. **i18n bắt buộc** — Tất cả text cần có `$_('key')`, có fallback khi `$isLoading`.
-3. **Semantic CSS** — Dùng CSS custom properties / semantic Tailwind, không hardcode hex.
-4. **Dark/light mode** — Dùng tokens.css overrides hoặc `dark:` prefix, không tạo điều kiện JS.
-5. **RBAC check** — Kiểm tra `capabilities` trước khi hiển thị buttons/actions nhạy cảm.
+3. **i18n đúng file** — Thêm vào `locales/vi/<domain>.json` và `locales/en/<domain>.json`, KHÔNG phải `vi.json`/`en.json`.
+4. **Semantic CSS** — Dùng CSS custom properties / semantic Tailwind, không hardcode hex.
+5. **Dark/light mode** — Dùng tokens.css overrides hoặc `dark:` prefix, không tạo điều kiện JS.
+6. **RBAC check** — Kiểm tra `capabilities` trước khi hiển thị buttons/actions nhạy cảm.
 
-### 12.5 Build verification
+### 13.5 Build verification
 
-Sau khi sửa code, verify bằng:
+Sau khi sửa code, verify theo thứ tự dependency:
+
 ```bash
-pnpm --filter @qltb/api build    # API build
-pnpm --filter @qltb/web-ui build # Web UI build (Vite)
+pnpm --filter @qltb/contracts build
+pnpm --filter @qltb/infra-postgres build
+pnpm --filter @qltb/application build
+pnpm --filter @qltb/api build
+pnpm --filter @qltb/web-ui build
 ```
 
 ---
 
-## 13. Patterns thường dùng
+## 14. Patterns thường dùng
 
 ### API route pattern
 
@@ -553,73 +689,93 @@ export async function listItems(params?: Record<string, unknown>) {
 ### Repository pattern
 
 ```typescript
-// packages/infra-postgres/src/repositories/module.repo.ts
+// packages/infra-postgres/src/repositories/ModuleRepo.ts
+import type { Queryable } from './types.js'
+
 export class ModuleRepo {
-    constructor(private db: PgClient) {}
+    constructor(private db: Queryable) {}  // Queryable, không phải PgClient
 
     async findAll(filters?: Filters): Promise<Item[]> {
-        const result = await this.db.query(
+        const result = await this.db.query<ItemRow>(
             `SELECT * FROM module_table WHERE deleted_at IS NULL`,
             []
         )
-        return result.rows
+        return result.rows.map(mapRow)
     }
 }
 ```
 
+> Dùng `Queryable` thay vì `PgClient` trong constructor để Repo có thể dùng cả trong và ngoài transaction.
+
 ---
 
-## 14. Ports & URLs (Dev)
+## 15. Ports & URLs (Dev)
 
 | Service | URL | Ghi chú |
-|---------|-----|---------|
-| Web UI | http://localhost:5173 | Dev server |
-| API | http://localhost:3000 | Fastify |
-| Swagger | http://localhost:3000/docs | API documentation |
-| pgAdmin | http://localhost:8080 | DB admin UI |
-| **Test API** | http://localhost:4010 | E2E test API |
-| **Test Web** | http://localhost:4011 | E2E test web |
+| --- | --- | --- |
+| Web UI | `http://localhost:5173` | Dev server |
+| API | `http://localhost:3000` | Fastify |
+| Swagger | `http://localhost:3000/docs` | API documentation |
+| pgAdmin | `http://localhost:8080` | DB admin UI |
+| Test API | `http://localhost:4010` | E2E test API |
+| Test Web | `http://localhost:4011` | E2E test web |
 
-PostgreSQL: `localhost:5432` — DB `qltb` (dev), `qltb_test` (test)  
+PostgreSQL: `localhost:5432` — DB `qltb` (dev), `qltb_test` (test)
+
 Credentials: `postgres` / `postgres`
 
 ---
 
-## 15. Cấu trúc file khi thêm feature mới
+## 16. Cấu trúc file khi thêm feature mới
 
 Ví dụ thêm module "Suppliers":
 
-```
+```text
 1. DB:
-   db/migrations/058_suppliers.sql      ← DDL only
+   db/migrations/058_suppliers.sql          ← DDL only, idempotent
 
 2. Contracts:
    packages/contracts/src/suppliers/
-     ├── supplier.dto.ts                ← DTOs (CreateSupplierDto, SupplierDto)
+     ├── supplier.dto.ts                    ← SupplierDto, CreateSupplierInput
      └── index.ts
 
 3. Infrastructure:
    packages/infra-postgres/src/repositories/
-     └── supplier.repo.ts               ← SupplierRepo implements ISupplierRepository
+     └── SupplierRepo.ts                    ← implements ISupplierRepo, constructor(private db: Queryable)
 
 4. Application:
-   packages/application/src/
-     └── supplier.service.ts            ← SupplierService (business logic)
+   packages/application/src/suppliers/
+     └── SupplierService.ts                 ← business logic
 
 5. API:
    apps/api/src/routes/v1/suppliers/
-     ├── supplier.route.ts              ← Fastify route handlers
-     ├── supplier.schema.ts             ← Zod schemas
+     ├── suppliers.route.ts                 ← Fastify route handlers
+     ├── suppliers.schemas.ts               ← Zod schemas
      └── index.ts
-   → import vào assets.module.ts
+   → import và register trong assets.module.ts
 
 6. Frontend:
    apps/web-ui/src/lib/api/
-     └── suppliers.ts                   ← HTTP client functions
+     └── suppliers.ts                       ← HTTP client functions
    apps/web-ui/src/routes/(assets)/suppliers/
-     └── +page.svelte                   ← UI page
+     └── +page.svelte                       ← UI page (Svelte 5 runes)
 
-7. i18n:
-   apps/web-ui/src/lib/i18n/locales/vi.json  ← Thêm "suppliers": {...}
-   apps/web-ui/src/lib/i18n/locales/en.json  ← Mirror
+7. i18n — thêm vào ĐÚNG split files:
+   apps/web-ui/src/lib/i18n/locales/vi/assets.json   ← "suppliers": {...}
+   apps/web-ui/src/lib/i18n/locales/en/assets.json   ← mirror
+   (hoặc tạo vi/suppliers.json + en/suppliers.json nếu domain đủ lớn,
+    rồi register trong index.ts)
 ```
+
+---
+
+## 17. Các lỗi thường gặp & cách tránh
+
+| Lỗi | Nguyên nhân | Cách tránh |
+| --- | --- | --- |
+| i18n key hiển thị dạng "Title Case" | Thêm key vào file sai (`vi.json` thay vì `vi/warehouse.json`) | Kiểm tra `index.ts` xem file nào được register |
+| `Property 'transaction' does not exist on type 'Queryable'` | Repo dùng `PgClient.transaction()` nhưng nhận `Queryable` trong UnitOfWork | Dùng manual `BEGIN/COMMIT/ROLLBACK` qua `this.pg.query()` |
+| Double interpolation `▲ ▲ Text` | Code prefix `'▲ '` + i18n value cũng có `▲` | Chỉ để arrow trong i18n value hoặc chỉ trong code, không cả hai |
+| `{count}` hiển thị literal | Gọi `$_('key')` mà không truyền `{ values: { count: n } }` | `$_('key', { values: { count: n } })` |
+| Build lỗi sau khi sửa contracts | Packages downstream chưa rebuild | Build theo thứ tự: contracts → infra-postgres → application → api |
+| Assignment không được tạo sau khi post phiếu xuất | Đây là thiết kế đúng | Dùng "Gán tài sản" thủ công sau khi xuất kho |

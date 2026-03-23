@@ -300,6 +300,15 @@
     </div>
 
     <div class="w-44">
+      <select id="my-assets-status" class="select-base" bind:value={activeTab} onchange={() => load(1)}>
+        <option value="all">{$isLoading ? 'All' : $_('common.all')}</option>
+        <option value="in_stock">{$isLoading ? 'In Stock' : $_('assets.status.inStock')}</option>
+        <option value="in_use">{$isLoading ? 'In Use' : $_('assets.status.inUse')}</option>
+        <option value="in_repair">{$isLoading ? 'In Repair' : $_('assets.status.inRepair')}</option>
+        <option value="retired">{$isLoading ? 'Retired' : $_('assets.status.retired')}</option>
+      </select>
+    </div>
+    <div class="w-44">
       <select class="select-base" bind:value={sortBy} onchange={() => load(1)}>
         <option value="asset_code_asc">{$isLoading ? 'Code A→Z' : $_('me.assets.sortCode')}</option>
         <option value="newest">{$isLoading ? 'Newest' : $_('me.assets.sortNewest')}</option>

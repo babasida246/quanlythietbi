@@ -181,11 +181,17 @@ export function getCapabilities(
 ): Capabilities {
   const role = normalizeRole(roleInput)
 
-  const perms: Set<string> = permissionsOverride && permissionsOverride.length > 0
-    ? new Set(permissionsOverride)
-    : (ROLE_PERMISSIONS[role] ?? new Set<string>())
+  // Admin/root/super_admin: always use wildcard regardless of effectivePermsStore override.
+  // The Policy Library returns specific keys (no '*'), which would strip admin of all-access.
+  // Routing and UI visibility should never block admin; API layer enforces granular checks.
+  const isAdminRole = role === 'root' || role === 'admin' || role === 'super_admin'
+  const perms: Set<string> = isAdminRole
+    ? new Set(['*'])
+    : permissionsOverride && permissionsOverride.length > 0
+      ? new Set(permissionsOverride)
+      : (ROLE_PERMISSIONS[role] ?? new Set<string>())
 
-  const isAdmin = role === 'admin' || role === 'super_admin'
+  const isAdmin = isAdminRole
 
   return {
     role,
@@ -318,9 +324,12 @@ export function isRouteAllowed(pathname: string, caps: Capabilities): boolean {
 
   // Asset management
   if (pathname.startsWith('/assets')) {
-    const parts = pathname.split('/').filter(Boolean)
-    const maybeId = parts[1] ?? ''
-    if (parts.length === 2 && isUuidLike(maybeId)) return caps.assets.read
+    // Create routes require explicit create permission
+    if (pathname === '/assets/new') return caps.assets.create
+    if (pathname.startsWith('/assets/asset-increases/new')) return caps.assets.create
+    if (pathname.startsWith('/assets/purchase-plans/new')) return caps.assets.create
+    // Catalogs management requires categories permission
+    if (pathname.startsWith('/assets/catalogs')) return caps.categories.read
     return caps.assets.read
   }
 

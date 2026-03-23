@@ -40,7 +40,8 @@
     "printCustomizer": "Print templates",
     "groupMy": "MY",
     "groupAssets": "ASSET MANAGEMENT",
-    "groupSupport": "SUPPORT"
+    "groupSupport": "SUPPORT",
+    "depreciation": "Depreciation"
   },
   "common": {
     "success": "Success",

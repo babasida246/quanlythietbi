@@ -1,194 +1,159 @@
-# Kiến trúc hệ thống
+# Architecture Guide - QLTB
 
-## Tổng quan
+Tai lieu nay mo ta kien truc thuc te cua QLTB theo goc nhin implementation.
 
-QLTB là hệ thống **Quản lý Thiết bị / IT Asset Management** được xây dựng theo kiến trúc **Clean Architecture** với monorepo. Hệ thống bao gồm:
+## 1. System context
 
-- **Frontend:** SvelteKit 5 (Svelte 5 runes) — SPA mode
-- **Backend:** Fastify 5 (Node.js) — RESTful API
-- **Database:** PostgreSQL 16
-- **Package Manager:** pnpm (workspace monorepo)
+QLTB la he thong IT Asset Management gom 2 thanh phan runtime:
 
-```
-┌─────────────────────────────────────────────────────────┐
-│                      Web Browser                        │
-│                   (SvelteKit SPA)                        │
-│                  Port 5173 / 4011                        │
-└──────────────────────┬──────────────────────────────────┘
-                       │ HTTP/REST
-┌──────────────────────▼──────────────────────────────────┐
-│                   Fastify API                           │
-│               Port 3000 / 4010                          │
-│  ┌────────────────────────────────────────────────────┐ │
-│  │  Routes → Modules → Application → Domain           │ │
-│  │  (v1/*)   (CRUD)   (Use Cases)   (Entities)       │ │
-│  └────────────────────────────────────────────────────┘ │
-│  ┌────────────────────────────────────────────────────┐ │
-│  │  Infrastructure: PostgreSQL Repositories            │ │
-│  │  Auth: JWT + bcrypt | i18n: i18next                │ │
-│  │  Queue: Bull/Redis | Mail: Nodemailer              │ │
-│  └────────────────────────────────────────────────────┘ │
-└──────────────────────┬──────────────────────────────────┘
-                       │ SQL (pg)
-┌──────────────────────▼──────────────────────────────────┐
-│                PostgreSQL 16                             │
-│            Database: qltb / qltb_test                   │
-│            42 migrations + 3 seed files                 │
-└─────────────────────────────────────────────────────────┘
+- Web UI SPA (`apps/web-ui`) cho nguoi dung cuoi
+- API service (`apps/api`) cung cap REST cho UI, test, va automation
+
+Data va integration layer:
+
+- PostgreSQL 16: transactional source of truth
+- Redis: cache va queue support
+
+## 2. Monorepo topology
+
+```text
+apps/
+  api/
+  web-ui/
+packages/
+  contracts/
+  domain/
+  application/
+  infra-postgres/
+db/
+  migrations/
+  seed-*.sql
+scripts/
+tests/
 ```
 
-## Cấu trúc Monorepo
+Muc tieu cua topology:
 
-```
-QuanLyThietBi/
-├── apps/
-│   ├── api/                    # @qltb/api — Fastify backend
-│   │   ├── src/
-│   │   │   ├── main.ts         # Entry point
-│   │   │   ├── config/         # env.ts (Zod), i18n.ts
-│   │   │   ├── core/           # app.ts, server.ts, middleware/, plugins/
-│   │   │   ├── modules/        # Feature modules (Clean Architecture)
-│   │   │   ├── routes/         # setup/, v1/ (API routes)
-│   │   │   ├── shared/         # errors, schemas, security, utils
-│   │   │   └── locales/        # Server-side i18n (vi, en)
-│   │   └── package.json
-│   │
-│   └── web-ui/                 # @qltb/web-ui — SvelteKit frontend
-│       ├── src/
-│       │   ├── routes/         # SvelteKit file-based routing
-│       │   │   ├── login/
-│       │   │   ├── (assets)/   # Layout group cho các trang chính
-│       │   │   │   ├── admin/
-│       │   │   │   ├── analytics/
-│       │   │   │   ├── assets/
-│       │   │   │   ├── automation/
-│       │   │   │   ├── cmdb/
-│       │   │   │   ├── integrations/
-│       │   │   │   ├── inventory/
-│       │   │   │   ├── maintenance/
-│       │   │   │   ├── reports/
-│       │   │   │   ├── requests/
-│       │   │   │   ├── security/
-│       │   │   │   └── warehouse/
-│       │   └── lib/
-│       │       ├── api/        # ~30 HTTP client modules
-│       │       ├── components/ # Shared UI components
-│       │       ├── i18n/       # svelte-i18n (vi, en)
-│       │       ├── rbac/       # Client-side RBAC engine
-│       │       └── stores/     # Svelte stores
-│       └── package.json
-│
-├── packages/                   # Shared packages (Clean Architecture layers)
-│   ├── application/            # @qltb/application — Use cases, services
-│   ├── contracts/              # @qltb/contracts — DTOs, interfaces, types
-│   ├── domain/                 # @qltb/domain — Entities, value objects
-│   └── infra-postgres/         # @qltb/infra-postgres — Repositories, base migrations
-│
-├── db/
-│   ├── migrations/             # 31 migration files (007–057)
-│   ├── seed-data.sql           # Foundation data (users, statuses, locations...)
-│   ├── seed-assets-management.sql  # Asset management data (~40 tables)
-│   ├── seed-qlts-demo.sql      # CMDB & workflow demo data
-│   └── seed-all.sql            # Docker psql orchestrator
-│
-├── scripts/
-│   ├── db-empty.mjs            # DROP SCHEMA + recreate
-│   ├── db-migrate.mjs          # Run 42 migrations
-│   └── db-seed.mjs             # Run 3 seed files
-│
-├── tests/
-│   ├── global.setup.ts         # Wait for servers, ensure DB ready
-│   ├── global.teardown.ts      # Cleanup
-│   ├── api/                    # 7 API test files
-│   └── ui/                     # 27 UI test files (Playwright)
-│
-├── docker/                     # Docker configs (nginx, postgres, pgadmin...)
-├── docker-compose.yml          # Production Docker stack
-├── docker-compose.dev.yml      # Dev Docker stack (postgres + pgadmin)
-├── playwright.config.ts        # E2E test configuration
-└── vitest.config.ts            # Unit test configuration
+- Tach ro boundary theo Clean Architecture
+- Tai su dung contracts va domain logic giua app modules
+- Co the build/test theo package dependency chain
+
+## 3. Layering and dependency rules
+
+Dependency flow:
+
+```text
+Routes (apps/api/src/routes/v1/**)
+  -> Services (packages/application/**)
+    -> Repositories (packages/infra-postgres/**)
+      -> PostgreSQL
 ```
 
-## Clean Architecture Layers
+Shared contract flow:
 
-```
-┌─────────────────────────────────────────────┐
-│  Routes (Fastify)                           │  ← HTTP handlers, validation
-│  apps/api/src/routes/v1/                    │
-├─────────────────────────────────────────────┤
-│  Modules                                    │  ← Feature-specific logic
-│  apps/api/src/modules/                      │
-├─────────────────────────────────────────────┤
-│  Application (Use Cases)                    │  ← Business workflows
-│  packages/application/                      │
-├─────────────────────────────────────────────┤
-│  Domain (Entities)                          │  ← Core business rules
-│  packages/domain/                           │
-├─────────────────────────────────────────────┤
-│  Contracts (DTOs/Interfaces)                │  ← Shared types
-│  packages/contracts/                        │
-├─────────────────────────────────────────────┤
-│  Infrastructure (PostgreSQL)                │  ← Repository implementations
-│  packages/infra-postgres/                   │
-└─────────────────────────────────────────────┘
+```text
+packages/contracts <- duoc dung boi tat ca layers
+packages/domain    <- pure domain logic, khong import layer khac
 ```
 
-## Stack Công Nghệ
+Rules bat buoc:
 
-### Frontend
-| Công nghệ | Phiên bản | Mục đích |
-|-----------|-----------|----------|
-| SvelteKit | 2.x | Web framework (SSR disabled, SPA mode) |
-| Svelte | 5.x | UI framework (runes mode) |
-| TailwindCSS | 3.4 | Utility-first CSS |
-| Flowbite Svelte | 0.46 | UI component library |
-| ECharts | 6.0 | Charts & data visualization |
-| Cytoscape | 3.30 | Network topology graphs |
-| XYFlow/Svelte | 1.5 | Flow diagrams |
-| svelte-i18n | 4.0 | Internationalization (vi/en) |
-| Zod | 3.24 | Client-side validation |
+- Route khong import truc tiep repository implementation.
+- Domain khong phu thuoc vao application/infra.
+- Contracts la nguon truth cho DTOs/interfaces.
 
-### Backend
-| Công nghệ | Phiên bản | Mục đích |
-|-----------|-----------|----------|
-| Fastify | 5.6 | Web framework |
-| PostgreSQL | 16 | Database |
-| pg | 8.11 | PostgreSQL client |
-| JSON Web Token | — | Authentication |
-| bcryptjs | — | Password hashing |
-| i18next | 25.7 | Server-side i18n |
-| Bull | 4.16 | Job queue (Redis) |
-| Nodemailer | — | Email sending |
-| Zod | 3.22 | Request validation |
-| Pino | — | Logging |
+## 4. API runtime flow
 
-### DevOps & Testing
-| Công nghệ | Phiên bản | Mục đích |
-|-----------|-----------|----------|
-| Playwright | 1.58 | E2E testing |
-| Vitest | 1.0+ | Unit testing |
-| TypeScript | 5.3 | Type safety |
-| Docker Compose | — | Container orchestration |
-| pnpm | 8+ | Package management |
-| tsup | — | TypeScript bundling |
+Request lifecycle (rui ro va diem can chu y):
 
-## API Modules
+1. Client goi `/api/v1/*` kem `Authorization: Bearer <jwt>`.
+2. Fastify hooks chay theo thu tu:
+   - request id hook
+   - auth hook (bo qua auth routes)
+   - context hook (attach db/user context)
+   - request logging hook
+3. Route validate input bang Zod.
+4. Route goi service trong application layer.
+5. Service goi repository layer, doc/ghi Postgres.
+6. API tra ve response format chuan:
+   - Success: `{ success: true, data, meta? }`
+   - Error: `{ success: false, error: { code, message } }`
 
-Backend được tổ chức theo module, mỗi module chứa routes, schemas, và business logic:
+## 5. Authentication and session model
 
-| Module | Đường dẫn | Mô tả |
-|--------|-----------|-------|
-| `auth` | `/api/v1/auth/*` | Đăng nhập, JWT, quản lý session |
-| `admin` | `/api/v1/admin/*` | Quản lý users, RBAC |
-| `assets` | `/api/v1/assets/*` | CRUD thiết bị, catalogs, specs |
-| `cmdb` | `/api/v1/cmdb/*` | Configuration Management DB |
-| `warehouse` | `/api/v1/warehouse/*` | Kho, phiếu nhập/xuất, tồn kho |
-| `maintenance` | `/api/v1/maintenance/*` | Bảo trì, sửa chữa |
-| `inventory` | `/api/v1/inventory/*` | Kiểm kê |
-| `reports` | `/api/v1/reports/*` | Báo cáo, nhắc nhở |
-| `analytics` | `/api/v1/analytics/*` | Phân tích, dashboard |
-| `automation` | `/api/v1/automation/*` | Tự động hóa workflow |
-| `integrations` | `/api/v1/integrations/*` | Tích hợp bên ngoài |
-| `security` | `/api/v1/security/*` | Bảo mật, compliance |
-| `communications` | `/api/v1/communications/*` | Thông báo, tin nhắn |
-| `setup` | `/api/setup/*` | First-time setup wizard |
+Login flow:
+
+1. `POST /api/v1/auth/login` -> accessToken + refreshToken + user profile
+2. Frontend luu token vao localStorage
+3. Moi request API tu frontend gui access token
+4. Khi access token het han:
+   - `httpClient` goi `POST /api/v1/auth/refresh`
+   - su dung singleton refresh promise de tranh refresh song song
+5. Neu refresh fail:
+   - clear stored session
+   - redirect ve `/login`
+
+## 6. Frontend architecture
+
+Routing strategy:
+
+- Shellless pages: `login`, `setup`, mot so print pages
+- Main app pages: route group co sidebar/header layout
+
+State strategy:
+
+- Local component state su dung Svelte 5 runes (`$state`, `$derived`, `$effect`)
+- Global stores cho auth/theme/notification context
+
+i18n strategy:
+
+- Dung split-domain locales:
+  - `apps/web-ui/src/lib/i18n/locales/vi/*.json`
+  - `apps/web-ui/src/lib/i18n/locales/en/*.json`
+- Khong dua key moi vao monolithic locale file neu file do khong duoc register.
+
+Design system strategy:
+
+- Uu tien design tokens trong `tokens.css`
+- Uu tien semantic utility/classes thay vi hardcode hex
+
+## 7. Warehouse and asset lifecycle
+
+Phan tach trach nhiem nghiep vu:
+
+- Stock document (nhap/xuat): quan ly vi tri vat ly va trang thai trong kho
+- Assignment: quan ly ai dang su dung tai san
+
+Asset lifecycle can ban:
+
+1. Receipt line type `asset` -> tao asset record, status `in_stock`
+2. Issue line type `asset` -> cap nhat status `in_use`, roi kho
+3. Assignment duoc tao qua flow gan tai san rieng, khong tu dong tao trong posting stock document
+
+## 8. Transaction boundary and repository contracts
+
+Warehouse transactions su dung transaction context de dam bao dong bo cac repository lien quan.
+
+Mau tu duy implementation:
+
+- Repo constructors nen nhan `Queryable` thay vi concrete `PgClient`
+- Cung mot repo co the dung voi pool client (ngoai transaction) va tx client (trong transaction)
+
+Loi thuong gap can tranh:
+
+- Goi API methods phu thuoc concrete client trong khi context chi expose `query()`.
+
+## 9. Architecture checklist khi code review
+
+- Dung layer chua? (route -> service -> repo)
+- Dung contracts cho request/response va DTO mapping chua?
+- Co vo tinh import nguoc dependency (infra -> route, domain -> app) khong?
+- Co giu chuan response format API khong?
+- Co cap nhat docs khi thay doi behavior quan trong khong?
+
+## 10. Related docs
+
+- `database.md`
+- `api-reference.md`
+- `testing.md`
+- `deployment.md`

@@ -37,6 +37,7 @@ export { RelationshipTypeRepo } from './repositories/RelationshipTypeRepo.js'
 export { RelationshipRepo } from './repositories/RelationshipRepo.js'
 export { CmdbServiceRepo } from './repositories/CmdbServiceRepo.js'
 export { CmdbChangeRepo } from './repositories/CmdbChangeRepo.js'
+export { CmdbConfigFileRepo } from './repositories/CmdbConfigFileRepo.js'
 export { PurchasePlanRepo } from './repositories/PurchasePlanRepo.js'
 export { AssetIncreaseRepo } from './repositories/AssetIncreaseRepo.js'
 export { ApprovalRepo } from './repositories/ApprovalRepo.js'
@@ -75,6 +76,9 @@ export { DepreciationRepo } from './repositories/DepreciationRepo.js'
 
 // Licenses
 export { LicenseRepo } from './repositories/LicenseRepo.js'
+
+// Organizations (OU)
+export { OrganizationRepo } from './repositories/OrganizationRepo.js'
 
 // Workflow
 export { WfRepo } from './repositories/WfRepo.js'

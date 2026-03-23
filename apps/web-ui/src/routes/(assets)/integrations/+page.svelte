@@ -1,9 +1,21 @@
 <script lang="ts">
-  import {
-    Alert, Badge, Button, Card, Input, Label, Modal, Select, Spinner,
-    Table, TableBody, TableBodyCell, TableBodyRow, TableHead, TableHeadCell,
-    Tabs, TabItem
-  } from 'flowbite-svelte';
+  import Alert from 'flowbite-svelte/Alert.svelte';
+  import Badge from 'flowbite-svelte/Badge.svelte';
+  import Button from 'flowbite-svelte/Button.svelte';
+  import Card from 'flowbite-svelte/Card.svelte';
+  import Input from 'flowbite-svelte/Input.svelte';
+  import Label from 'flowbite-svelte/Label.svelte';
+  import Modal from 'flowbite-svelte/Modal.svelte';
+  import Select from 'flowbite-svelte/Select.svelte';
+  import Spinner from 'flowbite-svelte/Spinner.svelte';
+  import Table from 'flowbite-svelte/Table.svelte';
+  import TableBody from 'flowbite-svelte/TableBody.svelte';
+  import TableBodyCell from 'flowbite-svelte/TableBodyCell.svelte';
+  import TableBodyRow from 'flowbite-svelte/TableBodyRow.svelte';
+  import TableHead from 'flowbite-svelte/TableHead.svelte';
+  import TableHeadCell from 'flowbite-svelte/TableHeadCell.svelte';
+  import Tabs from 'flowbite-svelte/Tabs.svelte';
+  import TabItem from 'flowbite-svelte/TabItem.svelte';
   import { Plus, Trash2, Link, Settings, Zap } from 'lucide-svelte';
   import {
     listConnectors, createConnector, updateConnector, deleteConnector, testConnection,

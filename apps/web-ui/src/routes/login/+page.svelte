@@ -37,8 +37,11 @@
         return;
       }
 
+      // Redirect dùng role từ login response — caps chưa load từ Policy Library
+      // nhưng defaultLandingPath chỉ cần biết loại role (admin/manager/user) để chọn trang
       const caps = getCapabilities(result.user.role);
-      goto(defaultLandingPath(caps), { replaceState: true });
+      const landing = defaultLandingPath(caps);
+      goto(landing, { replaceState: true });
     } catch (err) {
       error = err instanceof Error ? err.message : ($i18nLoading ? 'Login failed' : $_('auth.errors.failed', { default: 'Đăng nhập thất bại' }));
     } finally {
@@ -69,7 +72,7 @@
     <div class="login-card">
       <!-- Logo & heading -->
       <div class="mb-8 text-center">
-        <div class="login-logo">AI</div>
+        <div class="login-logo">QLTB</div>
         <h1 class="login-title">
           {$i18nLoading ? 'Sign in' : $_('auth.signIn', { default: 'Đăng nhập' })}
         </h1>

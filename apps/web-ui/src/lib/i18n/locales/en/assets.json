@@ -566,7 +566,7 @@
     "creating": "Creating...",
     "createSession": "Create session",
     "allAreas": "All areas",
-    "startedAt": "Started: {date}",
+    "startedAt": "Started",
     "filterAll": "All ({count})",
     "filterDraft": "Draft ({count})",
     "filterInProgress": "In progress ({count})",

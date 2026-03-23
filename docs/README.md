@@ -1,60 +1,75 @@
-# Tài liệu dự án — Quản Lý Thiết Bị (QLTB)
+# QLTB Documentation Hub
 
-> Trung tâm tài liệu cho hệ thống IT Asset Management (SvelteKit + Fastify + PostgreSQL).
+Tai lieu trong thu muc `docs/` duoc sap xep theo 3 nhu cau:
 
-## Tài liệu theo mục đích
+- Onboarding: hieu nhanh de chay duoc he thong
+- Development: sua dung layer, dung convention
+- Operations: test, release, van hanh
 
-| Nhóm | Tài liệu | Khi nào dùng |
+## 1. Bat dau o day
+
+Neu ban moi vao du an, doc theo thu tu:
+
+1. `../README.md`
+2. `architecture.md`
+3. `database.md`
+4. `testing.md`
+
+## 2. Ban do tai lieu
+
+| File | Muc dich | Nguoi nen doc |
 |---|---|---|
-| Khởi động nhanh | [Hướng dẫn đầy đủ](huong-dan-day-du.md) | Onboarding nhanh cho người mới: cài đặt, chạy hệ thống, luồng nghiệp vụ chính |
-| Bản đồ chức năng | [Inventory chức năng đầy đủ](feature-inventory.md) | Tra cứu tất cả chức năng hiện có theo module, route frontend, route API |
-| Kiến trúc | [Kiến trúc hệ thống](architecture.md) | Hiểu clean architecture, luồng dữ liệu, tổ chức monorepo |
-| CSDL | [Cơ sở dữ liệu](database.md) | Làm migration, seed, thiết kế schema, dữ liệu mẫu |
-| API | [API Reference](api-reference.md) | Tra cứu endpoint, auth, lỗi thường gặp, quy ước request/response |
-| UI/Modules | [Tính năng & Giao diện](features.md) | Nắm các màn hình và khả năng chính của từng module |
-| Kiểm thử | [Hướng dẫn Testing](testing.md) | Chạy Playwright/Vitest, chuẩn viết test, troubleshoot test failures |
-| Vận hành | [Triển khai & Vận hành](deployment.md) | Build/release, Docker, biến môi trường, production checklist |
-| Chất lượng nghiệp vụ | [Business Integrity Audit](business-integrity-audit.md) | Kiểm tra tính toàn vẹn nghiệp vụ và tuân thủ quy tắc dữ liệu |
-| Báo cáo kiểm thử | [Chương 4 - Kiểm thử](chuong4-kiem-thu.md) | Báo cáo test, ma trận test case, kết quả pass/fail |
+| `architecture.md` | Kien truc tong the, data flow, auth flow, i18n strategy, clean architecture boundaries | Tat ca dev |
+| `database.md` | Migration strategy, seed strategy, schema conventions, checklist khi doi DB | Backend dev, DBA |
+| `api-reference.md` | API conventions, auth model, module endpoint prefixes | Backend dev, frontend dev |
+| `features.md` | Tong quan nghiep vu va man hinh theo module | Product, QA, frontend dev |
+| `testing.md` | Chien luoc test, huong dan chay Playwright/Vitest, test conventions | QA, dev |
+| `deployment.md` | Bien moi truong, Docker/Compose, release checklist | DevOps, backend dev |
+| `feature-inventory.md` | Danh muc tinh nang chi tiet theo module | PM, BA, QA |
+| `huong-dan-day-du.md` | Huong dan su dung nghiep vu end-to-end | End-user, QA |
 
-## Trạng thái tài liệu (Cập nhật 2026-03-14)
+## 3. Tinh huong thuong gap
 
-- Đã đồng bộ theo hiện trạng codebase: `59` trang Svelte (`+page.svelte`) và các route API theo module.
-- Đã bổ sung inventory chức năng theo cả frontend, backend và package layer.
-- Đã bổ sung hướng dẫn vận hành theo vai trò: Admin, IT Asset Manager, Warehouse Keeper, Technician, Requester.
+### Them tinh nang moi
 
-## Nhanh — Bắt đầu
+1. Doc `architecture.md` de xac dinh dung layer.
+2. Doc `database.md` neu can them bang/column/index.
+3. Cap nhat API theo `api-reference.md` conventions.
+4. Bo sung test theo `testing.md`.
+
+### Sua loi lien quan kho va tai san
+
+1. Kiem tra luong Asset lifecycle trong `architecture.md`.
+2. Kiem tra migration/seed lien quan trong `database.md`.
+3. Chay test API/UI lien quan theo `testing.md`.
+
+### Chuan bi release
+
+1. Chay checklist trong `deployment.md`.
+2. Chay regression tests theo `testing.md`.
+3. Kiem tra lai env vars va health checks.
+
+## 4. Quy tac cap nhat tai lieu
+
+- Khi doi architecture, cap nhat `architecture.md` truoc.
+- Khi doi schema, cap nhat `database.md` trong cung PR voi migration.
+- Khi doi script test/deploy, cap nhat `testing.md` hoac `deployment.md`.
+- Khong de docs mo ta hanh vi khong con ton tai trong code.
+
+## 5. Nhanh de chay local
 
 ```bash
-# 1. Cài dependencies
 pnpm install
-
-# 2. Khởi tạo infrastructure (PostgreSQL + pgAdmin)
 pnpm dev:infra
-
-# 3. Reset DB (empty -> migrate -> seed)
 pnpm db:reset
-
-# 4. Chạy toàn bộ (API + Web UI + packages watch)
 pnpm dev:all
 ```
 
-- API: `http://localhost:3000` (Swagger UI: `http://localhost:3000/docs`)
-- Web UI: `http://localhost:5173`
-- pgAdmin: `http://localhost:8080`
+- API: http://localhost:3000
+- Swagger: http://localhost:3000/docs
+- Web UI: http://localhost:5173
 
-## Tài khoản mặc định sau seed
+## 6. Ghi chu ve ngon ngu va i18n
 
-| Vai trò | Email | Mật khẩu |
-|---|---|---|
-| Admin | `admin@example.com` | `Benhvien@121` |
-| IT Asset Manager | `it_manager@example.com` | `Benhvien@121` |
-| User | `user@example.com` | `Benhvien@121` |
-
-## Đề xuất thứ tự đọc
-
-1. `huong-dan-day-du.md` để nắm toàn cảnh.
-2. `feature-inventory.md` để biết đầy đủ phạm vi chức năng.
-3. `architecture.md` + `database.md` trước khi sửa backend.
-4. `features.md` + `api-reference.md` trước khi sửa frontend/API.
-5. `testing.md` + `deployment.md` trước khi merge và release.
+- UI su dung i18n split-domain tai `apps/web-ui/src/lib/i18n/locales/vi/*.json` va `apps/web-ui/src/lib/i18n/locales/en/*.json`.
+- Khong cap nhat cac file monolithic `vi.json`/`en.json` neu khong duoc register.

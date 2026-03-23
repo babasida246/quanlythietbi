@@ -51,6 +51,7 @@ const userUpdateSchema = z.object({
     displayName: z.string().min(1).max(255).optional(),
     email: z.string().email().optional(),
     status: z.enum(['active', 'disabled', 'locked']).optional(),
+    linkedUserId: z.string().uuid().nullable().optional(),
 })
 const userListQuery = z.object({
     ouId: z.string().uuid().optional(),
@@ -241,10 +242,24 @@ export const rbacAdRoutes: FastifyPluginAsync<RbacAdRoutesOptions> = async (fast
         const ctx = requirePermission(request, 'rbac:user:manage')
         const body = userCreateSchema.parse(request.body)
         try {
-            const user = await adminService.createUser(body, { actorUserId: ctx.userId, correlationId: ctx.correlationId })
+            // Auto-link: nếu không truyền linkedUserId nhưng có email,
+            // tự tìm system user có email trùng để liên kết
+            let linkedUserId = body.linkedUserId
+            if (!linkedUserId && body.email) {
+                const found = await pgClient.query<{ id: string }>(
+                    `SELECT id FROM users WHERE LOWER(email) = LOWER($1) AND is_active = true LIMIT 1`,
+                    [body.email]
+                )
+                if (found.rows[0]) linkedUserId = found.rows[0].id
+            }
+
+            const user = await adminService.createUser(
+                { ...body, linkedUserId },
+                { actorUserId: ctx.userId, correlationId: ctx.correlationId }
+            )
             await appendAuditLog(pgClient, request, {
                 actorUserId: ctx.userId, action: 'rbac.user.create', resource: 'rbac_users',
-                details: { userId: user.id, username: user.username }
+                details: { userId: user.id, username: user.username, autoLinked: !!linkedUserId }
             })
             return reply.status(201).send(createSuccessResponse(user, String(request.id)))
         } catch (err: any) {

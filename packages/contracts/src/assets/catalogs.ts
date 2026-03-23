@@ -13,6 +13,8 @@ export interface LocationRecord {
     name: string
     parentId?: string | null
     path: string
+    organizationId?: string | null
+    organizationName?: string | null
     createdAt: Date
 }
 
@@ -69,6 +71,7 @@ export interface LocationCreateInput {
     name: string
     parentId?: string | null
     path?: string
+    organizationId?: string | null
 }
 
 export type LocationUpdatePatch = Partial<LocationCreateInput>

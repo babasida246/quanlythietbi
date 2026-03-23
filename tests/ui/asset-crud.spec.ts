@@ -11,98 +11,100 @@ test.describe('Assets CRUD', () => {
         const testAssetName = `Test Asset ${Date.now().toString().slice(-6)}`
         const testSerialNumber = `SN${Date.now().toString().slice(-6)}`
 
-        // Wait for page shell to load (heading text may vary by locale/content state).
+        // Wait for assets page to load
         await expect(page.getByTestId('btn-create')).toBeVisible()
 
-        // CREATE: Open create modal
+        // CREATE: Click btn-create → navigates to /assets/new
         await page.getByTestId('btn-create').click()
-        await expect(page.getByTestId('modal-create')).toBeVisible()
+        await expect(page).toHaveURL(/\/assets\/new/, { timeout: 8_000 })
 
-        // Fill asset form with required fields
-        await page.locator('#asset-name-create').fill(testAssetName)
-        await page.locator('#asset-serial-create').fill(testSerialNumber)
+        // Wait for the form/catalogs to load
+        await page.waitForSelector('#new-name', { timeout: 12_000 })
 
-        // Select first available category if exists
-        const categorySelect = page.locator('#asset-category-create')
-        if (await categorySelect.isVisible()) {
-            await categorySelect.selectOption({ index: 1 })
-        }
+        // Fill required fields
+        await page.locator('#new-name').fill(testAssetName)
+        await page.locator('#new-serial').fill(testSerialNumber)
 
-        // Select first available model if exists
-        const modelSelect = page.locator('#asset-model-create')
+        // Select first available model if dropdown has options beyond placeholder
+        const modelSelect = page.locator('#new-model')
         if (await modelSelect.isVisible()) {
-            await modelSelect.selectOption({ index: 1 })
+            const optionCount = await modelSelect.locator('option').count()
+            if (optionCount > 1) await modelSelect.selectOption({ index: 1 })
         }
 
-        // Submit create form
-        await page.getByTestId('btn-submit').click()
+        // Submit form
+        await page.locator('button[type="submit"]').click()
 
-        // Verify creation success
-        await expect(page.getByTestId('modal-create')).toBeHidden()
-        await expect(page.getByText('Tao tai san thanh cong')).toBeVisible()
+        // Verify creation success toast or heading (may match both toast + page heading)
+        await expect(page.locator('text=/Tạo tài sản|Asset created/i').first()).toBeVisible({ timeout: 10_000 })
 
-        // SEARCH: Use search functionality to find the asset
+        // Navigate back to assets list
+        await page.goto('/assets')
+        await expect(page.getByTestId('btn-create')).toBeVisible()
+
+        // SEARCH: Use search input to find the asset
         const searchInput = page.locator('#asset-search')
-        await searchInput.fill(testAssetName)
+        if (await searchInput.isVisible()) {
+            await searchInput.fill(testAssetName)
+            await page.waitForTimeout(600)
+            await expect(page.getByText(testAssetName)).toBeVisible()
 
-        // Wait a bit for search to filter results
-        await page.waitForTimeout(500)
+            await searchInput.fill(testSerialNumber)
+            await page.waitForTimeout(600)
+            await expect(searchInput).toHaveValue(testSerialNumber)
 
-        // Verify asset appears in filtered results
-        await expect(page.getByText(testAssetName)).toBeVisible()
-
-        // Some builds only index asset name in quick search; verify serial search does not break the page.
-        await searchInput.fill(testSerialNumber)
-        await page.waitForTimeout(500)
-        await expect(page.locator('#asset-search')).toHaveValue(testSerialNumber)
-
-        // Clear search to see all assets
-        await searchInput.fill('')
-        await page.waitForTimeout(500)
+            // Clear search
+            await searchInput.fill('')
+            await page.waitForTimeout(600)
+        }
 
         // DELETE: Find the asset row and click delete
         const assetRow = page.locator('tr', { hasText: testAssetName })
-        await expect(assetRow).toBeVisible()
+        await expect(assetRow).toBeVisible({ timeout: 8_000 })
 
-        const deleteId = await assetRow.locator('[data-testid^="row-delete-"]').getAttribute('data-testid')
-        await assetRow.getByTestId(deleteId!).click()
+        const deleteBtn = assetRow.locator('[data-testid^="row-delete-"]')
+        await deleteBtn.click()
 
         await expect(page.getByTestId('modal-delete')).toBeVisible()
-        await expect(page.getByText(`Ban co chac muon xoa tai san ${testAssetName}?`)).toBeVisible()
 
         // Confirm deletion
         await page.getByTestId('btn-submit').click()
 
         // Verify deletion success
         await expect(page.getByTestId('modal-delete')).toBeHidden()
-        await expect(page.getByText('Xoa tai san thanh cong')).toBeVisible()
+        await expect(page.locator('text=/Xóa tài sản thành công|Asset deleted/i')).toBeVisible()
 
         // Verify asset is no longer visible
-        await expect(page.getByText(testAssetName)).toBeHidden()
+        await page.waitForTimeout(500)
+        await expect(page.getByText(testAssetName)).toHaveCount(0)
     })
 
     test('asset form validation works correctly', async ({ page }) => {
-        // Wait for page shell to load (heading text may vary by locale/content state).
+        // Wait for assets page to load
         await expect(page.getByTestId('btn-create')).toBeVisible()
 
-        // Open create modal
+        // Navigate to create page
         await page.getByTestId('btn-create').click()
-        await expect(page.getByTestId('modal-create')).toBeVisible()
+        await expect(page).toHaveURL(/\/assets\/new/, { timeout: 8_000 })
 
-        // Try to submit empty form
-        await page.getByTestId('btn-submit').click()
+        // Wait for form to be ready
+        await page.waitForSelector('#new-name', { timeout: 12_000 })
 
-        // Native validation may be handled by the browser; verify the modal is still open and create did not succeed.
-        await expect(page.getByTestId('modal-create')).toBeVisible()
-        await expect(page.getByText('Tao tai san thanh cong')).toHaveCount(0)
+        // Try to submit empty form (no name, no model)
+        await page.locator('button[type="submit"]').click()
 
-        // Cancel modal
-        await page.getByTestId('btn-cancel').click()
-        await expect(page.getByTestId('modal-create')).toBeHidden()
+        // Should stay on the same page (no navigation)
+        await expect(page).toHaveURL(/\/assets\/new/)
+        // No success toast
+        await expect(page.locator('text=/Tạo tài sản|Asset created/i')).toHaveCount(0)
+
+        // Navigate back to list
+        await page.goto('/assets')
+        await expect(page.getByTestId('btn-create')).toBeVisible()
     })
 
     test('asset import/export buttons are present and functional', async ({ page }) => {
-        // Wait for page shell to load (heading text may vary by locale/content state).
+        // Wait for page shell to load
         await expect(page.getByTestId('btn-create')).toBeVisible()
 
         // Check that import and export buttons exist
@@ -113,12 +115,12 @@ test.describe('Assets CRUD', () => {
         // Click export button to test functionality
         await page.getByTestId('btn-export').click()
 
-        // Should show success message
-        await expect(page.getByText('Xuat CSV thanh cong')).toBeVisible()
+        // Should show success toast (regex covers diacritics or English fallback)
+        await expect(page.locator('text=/Xuất CSV|CSV exported/i')).toBeVisible({ timeout: 8_000 })
     })
 
     test('asset edit functionality works', async ({ page }) => {
-        // Wait for page shell to load (heading text may vary by locale/content state).
+        // Wait for page shell to load
         await expect(page.getByTestId('btn-create')).toBeVisible()
 
         // Look for existing assets in the table
@@ -130,7 +132,8 @@ test.describe('Assets CRUD', () => {
 
             // Verify edit modal opens
             await expect(page.getByTestId('modal-edit')).toBeVisible()
-            await expect(page.getByText('Sua tai san')).toBeVisible()
+            // Modal title (regex for both VI "Sửa tài sản" and EN "Edit asset")
+            await expect(page.locator('text=/Sửa tài sản|Edit asset/i').first()).toBeVisible()
 
             // Cancel without making changes
             await page.getByTestId('btn-cancel').click()

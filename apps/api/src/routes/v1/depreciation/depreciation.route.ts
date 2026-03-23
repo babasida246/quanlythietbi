@@ -4,6 +4,7 @@
 
 import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import type { DepreciationService } from '@qltb/application';
+import { getUserContext } from '../assets/assets.helpers.js';
 import {
     createScheduleSchema,
     updateScheduleSchema,
@@ -33,22 +34,23 @@ export async function depreciationRoute(
     fastify.get('/depreciation/schedules', async (request: FastifyRequest, reply: FastifyReply) => {
         const query = scheduleListQuerySchema.parse(request.query);
         const result = await depreciationService.listSchedules(query);
-        return reply.send(result);
+        return reply.send({ success: true, data: result.items, meta: { total: result.total, limit: result.limit, offset: result.offset } });
     });
 
     fastify.post('/depreciation/schedules/preview', async (request: FastifyRequest, reply: FastifyReply) => {
         const params = previewScheduleSchema.parse(request.body);
         const result = await depreciationService.previewSchedule(params);
-        return reply.send(result);
+        return reply.send({ success: true, data: result });
     });
 
     fastify.post('/depreciation/schedules', async (request: FastifyRequest, reply: FastifyReply) => {
-        const dto = createScheduleSchema.parse(request.body);
+        const { userId } = getUserContext(request);
+        const dto = createScheduleSchema.parse({ ...request.body as object, createdBy: userId });
         const result = await depreciationService.createSchedule(dto);
         if (!result.success) {
-            return reply.status(400).send({ error: result.error });
+            return reply.status(400).send({ success: false, error: { code: 'CREATE_FAILED', message: result.error } });
         }
-        return reply.status(201).send(result.schedule);
+        return reply.status(201).send({ success: true, data: result.schedule });
     });
 
     fastify.get('/depreciation/schedules/:id', async (request: FastifyRequest, reply: FastifyReply) => {
@@ -74,14 +76,15 @@ export async function depreciationRoute(
         const dto = updateScheduleSchema.parse(request.body);
         const result = await depreciationService.updateSchedule(id, dto);
         if (!result.success) {
-            return reply.status(400).send({ error: result.error });
+            return reply.status(400).send({ success: false, error: { code: 'UPDATE_FAILED', message: result.error } });
         }
-        return reply.send(result.schedule);
+        return reply.send({ success: true, data: result.schedule });
     });
 
     fastify.post('/depreciation/schedules/:id/stop', async (request: FastifyRequest, reply: FastifyReply) => {
+        const { userId } = getUserContext(request);
         const { id } = idParamSchema.parse(request.params);
-        const body = stopScheduleSchema.parse(request.body);
+        const body = stopScheduleSchema.parse({ ...request.body as object, scheduleId: id, updatedBy: userId });
         const result = await depreciationService.stopSchedule({
             scheduleId: id,
             stoppedAt: body.stoppedAt,
@@ -89,9 +92,9 @@ export async function depreciationRoute(
             updatedBy: body.updatedBy,
         });
         if (!result.success) {
-            return reply.status(400).send({ error: result.error });
+            return reply.status(400).send({ success: false, error: { code: 'STOP_FAILED', message: result.error } });
         }
-        return reply.send(result.schedule);
+        return reply.send({ success: true, data: result.schedule });
     });
 
     fastify.delete('/depreciation/schedules/:id', async (request: FastifyRequest, reply: FastifyReply) => {
@@ -114,7 +117,7 @@ export async function depreciationRoute(
     fastify.get('/depreciation/entries', async (request: FastifyRequest, reply: FastifyReply) => {
         const query = entryListQuerySchema.parse(request.query);
         const result = await depreciationService.listEntries(query);
-        return reply.send(result);
+        return reply.send({ success: true, data: result.items, meta: { total: result.total, limit: result.limit, offset: result.offset } });
     });
 
     fastify.get('/depreciation/entries/pending', async (request: FastifyRequest, reply: FastifyReply) => {
@@ -141,12 +144,13 @@ export async function depreciationRoute(
     });
 
     fastify.post('/depreciation/entries/post', async (request: FastifyRequest, reply: FastifyReply) => {
-        const dto = postEntriesSchema.parse(request.body);
+        const { userId } = getUserContext(request);
+        const dto = postEntriesSchema.parse({ ...request.body as object, postedBy: userId });
         const result = await depreciationService.postEntries(dto);
         if (!result.success) {
-            return reply.status(400).send({ error: result.error });
+            return reply.status(400).send({ success: false, error: { code: 'POST_FAILED', message: result.error } });
         }
-        return reply.send({ success: true, postedCount: result.postedCount });
+        return reply.send({ success: true, data: { postedCount: result.postedCount } });
     });
 
     fastify.post('/depreciation/entries/adjustment', async (request: FastifyRequest, reply: FastifyReply) => {
@@ -172,17 +176,19 @@ export async function depreciationRoute(
     fastify.get('/depreciation/runs', async (request: FastifyRequest, reply: FastifyReply) => {
         const query = runListQuerySchema.parse(request.query);
         const result = await depreciationService.listRuns(query);
-        return reply.send(result);
+        return reply.send({ success: true, data: result.items, meta: { total: result.total, limit: result.limit, offset: result.offset } });
     });
 
     fastify.post('/depreciation/runs', async (request: FastifyRequest, reply: FastifyReply) => {
-        const dto = runDepreciationSchema.parse(request.body);
+        const { userId } = getUserContext(request);
+        const dto = runDepreciationSchema.parse({ ...request.body as object, createdBy: userId });
         const result = await depreciationService.runDepreciation(dto);
         if (!result.success) {
-            return reply.status(400).send({ error: result.error });
+            return reply.status(400).send({ success: false, error: { code: 'RUN_FAILED', message: result.error } });
         }
         return reply.status(201).send({
-            run: result.run,
+            success: true,
+            data: result.run,
             entriesCreated: result.entriesCreated,
             totalAmount: result.totalAmount,
         });
@@ -234,7 +240,7 @@ export async function depreciationRoute(
     fastify.get('/depreciation/dashboard', async (request: FastifyRequest, reply: FastifyReply) => {
         const { organizationId } = request.query as { organizationId?: string };
         const result = await depreciationService.getDashboard(organizationId);
-        return reply.send(result);
+        return reply.send({ success: true, data: result });
     });
 
     fastify.get('/depreciation/reports/monthly-summary/:year', async (request: FastifyRequest, reply: FastifyReply) => {

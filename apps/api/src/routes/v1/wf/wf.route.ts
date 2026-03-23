@@ -73,7 +73,7 @@ export async function wfRoute(
         try {
             const result = await wfService.getRequest(param.data.id);
             const ctx = getUserContext(request);
-            if (result.requesterId !== userId && ctx.role !== 'admin' && ctx.role !== 'super_admin') {
+            if (result.requesterId !== userId && ctx.role !== 'root' && ctx.role !== 'admin' && ctx.role !== 'super_admin') {
                 return reply.status(403).send({ success: false, error: 'Access denied' });
             }
             return reply.send({ success: true, data: result });

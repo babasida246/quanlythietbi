@@ -744,6 +744,7 @@
     "vendor": "Vendor",
     "model": "Model",
     "location": "Location",
+    "organization": "Organization (OU)",
     "warehouse": "Warehouse",
     "status": "Status",
     "specs": "Specs",
@@ -933,7 +934,9 @@
       "optionalDescription": "Optional description",
       "assigneeId": "assignee Id",
       "assigneeName": "assignee Name",
-      "note": "note"
+      "note": "note",
+      "noLocation": "— No location —",
+      "noOrganization": "— No organization —"
     },
     "errors": {
       "loadCatalogsFailed": "Failed to load catalogs",
@@ -1519,6 +1522,10 @@
       "interWarehouse": "Inter-warehouse Transfer"
     },
     "toast": {
+      "submittedDoc": "Document submitted",
+      "approvedDoc": "Document approved",
+      "postedDoc": "Document posted",
+      "cancelledDoc": "Document canceled",
       "submitted": "Submitted {code}",
       "submitFailed": "Submit failed",
       "approved": "Approved {code}",
@@ -1553,6 +1560,7 @@
       "actions": "ACTIONS"
     },
     "action": {
+      "cancel": "Cancel",
       "submit": "Submit",
       "approve": "Approve",
       "post": "Post",
@@ -1581,7 +1589,33 @@
       "section": "Section",
       "performer": "Performer",
       "note": "Note",
-      "generalNote": "General Note"
+      "generalNote": "General Note",
+      "receivingLocation": "Receiving Location",
+      "noLocation": "-- No location --",
+      "warehouse": "Warehouse",
+      "sourceWarehouse": "Source Warehouse",
+      "destWarehouse": "Dest. Warehouse",
+      "selectWarehouse": "-- Select Warehouse --",
+      "selectDestWarehouse": "-- Select Dest. Warehouse --",
+      "submitterPlaceholder": "Submitter name...",
+      "receiverPlaceholder": "Receiver name...",
+      "departmentPlaceholder": "Department...",
+      "executor": "Executor",
+      "executorPlaceholder": "Executor name...",
+      "supplierPlaceholder": "Supplier name..."
+    },
+    "errors": {
+      "loadCatalogsFailed": "Failed to load catalog data.",
+      "missingWarehouse": "Please select a warehouse.",
+      "atLeastOneLine": "At least one line is required.",
+      "missingCodeOrPart": "Please select a spare part for all part lines.",
+      "missingAssetId": "Please select an asset for all asset lines (issue document).",
+      "missingAssetModel": "Please select a model for all asset lines (receipt document).",
+      "createDocumentFailed": "Failed to create document.",
+      "postFailed": "Post failed",
+      "cancelFailed": "Cancel failed",
+      "submitFailed": "Submit failed",
+      "approveFailed": "Approve failed"
     },
     "placeholder": {
       "selectWarehouse": "-- Select warehouse --",
@@ -1596,6 +1630,7 @@
       "generalNote": "Content / description for the document..."
     },
     "linesHeading": "Goods / Material Details",
+    "linesCount": "lines",
     "createdAtLabel": "Created:",
     "pagination": "Page {page} / {totalPages} · {total} documents",
     "purchasePlan": {
@@ -4716,7 +4751,8 @@
       "vendors": "Vendors",
       "models": "Models",
       "locations": "Locations",
-      "statuses": "Statuses"
+      "statuses": "Statuses",
+      "organizations": "Organizations"
     },
     "validation": {
       "categoryNameRequired": "Category name is required",
@@ -4725,13 +4761,15 @@
       "categoryRequired": "Category is required",
       "locationNameRequired": "Location name is required",
       "statusNameRequired": "Status name is required",
-      "codeRequired": "Code is required"
+      "codeRequired": "Code is required",
+      "orgNameRequired": "Organization name is required"
     },
     "createTitle": "Create {entity}",
     "editTitle": "Edit {entity}",
     "header": {
       "categoryName": "Category Name",
-      "locationName": "Location Name"
+      "locationName": "Location Name",
+      "organization": "Organization (OU)"
     },
     "field": {
       "categoryName": "Category Name",
@@ -4742,6 +4780,7 @@
       "vendor": "Vendor",
       "locationName": "Location Name",
       "parentLocation": "Parent Location",
+      "locationOrganization": "Belongs to (OU)",
       "statusName": "Status Name",
       "statusCode": "Status Code",
       "isTerminal": "Terminal status",
@@ -4751,13 +4790,15 @@
       "noParentCategory": "No parent category",
       "selectCategory": "Select category",
       "selectVendor": "Select vendor",
-      "noParentLocation": "No parent location"
+      "noParentLocation": "No parent location",
+      "noOrganization": "— No organization —"
     }
   },
   "stockDoc": {
     "addLine": "+ Add line",
     "lineCount": "{count} lines",
     "header": {
+      "lineType": "Type",
       "item": "Item / Material",
       "partName": "Item / Material",
       "category": "Category",
@@ -4780,7 +4821,15 @@
     "adjustPlus": "+ Increase",
     "adjustMinus": "− Decrease",
     "specFromCatalog": "Specifications (from catalog)",
-    "total": "Total ({count} lines):"
+    "total": "Total ({count} lines):",
+    "addAssetLine": "+ Add Asset Line",
+    "lineTypeSparePart": "Part",
+    "lineTypeAsset": "Asset",
+    "selectAsset": "Select Asset",
+    "selectModel": "Select Model",
+    "noAssetsInStock": "No assets in stock at this warehouse",
+    "assetNamePlaceholder": "Asset name (optional)",
+    "assetCodePlaceholder": "Asset code (auto if blank)"
   },
   "wfRequest": {
     "service": "(service)",

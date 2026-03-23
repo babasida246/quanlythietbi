@@ -154,7 +154,7 @@ export async function labelsRoute(
         handler: async (request: FastifyRequest, reply: FastifyReply) => {
             const query = printJobListQuerySchema.parse(request.query);
             const result = await labelsService.getPrintJobs(query);
-            return reply.send({ success: true, data: result.data, meta: result.pagination });
+            return reply.send({ success: true, data: result.items, meta: { total: result.total, limit: result.limit, offset: result.offset, hasMore: result.hasMore } });
         },
     });
 

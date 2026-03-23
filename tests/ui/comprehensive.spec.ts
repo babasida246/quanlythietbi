@@ -110,8 +110,11 @@ test.describe('i18n regression — no [object Object] in any page', () => {
 test.describe('Navigation', () => {
     test('sidebar nav items are visible', async ({ page }) => {
         await goto(page, '/assets')
-        // Wait for sidebar to render (auth may cause redirect then load)
-        await page.waitForTimeout(2000)
+        // Wait for sidebar to fully render including capability-gated items
+        await page.waitForFunction(
+            () => (document.body.textContent?.length ?? 0) > 200,
+            { timeout: 15_000 }
+        ).catch(() => { /* page may be minimal */ })
         const navItems = [
             'nav-assets', 'nav-cmdb', 'nav-inventory', 'nav-warehouse',
             'nav-maintenance', 'nav-requests', 'nav-reports', 'nav-analytics'

@@ -60,3 +60,6 @@ export * from './licenses/index.js'
 
 // Workflow requests & approvals
 export * from './wf/index.js'
+
+// Organizations (OU)
+export * from './organizations/index.js'

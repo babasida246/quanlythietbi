@@ -37,7 +37,7 @@ export interface ILabelsRepository {
     cloneTemplate(id: string, newName: string, createdBy: string): Promise<LabelTemplate | null>;
     withTransaction<T>(callback: (client: unknown) => Promise<T>): Promise<T>;
     createPrintJob(dto: CreatePrintJobDto, client?: unknown): Promise<PrintJob>;
-    createPrintJobItems(jobId: string, assetIds: string[], copies: number): Promise<void>;
+    createPrintJobItems(jobId: string, assetIds: string[], copies: number): Promise<number>;
     findPrintJobById(id: string): Promise<PrintJob | null>;
     findPrintJobWithDetails(id: string): Promise<PrintJobWithDetails | null>;
     findAllPrintJobs(query: PrintJobListQuery): Promise<{ data: PrintJobWithDetails[]; total: number }>;
@@ -152,16 +152,15 @@ export class LabelsService {
      */
     async getTemplates(query: TemplateListQuery): Promise<PaginatedResult<LabelTemplateWithUsage>> {
         const { page = 1, limit = 20 } = query;
+        const offset = (page - 1) * limit;
         const result = await this.repository.findAllTemplates(query);
 
         return {
-            data: result.data,
-            pagination: {
-                page,
-                limit,
-                total: result.total,
-                totalPages: Math.ceil(result.total / limit),
-            },
+            items: result.data,
+            total: result.total,
+            limit,
+            offset,
+            hasMore: offset + result.data.length < result.total,
         };
     }
 
@@ -284,16 +283,15 @@ export class LabelsService {
      */
     async getPrintJobs(query: PrintJobListQuery): Promise<PaginatedResult<PrintJobWithDetails>> {
         const { page = 1, limit = 20 } = query;
+        const offset = (page - 1) * limit;
         const result = await this.repository.findAllPrintJobs(query);
 
         return {
-            data: result.data,
-            pagination: {
-                page,
-                limit,
-                total: result.total,
-                totalPages: Math.ceil(result.total / limit),
-            },
+            items: result.data,
+            total: result.total,
+            limit,
+            offset,
+            hasMore: offset + result.data.length < result.total,
         };
     }
 

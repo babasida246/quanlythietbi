@@ -3,7 +3,7 @@
 
   let { copyAnchor, copiedId = '' } = $props<{ copyAnchor: (id: string) => void; copiedId?: string }>();
 
-  const moduleTabKeys = ['assets', 'catalogs', 'warehouse', 'repairs', 'cmdb', 'reports'] as const;
+  const moduleTabKeys = ['assets', 'catalogs', 'warehouse', 'repairs', 'reports'] as const;
   type Tab = typeof moduleTabKeys[number];
   let activeModule = $state<Tab>('assets');
 
@@ -81,20 +81,6 @@
         { title: 'Giải pháp', content: 'Đã thực hiện: [thay [linh kiện] / cập nhật firmware / reset cấu hình]. Kiểm thử: [kết quả test sau sửa]. Thời gian sửa: [X giờ].' }
       ],
       notes: ['Chỉ Kỹ thuật mới có thể tạo WO.', 'Chỉ Quản lý mới có thể đóng WO chính thức (closed).']
-    },
-    {
-      key: 'cmdb',
-      label: 'CMDB',
-      when: 'Quản lý cấu hình IT, quan hệ giữa các CI (Configuration Item), vòng đời thay đổi.',
-      role: 'Admin / Kỹ thuật',
-      roleColor: 'badge-purple',
-      href: '/cmdb',
-      operations: [
-        { action: 'Tạo loại CI', path: 'CMDB → Loại CI → + Thêm', who: 'Admin', clicks: ['Vào CMDB → Loại CI', 'Bấm "+ Thêm"', 'Nhập tên, thuộc tính → Lưu'] },
-        { action: 'Thêm CI instance', path: 'CMDB → CI → + Thêm', who: 'Kỹ thuật', clicks: ['Chọn loại CI → Bấm "+ Thêm CI"', 'Điền thuộc tính theo loại', 'Lưu'] },
-        { action: 'Định nghĩa quan hệ', path: 'CMDB → Quan hệ → Import hoặc Add', who: 'Admin', clicks: ['Vào CMDB → Quan hệ', 'Chọn CI nguồn → CI đích → Loại quan hệ → Lưu'] }
-      ],
-      notes: ['CI phải được tạo trước khi tạo quan hệ.']
     },
     {
       key: 'reports',

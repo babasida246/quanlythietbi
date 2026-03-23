@@ -42,3 +42,8 @@
 
 -- 13. CMDB services extended data
 \i seed-cmdb.sql
+
+-- 14. New features: organizations hierarchy, spare part stock, stock documents,
+--     depreciation schedules, purchase plans, label templates, notifications,
+--     audit sessions, inventory sessions, maintenance tickets
+\i seed-new-features.sql

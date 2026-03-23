@@ -15,9 +15,10 @@ test.describe('Catalog Vendor CRUD', () => {
         const testEmail = 'vendor@example.com'
         const testAddress = '123 Test Street, Test City'
 
-        // Navigate to Vendors tab
-        await page.click('button:has-text("Nhà cung cấp")')
-        await expect(page.getByText('Nhà cung cấp')).toBeVisible()
+        // Wait for tabs to render (i18n may show "Vendors" in EN or "Nhà cung cấp" in VI)
+        const vendorTab = page.locator('[role="tab"]').filter({ hasText: /Vendors|Nhà cung cấp/i })
+        await expect(vendorTab).toBeVisible({ timeout: 15_000 })
+        await vendorTab.click()
 
         // CREATE: Open create modal
         await page.getByTestId('btn-create').click()
@@ -33,15 +34,15 @@ test.describe('Catalog Vendor CRUD', () => {
         // Submit create form
         await page.getByTestId('btn-submit').click()
 
-        // Verify creation success
+        // Verify creation success (covers both EN and VI locales)
         await expect(page.getByTestId('modal-create')).toBeHidden()
-        await expect(page.getByText('Tạo mới thành công')).toBeVisible()
+        await expect(page.locator('text=/Tạo mới thành công|Created successfully/i').first()).toBeVisible({ timeout: 8_000 })
         await expect(page.getByText(testVendorName)).toBeVisible()
 
         // EDIT: Find the vendor row and click edit
         const vendorRow = page.locator('tr', { hasText: testVendorName })
-        const vendorId = await vendorRow.locator('[data-testid^="row-edit-"]').getAttribute('data-testid')
-        await vendorRow.getByTestId(vendorId!).click()
+        const editBtn = vendorRow.locator('[data-testid^="row-edit-"]')
+        await editBtn.click()
 
         await expect(page.getByTestId('modal-edit')).toBeVisible()
 
@@ -54,29 +55,32 @@ test.describe('Catalog Vendor CRUD', () => {
 
         // Verify edit success
         await expect(page.getByTestId('modal-edit')).toBeHidden()
-        await expect(page.getByText('Cập nhật thành công')).toBeVisible()
+        await expect(page.locator('text=/Cập nhật thành công|Updated successfully/i').first()).toBeVisible({ timeout: 8_000 })
         await expect(page.getByText(editedVendorName)).toBeVisible()
 
         // DELETE: Find the vendor row and click delete
         const editedVendorRow = page.locator('tr', { hasText: editedVendorName })
-        const deleteId = await editedVendorRow.locator('[data-testid^="row-delete-"]').getAttribute('data-testid')
-        await editedVendorRow.getByTestId(deleteId!).click()
+        const deleteBtn = editedVendorRow.locator('[data-testid^="row-delete-"]')
+        await deleteBtn.click()
 
         await expect(page.getByTestId('modal-delete')).toBeVisible()
-        await expect(page.getByText(`Bạn có chắc muốn xóa ${editedVendorName}?`)).toBeVisible()
+        // Delete confirmation text works in either locale
+        await expect(page.locator(`text=/Are you sure you want to delete ${editedVendorName}|Bạn có chắc muốn xóa ${editedVendorName}/i`)).toBeVisible()
 
         // Confirm deletion
         await page.getByTestId('btn-submit').click()
 
         // Verify deletion success
         await expect(page.getByTestId('modal-delete')).toBeHidden()
-        await expect(page.getByText('Xóa thành công')).toBeVisible()
+        await expect(page.locator('text=/Xóa thành công|Deleted successfully/i').first()).toBeVisible({ timeout: 8_000 })
         await expect(page.getByText(editedVendorName)).toBeHidden()
     })
 
     test('vendor form validation works correctly', async ({ page }) => {
-        // Navigate to Vendors tab
-        await page.click('button:has-text("Nhà cung cấp")')
+        // Wait for tabs to render
+        const vendorTab = page.locator('[role="tab"]').filter({ hasText: /Vendors|Nhà cung cấp/i })
+        await expect(vendorTab).toBeVisible({ timeout: 15_000 })
+        await vendorTab.click()
 
         // Open create modal
         await page.getByTestId('btn-create').click()
@@ -87,7 +91,7 @@ test.describe('Catalog Vendor CRUD', () => {
 
         // Native validation may be handled by the browser; verify modal remains open and no success toast appears.
         await expect(page.getByTestId('modal-create')).toBeVisible()
-        await expect(page.getByText('Tạo mới thành công')).toHaveCount(0)
+        await expect(page.locator('text=/Tạo mới thành công|Created successfully/i')).toHaveCount(0)
 
         // Cancel modal
         await page.getByTestId('btn-cancel').click()

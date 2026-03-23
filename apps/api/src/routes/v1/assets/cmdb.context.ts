@@ -8,6 +8,7 @@ import {
     CiTypeRepo,
     CiTypeVersionRepo,
     CmdbChangeRepo,
+    CmdbConfigFileRepo,
     CmdbServiceRepo,
     DiscoveryResultRepo,
     DiscoveryRuleRepo,
@@ -49,6 +50,7 @@ export async function registerCmdbContext(
     const relRepo = new RelationshipRepo(pgClient)
     const cmdbServiceRepo = new CmdbServiceRepo(pgClient)
     const cmdbChangeRepo = new CmdbChangeRepo(pgClient)
+    const configFileRepo = new CmdbConfigFileRepo(pgClient)
     const opsEventRepo = new OpsEventRepo(pgClient)
     const discoveryRuleRepo = new DiscoveryRuleRepo(pgClient)
     const discoveryResultRepo = new DiscoveryResultRepo(pgClient)
@@ -89,6 +91,7 @@ export async function registerCmdbContext(
         relationshipAnalyticsService: cachedRelationshipAnalytics as any,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         auditTrailService: cachedAuditTrail as any,
+        configFileRepo,
         pgClient
     })
     await fastify.register(cmdbEnhancementRoutes, { prefix: '/api/v1', cmdbEnhancementService })

@@ -243,7 +243,7 @@ Truoc khi release:
 1. Chay typecheck + lint + test.
 2. Chay smoke flow: login, assets list, request approve, warehouse post, report.
 3. Verify migration moi idempotent.
-4. Verify i18n key du ca `vi.json` va `en.json`.
+4. Verify i18n key du tren split-domain files (`locales/vi/*.json` va `locales/en/*.json`).
 5. Verify dark/light va print pages.
 
 Lenh goi y:

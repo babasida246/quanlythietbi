@@ -9,6 +9,7 @@
   import { ArrowLeft, Download, Wrench, UserPlus, Undo2, ChevronDown, ChevronRight, PackageOpen } from 'lucide-svelte';
   import { _, isLoading } from '$lib/i18n';
   import { getCapabilities } from '$lib/auth/capabilities';
+  import { allowedPerms } from '$lib/stores/effectivePermsStore';
   import AssetTimeline from '$lib/assets/components/AssetTimeline.svelte';
   import AssignModal from '$lib/assets/components/AssignModal.svelte';
   import MaintenanceModal from '$lib/assets/components/MaintenanceModal.svelte';
@@ -112,7 +113,10 @@
 
   let userRole = $state('');
   let ready = $state(false);
-  const caps = $derived.by(() => getCapabilities(userRole));
+  const caps = $derived.by(() => {
+    const perms = $allowedPerms;
+    return getCapabilities(userRole, perms.length > 0 ? perms : undefined);
+  });
   const backHref = $derived.by(() => (caps.canManageAssets ? '/assets' : '/me/assets'));
 
   const assetId = $derived(page.params.id);

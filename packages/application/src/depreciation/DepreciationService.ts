@@ -196,12 +196,15 @@ export class DepreciationService {
         query: ScheduleListQuery
     ): Promise<PaginatedResult<DepreciationScheduleWithDetails>> {
         const result = await this.repository.findAllSchedules(query);
+        const limit = query.limit || 20;
+        const page = query.page || 1;
+        const offset = (page - 1) * limit;
         return {
-            data: result.data,
+            items: result.data,
             total: result.total,
-            page: query.page || 1,
-            limit: query.limit || 20,
-            totalPages: Math.ceil(result.total / (query.limit || 20)),
+            limit,
+            offset,
+            hasMore: offset + result.data.length < result.total,
         };
     }
 
@@ -309,12 +312,15 @@ export class DepreciationService {
         query: EntryListQuery
     ): Promise<PaginatedResult<DepreciationEntryWithDetails>> {
         const result = await this.repository.findAllEntries(query);
+        const limit = query.limit || 20;
+        const page = query.page || 1;
+        const offset = (page - 1) * limit;
         return {
-            data: result.data,
+            items: result.data,
             total: result.total,
-            page: query.page || 1,
-            limit: query.limit || 20,
-            totalPages: Math.ceil(result.total / (query.limit || 20)),
+            limit,
+            offset,
+            hasMore: offset + result.data.length < result.total,
         };
     }
 
@@ -513,12 +519,15 @@ export class DepreciationService {
 
     async listRuns(query: RunListQuery): Promise<PaginatedResult<DepreciationRun>> {
         const result = await this.repository.findAllRuns(query);
+        const limit = query.limit || 20;
+        const page = query.page || 1;
+        const offset = (page - 1) * limit;
         return {
-            data: result.data,
+            items: result.data,
             total: result.total,
-            page: query.page || 1,
-            limit: query.limit || 20,
-            totalPages: Math.ceil(result.total / (query.limit || 20)),
+            limit,
+            offset,
+            hasMore: offset + result.data.length < result.total,
         };
     }
 

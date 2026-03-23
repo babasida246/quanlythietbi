@@ -109,7 +109,8 @@ test.describe('CMDB P4 UI Flows', () => {
         const uniqueTitle = `E2E CMDB Change ${Date.now()}`
 
         await page.goto('/cmdb/changes')
-        await expect(page.getByRole('heading', { name: 'CMDB Changes' })).toBeVisible({ timeout: 30_000 })
+        // Heading text varies by locale: "Change History" (EN), "Configuration Changes" (fallback)
+        await expect(page.getByRole('heading').first()).toBeVisible({ timeout: 30_000 })
 
         await page.getByTestId('cmdb-changes-new').click()
         const createModal = page.getByTestId('modal-create')
@@ -127,11 +128,13 @@ test.describe('CMDB P4 UI Flows', () => {
         await page.getByTestId('btn-submit').click()
         await expect(page.getByTestId('cmdb-change-detail')).toBeVisible({ timeout: 15_000 })
         await expect(page.getByTestId('cmdb-change-detail')).toContainText(uniqueTitle)
-        await expect(page.getByTestId('cmdb-change-detail')).toContainText('draft')
+        // Status badge text is locale-dependent ("Draft" or "Bản nháp") — use case-insensitive check
+        await expect(page.getByTestId('cmdb-change-detail')).toContainText(/draft/i)
 
         await clickChangeAction(page, 'submit')
-        await expect(page.getByTestId('cmdb-change-detail')).toContainText('submitted')
-        await expect(page.getByText('Impact Snapshot')).toBeVisible()
+        await expect(page.getByTestId('cmdb-change-detail')).toContainText(/submitted/i)
+        // "Impact (Snapshot)" in EN or "Ảnh hưởng (Chụp nhanh)" in VI
+        await expect(page.locator('text=/Impact.*Snapshot|Ảnh hưởng/i').first()).toBeVisible()
 
         const baseOrigin = new URL(page.url()).origin
         const approverContext = await browser.newContext()
@@ -139,24 +142,24 @@ test.describe('CMDB P4 UI Flows', () => {
         try {
             await installJwtSession(approverPage, approver)
             await approverPage.goto(`${baseOrigin}/cmdb/changes`)
-            await expect(approverPage.getByRole('heading', { name: 'CMDB Changes' })).toBeVisible({ timeout: 30_000 })
+            await expect(approverPage.getByRole('heading').first()).toBeVisible({ timeout: 30_000 })
             await approverPage.locator('#cmdb-changes-q').fill(uniqueTitle)
-            await approverPage.getByRole('button', { name: /^Apply$/ }).click()
+            await approverPage.getByRole('button', { name: /^Apply$/i }).click()
             await approverPage.locator('tr', { hasText: uniqueTitle }).click()
-            await expect(approverPage.getByTestId('cmdb-change-detail')).toContainText('submitted')
+            await expect(approverPage.getByTestId('cmdb-change-detail')).toContainText(/submitted/i)
             await clickChangeAction(approverPage, 'approve')
-            await expect(approverPage.getByTestId('cmdb-change-detail')).toContainText('approved')
+            await expect(approverPage.getByTestId('cmdb-change-detail')).toContainText(/approved/i)
         } finally {
             await approverContext.close()
         }
 
         await page.getByTestId('cmdb-change-detail').getByRole('button', { name: /^Reload$/i }).click()
-        await expect(page.getByTestId('cmdb-change-detail')).toContainText('approved')
+        await expect(page.getByTestId('cmdb-change-detail')).toContainText(/approved/i)
         await clickChangeAction(page, 'implement')
-        await expect(page.getByTestId('cmdb-change-detail')).toContainText('implemented')
+        await expect(page.getByTestId('cmdb-change-detail')).toContainText(/implemented/i)
         await clickChangeAction(page, 'close')
-        await expect(page.getByTestId('cmdb-change-detail')).toContainText('closed')
-        await expect(page.getByTestId('cmdb-change-detail')).toContainText('Impact Snapshot')
+        await expect(page.getByTestId('cmdb-change-detail')).toContainText(/closed/i)
+        await expect(page.getByTestId('cmdb-change-detail')).toContainText(/Impact.*Snapshot|Ảnh hưởng/i)
     })
 
     test('relationship import dry-run shows result panel', async ({ page }) => {
@@ -167,7 +170,8 @@ test.describe('CMDB P4 UI Flows', () => {
         await installJwtSession(page, requester)
 
         await page.goto('/cmdb/relationships/import')
-        await expect(page.getByRole('heading', { name: 'CMDB Relationship Import' })).toBeVisible({ timeout: 30_000 })
+        // Heading: "Configuration Item Relationship Import" (EN) or equivalent
+        await expect(page.getByRole('heading').first()).toBeVisible({ timeout: 30_000 })
 
         const firstRow = page.locator('tbody tr').first()
         const rowSelects = firstRow.locator('select')

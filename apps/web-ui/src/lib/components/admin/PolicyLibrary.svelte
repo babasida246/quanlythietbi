@@ -9,6 +9,7 @@
         type Policy, type PolicyAssignment, type PolicyPrincipal,
     } from '$lib/api/admin'
     import type { RbacPermission } from '$lib/api/admin'
+    import { effectivePermsStore } from '$lib/stores/effectivePermsStore'
     import {
         Laptop, FolderTree, Network, Package, ClipboardList, Key, Puzzle,
         FlaskConical, Cpu, ArrowLeftRight, FileText, Wrench, BarChart3,
@@ -251,6 +252,8 @@
             const pm = new Map(pending); pm.delete(id); pending = pm
             // Update permission count in list
             policies = policies.map(p => p.id === id ? { ...p, permissionCount: ws.size } : p)
+            // Invalidate frontend capability cache so changes take effect immediately
+            effectivePermsStore.invalidate()
             setSuccess('Đã lưu thành công')
         } catch (e: any) {
             error = e?.message ?? 'Failed to save'
@@ -303,7 +306,7 @@
                 effect: newAssignEffect, inherit: newAssignInherit,
             })
             assignments = (await listPolicyAssignments(selectedId)).data
-            newAssignId = ''; setSuccess('Assignment đã được thêm')
+            newAssignId = ''; effectivePermsStore.invalidate(); setSuccess('Assignment đã được thêm')
         } catch (e: any) { error = e?.message ?? 'Failed to add assignment' }
         finally { assignLoading = false }
     }
@@ -314,6 +317,7 @@
         try {
             await removePolicyAssignment(selectedId, assignmentId)
             assignments = assignments.filter(a => a.id !== assignmentId)
+            effectivePermsStore.invalidate()
             setSuccess('Assignment đã được gỡ')
         } catch (e: any) { error = e?.message ?? 'Failed to remove' }
         finally { removingAssignId = '' }
@@ -325,6 +329,7 @@
         try {
             const res = await bulkAssignPolicyToOu(selectedId, { ouId: bulkOuId, includeSubOUs: bulkSubOUs, effect: bulkEffect })
             assignments = (await listPolicyAssignments(selectedId)).data
+            effectivePermsStore.invalidate()
             setSuccess(`Đã gán cho ${res.data.inserted} user(s)`)
             bulkOuId = ''
         } catch (e: any) { error = e?.message ?? 'Failed' }
@@ -400,7 +405,8 @@
 
                         {#if editingId === pol.id}
                             <!-- Inline edit form -->
-                            <div class="p-2 space-y-1.5" onclick={(e) => e.stopPropagation()}>
+                            <!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
+                            <div class="p-2 space-y-1.5" role="presentation" onclick={(e) => e.stopPropagation()}>
                                 <input type="text" class="input-base text-xs w-full" bind:value={editName} />
                                 <input type="text" placeholder="Mô tả" class="input-base text-xs w-full" bind:value={editDesc} />
                                 <div class="flex gap-1.5">

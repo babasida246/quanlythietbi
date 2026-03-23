@@ -14,7 +14,31 @@
       "Bash(node -e \"const d=JSON.parse\\(require\\(''fs''\\).readFileSync\\(''e:/GitHub/QuanLyThietBi/apps/web-ui/src/lib/i18n/locales/vi.json'',''utf8''\\)\\); console.log\\(Object.keys\\(d.admin||{}\\).slice\\(0,30\\)\\)\")",
       "Bash(node -e \"const d=JSON.parse\\(require\\(''fs''\\).readFileSync\\(''e:/GitHub/QuanLyThietBi/apps/web-ui/src/lib/i18n/locales/vi.json'',''utf8''\\)\\); console.log\\(JSON.stringify\\(Object.keys\\(d.admin||{}\\)\\)\\)\")",
       "Bash(node -e \"const d=JSON.parse\\(require\\(''fs''\\).readFileSync\\(''e:/GitHub/QuanLyThietBi/apps/web-ui/src/lib/i18n/locales/vi.json'',''utf8''\\)\\); console.log\\(JSON.stringify\\(d.admin.tab\\)\\)\")",
-      "Bash(node -e \"const d=JSON.parse\\(require\\(''fs''\\).readFileSync\\(''e:/GitHub/QuanLyThietBi/apps/web-ui/src/lib/i18n/locales/en.json'',''utf8''\\)\\); console.log\\(JSON.stringify\\(d.admin?.tab\\)\\)\")"
+      "Bash(node -e \"const d=JSON.parse\\(require\\(''fs''\\).readFileSync\\(''e:/GitHub/QuanLyThietBi/apps/web-ui/src/lib/i18n/locales/en.json'',''utf8''\\)\\); console.log\\(JSON.stringify\\(d.admin?.tab\\)\\)\")",
+      "Bash(du -sh \"$dir\")",
+      "Bash(done)",
+      "Bash(wc -l /e/GitHub/QuanLyThietBi/apps/api/src/modules/accessories/*.ts /e/GitHub/QuanLyThietBi/packages/application/src/assets/*.ts /e/GitHub/QuanLyThietBi/packages/infra-postgres/src/repositories/Asset*.ts)",
+      "Bash(git pull:*)",
+      "Bash(git checkout:*)",
+      "Bash(pnpm install:*)",
+      "Bash(pnpm --filter @qltb/contracts build)",
+      "Bash(pnpm --filter @qltb/web-ui check)",
+      "Bash(grep -n \"repairType\" apps/web-ui/src/routes/\\\\\\(assets\\\\\\)/assets/[id]/+page.svelte)",
+      "Bash(grep -rn export.*AppError e:/GitHub/QuanLyThietBi/packages/domain/src/)",
+      "Bash(pnpm --filter @qltb/infra-postgres build)",
+      "Bash(pnpm --filter @qltb/application build)",
+      "Bash(for dir:*)",
+      "Bash(do echo:*)",
+      "Read(//e/GitHub/QuanLyThietBi/apps/api/src/modules/**)",
+      "Bash(head -5 grep -n \"const conn = client\\\\|const executor = client\" e:/GitHub/QuanLyThietBi/packages/infra-postgres/src/repositories/CheckoutRepo.ts)",
+      "Bash(xargs wc:*)",
+      "Bash(grep -c '^export class.*Repo' /e/GitHub/QuanLyThietBi/packages/infra-postgres/src/repositories/*.ts)",
+      "Read(//e/GitHub/QuanLyThietBi/**)",
+      "Bash(wc -l /e/GitHub/QuanLyThietBi/db/seed-*.sql)",
+      "Bash(ls \"e:/GitHub/QuanLyThietBi/apps/web-ui/src/routes/\\(assets\\)/admin/\")",
+      "Bash(ls \"e:/GitHub/QuanLyThietBi/apps/web-ui/src/routes/\\(assets\\)/security/\")",
+      "Bash(xargs grep:*)",
+      "Bash(grep -n '\"\"tabs\"\"' apps/web-ui/src/lib/i18n/locales/vi/cmdb.json)"
     ]
   }
 }

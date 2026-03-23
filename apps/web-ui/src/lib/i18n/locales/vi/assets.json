@@ -566,7 +566,7 @@
     "creating": "Đang tạo...",
     "createSession": "Tạo phiên",
     "allAreas": "Toàn bộ khu vực",
-    "startedAt": "Bắt đầu: {date}",
+    "startedAt": "Bắt đầu",
     "filterAll": "Tất cả ({count})",
     "filterDraft": "Nháp ({count})",
     "filterInProgress": "Đang kiểm kê ({count})",

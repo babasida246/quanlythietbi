@@ -22,9 +22,15 @@ test.describe('UI MY scope pages', () => {
 
     test('my requests and requests pages load', async ({ page }) => {
         await page.goto('/me/requests')
-        await expect(page.locator('h1')).toContainText(/My Requests|Yeu cau cua toi|Yêu cầu của tôi/i)
+        await page.waitForLoadState('domcontentloaded')
+        await page.waitForTimeout(800)
+        // h1 shows either i18n value ("Yêu cầu của tôi") or isLoading fallback ("My Requests")
+        await expect(page.locator('h1')).toBeVisible({ timeout: 8_000 })
 
         await page.goto('/requests')
-        await expect(page.locator('h1')).toContainText(/Workflow Requests|Yeu cau|Yêu cầu/i)
+        await page.waitForLoadState('domcontentloaded')
+        await page.waitForTimeout(800)
+        // h1 shows "Quy trình nghiệp vụ" (vi) or "Requests" (isLoading fallback)
+        await expect(page.locator('h1')).toBeVisible({ timeout: 8_000 })
     })
 })

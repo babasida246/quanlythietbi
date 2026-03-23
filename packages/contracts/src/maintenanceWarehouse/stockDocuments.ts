@@ -21,6 +21,8 @@ export interface StockDocumentRecord {
     receiverName?: string | null
     /** Department / cost centre */
     department?: string | null
+    /** Destination location for issue documents (where assets are deployed) */
+    locationId?: string | null
     createdBy?: string | null
     approvedBy?: string | null
     correlationId?: string | null
@@ -28,10 +30,14 @@ export interface StockDocumentRecord {
     updatedAt: string
 }
 
+export type StockDocLineType = 'spare_part' | 'asset'
+
 export interface StockDocumentLineRecord {
     id: string
     documentId: string
-    partId: string
+    lineType: StockDocLineType
+    /** Spare-part lines: required. Asset lines: null. */
+    partId?: string | null
     qty: number
     unitCost?: number | null
     serialNo?: string | null
@@ -39,10 +45,21 @@ export interface StockDocumentLineRecord {
     adjustDirection?: 'plus' | 'minus' | null
     /** Additional spec key-value pairs from the spare part catalog */
     specFields?: Record<string, unknown> | null
+    /** Asset lines (receipt): model to use when auto-creating the asset */
+    assetModelId?: string | null
+    assetCategoryId?: string | null
+    assetName?: string | null
+    /** Explicit asset code; auto-generated if omitted */
+    assetCode?: string | null
+    /** Asset lines (issue): the specific in-stock asset to deploy.
+     *  Asset lines (receipt): populated after posting with the created asset id. */
+    assetId?: string | null
 }
 
 export interface StockDocumentLineInput {
-    partId: string
+    lineType?: StockDocLineType
+    /** Required for spare_part lines */
+    partId?: string | null
     qty: number
     unitCost?: number | null
     serialNo?: string | null
@@ -50,6 +67,12 @@ export interface StockDocumentLineInput {
     adjustDirection?: 'plus' | 'minus' | null
     /** Additional spec key-value pairs from the spare part catalog */
     specFields?: Record<string, unknown> | null
+    /** Asset lines only */
+    assetModelId?: string | null
+    assetCategoryId?: string | null
+    assetName?: string | null
+    assetCode?: string | null
+    assetId?: string | null
 }
 
 export interface StockDocumentDetail {
@@ -70,6 +93,8 @@ export interface StockDocumentCreateInput {
     submitterName?: string | null
     receiverName?: string | null
     department?: string | null
+    /** Destination location for issue documents */
+    locationId?: string | null
     createdBy?: string | null
     correlationId?: string | null
 }
@@ -83,6 +108,8 @@ export interface StockDocumentUpdatePatch {
     submitterName?: string | null
     receiverName?: string | null
     department?: string | null
+    /** Destination location for issue documents */
+    locationId?: string | null
     correlationId?: string | null
 }
 
@@ -111,4 +138,6 @@ export interface IStockDocumentRepo {
     listLines(documentId: string): Promise<StockDocumentLineRecord[]>
     replaceLines(documentId: string, lines: StockDocumentLineInput[]): Promise<StockDocumentLineRecord[]>
     setStatus(id: string, status: StockDocStatus, approvedBy?: string | null, idempotencyKey?: string | null): Promise<StockDocumentRecord | null>
+    /** After posting a receipt, link the auto-created asset back to the line */
+    setAssetOnLine(lineId: string, assetId: string): Promise<void>
 }

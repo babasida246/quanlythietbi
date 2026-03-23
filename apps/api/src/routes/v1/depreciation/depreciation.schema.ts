@@ -40,8 +40,8 @@ export const updateScheduleSchema = z.object({
 });
 
 export const stopScheduleSchema = z.object({
-    scheduleId: z.string().uuid(),
-    stoppedAt: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format'),
+    scheduleId: z.string().uuid().optional(),
+    stoppedAt: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format').optional().default(new Date().toISOString().split('T')[0]),
     stoppedReason: z.string().max(500).optional(),
     updatedBy: z.string().uuid(),
 });
@@ -75,7 +75,7 @@ export const createAdjustmentSchema = z.object({
 
 export const scheduleListQuerySchema = z.object({
     page: z.coerce.number().int().positive().optional().default(1),
-    limit: z.coerce.number().int().positive().max(100).optional().default(20),
+    limit: z.coerce.number().int().positive().max(1000).optional().default(20),
     search: z.string().optional(),
     status: scheduleStatusSchema.optional(),
     method: depreciationMethodSchema.optional(),
@@ -88,12 +88,12 @@ export const scheduleListQuerySchema = z.object({
 
 export const entryListQuerySchema = z.object({
     page: z.coerce.number().int().positive().optional().default(1),
-    limit: z.coerce.number().int().positive().max(100).optional().default(20),
+    limit: z.coerce.number().int().positive().max(1000).optional().default(20),
     scheduleId: z.string().uuid().optional(),
     assetId: z.string().uuid().optional(),
     periodYear: z.coerce.number().int().optional(),
     periodMonth: z.coerce.number().int().min(1).max(12).optional(),
-    isPosted: z.coerce.boolean().optional(),
+    isPosted: z.string().transform(v => v === 'true' || v === '1').optional(),
     organizationId: z.string().uuid().optional(),
     sortBy: z.string().optional().default('period_year'),
     sortOrder: z.enum(['asc', 'desc']).optional().default('desc'),
@@ -101,7 +101,7 @@ export const entryListQuerySchema = z.object({
 
 export const runListQuerySchema = z.object({
     page: z.coerce.number().int().positive().optional().default(1),
-    limit: z.coerce.number().int().positive().max(100).optional().default(20),
+    limit: z.coerce.number().int().positive().max(1000).optional().default(20),
     periodYear: z.coerce.number().int().optional(),
     status: runStatusSchema.optional(),
     organizationId: z.string().uuid().optional(),

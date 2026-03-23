@@ -105,7 +105,7 @@ export async function communicationRoutes(
                     w.created_at,
                     w.due_at
                 FROM public.wf_requests w
-                WHERE w.requester_id = $1 OR lower(COALESCE($2, '')) IN ('admin', 'super_admin', 'it_asset_manager', 'manager')
+                WHERE w.requester_id = $1 OR lower(COALESCE($2, '')) IN ('root', 'admin', 'super_admin', 'it_asset_manager', 'manager')
             )
             SELECT *
             FROM (
@@ -188,7 +188,7 @@ export async function communicationRoutes(
         }
 
         const { limit, offset } = parsedQuery.data
-        const canViewAll = ['admin', 'super_admin', 'it_asset_manager', 'manager'].includes(ctx.role)
+        const canViewAll = ['root', 'admin', 'super_admin', 'it_asset_manager', 'manager'].includes(ctx.role)
         const rows = await pgClient.query<{
             id: string
             title: string
@@ -261,7 +261,7 @@ export async function communicationRoutes(
         }
 
         const id = parsedParams.data.id
-        const canViewAll = ['admin', 'super_admin', 'it_asset_manager', 'manager'].includes(ctx.role)
+        const canViewAll = ['root', 'admin', 'super_admin', 'it_asset_manager', 'manager'].includes(ctx.role)
         const threadResult = await pgClient.query<{
             id: string
             title: string
@@ -359,7 +359,7 @@ export async function communicationRoutes(
         }
 
         const id = parsedParams.data.id
-        const canViewAll = ['admin', 'super_admin', 'it_asset_manager', 'manager'].includes(ctx.role)
+        const canViewAll = ['root', 'admin', 'super_admin', 'it_asset_manager', 'manager'].includes(ctx.role)
         const threadResult = await pgClient.query<{ id: string }>(
             `
             SELECT c.id::text AS id

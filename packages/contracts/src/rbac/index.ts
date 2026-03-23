@@ -36,6 +36,7 @@ export interface RbacUserUpdateInput {
     displayName?: string
     email?: string
     status?: RbacUserStatus
+    linkedUserId?: string | null
 }
 
 // Group

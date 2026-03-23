@@ -1,335 +1,167 @@
-# Hướng dẫn Testing
+﻿# Testing Guide - QLTB
 
-## Tổng quan
+Tai lieu nay tong hop chien luoc va quy trinh test cho QLTB.
 
-| Framework | Mục đích | Cấu hình |
-|-----------|----------|----------|
-| **Playwright** | E2E testing (API + UI) | `playwright.config.ts` |
-| **Vitest** | Unit testing | `vitest.config.ts` |
+## 1. Testing goals
 
-### Thống kê Test
+- Bao ve luong nghiep vu cot loi (asset lifecycle, warehouse, auth, workflow)
+- Phat hien regression som truoc merge/release
+- Tao confidence cho thay doi schema/API/UI
 
-| Loại | Files | Tests |
-|------|-------|-------|
-| UI E2E (Playwright) | 27 | ~335 |
-| API E2E (Playwright) | 7 | ~30 |
-| Unit tests (Vitest) | — | — |
-| **Tổng** | **34+** | **365+** |
+## 2. Test stack
 
----
+- Unit tests: Vitest
+- API/UI E2E: Playwright
+- Additional smoke flows: Playwright grep tags va script test
 
-## Cách chạy Tests
+## 3. Test layers
 
-### E2E Tests (Playwright)
+### Unit tests (Vitest)
 
-```bash
-# Chạy tất cả E2E tests
-pnpm test:e2e
+Phu hop cho:
 
-# Chạy chỉ UI tests
-pnpm test:ui
+- Utility functions
+- Pure business rules
+- Mapping/parsing logic
 
-# Chạy chỉ API tests
-pnpm test:api
-
-# Chạy test cụ thể
-npx playwright test tests/ui/asset-crud.spec.ts
-
-# Chạy tests có keyword
-npx playwright test --grep "login"
-
-# Chạy với reporter
-npx playwright test --reporter=list
-
-# Chạy với debug
-npx playwright test --debug
-
-# Xem HTML report
-npx playwright show-report
-```
-
-### Unit Tests (Vitest)
+Command:
 
 ```bash
-# Chạy tất cả unit tests
 pnpm test
-
-# Chạy unit tests cho API
-pnpm --filter @qltb/api test
-
-# Chạy unit tests cho Web UI
-pnpm --filter @qltb/web-ui test
 ```
 
-### Test Pipeline đầy đủ
+### API tests (Playwright project `api`)
+
+Phu hop cho:
+
+- Endpoint behavior
+- Auth, validation, response contract
+- Error handling
+
+Command:
 
 ```bash
-# Lint → typecheck → unit → build → docker up → playwright → docker down
-pnpm test:all
+pnpm test:api
 ```
 
----
+### UI tests (Playwright project `chromium`)
 
-## Playwright Configuration
+Phu hop cho:
 
-File: `playwright.config.ts`
+- Critical user journeys
+- RBAC visibility and guard
+- Form actions + table workflows
 
-```
-testDir: './tests'
-fullyParallel: true
-retries: CI ? 2 : 0
-timeout: 60_000
-expect.timeout: 10_000
+Command:
 
-projects:
-  - name: 'api'       → testDir: './tests/api'    → baseURL: :4010
-  - name: 'chromium'   → testDir: './tests/ui'     → baseURL: :4011
-
-webServer:
-  - API:  pnpm --filter @qltb/api dev    → :4010/health
-  - Web:  vite dev --port 4011           → :4011/login
-```
-
-### Global Setup/Teardown
-
-- `tests/global.setup.ts` — Chờ servers sẵn sàng, đảm bảo DB migrated + seeded
-- `tests/global.teardown.ts` — Cleanup
-
----
-
-## Viết Test Mới
-
-### Cấu trúc thư mục
-
-```
-tests/
-├── global.setup.ts          # Setup chung
-├── global.teardown.ts       # Teardown chung
-├── helpers.ts               # Utility functions
-├── seed/
-│   └── seed.ts              # Test-specific seed data
-├── api/
-│   ├── health.spec.ts
-│   ├── assets.spec.ts
-│   ├── catalogs.spec.ts
-│   ├── cmdb-p4.spec.ts
-│   ├── communications.spec.ts
-│   ├── warehouse-inventory.spec.ts
-│   └── workflow-authz.spec.ts
-└── ui/
-    ├── auth-flow.spec.ts
-    ├── admin-user-management.spec.ts
-    ├── analytics-dashboard.spec.ts
-    ├── asset-crud.spec.ts
-    ├── asset-increase-catalogs.spec.ts
-    ├── automation-crud.spec.ts
-    ├── catalog-vendor-crud.spec.ts
-    ├── cmdb-p4-flow.spec.ts
-    ├── cmdb-services.spec.ts
-    ├── comprehensive.spec.ts
-    ├── help-page.spec.ts
-    ├── inbox-notifications.spec.ts
-    ├── integrations-crud.spec.ts
-    ├── legacy-redirects.spec.ts
-    ├── maintenance-full-flow.spec.ts
-    ├── my-assets-requests.spec.ts
-    ├── navigation.spec.ts
-    ├── purchase-plan-flow.spec.ts
-    ├── repair-order-flow.spec.ts
-    ├── request-approval-flow.spec.ts
-    ├── role-based-access.spec.ts
-    ├── security-compliance.spec.ts
-    ├── setup-wizard.spec.ts
-    ├── smoke-empty-state.spec.ts
-    ├── ui-design-audit.spec.ts
-    ├── warehouse-crud.spec.ts
-    └── warehouse-document-flow.spec.ts
-```
-
-### Template UI Test
-
-```typescript
-import { test, expect, type Page } from '@playwright/test'
-import { applyUiAuth, goto, assertNoObjectObject } from '../helpers'
-
-test.describe('Feature Name', () => {
-    test.beforeEach(async ({ page }) => {
-        await applyUiAuth(page, 'admin')
-    })
-
-    test('should load page', async ({ page }) => {
-        await goto(page, '/path')
-        
-        // Verify page loaded (not error)
-        const body = await page.textContent('body')
-        expect(body!.length).toBeGreaterThan(100)
-        
-        // Check no i18n errors
-        await assertNoObjectObject(page, 'Page name')
-    })
-
-    test('should show data', async ({ page }) => {
-        await goto(page, '/path')
-        
-        // Wait for content
-        const heading = page.locator('h1, h2, h3').first()
-        await expect(heading).toBeVisible({ timeout: 10000 })
-    })
-})
-```
-
-### Helper Functions
-
-| Function | Mô tả |
-|----------|-------|
-| `applyUiAuth(page, role)` | Inject JWT vào localStorage cho role ('admin' or 'user') |
-| `goto(page, path)` | Navigate tới path với `domcontentloaded` + wait 1500ms |
-| `assertNoObjectObject(page, context)` | Kiểm tra không có `[object Object]` trên trang (i18n regression) |
-
-### Authentication trong Tests
-
-```typescript
-// Admin role
-await applyUiAuth(page, 'admin')
-
-// Regular user role
-await applyUiAuth(page, 'user')
-```
-
-JWT được ký với `dev-access-secret-key` và inject trực tiếp vào localStorage. Không cần login qua UI.
-
----
-
-## Best Practices
-
-### 1. Navigation — Dùng `domcontentloaded`
-
-```typescript
-// ✅ ĐÚNG — Dùng domcontentloaded + waitForTimeout
-await goto(page, '/assets')
-
-// ❌ SAI — networkidle gây timeout trên các trang có API polling
-await page.goto('/assets', { waitUntil: 'networkidle' })
-```
-
-### 2. Selectors — Ưu tiên data-testid
-
-```typescript
-// ✅ Ưu tiên
-page.locator('[data-testid="btn-create"]')
-page.getByRole('heading', { name: /text/i })
-page.getByText(/text/i)
-
-// ✅ OK cho elements không có testid
-page.locator('table tbody tr')
-page.locator('button:has-text("Create")')
-page.locator('select:visible')
-
-// ❌ Tránh — brittle selectors
-page.locator('.css-class-name')
-page.locator('#specific-id')
-```
-
-### 3. Visible Selector cho Tabs
-
-```typescript
-// ✅ ĐÚNG — Dùng :visible khi có nhiều elements trùng tên
-const tab = page.locator('button:has-text("Rules"):visible')
-await tab.click()
-
-// ❌ SAI — Click vào element ẩn
-const tab = page.locator('button:has-text("Rules")')
-await tab.click()  // Có thể click element hidden
-```
-
-### 4. No RBAC on Frontend
-
-```typescript
-// ✅ ĐÚNG — Tất cả users đều access được tất cả routes
-test('user can access admin page', async ({ page }) => {
-    await applyUiAuth(page, 'user')
-    await goto(page, '/admin')
-    expect(body!.length).toBeGreaterThan(100) // Page loads fine
-})
-
-// ❌ SAI — App KHÔNG enforce RBAC ở frontend
-test('user is forbidden from admin', async ({ page }) => {
-    // Sẽ FAIL vì user vẫn access được!
-})
-```
-
-> **Lưu ý:** RBAC chỉ được enforce ở API level, không ở frontend. Tất cả authenticated users có thể navigate tới mọi route.
-
-### 5. Assertions — Kiểm tra nội dung
-
-```typescript
-// ✅ Verify page loaded với nội dung thực
-const body = await page.textContent('body')
-expect(body!.length).toBeGreaterThan(100)
-
-// ✅ Kiểm tra heading readable (không phải translation key)
-const heading = await page.locator('h1, h2, h3').first().textContent()
-expect(heading!.length).toBeGreaterThan(2)
-expect(heading).not.toContain('.')  // Not a translation key like "admin.title"
-
-// ✅ Check i18n
-await assertNoObjectObject(page, 'feature name')
-```
-
----
-
-## Test Coverage Matrix
-
-| Module | Test File | Tests | Coverage |
-|--------|-----------|-------|----------|
-| Auth | `auth-flow.spec.ts` | 8 | Login, forbidden, logout, 404, redirect |
-| Admin | `admin-user-management.spec.ts` | 3 | Page load, user list, access control |
-| Assets | `asset-crud.spec.ts` | ~10 | CRUD, list, detail |
-| Assets | `asset-increase-catalogs.spec.ts` | 7 | Increase form, catalogs, inventory |
-| Catalogs | `catalog-vendor-crud.spec.ts` | ~8 | Vendor/category CRUD |
-| CMDB | `cmdb-p4-flow.spec.ts` | ~10 | CI CRUD, types, relationships |
-| CMDB | `cmdb-services.spec.ts` | 9 | Services, reports, changes, topology |
-| Warehouse | `warehouse-crud.spec.ts` | ~12 | Warehouse CRUD |
-| Warehouse | `warehouse-document-flow.spec.ts` | 12 | Documents, ledger, stock, reconciliation |
-| Maintenance | `maintenance-full-flow.spec.ts` | 7 | Repairs list, create, detail, filter |
-| Purchase | `purchase-plan-flow.spec.ts` | 5 | List, form, submit |
-| Inventory | `asset-increase-catalogs.spec.ts` | 2 | Inventory list/detail |
-| Requests | `request-approval-flow.spec.ts` | 9 | User request, admin review, inbox |
-| Analytics | `analytics-dashboard.spec.ts` | 8 | Analytics, reports |
-| Automation | `automation-crud.spec.ts` | 4 | Rules, tabs, access |
-| Integrations | `integrations-crud.spec.ts` | 5 | Connectors, tabs, access |
-| Security | `security-compliance.spec.ts` | 5 | Permissions, compliance, access |
-| Navigation | `navigation.spec.ts` | ~10 | Sidebar, breadcrumbs |
-| RBAC | `role-based-access.spec.ts` | ~42 | All routes for all roles |
-| Help | `help-page.spec.ts` | 3 | Page load, heading |
-| Smoke | `comprehensive.spec.ts` | ~15 | Smoke tests across features |
-| Design | `ui-design-audit.spec.ts` | ~5 | UI consistency |
-
----
-
-## Troubleshooting
-
-### Test timeout
-
-Nguyên nhân phổ biến:
-1. Server chưa sẵn sàng → Kiểm tra `pnpm dev:all`
-2. Dùng `networkidle` → Đổi sang `domcontentloaded`
-3. Database chưa seed → Chạy `pnpm db:reset`
-
-### ERR_CONNECTION_FAILED
-
-Server restart do SQL error. Kiểm tra server logs:
 ```bash
-# Xem logs API
-pnpm --filter @qltb/api dev 2>&1 | head -50
+pnpm test:ui
 ```
 
-### Element not found
+### Full E2E / smoke
 
-1. Kiểm tra selector bằng Playwright Inspector: `npx playwright test --debug`
-2. Tăng timeout: `await expect(element).toBeVisible({ timeout: 15000 })`
-3. Dùng `:visible` cho elements có thể bị hidden
+```bash
+pnpm test:e2e
+pnpm test:smoke
+```
 
-### i18n Keys hiển thị thay vì text
+## 4. Local test workflow khuyen nghi
 
-Kiểm tra `assertNoObjectObject()` trong test. Nếu thấy `[object Object]` → lỗi i18n format.
+1. Chuan bi data:
+
+```bash
+pnpm dev:infra
+pnpm db:reset
+```
+
+2. Chay nhanh bo test lien quan truoc:
+
+```bash
+pnpm test:api
+pnpm test:ui
+```
+
+3. Truoc merge:
+
+```bash
+pnpm test:e2e
+pnpm typecheck
+pnpm build
+```
+
+## 5. Playwright conventions
+
+- Tach ro API tests (`tests/api`) va UI tests (`tests/ui`)
+- Uu tien selector on dinh (`data-testid`) cho UI assertions
+- Moi test case nen doc lap ve data setup/expectation
+- Tranh coupling test order
+
+Khi can debug:
+
+```bash
+pnpm test:headed
+pnpm test:debug
+pnpm test:report
+```
+
+## 6. API test conventions
+
+- Assert status code, payload shape, business fields quan trong
+- Validate ca success va failure paths
+- Khong assert qua chat vao message text de tranh flaky
+
+## 7. UI test conventions
+
+- Cover critical paths theo role: admin, manager, requester...
+- Assert behavior thay vi chi assert visual text
+- Co retry strategy phu hop cho async UI states
+
+## 8. Data management cho test
+
+Nguon du lieu:
+
+- `db/seed-*.sql`
+- test fixtures trong `tests/fixtures` va `tests/seed`
+
+Nguyen tac:
+
+- Test phai co expectation ro ve precondition data
+- Neu test can data dac thu, setup trong fixture/test setup
+- Cleanup neu test tao du lieu lam anh huong test khac
+
+## 9. Flaky test playbook
+
+Khi test flaky:
+
+1. Kiem tra race condition (UI loading, network idle)
+2. Kiem tra selector khong on dinh
+3. Kiem tra phu thuoc data chia se
+4. Kiem tra timeout qua thap
+5. Thu run test rieng de isolate
+
+## 10. Minimum quality gate de merge
+
+Khuyen nghi toi thieu:
+
+- `pnpm typecheck` pass
+- `pnpm build` pass
+- API tests lien quan pass
+- UI tests lien quan pass
+
+Neu thay doi rong/nhay cam:
+
+- Chay full `pnpm test:e2e`
+
+## 11. CI/CD testing strategy (recommended)
+
+- PR pipeline:
+  - Typecheck + build + targeted API/UI tests
+- Nightly pipeline:
+  - Full E2E + smoke + reporting
+
+## 12. Testing checklist trong code review
+
+- Co test cho behavior moi hoac bug fix khong?
+- Assertions co tap trung vao business outcome khong?
+- Test co doc lap, khong order-dependent khong?
+- Co bo sung/doi fixture du de tai hien bug khong?

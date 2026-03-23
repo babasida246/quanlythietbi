@@ -278,3 +278,73 @@ export interface CmdbChangePage {
     page: number
     limit: number
 }
+
+// ── Config Files ──────────────────────────────────────────────────────────────
+
+export type CmdbConfigFileType = 'config' | 'script' | 'template' | 'env' | 'other'
+
+export interface CmdbConfigFileRecord {
+    id: string
+    ciId: string
+    ciName?: string | null       // populated in list queries (JOIN with cmdb_cis)
+    name: string
+    fileType: CmdbConfigFileType
+    language?: string | null
+    description?: string | null
+    filePath?: string | null
+    content: string
+    currentVersion: number
+    isActive: boolean
+    createdBy?: string | null
+    updatedBy?: string | null
+    createdAt: string
+    updatedAt: string
+}
+
+export interface CmdbConfigFileVersionRecord {
+    id: string
+    configFileId: string
+    version: number
+    content: string
+    changeSummary?: string | null
+    createdBy?: string | null
+    createdAt: string
+}
+
+export interface CmdbConfigFileCreateInput {
+    ciId: string
+    name: string
+    fileType?: CmdbConfigFileType
+    language?: string | null
+    description?: string | null
+    filePath?: string | null
+    content: string
+    changeSummary?: string | null
+    createdBy?: string | null
+}
+
+export interface CmdbConfigFileUpdatePatch {
+    name?: string
+    fileType?: CmdbConfigFileType
+    language?: string | null
+    description?: string | null
+    filePath?: string | null
+    content?: string
+    changeSummary?: string | null
+    updatedBy?: string | null
+}
+
+export interface CmdbConfigFileListFilters {
+    ciId?: string
+    fileType?: CmdbConfigFileType
+    q?: string
+    page?: number
+    limit?: number
+}
+
+export interface CmdbConfigFilePage {
+    items: CmdbConfigFileRecord[]
+    total: number
+    page: number
+    limit: number
+}

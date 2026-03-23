@@ -8,13 +8,20 @@
   import { onMount } from 'svelte';
   import { getUnifiedEffectivePerms, listUsers } from '$lib/api/admin';
   import type { AdminUser, UnifiedEffectivePerms } from '$lib/api/admin';
+  import { getCapabilities } from '$lib/auth/capabilities';
+  import { allowedPerms } from '$lib/stores/effectivePermsStore';
 
   type TabId = 'directory' | 'policies' | 'effective' | 'logs';
   let activeTab = $state<TabId>('directory');
+  let userRole = $state('');
+  const caps = $derived.by(() => {
+    const perms = $allowedPerms;
+    return getCapabilities(userRole, perms.length > 0 ? perms : undefined);
+  });
 
   const tabs = $derived([
     { id: 'directory' as const, label: $isLoading ? 'Directory'     : $_('admin.tab.directory',  { default: 'Thư mục (AD)' }),   icon: FolderTree   },
-    { id: 'policies'  as const, label: $isLoading ? 'Policy Library': $_('admin.tab.policies',   { default: 'Thư viện Policy' }), icon: Library      },
+    ...(caps.admin.roles ? [{ id: 'policies' as const, label: $isLoading ? 'Policy Library': $_('admin.tab.policies', { default: 'Thư viện Policy' }), icon: Library }] : []),
     { id: 'effective' as const, label: $isLoading ? 'Effective Perms': $_('admin.tab.effective', { default: 'Quyền thực tế' }),   icon: CheckCircle2 },
     { id: 'logs'      as const, label: $isLoading ? 'Audit Logs'    : $_('admin.tab.logs'),                                       icon: ClipboardList },
   ]);
@@ -27,6 +34,7 @@
   let effectiveError = $state('');
 
   onMount(async () => {
+    userRole = localStorage.getItem('userRole') || '';
     try {
       const res = await listUsers();
       systemUsers = res.data ?? [];
@@ -80,7 +88,7 @@
     <DirectoryExplorer />
 
   <!-- ══ Policy Library ════════════════════════════════════════════════════ -->
-  {:else if activeTab === 'policies'}
+  {:else if activeTab === 'policies' && caps.admin.roles}
     <PolicyLibrary />
 
   <!-- ══ Unified Effective Permissions viewer ═══════════════════════════════ -->
@@ -120,9 +128,9 @@
         <!-- Source breakdown -->
         {#if effectiveData.sources}
           <div class="mb-4 p-3 rounded-lg border border-surface-3 bg-surface-2/50 text-xs text-slate-400 space-y-1">
-            <p><span class="font-semibold text-slate-300">Classic RBAC:</span> {effectiveData.sources.classic.length} permissions từ role <code class="bg-surface-3 px-1 rounded">{effectiveData.roleSlug ?? 'none'}</code></p>
-            <p><span class="font-semibold text-emerald-400">Policy System — Allowed:</span> {(effectiveData.sources.policyAllowed ?? []).length} permissions từ assignments</p>
-            <p><span class="font-semibold text-rose-400">Policy System — Denied:</span> {(effectiveData.sources.policyDenied ?? []).length} permissions</p>
+            <p><span class="font-semibold text-slate-300">Policy Library (trần quyền):</span> {effectiveData.sources.classic.length} permissions từ policy <code class="bg-surface-3 px-1 rounded">{effectiveData.roleSlug ?? 'none'}</code></p>
+            <p><span class="font-semibold text-slate-400">Policy Assignments — ALLOW:</span> {(effectiveData.sources.policyAllowed ?? []).length} permissions (chỉ thông tin, không mở rộng trần)</p>
+            <p><span class="font-semibold text-rose-400">Policy Assignments — DENY:</span> {(effectiveData.sources.policyDenied ?? []).length} permissions bị thu hồi</p>
           </div>
         {/if}
 
@@ -136,7 +144,7 @@
               <p class="text-xs text-slate-500">Không có quyền nào được cấp.</p>
             {:else}
               <div class="flex flex-col gap-1 max-h-96 overflow-y-auto pr-1">
-                {#each effectiveData.allowed.sort() as key}
+                {#each [...effectiveData.allowed].sort() as key}
                   <code class="text-xs px-2 py-1 rounded bg-emerald-900/20 border border-emerald-700/30 text-emerald-300">{key}</code>
                 {/each}
               </div>
@@ -152,7 +160,7 @@
               <p class="text-xs text-slate-500">Không có quyền nào bị từ chối.</p>
             {:else}
               <div class="flex flex-col gap-1 max-h-96 overflow-y-auto pr-1">
-                {#each effectiveData.denied.sort() as key}
+                {#each [...effectiveData.denied].sort() as key}
                   <code class="text-xs px-2 py-1 rounded bg-rose-900/20 border border-rose-700/30 text-rose-300">{key}</code>
                 {/each}
               </div>

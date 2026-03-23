@@ -39,14 +39,18 @@
   function handleKeydown(e: KeyboardEvent) {
     if (e.key === 'Escape' && dismissable) open = false;
   }
+
+  function stopPanelInteraction(e: Event) {
+    e.stopPropagation();
+  }
 </script>
 
 {#if open}
   <!-- svelte-ignore a11y_no_static_element_interactions -->
   <div class="modal-backdrop" onclick={handleBackdrop} onkeydown={handleKeydown}></div>
   <div class="modal-container" role="dialog" aria-modal="true" aria-labelledby="modal-title" data-testid={dataTestid}>
-    <!-- svelte-ignore a11y_no_static_element_interactions a11y_click_events_have_key_events -->
-    <div class="modal-panel {sizeClass[size]}" onclick={(e) => e.stopPropagation()}>
+    <!-- svelte-ignore a11y_no_static_element_interactions -->
+    <div class="modal-panel {sizeClass[size]}" onclick={stopPanelInteraction} onkeydown={stopPanelInteraction}>
       <div class="modal-header">
         <h3 id="modal-title" class="text-base font-semibold text-slate-100">{title}</h3>
         {#if dismissable}

@@ -5,6 +5,8 @@
   import { ArrowLeft, AlertTriangle, GitBranch, Clock } from 'lucide-svelte';
   import { getCiDetail, getCiImpact, listCmdbChanges, type CiDetail, type CiRecord, type CmdbChangeRecord } from '$lib/api/cmdb';
   import CiRelationshipsTab from '$lib/cmdb/CiRelationshipsTab.svelte';
+  import CmdbConfigFilesPanel from '$lib/cmdb/CmdbConfigFilesPanel.svelte';
+  import { FileCode } from 'lucide-svelte';
   import { _, isLoading } from '$lib/i18n';
 
   const ciId = $derived(page.params.id ?? '');
@@ -12,7 +14,7 @@
   let ciDetail = $state<CiDetail | null>(null);
   let loading = $state(true);
   let error = $state('');
-  let activeTab = $state<'overview' | 'relationships' | 'impact' | 'changes'>('overview');
+  let activeTab = $state<'overview' | 'relationships' | 'impact' | 'changes' | 'config-files'>('overview');
 
   // Impact Analysis state
   let impactData = $state<{ affected: CiRecord[]; count: number; depth: number } | null>(null);
@@ -27,8 +29,8 @@
   $effect(() => {
     void loadCiDetail();
     // Check URL params for tab
-    const tab = page.url.searchParams.get('tab') as 'overview' | 'relationships' | 'impact' | 'changes' | null;
-    if (tab && ['overview', 'relationships', 'impact', 'changes'].includes(tab)) {
+    const tab = page.url.searchParams.get('tab') as 'overview' | 'relationships' | 'impact' | 'changes' | 'config-files' | null;
+    if (tab && ['overview', 'relationships', 'impact', 'changes', 'config-files'].includes(tab)) {
       activeTab = tab;
     }
   });
@@ -82,7 +84,7 @@
     }
   }
 
-  function setTab(tab: 'overview' | 'relationships' | 'impact' | 'changes') {
+  function setTab(tab: 'overview' | 'relationships' | 'impact' | 'changes' | 'config-files') {
     activeTab = tab;
     const params = new URLSearchParams(page.url.searchParams);
     params.set('tab', tab);
@@ -174,6 +176,10 @@
         <TabsTrigger active={activeTab === 'changes'} onclick={() => setTab('changes')}>
           <Clock class="mr-1 h-3.5 w-3.5" />
           {$isLoading ? 'History' : $_('cmdb.tab.history')}
+        </TabsTrigger>
+        <TabsTrigger active={activeTab === 'config-files'} onclick={() => setTab('config-files')}>
+          <FileCode class="mr-1 h-3.5 w-3.5" />
+          {$isLoading ? 'Config Files' : $_('cmdb.configFiles.tab')}
         </TabsTrigger>
       </TabsList>
     </Tabs>
@@ -367,6 +373,10 @@
             </table>
           </div>
         {/if}
+      </div>
+    {:else if activeTab === 'config-files'}
+      <div class="mt-4">
+        <CmdbConfigFilesPanel ciId={ciDetail.ci.id} />
       </div>
     {/if}
   {/if}

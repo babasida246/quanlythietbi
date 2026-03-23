@@ -42,17 +42,23 @@ export class DepreciationRepo {
 
     async createSchedule(dto: CreateScheduleDto, client?: PoolClient): Promise<DepreciationSchedule> {
         const conn = (client ?? this.db) as PgClient;
+        const depreciableAmount = dto.originalCost - (dto.salvageValue || 0);
+        const totalMonths = dto.usefulLifeYears * 12;
+        const monthlyDepreciation = depreciableAmount / totalMonths;
+        // Compute end_date: start_date + usefulLifeYears years - 1 day
+        const startDate = new Date(dto.startDate);
+        const endDate = new Date(startDate);
+        endDate.setFullYear(endDate.getFullYear() + dto.usefulLifeYears);
+        endDate.setDate(endDate.getDate() - 1);
+        const endDateStr = endDate.toISOString().split('T')[0];
 
         const result = await conn.query(
             `INSERT INTO depreciation_schedules (
                 asset_id, depreciation_method, original_cost, salvage_value,
                 useful_life_years, start_date, end_date,
+                monthly_depreciation, accumulated_depreciation, book_value,
                 notes, organization_id, created_by
-            ) VALUES (
-                $1, $2, $3, $4, $5, $6,
-                calculate_depreciation_end_date($6, $5),
-                $7, $8, $9
-            )
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 0, $9, $10, $11, $12)
             RETURNING *`,
             [
                 dto.assetId,
@@ -61,6 +67,9 @@ export class DepreciationRepo {
                 dto.salvageValue || 0,
                 dto.usefulLifeYears,
                 dto.startDate,
+                endDateStr,
+                monthlyDepreciation,
+                dto.originalCost,   // book_value = original cost at start
                 dto.notes || null,
                 dto.organizationId || null,
                 dto.createdBy,
@@ -79,7 +88,12 @@ export class DepreciationRepo {
 
     async findScheduleByIdWithDetails(id: string): Promise<DepreciationScheduleWithDetails | null> {
         const result = await this.db.query(
-            `SELECT * FROM v_depreciation_schedules WHERE id = $1`,
+            `SELECT *,
+                asset_code AS asset_tag,
+                percent_depreciated AS depreciation_progress_percent,
+                book_value AS current_book_value,
+                months_remaining AS remaining_months
+            FROM v_depreciation_schedules WHERE id = $1`,
             [id]
         );
         return result.rows[0] ? toCamelCase<DepreciationScheduleWithDetails>(result.rows[0]) : null;
@@ -205,7 +219,7 @@ export class DepreciationRepo {
 
         if (search) {
             conditions.push(`(
-                asset_tag ILIKE $${paramIndex} OR
+                asset_code ILIKE $${paramIndex} OR
                 asset_name ILIKE $${paramIndex}
             )`);
             values.push(`%${search}%`);
@@ -234,7 +248,12 @@ export class DepreciationRepo {
         values.push(limit, offset);
 
         const dataResult = await this.db.query(
-            `SELECT * FROM v_depreciation_schedules
+            `SELECT *,
+                asset_code AS asset_tag,
+                percent_depreciated AS depreciation_progress_percent,
+                book_value AS current_book_value,
+                months_remaining AS remaining_months
+            FROM v_depreciation_schedules
             ${whereClause}
             ORDER BY ${sortColumn[sortBy] || 'created_at'} ${sortOrder.toUpperCase()}
             LIMIT $${paramIndex++} OFFSET $${paramIndex}`,
@@ -273,24 +292,40 @@ export class DepreciationRepo {
 
     async createEntry(dto: CreateEntryDto, client?: PoolClient): Promise<DepreciationEntry> {
         const conn = (client ?? this.db) as PgClient;
+        // Get asset_id from schedule
+        const schedRow = await (this.db as PgClient).query(
+            'SELECT asset_id, start_date FROM depreciation_schedules WHERE id = $1',
+            [dto.scheduleId]
+        );
+        const assetId = schedRow.rows[0]?.asset_id;
+        // Compute period dates
+        const periodStart = new Date(dto.periodYear, dto.periodMonth - 1, 1);
+        const periodEnd = new Date(dto.periodYear, dto.periodMonth, 0); // last day of month
         const result = await conn.query(
             `INSERT INTO depreciation_entries (
-                schedule_id, run_id, period_year, period_month,
-                depreciation_amount, beginning_book_value, ending_book_value,
-                is_adjustment, adjustment_reason, created_by
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-            RETURNING *`,
+                schedule_id, asset_id, period_year, period_month,
+                period_start, period_end, depreciation_amount,
+                accumulated_after, book_value_after, entry_date,
+                is_adjustment, adjustment_reason
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+            RETURNING *,
+                book_value_after + depreciation_amount AS beginning_book_value,
+                book_value_after AS ending_book_value,
+                NULL::UUID AS run_id,
+                NULL::TEXT AS created_by`,
             [
                 dto.scheduleId,
-                dto.runId || null,
+                assetId,
                 dto.periodYear,
                 dto.periodMonth,
+                periodStart.toISOString().split('T')[0],
+                periodEnd.toISOString().split('T')[0],
                 dto.depreciationAmount,
-                dto.beginningBookValue,
-                dto.endingBookValue,
+                dto.endingBookValue === undefined ? 0 : (dto.beginningBookValue - dto.depreciationAmount),
+                dto.endingBookValue ?? (dto.beginningBookValue - dto.depreciationAmount),
+                periodEnd.toISOString().split('T')[0],
                 dto.isAdjustment || false,
                 dto.adjustmentReason || null,
-                dto.createdBy,
             ]
         );
         return toCamelCase<DepreciationEntry>(result.rows[0]);
@@ -317,15 +352,18 @@ export class DepreciationRepo {
         const result = await this.db.query(
             `SELECT
                 e.*,
+                e.book_value_after + e.depreciation_amount AS beginning_book_value,
+                e.book_value_after AS ending_book_value,
+                NULL::UUID AS run_id,
+                NULL::TEXT AS created_by,
                 s.asset_id,
-                a.asset_tag,
-                a.name as asset_name,
-                r.run_code,
+                a.asset_code as asset_tag,
+                CONCAT(am.brand, ' ', am.model) as asset_name,
                 u.name as posted_by_name
             FROM depreciation_entries e
             JOIN depreciation_schedules s ON e.schedule_id = s.id
-            JOIN assets a ON s.asset_id = a.id
-            LEFT JOIN depreciation_runs r ON e.run_id = r.id
+            JOIN assets a ON e.asset_id = a.id
+            LEFT JOIN asset_models am ON a.model_id = am.id
             LEFT JOIN users u ON e.posted_by = u.id
             WHERE e.id = $1`,
             [id]
@@ -344,8 +382,17 @@ export class DepreciationRepo {
     }
 
     async findEntriesByRunId(runId: string): Promise<DepreciationEntry[]> {
+        // Entries don't have run_id — find by matching the run's period
         const result = await this.db.query(
-            `SELECT * FROM depreciation_entries WHERE run_id = $1`,
+            `SELECT e.*,
+                e.book_value_after + e.depreciation_amount AS beginning_book_value,
+                e.book_value_after AS ending_book_value,
+                NULL::UUID AS run_id,
+                NULL::TEXT AS created_by
+            FROM depreciation_entries e
+            WHERE (e.period_year, e.period_month) = (
+                SELECT period_year, period_month FROM depreciation_runs WHERE id = $1
+            )`,
             [runId]
         );
         return result.rows.map((row) => toCamelCase<DepreciationEntry>(row));
@@ -381,7 +428,7 @@ export class DepreciationRepo {
 
         const result = await this.db.query(
             `SELECT * FROM v_pending_depreciation_entries ${whereClause}
-            ORDER BY asset_tag, period_year, period_month`,
+            ORDER BY asset_code, period_year, period_month`,
             values
         );
         return result.rows.map((row) => toCamelCase<DepreciationEntryWithDetails>(row));
@@ -504,15 +551,17 @@ export class DepreciationRepo {
         const dataResult = await this.db.query(
             `SELECT
                 e.*,
-                s.asset_id,
-                a.asset_tag,
-                a.name as asset_name,
-                r.run_code,
+                e.book_value_after + e.depreciation_amount AS beginning_book_value,
+                e.book_value_after AS ending_book_value,
+                NULL::UUID AS run_id,
+                NULL::TEXT AS created_by,
+                a.asset_code as asset_tag,
+                CONCAT(am.brand, ' ', am.model) as asset_name,
                 u.name as posted_by_name
             FROM depreciation_entries e
             JOIN depreciation_schedules s ON e.schedule_id = s.id
-            JOIN assets a ON s.asset_id = a.id
-            LEFT JOIN depreciation_runs r ON e.run_id = r.id
+            JOIN assets a ON e.asset_id = a.id
+            LEFT JOIN asset_models am ON a.model_id = am.id
             LEFT JOIN users u ON e.posted_by = u.id
             ${whereClause}
             ORDER BY ${sortColumn[sortBy] || 'e.period_year'} ${sortOrder.toUpperCase()},
@@ -550,15 +599,24 @@ export class DepreciationRepo {
             `INSERT INTO depreciation_runs (
                 run_type, period_year, period_month, organization_id, created_by
             ) VALUES ($1, $2, $3, $4, $5)
-            RETURNING *`,
+            RETURNING *,
+                entries_created AS total_assets,
+                total_depreciation AS total_amount,
+                NULL::TIMESTAMPTZ AS updated_at`,
             [runType, periodYear, periodMonth, organizationId || null, createdBy]
         );
         return toCamelCase<DepreciationRun>(result.rows[0]);
     }
 
+    private runSelectSql = `SELECT *,
+        entries_created AS total_assets,
+        total_depreciation AS total_amount,
+        NULL::TIMESTAMPTZ AS updated_at
+    FROM depreciation_runs`;
+
     async findRunById(id: string): Promise<DepreciationRun | null> {
         const result = await this.db.query(
-            'SELECT * FROM depreciation_runs WHERE id = $1',
+            `${this.runSelectSql} WHERE id = $1`,
             [id]
         );
         return result.rows[0] ? toCamelCase<DepreciationRun>(result.rows[0]) : null;
@@ -566,7 +624,7 @@ export class DepreciationRepo {
 
     async findRunByCode(code: string): Promise<DepreciationRun | null> {
         const result = await this.db.query(
-            'SELECT * FROM depreciation_runs WHERE run_code = $1',
+            `${this.runSelectSql} WHERE run_code = $1`,
             [code]
         );
         return result.rows[0] ? toCamelCase<DepreciationRun>(result.rows[0]) : null;
@@ -590,11 +648,11 @@ export class DepreciationRepo {
 
         if (additionalFields) {
             if (additionalFields.totalAssets !== undefined) {
-                fields.push(`total_assets = $${paramIndex++}`);
+                fields.push(`entries_created = $${paramIndex++}`);
                 values.push(additionalFields.totalAssets);
             }
             if (additionalFields.totalAmount !== undefined) {
-                fields.push(`total_amount = $${paramIndex++}`);
+                fields.push(`total_depreciation = $${paramIndex++}`);
                 values.push(additionalFields.totalAmount);
             }
             if (additionalFields.errorMessage !== undefined) {
@@ -609,7 +667,11 @@ export class DepreciationRepo {
 
         values.push(id);
         const result = await conn.query(
-            `UPDATE depreciation_runs SET ${fields.join(', ')} WHERE id = $${paramIndex} RETURNING *`,
+            `UPDATE depreciation_runs SET ${fields.join(', ')} WHERE id = $${paramIndex}
+            RETURNING *,
+                entries_created AS total_assets,
+                total_depreciation AS total_amount,
+                NULL::TIMESTAMPTZ AS updated_at`,
             values
         );
         return result.rows[0] ? toCamelCase<DepreciationRun>(result.rows[0]) : null;
@@ -667,7 +729,11 @@ export class DepreciationRepo {
         };
 
         const dataResult = await this.db.query(
-            `SELECT * FROM depreciation_runs
+            `SELECT *,
+                entries_created AS total_assets,
+                total_depreciation AS total_amount,
+                NULL::TIMESTAMPTZ AS updated_at
+            FROM depreciation_runs
             ${whereClause}
             ORDER BY ${sortColumn[sortBy] || 'created_at'} ${sortOrder.toUpperCase()}
             LIMIT $${paramIndex++} OFFSET $${paramIndex}`,
@@ -738,7 +804,12 @@ export class DepreciationRepo {
         const periodDate = `${periodYear}-${String(periodMonth).padStart(2, '0')}-01`;
 
         const result = await this.db.query(
-            `SELECT * FROM v_depreciation_schedules
+            `SELECT *,
+                asset_code AS asset_tag,
+                percent_depreciated AS depreciation_progress_percent,
+                book_value AS current_book_value,
+                months_remaining AS remaining_months
+            FROM v_depreciation_schedules
             WHERE status = 'active'
             AND start_date <= $1
             AND end_date >= $1

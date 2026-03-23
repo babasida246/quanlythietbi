@@ -78,6 +78,8 @@ const ROUTES: Array<{
         // Purchase plans
         { path: '/assets/purchase-plans', label: 'Kế hoạch mua sắm (asset)', minRows: 0, allowEmpty: true },
         { path: '/warehouse/purchase-plans', label: 'Kế hoạch mua sắm (kho)', minRows: 0, allowEmpty: true },
+        // Depreciation (module mới)
+        { path: '/depreciation', label: 'Khấu hao tài sản', minRows: 0, allowEmpty: true },
     ]
 
 // ── test suite ──────────────────────────────────────────────────────────────
@@ -97,8 +99,11 @@ test.describe('Smoke — không còn empty-state sau khi seed', () => {
                 // networkidle can time-out on SSE; continue anyway
             })
 
-            // Give the UI a moment to render after fetch
-            await page.waitForTimeout(800)
+            // Đợi content render — không dùng hardcode timeout, dùng waitForFunction
+            await page.waitForFunction(
+                () => (document.body.textContent?.length ?? 0) > 50,
+                { timeout: 10_000 }
+            ).catch(() => { /* trang có thể không có text dài */ })
 
             if (!route.allowEmpty) {
                 // 1. No empty-state CSS class / testid
@@ -127,7 +132,7 @@ test.describe('Smoke — không còn empty-state sau khi seed', () => {
             }
 
             // 4. Page-level: no error boundary / JS crash
-            const crashText = page.locator('text=/Internal Server Error|Unexpected error|500|failed to fetch/i')
+            const crashText = page.locator('text=/Internal Server Error|Unexpected error|HTTP 500|Error 500|failed to fetch/i')
             const crashed = await crashText.first().isVisible().catch(() => false)
             expect(crashed, `Error/crash text on ${route.path}`).toBe(false)
         })

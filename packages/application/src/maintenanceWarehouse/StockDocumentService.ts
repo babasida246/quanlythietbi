@@ -1,4 +1,4 @@
-import { AppError, assertStockAvailable, assertStockDocLines, assertTransferTarget } from '@qltb/domain'
+import { AppError, assertStockDocLines, assertTransferTarget } from '@qltb/domain'
 import type {
     IOpsEventRepo,
     IStockDocumentRepo,
@@ -8,12 +8,12 @@ import type {
     StockDocumentCreateInput,
     StockDocumentDetail,
     StockDocumentLineInput,
+    StockDocumentLineRecord,
     StockDocumentRecord,
     StockDocumentUpdatePatch,
     StockMovementInput,
     StockMovementPage,
-    StockMovementFilters,
-    StockRecord
+    StockMovementFilters
 } from '@qltb/contracts'
 import type { MaintenanceWarehouseContext } from './types.js'
 
@@ -26,6 +26,7 @@ type StockChange = {
     refType?: string | null
     refId?: string | null
 }
+
 export class StockDocumentService {
     constructor(
         private documents: IStockDocumentRepo,
@@ -141,29 +142,78 @@ export class StockDocumentService {
         if (document.approvedBy === ctx.userId) {
             throw AppError.forbidden('Approver cannot post the same document')
         }
+
         const lines = await this.documents.listLines(id)
         assertStockDocLines(lines)
 
-        // Build change descriptors (no stock assertion here — done atomically inside tx)
-        const changes = this.buildChangeDescriptors(document, lines)
+        const sparepartLines = lines.filter(l => (l.lineType ?? 'spare_part') === 'spare_part')
+        const assetLines = lines.filter(l => l.lineType === 'asset')
+        const changes = this.buildChangeDescriptors(document, sparepartLines)
 
         const posted = await this.unitOfWork.withTransaction(async (tx) => {
-            // All stock checks + updates happen atomically inside transaction
+            // ── Spare-part stock adjustments ──────────────────────────────────
             for (const change of changes) {
                 await tx.stock.adjustStock(change.warehouseId, change.partId, change.delta)
             }
 
-            await tx.movements.addMany(changes.map(change => ({
-                warehouseId: change.warehouseId,
-                partId: change.partId,
-                movementType: change.movementType,
-                qty: Math.abs(change.delta),
-                unitCost: change.unitCost ?? null,
-                refType: change.refType ?? document.refType ?? 'stock_document',
-                refId: change.refId ?? document.id,
-                actorUserId: ctx.userId,
-                correlationId: ctx.correlationId
-            })))
+            if (changes.length > 0) {
+                await tx.movements.addMany(changes.map(change => ({
+                    warehouseId: change.warehouseId,
+                    partId: change.partId,
+                    movementType: change.movementType,
+                    qty: Math.abs(change.delta),
+                    unitCost: change.unitCost ?? null,
+                    refType: change.refType ?? document.refType ?? 'stock_document',
+                    refId: change.refId ?? document.id,
+                    actorUserId: ctx.userId,
+                    correlationId: ctx.correlationId
+                })))
+            }
+
+            // ── Receipt: auto-create assets from asset lines ──────────────────
+            if (document.docType === 'receipt') {
+                for (const line of assetLines) {
+                    if (!line.assetModelId) {
+                        throw AppError.badRequest(`Asset line ${line.id} is missing assetModelId`)
+                    }
+                    const assetCode = line.assetCode ?? await nextAssetCode(tx.documents)
+                    const asset = await tx.assets.create({
+                        assetCode,
+                        modelId: line.assetModelId,
+                        serialNo: line.serialNo ?? null,
+                        warehouseId: document.warehouseId ?? null,
+                        status: 'in_stock',
+                        purchaseDate: document.docDate ? new Date(document.docDate) : null,
+                        unitCost: line.unitCost ?? null,
+                        notes: line.note ?? null,
+                        sourceDocLineId: line.id
+                    })
+                    await tx.documents.setAssetOnLine(line.id, asset.id)
+                }
+            }
+
+            // ── Issue: deploy existing assets to a location ───────────────────
+            if (document.docType === 'issue') {
+                for (const line of assetLines) {
+                    if (!line.assetId) {
+                        throw AppError.badRequest(`Issue asset line ${line.id} is missing assetId`)
+                    }
+                    const asset = await tx.assets.getById(line.assetId)
+                    if (!asset) throw AppError.notFound(`Asset ${line.assetId} not found`)
+                    if (asset.status !== 'in_stock') {
+                        throw AppError.badRequest(`Asset ${asset.assetCode} is not in stock`)
+                    }
+                    if (asset.warehouseId !== document.warehouseId) {
+                        throw AppError.badRequest(`Asset ${asset.assetCode} is not in the document warehouse`)
+                    }
+
+                    await tx.assets.update(asset.id, {
+                        status: 'in_use',
+                        locationId: document.locationId ?? null,
+                        warehouseId: null
+                    })
+                }
+            }
 
             const updated = await tx.documents.setStatus(document.id, 'posted', document.approvedBy ?? null, idempotencyKey ?? null)
             if (!updated) throw AppError.notFound('Stock document not found')
@@ -191,12 +241,12 @@ export class StockDocumentService {
     }
 
     /**
-     * Build stock change descriptors without performing stock checks.
-     * Stock availability is enforced atomically inside the transaction via adjustStock().
+     * Build stock change descriptors for spare_part lines only.
+     * Asset lines are processed separately in postDocument().
      */
     private buildChangeDescriptors(
         document: StockDocumentRecord,
-        lines: StockDocumentLineInput[]
+        lines: StockDocumentLineRecord[]
     ): StockChange[] {
         const changes: StockChange[] = []
         const warehouseId = document.warehouseId ?? undefined
@@ -205,6 +255,8 @@ export class StockDocumentService {
         }
 
         for (const line of lines) {
+            if (!line.partId) continue
+
             if (document.docType === 'receipt') {
                 changes.push({
                     warehouseId: warehouseId as string,
@@ -259,22 +311,6 @@ export class StockDocumentService {
         return changes
     }
 
-    private async assertStock(warehouseId: string, partId: string, qty: number): Promise<void> {
-        const current = await this.stock.get(warehouseId, partId)
-        const onHand = current?.onHand ?? 0
-        const reserved = current?.reserved ?? 0
-        assertStockAvailable(onHand, reserved, qty)
-    }
-
-    private applyStockChange(current: StockRecord | null, delta: number): { onHand: number; reserved: number } {
-        const onHand = (current?.onHand ?? 0) + delta
-        const reserved = current?.reserved ?? 0
-        if (onHand < 0) {
-            throw AppError.badRequest('Insufficient stock available')
-        }
-        return { onHand, reserved }
-    }
-
     private async appendEvent(
         entityId: string,
         eventType: string,
@@ -291,4 +327,17 @@ export class StockDocumentService {
             correlationId: ctx.correlationId
         })
     }
+}
+
+/**
+ * Generate the next asset code using the DB sequence.
+ * Format: TBI-YYYY-NNNNNN (e.g. TBI-2026-000001)
+ */
+async function nextAssetCode(docs: IStockDocumentRepo): Promise<string> {
+    // Use a raw query via the documents repo's underlying connection
+    const raw = docs as unknown as { pg: { query(sql: string): Promise<{ rows: Array<{ nextval: string }> }> } }
+    const result = await raw.pg.query(`SELECT nextval('asset_code_seq')`)
+    const seq = parseInt(result.rows[0].nextval, 10)
+    const year = new Date().getFullYear()
+    return `TBI-${year}-${String(seq).padStart(6, '0')}`
 }

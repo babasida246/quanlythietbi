@@ -59,8 +59,12 @@
     }
 
     try {
+      // First try with environment camera + resolution hints
       stream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: { ideal: 'environment' }, width: { ideal: 640 }, height: { ideal: 480 } }
+      }).catch(async () => {
+        // Fallback: try any available camera with no constraints
+        return await navigator.mediaDevices.getUserMedia({ video: true });
       });
       if (!videoEl) return;
       videoEl.srcObject = stream;
@@ -68,7 +72,20 @@
       cameraActive = true;
       scanLoop();
     } catch (err) {
-      cameraError = `Không thể mở camera: ${err instanceof Error ? err.message : 'Lỗi không xác định'}`;
+      const name = err instanceof Error ? (err as { name?: string }).name ?? '' : '';
+      if (name === 'NotFoundError' || name === 'DevicesNotFoundError') {
+        cameraError = 'Không tìm thấy camera trên thiết bị này. Hãy nhập mã thủ công.';
+      } else if (name === 'NotAllowedError' || name === 'PermissionDeniedError') {
+        cameraError = 'Quyền truy cập camera bị từ chối. Vui lòng cho phép camera trong cài đặt trình duyệt.';
+      } else if (name === 'NotReadableError' || name === 'TrackStartError') {
+        cameraError = 'Camera đang được sử dụng bởi ứng dụng khác. Hãy đóng ứng dụng đó và thử lại.';
+      } else if (name === 'OverconstrainedError') {
+        cameraError = 'Camera không đáp ứng được yêu cầu. Hãy thử lại.';
+      } else if (name === 'SecurityError') {
+        cameraError = 'Truy cập camera bị chặn bởi chính sách bảo mật. Cần HTTPS hoặc localhost.';
+      } else {
+        cameraError = `Không thể mở camera: ${err instanceof Error ? err.message : 'Lỗi không xác định'}`;
+      }
     }
   }
 
@@ -182,27 +199,23 @@
     <div class="text-xs text-red-400 bg-red-900/20 rounded-md px-3 py-2">{cameraError}</div>
   {/if}
 
-  <!-- Camera viewfinder -->
-  {#if cameraActive}
-    <div class="relative rounded-xl overflow-hidden border border-primary/40 bg-black" style="max-height: 280px;">
-      <!-- eslint-disable-next-line svelte/no-at-html-tags -->
-      <video
-        bind:this={videoEl}
-        class="w-full object-cover"
-        style="max-height: 280px;"
-        playsinline
-        muted
-        autoplay
-      ></video>
-      <!-- Overlay crosshair -->
-      <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
-        <div class="border-2 border-primary rounded-lg w-40 h-40 opacity-70"></div>
-      </div>
-      <div class="absolute bottom-2 left-0 right-0 text-center text-xs text-white/70 select-none">
-        Hướng camera vào mã QR
-      </div>
+  <!-- Camera viewfinder — always in DOM so bind:this is available immediately -->
+  <div class:hidden={!cameraActive} class="relative rounded-xl overflow-hidden border border-primary/40 bg-black" style="max-height: 280px;">
+    <video
+      bind:this={videoEl}
+      class="w-full object-cover"
+      style="max-height: 280px;"
+      playsinline
+      muted
+    ></video>
+    <!-- Overlay crosshair -->
+    <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+      <div class="border-2 border-primary rounded-lg w-40 h-40 opacity-70"></div>
     </div>
-    <!-- Hidden canvas for image processing -->
-    <canvas bind:this={canvasEl} class="hidden" aria-hidden="true"></canvas>
-  {/if}
+    <div class="absolute bottom-2 left-0 right-0 text-center text-xs text-white/70 select-none">
+      Hướng camera vào mã QR
+    </div>
+  </div>
+  <!-- Hidden canvas for image processing -->
+  <canvas bind:this={canvasEl} class="hidden" aria-hidden="true"></canvas>
 </div>

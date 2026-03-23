@@ -75,12 +75,31 @@ export class RbacAdminService {
         if (!ou) throw AppError.notFound(`OU not found: ${id}`)
         if (ou.path === '/') throw AppError.badRequest('Cannot delete root OU')
 
-        // Check children
+        // Check children OUs
         const children = await this.deps.ouRepo.getChildren(id)
         if (children.length > 0) throw AppError.conflict('Cannot delete OU with children. Move or delete children first.')
 
+        // Handle users in this OU
+        const users = await this.deps.userRepo.list({ ouId: id })
+        if (ou.parentId) {
+            // Move users up to the parent OU
+            for (const user of users) {
+                await this.deps.userRepo.moveToOu(user.id, ou.parentId)
+            }
+        } else {
+            // Root-level OU — remove directory entries (rbac_users only, login accounts untouched)
+            for (const user of users) {
+                await this.deps.userRepo.delete(user.id)
+            }
+        }
+
         const result = await this.deps.ouRepo.delete(id)
-        await this.audit('rbac.ou.deleted', { ouId: id, name: ou.name, actorUserId: ctx.actorUserId })
+        await this.audit('rbac.ou.deleted', {
+            ouId: id, name: ou.name,
+            usersHandled: users.length,
+            action: ou.parentId ? 'moved_to_parent' : 'deleted',
+            actorUserId: ctx.actorUserId
+        })
         return result
     }
 

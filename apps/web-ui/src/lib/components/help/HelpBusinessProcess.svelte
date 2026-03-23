@@ -115,6 +115,76 @@
       ],
       kpi: ['Tỷ lệ kiểm kê chính xác ≥ 98%', 'Hoàn thành kiểm kê trong 3 ngày', 'Xử lý chênh lệch trong 5 ngày'],
       exceptions: ['Tài sản không tìm thấy → lập biên bản, chuyển trạng thái "Mất" sau 7 ngày.', 'Tài sản không có nhãn → dán nhãn tại chỗ, cập nhật thông tin.']
+    },
+    {
+      key: 'asset-procurement',
+      title: 'QT-07: Mua sắm tài sản IT',
+      description: 'Quy trình đề xuất, phê duyệt và mua sắm thiết bị mới khi không đủ tồn kho hoặc phát sinh nhu cầu.',
+      scope: 'Áp dụng khi cần mua thiết bị mới, nâng cấp, hoặc bổ sung tồn kho dự phòng.',
+      triggers: ['Tồn kho dự phòng xuống dưới ngưỡng tối thiểu', 'Yêu cầu từ phòng ban không đủ tồn kho', 'Kết quả kiểm kê phát hiện thiếu hụt', 'Lập kế hoạch mua sắm định kỳ'],
+      steps: [
+        { step: 'Lập đề xuất mua sắm', role: 'Admin / IT Manager', detail: 'Xác định danh sách thiết bị cần mua: loại, số lượng, thông số kỹ thuật tối thiểu. Căn cứ vào tồn kho hiện tại và nhu cầu dự báo.', output: 'Danh sách đề xuất mua sắm' },
+        { step: 'Xin báo giá', role: 'Admin', detail: 'Liên hệ ít nhất 3 nhà cung cấp. Thu thập báo giá kèm điều khoản bảo hành, thanh toán, giao hàng.', output: 'Bảng so sánh báo giá' },
+        { step: 'Phê duyệt ngân sách', role: 'Quản lý', detail: 'Trình bảng so sánh báo giá lên cấp phê duyệt. Lựa chọn nhà cung cấp tối ưu (giá + chất lượng + uy tín).', output: 'Quyết định mua sắm được phê duyệt' },
+        { step: 'Đặt hàng', role: 'Admin', detail: 'Phát hành Purchase Order (PO). Ghi nhận số PO, ngày dự kiến giao hàng, điều khoản thanh toán.', output: 'Purchase Order' },
+        { step: 'Theo dõi giao hàng', role: 'Admin', detail: 'Theo dõi tiến độ giao hàng. Xử lý nếu giao hàng trễ hoặc có vấn đề.', output: 'Xác nhận ngày giao hàng' },
+        { step: 'Tiếp nhận & kiểm tra', role: 'Kho / Kỹ thuật', detail: 'Nhận hàng, kiểm tra theo PO. Chuyển sang QT-01 để nhập kho chính thức.', output: 'Hàng hóa sẵn sàng, chuyển QT-01' }
+      ],
+      kpi: ['Thời gian xử lý đơn hàng ≤ 5 ngày làm việc', 'Tỷ lệ giao hàng đúng hạn ≥ 90%', 'Tiết kiệm chi phí so với ngân sách ≥ 5%'],
+      exceptions: ['NCC không đáp ứng spec → yêu cầu thay thế hoặc chuyển sang NCC khác.', 'Ngân sách không đủ → ưu tiên mua từng phần theo thứ tự cấp thiết.', 'Hàng giao không đúng → trả lại, lập biên bản, yêu cầu đổi.']
+    },
+    {
+      key: 'cmdb-ci-registration',
+      title: 'QT-08: Khám phá & Đăng ký CI vào CMDB',
+      description: 'Quy trình đăng ký Configuration Item (CI) vào CMDB khi triển khai hệ thống, dịch vụ mới hoặc phát hiện CI chưa được quản lý.',
+      scope: 'Áp dụng cho tất cả hạng mục cần quản lý trong CMDB: server, VM, network device, database, service, application.',
+      triggers: ['Triển khai hệ thống/dịch vụ mới', 'Phát hiện CI chưa được đăng ký trong quá trình kiểm kê', 'Migration hoặc tái cấu trúc hạng mục', 'Yêu cầu từ audit/compliance'],
+      steps: [
+        { step: 'Xác định CI cần đăng ký', role: 'Kỹ thuật', detail: 'Liệt kê các hạng mục: tên, loại, môi trường (production/staging/dev). Đối chiếu với danh sách CI hiện có trong CMDB → CMDB → Hạng mục.', output: 'Danh sách CI cần đăng ký' },
+        { step: 'Chọn/Tạo loại CI', role: 'Admin', detail: 'CMDB → Loại hạng mục → kiểm tra xem đã có loại phù hợp chưa. Nếu chưa: tạo loại mới với schema thuộc tính phù hợp (IP Address, OS, RAM...).', output: 'Loại CI đã tồn tại hoặc được tạo mới' },
+        { step: 'Tạo CI record', role: 'Kỹ thuật', detail: 'CMDB → + Thêm CI. Điền: tên CI, chọn loại, môi trường, trạng thái, mô tả, tài sản vật lý liên kết (nếu có). Điền thuộc tính theo schema.', output: 'CI record trong CMDB' },
+        { step: 'Liên kết quan hệ', role: 'Kỹ thuật', detail: 'Trong chi tiết CI → Tab Quan hệ → + Thêm. Định nghĩa quan hệ: "runs_on" (VM → Host), "depends_on" (App → DB), "connects_to" (Server → Switch).', output: 'Dependency map trong CMDB' },
+        { step: 'Liên kết dịch vụ', role: 'IT Manager', detail: 'Nếu CI là thành phần của một dịch vụ nghiệp vụ: CMDB → Dịch vụ → liên kết CI. Điền tên dịch vụ, business owner, SLA.', output: 'CI được gán vào service map' },
+        { step: 'Thu thập file cấu hình', role: 'Kỹ thuật', detail: 'Trong chi tiết CI → Tab File cấu hình → + Thêm. Upload hoặc paste file: nginx.conf, postgresql.conf, network policy... Ghi rõ phiên bản, ngày hiệu lực.', output: 'Config files baseline trong CMDB' },
+        { step: 'Xem xét & Xác nhận', role: 'IT Manager', detail: 'Review toàn bộ CI record: thuộc tính đầy đủ, quan hệ chính xác, config files hiện hành. Cập nhật trạng thái CI → "active".', output: 'CI trạng thái "active", sẵn sàng sử dụng' }
+      ],
+      kpi: ['Tỷ lệ CI có đầy đủ thuộc tính ≥ 90%', 'Tỷ lệ CI có ít nhất 1 quan hệ được map ≥ 80%', 'Config files baseline được capture trong 5 ngày sau triển khai'],
+      exceptions: ['CI không thuộc loại nào có sẵn → tạo loại mới, báo cáo IT Manager để chuẩn hóa.', 'CI bị trùng lặp → merge hoặc đánh dấu deprecated.', 'Không có file cấu hình → ghi chú lý do và ngày dự kiến capture.']
+    },
+    {
+      key: 'cmdb-change-management',
+      title: 'QT-09: Quản lý thay đổi CI (Change Management)',
+      description: 'Quy trình kiểm soát thay đổi cấu hình CI: phê duyệt trước khi thực hiện, ghi nhận sau khi hoàn thành, đánh giá tác động.',
+      scope: 'Áp dụng cho mọi thay đổi cấu hình ảnh hưởng đến CI trong CMDB, đặc biệt môi trường production.',
+      triggers: ['Nâng cấp firmware/OS', 'Thay đổi cấu hình mạng/tường lửa', 'Thêm/xóa thành phần phần cứng', 'Cập nhật file cấu hình ứng dụng', 'Migration, re-IP, load balancer config'],
+      steps: [
+        { step: 'Lập phiếu yêu cầu thay đổi', role: 'Kỹ thuật', detail: 'Mô tả thay đổi: what/why/when/risk. Xác định CI bị tác động. Lập kế hoạch rollback. Đề xuất maintenance window.', output: 'Change Request (RFC)' },
+        { step: 'Đánh giá tác động', role: 'IT Manager', detail: 'CMDB → CI liên quan → Tab Quan hệ → xem dependency map. Xác định các CI, dịch vụ bị ảnh hưởng. Đánh giá rủi ro.', output: 'Impact Assessment Report' },
+        { step: 'Phê duyệt', role: 'Quản lý', detail: 'Review RFC + Impact Assessment. Phê duyệt hoặc yêu cầu bổ sung. Confirm maintenance window.', output: 'RFC được phê duyệt, ngày thực hiện xác nhận' },
+        { step: 'Backup cấu hình hiện tại', role: 'Kỹ thuật', detail: 'CMDB → CI → Tab File cấu hình → lưu phiên bản hiện tại trước khi thay đổi (hệ thống auto-version khi cập nhật). Hoặc export thủ công.', output: 'Config version snapshot trước thay đổi' },
+        { step: 'Thực hiện thay đổi', role: 'Kỹ thuật', detail: 'Thực hiện trong maintenance window. Theo dõi sát trong quá trình. Sẵn sàng rollback nếu có vấn đề.', output: 'Thay đổi được áp dụng' },
+        { step: 'Cập nhật CMDB', role: 'Kỹ thuật', detail: 'CMDB → CI → cập nhật thuộc tính mới. Upload file cấu hình mới → tự tạo version mới. Cập nhật quan hệ nếu có thay đổi.', output: 'CMDB phản ánh đúng trạng thái mới' },
+        { step: 'Kiểm tra & Đóng RFC', role: 'IT Manager', detail: 'Verify hệ thống hoạt động bình thường sau thay đổi. Ghi nhận kết quả vào RFC. Đóng Change Request.', output: 'RFC đóng, CMDB audit trail đầy đủ' }
+      ],
+      kpi: ['100% thay đổi production phải có RFC được phê duyệt', 'Tỷ lệ thay đổi thành công (không cần rollback) ≥ 95%', 'CMDB được cập nhật trong 24h sau thay đổi', 'Thời gian xử lý RFC ≤ 2 ngày làm việc (standard change)'],
+      exceptions: ['Emergency change (sự cố production): thực hiện trước, làm RFC sau trong 24h.', 'Rollback cần thiết: hoàn tác thay đổi, restore config version cũ từ CMDB, mở RFC mới.', 'CMDB không khớp thực tế: tạo task kiểm tra và reconcile.']
+    },
+    {
+      key: 'cmdb-config-file-management',
+      title: 'QT-10: Quản lý file cấu hình CI',
+      description: 'Quy trình duy trì, phiên bản hóa và khôi phục file cấu hình cho các CI trong CMDB.',
+      scope: 'Áp dụng cho tất cả file cấu hình quan trọng: web server, database, network device, application config, scripts triển khai.',
+      triggers: ['Triển khai CI mới (capture baseline)', 'Thay đổi cấu hình sau RFC', 'Sự cố cần rollback về config cũ', 'Review định kỳ (hàng quý)', 'Audit/compliance yêu cầu'],
+      steps: [
+        { step: 'Xác định files cần quản lý', role: 'Kỹ thuật', detail: 'Liệt kê các file cấu hình quan trọng của CI: ví dụ nginx.conf, postgresql.conf, firewall policy, deployment scripts. Ưu tiên files ảnh hưởng đến tính sẵn sàng hoặc bảo mật.', output: 'Danh sách files cần capture' },
+        { step: 'Capture baseline', role: 'Kỹ thuật', detail: 'CMDB → CI → Tab "File cấu hình" → + Thêm file cấu hình. Đặt tên rõ ràng (VD: nginx.conf), chọn loại (config/script/template/env), ngôn ngữ syntax. Paste nội dung hoặc Import từ file.', output: 'Version 1 (baseline) được lưu' },
+        { step: 'Cập nhật phiên bản', role: 'Kỹ thuật', detail: 'Sau mỗi thay đổi cấu hình: vào file → Sửa → cập nhật nội dung mới → Lưu. Hệ thống tự tạo version mới, giữ lại toàn bộ lịch sử. Ghi chú mô tả thay đổi trong trường "Ghi chú".', output: 'Version mới được tạo tự động' },
+        { step: 'So sánh phiên bản', role: 'Kỹ thuật', detail: 'CI → File cấu hình → Tab "Lịch sử phiên bản" → chọn 2 version → So sánh. Xem diff màu: xanh lá = thêm, đỏ = xóa, vàng = sửa.', output: 'Báo cáo diff giữa 2 phiên bản' },
+        { step: 'Rollback khi sự cố', role: 'Kỹ thuật', detail: 'Vào lịch sử phiên bản → chọn version ổn định cần khôi phục → Copy nội dung → Áp dụng thủ công lên server → Cập nhật lại CMDB với nội dung đã rollback.', output: 'Cấu hình server khớp với version CMDB' },
+        { step: 'Review định kỳ', role: 'IT Manager', detail: 'Hàng quý: review toàn bộ config files trong CMDB. Kiểm tra: version trên server có khớp CMDB không? Files lỗi thời? Files thiếu? Lên kế hoạch cập nhật.', output: 'Config audit report' }
+      ],
+      kpi: ['100% CI production có ít nhất 1 config file baseline', 'Config files được cập nhật trong 24h sau mỗi thay đổi', 'Tỷ lệ CI có config khớp giữa CMDB và thực tế ≥ 95% (qua quarterly audit)', 'Thời gian rollback từ CMDB ≤ 30 phút'],
+      exceptions: ['File quá lớn (>1MB): lưu trữ external, chỉ lưu metadata + link trong CMDB.', 'File chứa secret (password, API key): không được lưu nội dung thực, thay bằng placeholder.', 'Server config khác CMDB: điều tra nguyên nhân → cập nhật CMDB hoặc revert server.']
     }
   ];
 
@@ -136,12 +206,20 @@
 
   <div class="bg-surface-2 rounded-lg border border-slate-700/40 p-5 space-y-4">
     <p class="text-sm text-slate-300">
-      Bộ quy trình nghiệp vụ chuẩn (SOP) cho quản lý vòng đời tài sản IT. Mỗi quy trình có đầy đủ: phạm vi, điều kiện kích hoạt, các bước thực hiện, KPI đo lường và xử lý ngoại lệ.
+      Bộ quy trình nghiệp vụ chuẩn (SOP) gồm 10 quy trình bao phủ toàn bộ vòng đời tài sản IT và quản lý cấu hình CMDB. Mỗi quy trình có đầy đủ: phạm vi, điều kiện kích hoạt, các bước thực hiện, KPI đo lường và xử lý ngoại lệ.
     </p>
 
-    <div class="bg-emerald-500/10 border border-emerald-500/20 rounded-md p-3 text-xs text-emerald-300">
-      <strong>Chuỗi quy trình:</strong>
-      QT-01 (Tiếp nhận) → QT-02 (Phân bổ) → QT-03 (Thu hồi) → QT-04 (Sửa chữa) → QT-05 (Thanh lý) · QT-06 (Kiểm kê) chạy song song.
+    <div class="grid sm:grid-cols-2 gap-3">
+      <div class="bg-emerald-500/10 border border-emerald-500/20 rounded-md p-3 text-xs text-emerald-300">
+        <p class="font-semibold mb-1">Vòng đời tài sản IT</p>
+        <p>QT-07 (Mua sắm) → QT-01 (Tiếp nhận) → QT-02 (Phân bổ) → QT-03 (Thu hồi) → QT-04 (Sửa chữa) → QT-05 (Thanh lý)</p>
+        <p class="mt-1 text-emerald-400/70">· QT-06 (Kiểm kê) chạy song song định kỳ</p>
+      </div>
+      <div class="bg-blue-500/10 border border-blue-500/20 rounded-md p-3 text-xs text-blue-300">
+        <p class="font-semibold mb-1">Quản lý cấu hình (CMDB)</p>
+        <p>QT-08 (Đăng ký CI) → QT-09 (Thay đổi) → QT-10 (File cấu hình)</p>
+        <p class="mt-1 text-blue-400/70">· QT-09 kích hoạt mỗi khi có RFC · QT-10 chạy song song & định kỳ</p>
+      </div>
     </div>
 
     <div class="space-y-3">

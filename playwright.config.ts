@@ -19,7 +19,8 @@ export default defineConfig({
     },
     reporter: [
         ['list'],
-        ['html', { open: 'never', outputFolder: 'playwright-report' }]
+        ['html', { open: 'never', outputFolder: 'playwright-report' }],
+        ['json', { outputFile: 'playwright-report/results.json' }]
     ],
     use: {
         baseURL: webBaseURL,

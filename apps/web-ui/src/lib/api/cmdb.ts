@@ -4,11 +4,13 @@ import type {
     CiStatus, Environment, CmdbFieldType, SpecVersionStatus, CmdbChangeStatus, CmdbChangeRisk,
     CiTypeRecord, CiTypeVersionRecord, CiAttrDefRecord, CiRecord,
     RelationshipRecord, RelationshipTypeRecord,
-    CmdbServiceRecord, CmdbServiceMemberRecord, CmdbChangeRecord
+    CmdbServiceRecord, CmdbServiceMemberRecord, CmdbChangeRecord,
+    CmdbConfigFileRecord, CmdbConfigFileVersionRecord, CmdbConfigFileType
 } from '@qltb/contracts'
 
 export type { CiStatus, Environment, CmdbFieldType, SpecVersionStatus, CmdbChangeStatus, CmdbChangeRisk }
 export type { CiRecord, RelationshipRecord, RelationshipTypeRecord, CmdbServiceRecord, CmdbChangeRecord }
+export type { CmdbConfigFileRecord, CmdbConfigFileVersionRecord, CmdbConfigFileType }
 
 // Aliases for legacy names used throughout the UI
 export type CmdbType = CiTypeRecord
@@ -413,3 +415,78 @@ export const approveCmdbChange = (id: string) => postCmdbChangeAction(id, 'appro
 export const implementCmdbChange = (id: string) => postCmdbChangeAction(id, 'implement')
 export const closeCmdbChange = (id: string) => postCmdbChangeAction(id, 'close')
 export const cancelCmdbChange = (id: string) => postCmdbChangeAction(id, 'cancel')
+
+// ── Config Files ──────────────────────────────────────────────────────────────
+
+export type ConfigFileCreateInput = {
+    ciId: string
+    name: string
+    fileType?: CmdbConfigFileType
+    language?: string | null
+    description?: string | null
+    filePath?: string | null
+    content: string
+    changeSummary?: string | null
+}
+
+export type ConfigFileUpdateInput = {
+    name?: string
+    fileType?: CmdbConfigFileType
+    language?: string | null
+    description?: string | null
+    filePath?: string | null
+    content?: string
+    changeSummary?: string | null
+}
+
+export async function listConfigFiles(params: {
+    ciId?: string
+    fileType?: CmdbConfigFileType
+    q?: string
+    page?: number
+    limit?: number
+} = {}): Promise<ApiResponse<CmdbConfigFileRecord[]>> {
+    const query = new URLSearchParams()
+    if (params.ciId) query.set('ciId', params.ciId)
+    if (params.fileType) query.set('fileType', params.fileType)
+    if (params.q) query.set('q', params.q)
+    if (params.page) query.set('page', String(params.page))
+    if (params.limit) query.set('limit', String(params.limit))
+    const suffix = query.toString() ? `?${query.toString()}` : ''
+    return apiJson<ApiResponse<CmdbConfigFileRecord[]>>(`${API_BASE}/v1/cmdb/config-files${suffix}`, { headers: getAssetHeaders() })
+}
+
+export async function createConfigFile(input: ConfigFileCreateInput): Promise<ApiResponse<CmdbConfigFileRecord>> {
+    return apiJson<ApiResponse<CmdbConfigFileRecord>>(`${API_BASE}/v1/cmdb/config-files`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...getAssetHeaders() },
+        body: JSON.stringify(input)
+    })
+}
+
+export async function getConfigFile(id: string): Promise<ApiResponse<CmdbConfigFileRecord>> {
+    return apiJson<ApiResponse<CmdbConfigFileRecord>>(`${API_BASE}/v1/cmdb/config-files/${id}`, { headers: getAssetHeaders() })
+}
+
+export async function updateConfigFile(id: string, patch: ConfigFileUpdateInput): Promise<ApiResponse<CmdbConfigFileRecord>> {
+    return apiJson<ApiResponse<CmdbConfigFileRecord>>(`${API_BASE}/v1/cmdb/config-files/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', ...getAssetHeaders() },
+        body: JSON.stringify(patch)
+    })
+}
+
+export async function deleteConfigFile(id: string): Promise<void> {
+    await apiJson<void>(`${API_BASE}/v1/cmdb/config-files/${id}`, {
+        method: 'DELETE',
+        headers: getAssetHeaders()
+    })
+}
+
+export async function listConfigFileVersions(id: string): Promise<ApiResponse<CmdbConfigFileVersionRecord[]>> {
+    return apiJson<ApiResponse<CmdbConfigFileVersionRecord[]>>(`${API_BASE}/v1/cmdb/config-files/${id}/versions`, { headers: getAssetHeaders() })
+}
+
+export async function getConfigFileVersion(id: string, version: number): Promise<ApiResponse<CmdbConfigFileVersionRecord>> {
+    return apiJson<ApiResponse<CmdbConfigFileVersionRecord>>(`${API_BASE}/v1/cmdb/config-files/${id}/versions/${version}`, { headers: getAssetHeaders() })
+}

@@ -72,11 +72,13 @@ export class PermissionCenterService {
             policyDenied = policyResult.denied
         }
 
-        // Merge: build allowed set from all ALLOW sources, then subtract all DENY sources
+        // Merge: Policy Library (role policy) is the authoritative ceiling.
+        // DENY assignments subtract from it. ALLOW assignments are informational only —
+        // they do NOT expand beyond the role policy ceiling (matches runtime in jwt-auth.ts).
         const deniedSet = new Set<string>(policyDenied)
-        const allowedSet = new Set<string>([...classicKeys, ...policyAllowed])
+        const allowedSet = new Set<string>(classicKeys)
 
-        // DENY > ALLOW
+        // DENY > ALLOW — remove denied permissions from the role policy ceiling
         for (const denied of deniedSet) {
             allowedSet.delete(denied)
         }

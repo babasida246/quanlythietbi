@@ -2,14 +2,14 @@ import { API_BASE, apiJson, apiJsonData } from './httpClient'
 import { buildQuery, getAssetHeaders, type Asset } from './assets'
 import type {
     StockDocType, StockDocStatus, MovementType, RepairStatus, RepairSeverity, RepairType,
-    WarehouseRecord, StockDocumentRecord, StockDocumentLineRecord, StockDocumentDetail,
+    WarehouseRecord, StockDocumentRecord, StockDocumentLineRecord, StockDocumentLineInput, StockDocumentDetail,
     RepairOrderRecord, RepairOrderPartRecord, RepairOrderDetail, RepairOrderSummary
 } from '@qltb/contracts'
 
 export type { StockDocType, StockDocStatus, MovementType, RepairStatus, RepairSeverity, RepairType }
 export type { WarehouseRecord, StockDocumentRecord, StockDocumentLineRecord, StockDocumentDetail }
 export type { RepairOrderRecord, RepairOrderPartRecord, RepairOrderDetail, RepairOrderSummary }
-export type StockDocumentLine = StockDocumentLineRecord
+export type StockDocumentLine = StockDocumentLineInput
 
 export type SparePartRecord = {
     id: string
@@ -138,6 +138,8 @@ export type StockDocumentCreateInput = {
     submitterName?: string | null
     receiverName?: string | null
     department?: string | null
+    /** Destination location for issue documents */
+    locationId?: string | null
     lines: StockDocumentLine[]
 }
 
@@ -150,7 +152,18 @@ export type StockDocumentUpdateInput = {
     submitterName?: string | null
     receiverName?: string | null
     department?: string | null
+    /** Destination location for issue documents */
+    locationId?: string | null
     lines: StockDocumentLine[]
+}
+
+/** Lightweight asset record used in the issue-line picker */
+export type WarehouseAssetOption = {
+    id: string
+    assetCode: string
+    serialNo: string | null
+    modelName: string | null
+    categoryName: string | null
 }
 
 type ApiResponse<T> = { data: T; meta?: { total?: number; page?: number; limit?: number } }
@@ -192,6 +205,20 @@ export async function listWarehouseAssets(
     return apiJson<ApiResponse<Asset[]>>(`${API_BASE}/v1/warehouses/${warehouseId}/assets${query}`, {
         headers: getAssetHeaders()
     })
+}
+
+/** List in-stock assets at a specific warehouse (for issue-line asset picker) */
+export async function listStockAssets(
+    warehouseId: string,
+    q?: string
+): Promise<WarehouseAssetOption[]> {
+    const params: Record<string, string> = { warehouseId }
+    if (q) params.q = q
+    const query = buildQuery(params)
+    const res = await apiJson<ApiResponse<WarehouseAssetOption[]>>(`${API_BASE}/v1/stock/assets${query}`, {
+        headers: getAssetHeaders()
+    })
+    return res.data
 }
 
 export async function listSpareParts(params: { q?: string; page?: number; limit?: number } = {}): Promise<ApiResponse<SparePartRecord[]>> {

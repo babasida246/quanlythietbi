@@ -166,3 +166,45 @@ export const cmdbChangeListQuerySchema = z.object({
     page: z.coerce.number().int().positive().optional(),
     limit: z.coerce.number().int().positive().optional()
 })
+
+// ── Config Files ──────────────────────────────────────────────────────────────
+
+const configFileTypeValues = ['config', 'script', 'template', 'env', 'other'] as const
+
+export const cmdbConfigFileIdParamsSchema = z.object({
+    id: z.string().uuid()
+})
+
+export const cmdbConfigFileVersionParamsSchema = z.object({
+    id: z.string().uuid(),
+    version: z.coerce.number().int().positive()
+})
+
+export const cmdbConfigFileCreateSchema = z.object({
+    ciId: z.string().uuid(),
+    name: z.string().min(1),
+    fileType: z.enum(configFileTypeValues).optional(),
+    language: z.string().nullable().optional(),
+    description: z.string().nullable().optional(),
+    filePath: z.string().nullable().optional(),
+    content: z.string(),
+    changeSummary: z.string().nullable().optional()
+})
+
+export const cmdbConfigFileUpdateSchema = z.object({
+    name: z.string().min(1).optional(),
+    fileType: z.enum(configFileTypeValues).optional(),
+    language: z.string().nullable().optional(),
+    description: z.string().nullable().optional(),
+    filePath: z.string().nullable().optional(),
+    content: z.string().optional(),
+    changeSummary: z.string().nullable().optional()
+})
+
+export const cmdbConfigFileListQuerySchema = z.object({
+    ciId: z.string().uuid().optional(),
+    fileType: z.enum(configFileTypeValues).optional(),
+    q: z.string().optional(),
+    page: z.coerce.number().int().positive().optional(),
+    limit: z.coerce.number().int().positive().optional()
+})

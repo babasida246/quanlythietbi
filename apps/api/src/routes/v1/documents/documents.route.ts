@@ -82,7 +82,7 @@ export async function documentsRoute(
 
     const isAdmin = (request: any) => {
         const role = request.user?.role
-        return role === 'admin' || role === 'super_admin'
+        return role === 'root' || role === 'admin' || role === 'super_admin'
     }
 
     const requireAdmin = (request: any) => {

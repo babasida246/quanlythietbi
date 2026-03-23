@@ -29,7 +29,8 @@ export function getUserContext(request: FastifyRequest): { userId: string; role:
 
 export function requireRole(request: FastifyRequest, allowed: string[]): { userId: string; correlationId: string } {
     const ctx = getUserContext(request)
-    const elevated = new Set(['admin', 'super_admin'])
+    // root and super_admin always pass regardless of the allowed list
+    const elevated = new Set(['root', 'super_admin'])
     const normalizedAllowed = new Set(allowed.map(normalizeUserRole))
     if (!normalizedAllowed.has(ctx.role) && !elevated.has(ctx.role)) {
         throw new ForbiddenError('Insufficient role for this action')
@@ -51,19 +52,28 @@ export function requirePermission(
 ): { userId: string; correlationId: string } {
     const ctx = getUserContext(request)
 
-    // Admin/super_admin: bypass mọi kiểm tra
-    if (ctx.role === 'admin' || ctx.role === 'super_admin') {
+    // root / super_admin / admin: bất khả xâm phạm — bypass kể cả DENY policy.
+    // The Policy Library stores specific permission keys (no '*' wildcard), so admin
+    // would be blocked if we enforce the list strictly — bypass at API layer too.
+    if (ctx.role === 'root' || ctx.role === 'super_admin' || ctx.role === 'admin') {
         return { userId: ctx.userId, correlationId: ctx.correlationId }
+    }
+
+    // Policy DENY overrides everything for non-admin roles.
+    const deniedPerms: string[] = request.user?.deniedPermissions ?? []
+    if (deniedPerms.includes(permission)) {
+        throw new ForbiddenError(`Permission required: ${permission}`)
     }
 
     const userPerms: string[] = request.user?.permissions ?? []
 
     if (userPerms.length > 0) {
+        // permissions loaded from policy_permissions — enforce as-is
         if (!userPerms.includes(permission)) {
             throw new ForbiddenError(`Permission required: ${permission}`)
         }
     } else {
-        // Fallback: dùng bảng mặc định từ contracts
+        // Fallback khi DB chưa có policy: dùng bảng mặc định từ contracts.
         const defaults = SYSTEM_ROLE_PERMISSIONS[ctx.role] ?? []
         if (!defaults.includes('*') && !defaults.includes(permission)) {
             throw new ForbiddenError(`Permission required: ${permission}`)
@@ -95,15 +105,25 @@ export function requireAnyPermission(
     ...permissions: string[]
 ): { userId: string; correlationId: string } {
     const ctx = getUserContext(request)
-    if (ctx.role === 'admin' || ctx.role === 'super_admin') {
+
+    // root / super_admin / admin: bất khả xâm phạm — bypass kể cả DENY policy.
+    if (ctx.role === 'root' || ctx.role === 'super_admin' || ctx.role === 'admin') {
         return { userId: ctx.userId, correlationId: ctx.correlationId }
     }
 
+    // Remove any permissions that are explicitly denied
+    const deniedPerms = new Set(request.user?.deniedPermissions ?? [])
+    const notDenied = permissions.filter(p => !deniedPerms.has(p))
+    if (notDenied.length === 0) {
+        throw new ForbiddenError(`One of these permissions required: ${permissions.join(', ')}`)
+    }
+
     const userPerms: string[] = request.user?.permissions ?? []
-    const defaults = ROLE_DEFAULT_PERMISSIONS[ctx.role] ?? []
+    // Fallback khi DB chưa có policy: dùng bảng mặc định (admin có '*' → luôn pass)
+    const defaults = SYSTEM_ROLE_PERMISSIONS[ctx.role] ?? []
     const effectivePerms = userPerms.length > 0 ? userPerms : defaults
 
-    const hasAny = permissions.some(p => effectivePerms.includes('*') || effectivePerms.includes(p))
+    const hasAny = notDenied.some(p => effectivePerms.includes('*') || effectivePerms.includes(p))
     if (!hasAny) {
         throw new ForbiddenError(`One of these permissions required: ${permissions.join(', ')}`)
     }

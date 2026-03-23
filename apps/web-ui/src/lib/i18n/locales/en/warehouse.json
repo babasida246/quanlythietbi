@@ -126,7 +126,16 @@
       "postDocumentFailed": "Failed to post document",
       "cancelDocumentFailed": "Failed to cancel document",
       "loadReportFailed": "Failed to load report",
-      "loadDocuments": "Failed to load documents"
+      "loadDocuments": "Failed to load documents",
+      "missingWarehouse": "Please select a warehouse.",
+      "atLeastOneLine": "At least one line is required.",
+      "missingCodeOrPart": "Please select a spare part for all part lines.",
+      "missingAssetId": "Please select an asset for all asset lines (issue document).",
+      "missingAssetModel": "Please select a model for all asset lines (receipt document).",
+      "postFailed": "Post failed",
+      "cancelFailed": "Cancel failed",
+      "submitFailed": "Submit failed",
+      "approveFailed": "Approve failed"
     },
     "checkingStock": "Checking stock...",
     "direction": "Direction",
@@ -200,7 +209,11 @@
       "postFailedDetail": "Failed to post document: {error}",
       "cancelFailedDetail": "Failed to cancel document: {error}",
       "submitFailedDetail": "Failed to submit document: {error}",
-      "approveFailedDetail": "Failed to approve document: {error}"
+      "approveFailedDetail": "Failed to approve document: {error}",
+      "submittedDoc": "Document submitted",
+      "approvedDoc": "Document approved",
+      "postedDoc": "Document posted",
+      "cancelledDoc": "Document canceled"
     },
     "pageTitle": "Receipts / Issues",
     "createDocument": "Create Document",
@@ -219,6 +232,7 @@
       "actions": "ACTIONS"
     },
     "action": {
+      "cancel": "Cancel",
       "submit": "Submit",
       "approve": "Approve",
       "post": "Post",
@@ -247,7 +261,20 @@
       "section": "Section",
       "performer": "Performer",
       "note": "Note",
-      "generalNote": "General Note"
+      "generalNote": "General Note",
+      "warehouse": "Warehouse",
+      "sourceWarehouse": "Source Warehouse",
+      "destWarehouse": "Dest. Warehouse",
+      "selectWarehouse": "-- Select Warehouse --",
+      "selectDestWarehouse": "-- Select Dest. Warehouse --",
+      "submitterPlaceholder": "Submitter name...",
+      "receiverPlaceholder": "Receiver name...",
+      "departmentPlaceholder": "Department...",
+      "receivingLocation": "Receiving Location",
+      "noLocation": "-- No location --",
+      "executor": "Executor",
+      "executorPlaceholder": "Executor name...",
+      "supplierPlaceholder": "Supplier name..."
     },
     "placeholder": {
       "selectWarehouse": "-- Select warehouse --",
@@ -262,6 +289,7 @@
       "generalNote": "Content / description for the document..."
     },
     "linesHeading": "Goods / Material Details",
+    "linesCount": "lines",
     "createdAtLabel": "Created:",
     "pagination": "Page {page} / {totalPages} · {total} documents",
     "purchasePlan": {
@@ -332,6 +360,43 @@
       "submitError": "Failed to create adjustment document",
       "submitSuccess": "Created {documents} adjustment documents for {variances} variance rows"
     }
+  },
+  "stockDoc": {
+    "addLine": "+ Add line",
+    "lineCount": "{count} lines",
+    "header": {
+      "lineType": "Type",
+      "item": "Item / Material",
+      "partName": "Item / Material",
+      "category": "Category",
+      "unit": "Unit",
+      "direction": "Direction",
+      "quantity": "Quantity",
+      "qty": "Qty",
+      "unitPrice": "Unit Price (₫)",
+      "amount": "Amount (₫)",
+      "notes": "Notes"
+    },
+    "emptyState": "No items yet.",
+    "emptyHint": "Click \"+ Add line\" to start.",
+    "selectPart": "-- Select item --",
+    "available": "Available:",
+    "overStock": "Exceeds stock!",
+    "checking": "Checking...",
+    "hideSpecs": "▲ Hide specs",
+    "showSpecs": "▼ Specifications",
+    "adjustPlus": "+ Increase",
+    "adjustMinus": "− Decrease",
+    "specFromCatalog": "Specifications (from catalog)",
+    "total": "Total ({count} lines):",
+    "addAssetLine": "+ Add Asset Line",
+    "lineTypeSparePart": "Part",
+    "lineTypeAsset": "Asset",
+    "selectAsset": "-- Select Asset --",
+    "selectModel": "-- Select Model --",
+    "noAssetsInStock": "No assets in stock at this warehouse",
+    "assetNamePlaceholder": "Asset name (optional)",
+    "assetCodePlaceholder": "Asset code (auto if blank)"
   },
   "wfRequest": {
     "service": "(service)",

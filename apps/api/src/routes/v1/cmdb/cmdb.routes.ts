@@ -1,5 +1,6 @@
 import type { FastifyInstance } from 'fastify'
 import type { PgClient } from '@qltb/infra-postgres'
+import type { ICmdbConfigFileRepo } from '@qltb/contracts'
 import type {
     CiService,
     ChangeManagementService,
@@ -48,7 +49,9 @@ import {
     cmdbTypeCreateSchema,
     cmdbTypeIdParamsSchema,
     cmdbTypeUpdateSchema,
-    cmdbVersionIdParamsSchema
+    cmdbVersionIdParamsSchema,
+    cmdbConfigFileCreateSchema,
+    cmdbConfigFileUpdateSchema
 } from './cmdb.schemas.js'
 
 interface CmdbRoutesOptions {
@@ -60,6 +63,7 @@ interface CmdbRoutesOptions {
     ciInventoryReportService: CiInventoryReportService
     relationshipAnalyticsService: RelationshipAnalyticsService
     auditTrailService: AuditTrailService
+    configFileRepo: ICmdbConfigFileRepo
     pgClient: PgClient
 }
 
@@ -75,7 +79,7 @@ export async function cmdbRoutes(
     fastify: FastifyInstance,
     opts: CmdbRoutesOptions
 ): Promise<void> {
-    const { schemaService, ciService, relationshipService, changeManagementService, serviceMappingService, ciInventoryReportService, relationshipAnalyticsService, auditTrailService, pgClient } = opts
+    const { schemaService, ciService, relationshipService, changeManagementService, serviceMappingService, ciInventoryReportService, relationshipAnalyticsService, auditTrailService, configFileRepo, pgClient } = opts
 
     fastify.get('/cmdb/types', async (request, reply) => {
         getUserContext(request)
@@ -373,8 +377,8 @@ export async function cmdbRoutes(
             primaryCiId: body.primaryCiId ?? null,
             implementationPlan: body.implementationPlan ?? null,
             rollbackPlan: body.rollbackPlan ?? null,
-            plannedStartAt: body.plannedStartAt ? new Date(body.plannedStartAt) : null,
-            plannedEndAt: body.plannedEndAt ? new Date(body.plannedEndAt) : null,
+            plannedStartAt: body.plannedStartAt ? new Date(body.plannedStartAt).toISOString() : null,
+            plannedEndAt: body.plannedEndAt ? new Date(body.plannedEndAt).toISOString() : null,
             metadata: body.metadata ?? null
         }, ctx)
         return reply.status(201).send({ data: created })
@@ -398,8 +402,8 @@ export async function cmdbRoutes(
             ...(body.primaryCiId !== undefined ? { primaryCiId: body.primaryCiId ?? null } : {}),
             ...(body.implementationPlan !== undefined ? { implementationPlan: body.implementationPlan ?? null } : {}),
             ...(body.rollbackPlan !== undefined ? { rollbackPlan: body.rollbackPlan ?? null } : {}),
-            ...(body.plannedStartAt !== undefined ? { plannedStartAt: body.plannedStartAt ? new Date(body.plannedStartAt) : null } : {}),
-            ...(body.plannedEndAt !== undefined ? { plannedEndAt: body.plannedEndAt ? new Date(body.plannedEndAt) : null } : {}),
+            ...(body.plannedStartAt !== undefined ? { plannedStartAt: body.plannedStartAt ? new Date(body.plannedStartAt).toISOString() : null } : {}),
+            ...(body.plannedEndAt !== undefined ? { plannedEndAt: body.plannedEndAt ? new Date(body.plannedEndAt).toISOString() : null } : {}),
             ...(body.metadata !== undefined ? { metadata: body.metadata ?? null } : {})
         }, ctx)
         return reply.send({ data: updated })
@@ -615,5 +619,69 @@ export async function cmdbRoutes(
             const message = error instanceof Error ? error.message : 'Unknown error'
             return reply.status(500).send({ error: message })
         }
+    })
+
+    // ── Config Files ──────────────────────────────────────────────────────────
+
+    // GET /cmdb/config-files — Danh sách file cấu hình (có thể lọc theo ciId)
+    fastify.get('/cmdb/config-files', async (request, reply) => {
+        const q = request.query as any
+        const result = await configFileRepo.list({
+            ciId:     q.ciId,
+            fileType: q.fileType,
+            q:        q.q,
+            page:     q.page     ? parseInt(q.page)  : undefined,
+            limit:    q.limit    ? parseInt(q.limit)  : undefined
+        })
+        return reply.send({ success: true, data: result.items, meta: { total: result.total, page: result.page, limit: result.limit } })
+    })
+
+    // POST /cmdb/config-files — Tạo file cấu hình mới
+    fastify.post('/cmdb/config-files', async (request, reply) => {
+        const parsed = cmdbConfigFileCreateSchema.parse(request.body)
+        const ctx = getUserContext(request)
+        const file = await configFileRepo.create({ ...parsed, createdBy: ctx.userId })
+        return reply.status(201).send({ success: true, data: file })
+    })
+
+    // GET /cmdb/config-files/:id — Chi tiết file cấu hình
+    fastify.get('/cmdb/config-files/:id', async (request, reply) => {
+        const { id } = request.params as { id: string }
+        const file = await configFileRepo.getById(id)
+        if (!file) throw new AppError('NOT_FOUND', 'Config file not found', 404)
+        return reply.send({ success: true, data: file })
+    })
+
+    // PUT /cmdb/config-files/:id — Cập nhật file cấu hình (tự động tạo phiên bản mới nếu content thay đổi)
+    fastify.put('/cmdb/config-files/:id', async (request, reply) => {
+        const { id } = request.params as { id: string }
+        const parsed = cmdbConfigFileUpdateSchema.parse(request.body)
+        const ctx = getUserContext(request)
+        const file = await configFileRepo.update(id, { ...parsed, updatedBy: ctx.userId })
+        if (!file) throw new AppError('NOT_FOUND', 'Config file not found', 404)
+        return reply.send({ success: true, data: file })
+    })
+
+    // DELETE /cmdb/config-files/:id — Xoá mềm file cấu hình
+    fastify.delete('/cmdb/config-files/:id', async (request, reply) => {
+        const { id } = request.params as { id: string }
+        const ok = await configFileRepo.softDelete(id)
+        if (!ok) throw new AppError('NOT_FOUND', 'Config file not found', 404)
+        return reply.send({ success: true })
+    })
+
+    // GET /cmdb/config-files/:id/versions — Lịch sử phiên bản
+    fastify.get('/cmdb/config-files/:id/versions', async (request, reply) => {
+        const { id } = request.params as { id: string }
+        const versions = await configFileRepo.listVersions(id)
+        return reply.send({ success: true, data: versions })
+    })
+
+    // GET /cmdb/config-files/:id/versions/:version — Nội dung tại phiên bản cụ thể
+    fastify.get('/cmdb/config-files/:id/versions/:version', async (request, reply) => {
+        const { id, version } = request.params as { id: string; version: string }
+        const v = await configFileRepo.getVersion(id, parseInt(version))
+        if (!v) throw new AppError('NOT_FOUND', 'Version not found', 404)
+        return reply.send({ success: true, data: v })
     })
 }
