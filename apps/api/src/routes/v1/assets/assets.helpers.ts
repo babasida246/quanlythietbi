@@ -52,14 +52,14 @@ export function requirePermission(
 ): { userId: string; correlationId: string } {
     const ctx = getUserContext(request)
 
-    // root / super_admin / admin: bất khả xâm phạm — bypass kể cả DENY policy.
-    // The Policy Library stores specific permission keys (no '*' wildcard), so admin
-    // would be blocked if we enforce the list strictly — bypass at API layer too.
-    if (ctx.role === 'root' || ctx.role === 'super_admin' || ctx.role === 'admin') {
+    // Option A (AD-model): only 'root' is inviolable — bypasses all policy checks.
+    // 'admin' and 'super_admin' go through normal permission enforcement so that
+    // Policy DENY assignments take effect (e.g. disabling Security/Analytics for admin).
+    if (ctx.role === 'root') {
         return { userId: ctx.userId, correlationId: ctx.correlationId }
     }
 
-    // Policy DENY overrides everything for non-admin roles.
+    // Policy DENY overrides everything for non-root roles.
     const deniedPerms: string[] = request.user?.deniedPermissions ?? []
     if (deniedPerms.includes(permission)) {
         throw new ForbiddenError(`Permission required: ${permission}`)
@@ -106,8 +106,8 @@ export function requireAnyPermission(
 ): { userId: string; correlationId: string } {
     const ctx = getUserContext(request)
 
-    // root / super_admin / admin: bất khả xâm phạm — bypass kể cả DENY policy.
-    if (ctx.role === 'root' || ctx.role === 'super_admin' || ctx.role === 'admin') {
+    // Option A (AD-model): only 'root' is inviolable.
+    if (ctx.role === 'root') {
         return { userId: ctx.userId, correlationId: ctx.correlationId }
     }
 

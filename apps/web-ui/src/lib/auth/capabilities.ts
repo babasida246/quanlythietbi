@@ -181,11 +181,14 @@ export function getCapabilities(
 ): Capabilities {
   const role = normalizeRole(roleInput)
 
-  // Admin/root/super_admin: always use wildcard regardless of effectivePermsStore override.
-  // The Policy Library returns specific keys (no '*'), which would strip admin of all-access.
-  // Routing and UI visibility should never block admin; API layer enforces granular checks.
-  const isAdminRole = role === 'root' || role === 'admin' || role === 'super_admin'
-  const perms: Set<string> = isAdminRole
+  // Option A (AD-model): only 'root' is inviolable — always gets wildcard '*'.
+  // 'admin' and 'super_admin' keep isAdmin=true for routing/landing-path purposes,
+  // but their permissions come from effectivePermsStore (policy DENY/ALLOW applies).
+  // This lets admins be restricted via Policy DENY without losing admin UI access.
+  const isRootRole  = role === 'root'
+  const isAdminRole = isRootRole || role === 'admin' || role === 'super_admin'
+
+  const perms: Set<string> = isRootRole
     ? new Set(['*'])
     : permissionsOverride && permissionsOverride.length > 0
       ? new Set(permissionsOverride)
