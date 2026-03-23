@@ -100,8 +100,8 @@
         </h2>
         <p class="text-xs text-slate-400">
           {$isLoading
-            ? 'Merge Classic RBAC + Policy System (DENY > ALLOW) via PermissionCenterService.'
-            : $_('admin.effective.subtitle', { default: 'Xem quyền thực tế sau khi hợp nhất Classic RBAC + Policy System (DENY > ALLOW).' })}
+            ? 'AD-style 3-layer model: Role defaults (L1) + Policy ALLOW grants (L2) − DENY overrides (L2).'
+            : $_('admin.effective.subtitle', { default: 'Mô hình AD 3 tầng: Role defaults (L1) + Policy ALLOW cộng thêm (L2) − DENY thu hồi (L2).' })}
         </p>
       </div>
 
@@ -128,9 +128,22 @@
         <!-- Source breakdown -->
         {#if effectiveData.sources}
           <div class="mb-4 p-3 rounded-lg border border-surface-3 bg-surface-2/50 text-xs text-slate-400 space-y-1">
-            <p><span class="font-semibold text-slate-300">Policy Library (trần quyền):</span> {effectiveData.sources.classic.length} permissions từ policy <code class="bg-surface-3 px-1 rounded">{effectiveData.roleSlug ?? 'none'}</code></p>
-            <p><span class="font-semibold text-slate-400">Policy Assignments — ALLOW:</span> {(effectiveData.sources.policyAllowed ?? []).length} permissions (chỉ thông tin, không mở rộng trần)</p>
-            <p><span class="font-semibold text-rose-400">Policy Assignments — DENY:</span> {(effectiveData.sources.policyDenied ?? []).length} permissions bị thu hồi</p>
+            <p>
+              <span class="font-semibold text-slate-300">L1 — Role defaults:</span>
+              {effectiveData.sources.classic.length} permissions từ role
+              <code class="bg-surface-3 px-1 rounded">{effectiveData.roleSlug ?? 'none'}</code>
+            </p>
+            <p>
+              <span class="font-semibold text-emerald-400">L2 — Policy ALLOW grants:</span>
+              {(effectiveData.sources.policyAllowed ?? []).length} permissions cộng thêm qua User/Group/OU assignment
+            </p>
+            <p>
+              <span class="font-semibold text-rose-400">L2 — Policy DENY overrides:</span>
+              {(effectiveData.sources.policyDenied ?? []).length} permissions bị thu hồi (luôn thắng mọi ALLOW)
+            </p>
+            <p class="text-slate-500 pt-1">
+              Effective = UNION(L1, L2 ALLOW) − DENY
+            </p>
           </div>
         {/if}
 

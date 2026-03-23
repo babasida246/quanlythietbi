@@ -159,8 +159,8 @@ async function getRolePermissions(pgClient: PgClient, role: string): Promise<str
     }
 }
 
-// Load policy ALLOW permissions from per-user/OU/group assignments.
-// This supplements the role's base policy with any extra ALLOW grants.
+// Layer 2 ALLOW: load additive permission grants from per-user/OU/group policy assignments.
+// These are unioned with the role defaults (Layer 1) — not limited by a ceiling.
 // Cached per userId for 5 minutes to avoid per-request DB overhead.
 async function getPolicyAllowancesForUser(pgClient: PgClient, userId: string): Promise<string[]> {
     const cached = allowanceCache.get(userId)
@@ -336,14 +336,24 @@ export async function authenticateBearerRequest(request: FastifyRequest, pgClien
     }
 
     const normalizedRole = normalizeUserRole(user.role)
-    const [permissions, deniedPermissions] = await Promise.all([
+
+    // AD-style 3-layer permission resolution (all 3 queries run in parallel):
+    //   Layer 1: role defaults  → getRolePermissions
+    //   Layer 2 ALLOW: additive grants via User/Group/OU assignments
+    //   Layer 2 DENY:  explicit revocations (always win over any ALLOW)
+    const [rolePerms, deniedPermissions, policyAllowed] = await Promise.all([
         pgClient ? getRolePermissions(pgClient, normalizedRole) : Promise.resolve([]),
         pgClient ? getPolicyDenialsForUser(pgClient, user.id) : Promise.resolve([]),
+        pgClient ? getPolicyAllowancesForUser(pgClient, user.id) : Promise.resolve([]),
     ])
 
-    // Policy Library (role policy) is the ceiling.
-    // DENY assignments can reduce it. ALLOW assignments are informational only —
-    // they do NOT expand beyond the role's policy ceiling.
+    // Effective = UNION(layer1_role, layer2_allow) − layer2_deny
+    // Mirrors AD Security Group model: cumulative ALLOW, DENY always overrides.
+    const deniedSet = new Set(deniedPermissions)
+    const unionSet = new Set([...rolePerms, ...policyAllowed])
+    for (const d of deniedSet) unionSet.delete(d)
+    const permissions = [...unionSet]
+
     request.user = {
         id: user.id,
         email: user.email,
