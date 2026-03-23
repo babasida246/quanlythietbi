@@ -82,7 +82,7 @@
           const doc = res.data.document
           const lines = res.data.lines.map((l, i) => ({
             stt: i + 1,
-            partCode: l.partId,
+            partCode: l.partId ?? '',
             partName: `(part ${l.partId})`,
             qty: l.qty,
             unitCost: l.unitCost ?? undefined,

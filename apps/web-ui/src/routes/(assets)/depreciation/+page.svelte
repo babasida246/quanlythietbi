@@ -92,7 +92,7 @@
   let runsError = $state('')
 
   // ── i18n ─────────────────────────────────────────────────────────────────────
-  const t = (key: string, values?: Record<string, unknown>) =>
+  const t = (key: string, values?: Record<string, string | number | boolean | Date | null | undefined>) =>
     $i18nLoading ? key.split('.').pop() ?? key : $_(key, values ? { values } : undefined)
 
   // ── Derived ──────────────────────────────────────────────────────────────────

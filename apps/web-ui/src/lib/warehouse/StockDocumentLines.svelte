@@ -57,11 +57,12 @@
     } catch { /* server validates on submit */ }
   }
 
-  function getPartUom(partId: string)      { return partOptions.find(p => p.id === partId)?.uom ?? '—'; }
-  function getPartCategory(partId: string) { return partOptions.find(p => p.id === partId)?.category ?? '—'; }
-  function getPartLabel(partId: string)    { return partOptions.find(p => p.id === partId)?.label ?? partId; }
+  type PartOption = { id: string; label: string; uom: string; category: string; spec: unknown }
+  function getPartUom(partId: string)      { return partOptions.find((p: PartOption) => p.id === partId)?.uom ?? '—'; }
+  function getPartCategory(partId: string) { return partOptions.find((p: PartOption) => p.id === partId)?.category ?? '—'; }
+  function getPartLabel(partId: string)    { return partOptions.find((p: PartOption) => p.id === partId)?.label ?? partId; }
   function getSpecForPart(partId: string): Record<string, unknown> {
-    return (parts.find(pt => pt.id === partId)?.spec ?? {}) as Record<string, unknown>;
+    return (parts.find((pt: SparePartRecord) => pt.id === partId)?.spec ?? {}) as Record<string, unknown>;
   }
   function isOverStock(partId: string, qty: number): boolean {
     const av = stockCache[partId]?.available;
@@ -95,7 +96,7 @@
   }
 
   function removeLine(i: number) {
-    lines = lines.filter((_, idx) => idx !== i);
+    lines = lines.filter((_: StockDocumentLine, idx: number) => idx !== i);
   }
 
   function updateLine<K extends keyof StockDocumentLine>(i: number, k: K, v: StockDocumentLine[K]) {
@@ -112,13 +113,13 @@
 
   function getAssetLabel(assetId: string | null | undefined) {
     if (!assetId) return '—';
-    const a = warehouseAssets.find(a => a.id === assetId);
+    const a = warehouseAssets.find((a: WarehouseAssetOption) => a.id === assetId);
     if (!a) return assetId;
     return `${a.assetCode}${a.serialNo ? ' · ' + a.serialNo : ''}${a.modelName ? ' · ' + a.modelName : ''}`;
   }
 
   function getModelCategory(modelId: string | null | undefined) {
-    return models.find(m => m.id === modelId)?.categoryName ?? '—';
+    return models.find((m: ModelOption) => m.id === modelId)?.categoryName ?? '—';
   }
 </script>
 

@@ -593,13 +593,13 @@
         </span>
         <Button size="sm" variant="ghost" onclick={() => copyContent('view-' + viewingFile!.id, viewingFile!.content)}>
           {#snippet leftIcon()}
-            {#if copiedId === 'view-' + viewingFile.id}
+            {#if copiedId === 'view-' + viewingFile?.id}
               <Check class="h-3 w-3 text-success" />
             {:else}
               <Copy class="h-3 w-3" />
             {/if}
           {/snippet}
-          {copiedId === 'view-' + viewingFile.id
+          {copiedId === 'view-' + viewingFile?.id
             ? ($isLoading ? 'Copied!' : $_('cmdb.configFiles.copied'))
             : ($isLoading ? 'Copy' : $_('cmdb.configFiles.copyContent'))}
         </Button>

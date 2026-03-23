@@ -41,7 +41,7 @@ type ApiResponse<T> = { data: T; meta?: { total?: number } }
 export async function listOrganizations(
     params: OrgListParams = {}
 ): Promise<ApiResponse<OrganizationDto[]>> {
-    const query = buildQuery(params as Record<string, string | number | boolean | undefined>)
+    const query = buildQuery(params as Record<string, string | number | undefined>)
     return apiJson<ApiResponse<OrganizationDto[]>>(`${API_BASE}/v1/organizations${query}`, {
         headers: getAssetHeaders()
     })
