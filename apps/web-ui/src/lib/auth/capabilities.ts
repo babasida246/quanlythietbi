@@ -188,9 +188,12 @@ export function getCapabilities(
   const isRootRole  = role === 'root'
   const isAdminRole = isRootRole || role === 'admin' || role === 'super_admin'
 
+  // permissionsOverride !== undefined → server has replied; use it even if empty
+  // (empty means all permissions were DENY'd). Only fall back to ROLE_PERMISSIONS
+  // when override is undefined, i.e. the store hasn't been populated yet.
   const perms: Set<string> = isRootRole
     ? new Set(['*'])
-    : permissionsOverride && permissionsOverride.length > 0
+    : permissionsOverride !== undefined
       ? new Set(permissionsOverride)
       : (ROLE_PERMISSIONS[role] ?? new Set<string>())
 

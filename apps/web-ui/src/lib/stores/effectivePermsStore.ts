@@ -111,3 +111,10 @@ export const effectivePermsStore = {
  * Tự động cập nhật khi effectivePermsStore thay đổi (bao gồm sau khi invalidate()).
  */
 export const allowedPerms = derived(_store, ($s) => $s?.allowed ?? [])
+
+/**
+ * True khi effectivePermsStore đã được populate từ server (kể cả khi allowed=[]).
+ * Dùng để phân biệt "chưa fetch" (null → dùng ROLE_PERMISSIONS fallback) với
+ * "đã fetch nhưng không còn quyền" ([] → truyền [] để disable wildcard fallback).
+ */
+export const permsLoaded = derived(_store, ($s) => $s !== null)

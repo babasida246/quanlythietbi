@@ -4,7 +4,7 @@
   import { page } from '$app/state';
   import { defaultLandingPath, getCapabilities, isRouteAllowed } from '$lib/auth/capabilities';
   import { getUnifiedEffectivePerms } from '$lib/api/admin';
-  import { effectivePermsStore, allowedPerms } from '$lib/stores/effectivePermsStore';
+  import { effectivePermsStore, allowedPerms, permsLoaded } from '$lib/stores/effectivePermsStore';
   import { locale, _, isLoading } from '$lib/i18n';
   import LanguageSwitcher from '$lib/components/LanguageSwitcher.svelte';
   import ToastHost from '$lib/components/ToastHost.svelte';
@@ -49,10 +49,13 @@
 
   // Capabilities: reactive via $allowedPerms derived store — updates immediately when
   // fetchEffectivePerms() completes (first login, page refresh, or invalidate).
-  // Falls back to SYSTEM_ROLE_PERMISSIONS hardcode when store is empty/null.
+  // Falls back to SYSTEM_ROLE_PERMISSIONS hardcode only when store hasn't been loaded yet
+  // (null). If store is loaded but allowed=[], pass [] so policy DENY is respected
+  // and admin doesn't get wildcard fallback from ROLE_PERMISSIONS['admin']=['*'].
   const capabilities = $derived.by(() => {
     const allowed = $allowedPerms;
-    return getCapabilities(userRole, allowed.length > 0 ? allowed : undefined);
+    const loaded = $permsLoaded;
+    return getCapabilities(userRole, loaded ? allowed : undefined);
   });
   const isShelllessRoute = $derived.by(() => shelllessPaths.some((path) => page.url.pathname.startsWith(path)));
 
