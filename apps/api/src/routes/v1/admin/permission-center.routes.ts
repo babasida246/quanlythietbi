@@ -705,21 +705,18 @@ export const permissionCenterRoutes: FastifyPluginAsync<PermissionCenterRoutesOp
         const check = await query<{ id: string }>(`SELECT id FROM policies WHERE id = $1`, [id])
         if (check.rowCount === 0) throw new NotFoundError('Policy not found')
 
-        await pgClient.query('BEGIN')
-        try {
-            await pgClient.query(`DELETE FROM policy_permissions WHERE policy_id = $1`, [id])
+        // Use pgClient.transaction() — checkouts a single PoolClient, ensuring
+        // BEGIN/DELETE/INSERT/COMMIT all run on the same connection (atomic).
+        await pgClient.transaction(async (tx) => {
+            await tx.query(`DELETE FROM policy_permissions WHERE policy_id = $1`, [id])
             if (body.permissionIds.length > 0) {
                 const vals = body.permissionIds.map((_, i) => `($1, $${i + 2})`).join(', ')
-                await pgClient.query(
+                await tx.query(
                     `INSERT INTO policy_permissions (policy_id, permission_id) VALUES ${vals} ON CONFLICT DO NOTHING`,
                     [id, ...body.permissionIds]
                 )
             }
-            await pgClient.query('COMMIT')
-        } catch (err) {
-            await pgClient.query('ROLLBACK')
-            throw err
-        }
+        })
         await appendAuditLog(pgClient, request, {
             actorUserId: ctx.userId, action: 'permissions.policy.permissions_updated',
             resource: 'policy_permissions', details: { policyId: id, permissionCount: body.permissionIds.length },
