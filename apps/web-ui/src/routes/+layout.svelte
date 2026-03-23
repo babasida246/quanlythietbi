@@ -112,6 +112,15 @@
           denied: res.data.denied,
           cachedAt: Date.now(),
         });
+        // Enforce route guard immediately — don't rely solely on Svelte 5 $effect scheduling
+        // after an async store update (microtask ordering not guaranteed before next render).
+        const currentRole = localStorage.getItem('userRole') || '';
+        const newCaps = getCapabilities(currentRole, res.data.allowed);
+        const pathname = window.location.pathname;
+        if (!isRouteAllowed(pathname, newCaps)) {
+          const fallback = defaultLandingPath(newCaps);
+          window.location.replace(`/forbidden?from=${encodeURIComponent(pathname)}&home=${encodeURIComponent(fallback)}`);
+        }
       } catch { /* non-critical — fallback to hardcoded ROLE_PERMISSIONS */ }
     }
 
