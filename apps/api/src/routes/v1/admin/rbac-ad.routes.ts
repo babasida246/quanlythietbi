@@ -139,7 +139,7 @@ async function appendAuditLog(
 // ─── Route Plugin ────────────────────────────────────────────────────────────
 
 export const rbacAdRoutes: FastifyPluginAsync<RbacAdRoutesOptions> = async (fastify, opts) => {
-    const pgClient = opts.pgClient ?? (fastify as any).pgClient
+    const pgClient: PgClient = opts.pgClient ?? (fastify as any).pgClient
     if (!pgClient) throw new Error('pgClient is required for RBAC AD routes')
 
     // ── Bootstrap repos & services ───────────────────────────────────────

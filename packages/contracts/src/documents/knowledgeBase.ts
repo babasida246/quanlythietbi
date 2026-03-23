@@ -103,3 +103,14 @@ export interface KbDocFileMeta {
     sizeBytes: number
     mimeType: string | null
 }
+
+export interface IDocumentRepo {
+    list(query: KbDocListQuery): Promise<{ data: KbDocument[]; total: number }>
+    getById(id: string): Promise<KbDocument | null>
+    create(input: KbDocCreateInput, actorUserId: string): Promise<KbDocument>
+    update(id: string, patch: KbDocUpdateInput, actorUserId: string): Promise<KbDocument | null>
+    submitApproval(id: string, actorUserId: string): Promise<KbDocument | null>
+    approve(id: string, actorUserId: string, reason: string | null): Promise<KbDocument | null>
+    reject(id: string, actorUserId: string, reason: string): Promise<KbDocument | null>
+    delete(id: string): Promise<boolean>
+}

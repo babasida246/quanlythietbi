@@ -81,6 +81,8 @@ export interface AssetUpsertFields {
     vendorId?: string | null
     notes?: string | null
     spec?: Record<string, unknown> | null
+    /** Unit cost / acquisition cost (set from receipt line) */
+    unitCost?: number | null
     /** FK to the stock_document_line that created this asset (receipt flow) */
     sourceDocLineId?: string | null
 }

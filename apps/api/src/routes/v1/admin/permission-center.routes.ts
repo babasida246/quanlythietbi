@@ -7,6 +7,7 @@
 
 import type { FastifyPluginAsync, FastifyRequest } from 'fastify'
 import type { PgClient } from '@qltb/infra-postgres'
+import type { PoolClient } from 'pg'
 import {
     PgOrgUnitRepo,
     PgRbacAclRepo,
@@ -707,7 +708,7 @@ export const permissionCenterRoutes: FastifyPluginAsync<PermissionCenterRoutesOp
 
         // Use pgClient.transaction() — checkouts a single PoolClient, ensuring
         // BEGIN/DELETE/INSERT/COMMIT all run on the same connection (atomic).
-        await pgClient.transaction(async (tx) => {
+        await pgClient.transaction(async (tx: PoolClient) => {
             await tx.query(`DELETE FROM policy_permissions WHERE policy_id = $1`, [id])
             if (body.permissionIds.length > 0) {
                 const vals = body.permissionIds.map((_, i) => `($1, $${i + 2})`).join(', ')

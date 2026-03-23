@@ -648,7 +648,7 @@ export async function cmdbRoutes(
     fastify.get('/cmdb/config-files/:id', async (request, reply) => {
         const { id } = request.params as { id: string }
         const file = await configFileRepo.getById(id)
-        if (!file) throw new AppError('NOT_FOUND', 'Config file not found', 404)
+        if (!file) throw AppError.notFound('Config file not found')
         return reply.send({ success: true, data: file })
     })
 
@@ -658,7 +658,7 @@ export async function cmdbRoutes(
         const parsed = cmdbConfigFileUpdateSchema.parse(request.body)
         const ctx = getUserContext(request)
         const file = await configFileRepo.update(id, { ...parsed, updatedBy: ctx.userId })
-        if (!file) throw new AppError('NOT_FOUND', 'Config file not found', 404)
+        if (!file) throw AppError.notFound('Config file not found')
         return reply.send({ success: true, data: file })
     })
 
@@ -666,7 +666,7 @@ export async function cmdbRoutes(
     fastify.delete('/cmdb/config-files/:id', async (request, reply) => {
         const { id } = request.params as { id: string }
         const ok = await configFileRepo.softDelete(id)
-        if (!ok) throw new AppError('NOT_FOUND', 'Config file not found', 404)
+        if (!ok) throw AppError.notFound('Config file not found')
         return reply.send({ success: true })
     })
 
@@ -681,7 +681,7 @@ export async function cmdbRoutes(
     fastify.get('/cmdb/config-files/:id/versions/:version', async (request, reply) => {
         const { id, version } = request.params as { id: string; version: string }
         const v = await configFileRepo.getVersion(id, parseInt(version))
-        if (!v) throw new AppError('NOT_FOUND', 'Version not found', 404)
+        if (!v) throw AppError.notFound('Version not found')
         return reply.send({ success: true, data: v })
     })
 }

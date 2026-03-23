@@ -10,11 +10,11 @@ import type {
     KbDocListQuery,
     KbDocApprovalActionInput,
     KbDocBulkInput,
+    IDocumentRepo,
 } from '@qltb/contracts'
-import type { DocumentRepo } from '@qltb/infra-postgres'
 
 export class DocumentService {
-    constructor(private repo: DocumentRepo) { }
+    constructor(private repo: IDocumentRepo) { }
 
     async list(query: KbDocListQuery): Promise<{ data: KbDocument[]; total: number }> {
         return this.repo.list(query)
