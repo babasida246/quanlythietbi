@@ -2,16 +2,17 @@
   import AuditLogsPanel from '$lib/components/admin/AuditLogsPanel.svelte';
   import DirectoryExplorer from '$lib/components/admin/DirectoryExplorer.svelte';
   import PolicyLibrary from '$lib/components/admin/PolicyLibrary.svelte';
+  import SystemUsersPanel from '$lib/components/admin/SystemUsersPanel.svelte';
   import PageHeader from '$lib/components/PageHeader.svelte';
   import { _, isLoading } from '$lib/i18n';
-  import { ClipboardList, FolderTree, CheckCircle2, Library } from 'lucide-svelte';
+  import { ClipboardList, FolderTree, CheckCircle2, Library, Users } from 'lucide-svelte';
   import { onMount } from 'svelte';
   import { getUnifiedEffectivePerms, listUsers } from '$lib/api/admin';
   import type { AdminUser, UnifiedEffectivePerms } from '$lib/api/admin';
   import { getCapabilities } from '$lib/auth/capabilities';
   import { allowedPerms } from '$lib/stores/effectivePermsStore';
 
-  type TabId = 'directory' | 'policies' | 'effective' | 'logs';
+  type TabId = 'users' | 'directory' | 'policies' | 'effective' | 'logs';
   let activeTab = $state<TabId>('directory');
   let userRole = $state('');
   const caps = $derived.by(() => {
@@ -20,8 +21,9 @@
   });
 
   const tabs = $derived([
+    ...(caps.admin.users    ? [{ id: 'users'     as const, label: $isLoading ? 'Users'          : $_('admin.tab.users',     { default: 'Người dùng' }),     icon: Users        }] : []),
     { id: 'directory' as const, label: $isLoading ? 'Directory'     : $_('admin.tab.directory',  { default: 'Thư mục (AD)' }),   icon: FolderTree   },
-    ...(caps.admin.roles ? [{ id: 'policies' as const, label: $isLoading ? 'Policy Library': $_('admin.tab.policies', { default: 'Thư viện Policy' }), icon: Library }] : []),
+    ...(caps.admin.roles    ? [{ id: 'policies'  as const, label: $isLoading ? 'Policy Library' : $_('admin.tab.policies',  { default: 'Thư viện Policy' }), icon: Library      }] : []),
     { id: 'effective' as const, label: $isLoading ? 'Effective Perms': $_('admin.tab.effective', { default: 'Quyền thực tế' }),   icon: CheckCircle2 },
     { id: 'logs'      as const, label: $isLoading ? 'Audit Logs'    : $_('admin.tab.logs'),                                       icon: ClipboardList },
   ]);
@@ -35,6 +37,9 @@
 
   onMount(async () => {
     userRole = localStorage.getItem('userRole') || '';
+    // Default to users tab for roles that have user management access
+    const initCaps = getCapabilities(userRole);
+    if (initCaps.admin.users) activeTab = 'users';
     try {
       const res = await listUsers();
       systemUsers = res.data ?? [];
@@ -83,8 +88,12 @@
     {/each}
   </div>
 
+  <!-- ══ Users ══════════════════════════════════════════════════════════════ -->
+  {#if activeTab === 'users' && caps.admin.users}
+    <SystemUsersPanel />
+
   <!-- ══ Directory ══════════════════════════════════════════════════════════ -->
-  {#if activeTab === 'directory'}
+  {:else if activeTab === 'directory'}
     <DirectoryExplorer />
 
   <!-- ══ Policy Library ════════════════════════════════════════════════════ -->

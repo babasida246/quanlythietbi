@@ -1,7 +1,7 @@
 {
   "admin": {
     "title": "Bảng điều khiển Quản trị",
-    "subtitle": "Quản lý thư mục OU, policy và nhật ký hoạt động",
+    "subtitle": "Quản lý người dùng, thư mục OU, policy và nhật ký hoạt động",
     "sectionLabel": "Mục",
     "sections": {
       "quickWins": "Quick Wins",
