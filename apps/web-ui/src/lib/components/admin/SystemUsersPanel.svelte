@@ -1,12 +1,12 @@
 <script lang="ts">
   import { onMount } from 'svelte'
   import {
-    listUsers, createUser, updateUser, deleteUser, resetPassword,
+    listUsers, updateUser, deleteUser, resetPassword,
     type AdminUser
   } from '$lib/api/admin'
   import {
-    UserPlus, Pencil, Trash2, KeyRound, Check, X,
-    RefreshCw, Search, User, ShieldCheck, Eye, EyeOff
+    Pencil, Trash2, KeyRound, Check, X,
+    RefreshCw, Search, User, Eye, EyeOff
   } from 'lucide-svelte'
 
   const ROLES = [
@@ -34,15 +34,6 @@
   let loading = $state(false)
   let error = $state('')
   let search = $state('')
-
-  let showCreate = $state(false)
-  let createName = $state('')
-  let createEmail = $state('')
-  let createPassword = $state('')
-  let createRole = $state('viewer')
-  let createSaving = $state(false)
-  let createError = $state('')
-  let showCreatePwd = $state(false)
 
   let editingId = $state<string | null>(null)
   let editName = $state('')
@@ -80,21 +71,6 @@
       error = e?.message ?? 'Không thể tải danh sách tài khoản'
     } finally {
       loading = false
-    }
-  }
-
-  // ── Create ───────────────────────────────────────────────────────────────────
-  async function doCreate() {
-    if (!createName.trim() || !createEmail.trim() || !createPassword) return
-    createSaving = true; createError = ''
-    try {
-      await createUser({ name: createName.trim(), email: createEmail.trim(), password: createPassword, role: createRole })
-      await load()
-      showCreate = false; createName = ''; createEmail = ''; createPassword = ''; createRole = 'viewer'
-    } catch (e: any) {
-      createError = e?.message ?? 'Tạo tài khoản thất bại'
-    } finally {
-      createSaving = false
     }
   }
 
@@ -172,75 +148,7 @@
     >
       <RefreshCw class="w-3.5 h-3.5 {loading ? 'animate-spin' : ''}" />
     </button>
-    <button
-      class="btn btn-primary flex items-center gap-1.5 text-xs px-3 h-8"
-      onclick={() => { showCreate = !showCreate; editingId = null; pwdUserId = null }}
-    >
-      <UserPlus class="w-3.5 h-3.5" />
-      Tạo tài khoản
-    </button>
   </div>
-
-  <!-- Create form -->
-  {#if showCreate}
-    <div class="rounded-xl border border-primary/30 bg-surface-2/60 p-4 space-y-3">
-      <p class="text-sm font-semibold text-slate-200">Tạo tài khoản mới</p>
-      <div class="grid grid-cols-2 gap-3">
-        <label>
-          <span class="text-xs text-slate-500 block mb-1">Họ tên *</span>
-          <input class="input-base w-full text-sm" bind:value={createName} placeholder="Nguyễn Văn A" />
-        </label>
-        <label>
-          <span class="text-xs text-slate-500 block mb-1">Email *</span>
-          <input class="input-base w-full text-sm" type="email" bind:value={createEmail} placeholder="user@example.com" />
-        </label>
-        <label>
-          <span class="text-xs text-slate-500 block mb-1">Mật khẩu *</span>
-          <div class="relative">
-            <input
-              class="input-base w-full text-sm pr-8"
-              type={showCreatePwd ? 'text' : 'password'}
-              bind:value={createPassword}
-              placeholder="Tối thiểu 12 ký tự"
-              autocomplete="new-password"
-            />
-            <button
-              type="button"
-              class="absolute right-2 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300"
-              onclick={() => showCreatePwd = !showCreatePwd}
-            >
-              {#if showCreatePwd}<EyeOff class="w-3.5 h-3.5" />{:else}<Eye class="w-3.5 h-3.5" />{/if}
-            </button>
-          </div>
-          <p class="text-xs text-slate-600 mt-0.5">≥12 ký tự, có chữ hoa, thường, số và ký tự đặc biệt</p>
-        </label>
-        <label>
-          <span class="text-xs text-slate-500 block mb-1">Vai trò</span>
-          <select class="select-base w-full text-sm" bind:value={createRole}>
-            {#each ROLES as r}
-              <option value={r.value}>{r.label}</option>
-            {/each}
-          </select>
-        </label>
-      </div>
-      {#if createError}
-        <p class="text-xs text-rose-400">{createError}</p>
-      {/if}
-      <div class="flex gap-2">
-        <button
-          class="btn btn-primary px-4 h-8 text-sm"
-          onclick={doCreate}
-          disabled={createSaving || !createName.trim() || !createEmail.trim() || !createPassword}
-        >
-          {createSaving ? 'Đang tạo...' : 'Tạo tài khoản'}
-        </button>
-        <button
-          class="btn px-4 h-8 text-sm bg-surface-3 text-slate-400 hover:text-slate-200"
-          onclick={() => { showCreate = false; createError = '' }}
-        >Hủy</button>
-      </div>
-    </div>
-  {/if}
 
   {#if error}
     <div class="alert alert-error text-sm flex items-start gap-2">
