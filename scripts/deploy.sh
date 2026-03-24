@@ -112,7 +112,7 @@ log_ok "pnpm $PNPM_VER"
 
 # .env
 if [[ ! -f "$ROOT/.env" ]]; then
-  log_error ".env không tồn tại. Hãy copy .env.example → .env và điền DATABASE_URL, JWT_*, VITE_API_BASE."
+  log_error ".env không tồn tại. Hãy copy .env.example → .env và điền DATABASE_URL (hoặc POSTGRES_*), JWT_*, VITE_API_BASE."
   exit 1
 fi
 log_ok ".env tìm thấy"
@@ -120,11 +120,26 @@ log_ok ".env tìm thấy"
 # Kiểm tra biến thiết yếu
 # shellcheck source=/dev/null
 set -a; source "$ROOT/.env"; set +a
+
+# Build DATABASE_URL từ POSTGRES_* nếu chưa có
 if [[ -z "${DATABASE_URL:-}" ]]; then
-  log_error "DATABASE_URL chưa được đặt trong .env"
-  exit 1
+  if [[ -z "${POSTGRES_HOST:-}" ]]; then
+    log_error "Phải đặt DATABASE_URL hoặc POSTGRES_HOST trong .env"
+    exit 1
+  fi
+  _pg_user="${POSTGRES_USER:-postgres}"
+  _pg_pass="${POSTGRES_PASSWORD:-postgres}"
+  _pg_host="${POSTGRES_HOST:-localhost}"
+  _pg_port="${POSTGRES_PORT:-5432}"
+  _pg_db="${POSTGRES_DB:-qltb}"
+  # URL-encode password (xử lý @, #, $ và ký tự đặc biệt khác)
+  _pg_pass_enc=$(node -e "process.stdout.write(encodeURIComponent(process.argv[1]))" "$_pg_pass")
+  _pg_user_enc=$(node -e "process.stdout.write(encodeURIComponent(process.argv[1]))" "$_pg_user")
+  DATABASE_URL="postgresql://${_pg_user_enc}:${_pg_pass_enc}@${_pg_host}:${_pg_port}/${_pg_db}"
+  export DATABASE_URL
+  log_info "DATABASE_URL được tạo từ POSTGRES_* variables"
 fi
-log_ok "DATABASE_URL: ${DATABASE_URL%%@*}@***"
+log_ok "DATABASE_URL: ${DATABASE_URL%%:*}://***@${DATABASE_URL##*@}"
 
 if [[ -z "${VITE_API_BASE:-}" ]]; then
   log_warn "VITE_API_BASE chưa đặt — web-ui sẽ dùng giá trị mặc định (http://localhost:3000/api)"

@@ -33,8 +33,13 @@ const envSchema = z.object({
     PORT: z.coerce.number().default(3000),
     HOST: z.string().default('0.0.0.0'),
 
-    // Database
-    DATABASE_URL: z.string().url(),
+    // Database — either DATABASE_URL or POSTGRES_* components
+    DATABASE_URL: z.string().optional(),
+    POSTGRES_HOST: z.string().optional(),
+    POSTGRES_PORT: z.coerce.number().optional(),
+    POSTGRES_DB: z.string().optional(),
+    POSTGRES_USER: z.string().optional(),
+    POSTGRES_PASSWORD: z.string().optional(),
     DATABASE_POOL_MAX: z.coerce.number().default(10),
 
     // Logging
@@ -54,7 +59,20 @@ const envSchema = z.object({
     REDIS_CACHE_TTL: z.coerce.number().default(900), // 15 phút
 })
 
-export type Env = z.infer<typeof envSchema>
+export type Env = z.infer<typeof envSchema> & { DATABASE_URL: string }
+
+function buildDatabaseUrl(raw: z.infer<typeof envSchema>): string {
+    if (raw.DATABASE_URL) return raw.DATABASE_URL
+
+    const host = raw.POSTGRES_HOST ?? 'localhost'
+    const port = raw.POSTGRES_PORT ?? 5432
+    const db   = raw.POSTGRES_DB   ?? 'qltb'
+    const user = raw.POSTGRES_USER ?? 'postgres'
+    const pass = raw.POSTGRES_PASSWORD ?? 'postgres'
+
+    // encodeURIComponent handles @, #, $, % and other special chars in password
+    return `postgresql://${encodeURIComponent(user)}:${encodeURIComponent(pass)}@${host}:${port}/${db}`
+}
 
 function validateEnv(): Env {
     const parsed = envSchema.safeParse(process.env)
@@ -65,7 +83,15 @@ function validateEnv(): Env {
         process.exit(1)
     }
 
-    return parsed.data
+    const data = parsed.data
+    const databaseUrl = buildDatabaseUrl(data)
+
+    if (!data.DATABASE_URL && !data.POSTGRES_HOST) {
+        console.error('❌ Must set either DATABASE_URL or POSTGRES_HOST in .env')
+        process.exit(1)
+    }
+
+    return { ...data, DATABASE_URL: databaseUrl }
 }
 
 export const env = validateEnv()
