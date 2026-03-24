@@ -67,20 +67,6 @@ Docker smoke testing script for container validation.
 - `HEALTHCHECK_TIMEOUT`: Health check timeout in seconds (default: 120)
 - `API_PORT`: API service port (default: 3000)
 
-### `verify-snapshots.sh`
-
-Snapshot verification for test stability.
-
-**Features:**
-- ✅ Run tests across all packages
-- ✅ Detect snapshot file changes
-- ✅ Report which snapshots changed  
-- ✅ Option to update snapshots automatically
-
-**Options:**
-- `--update-snapshots`: Update snapshots if they change
-- `--help`: Show help message
-
 ## CI Pipeline Execution Order
 
 1. **Environment Check**: Verify Node.js, pnpm, Docker versions
