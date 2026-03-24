@@ -150,12 +150,11 @@ fi
 # ══════════════════════════════════════════════════════════════════════════════
 if [[ "$OPT_CLEAN" == "true" ]]; then
   log_step "Xóa dist/ (--clean)"
-  find "$ROOT" -path '*/node_modules' -prune -o -name 'dist' -type d -print \
-    | grep -v node_modules \
-    | xargs rm -rf
-  find "$ROOT" -path '*/node_modules' -prune -o -name '*.tsbuildinfo' -print \
-    | grep -v node_modules \
-    | xargs rm -f
+  # xargs -r: không chạy rm nếu không có input (tránh lỗi khi chưa có dist/)
+  find "$ROOT" \( -path '*/node_modules' -prune \) -o \( -name 'dist' -type d -print \) \
+    | xargs -r rm -rf
+  find "$ROOT" \( -path '*/node_modules' -prune \) -o \( -name '*.tsbuildinfo' -print \) \
+    | xargs -r rm -f
   log_ok "dist/ và *.tsbuildinfo đã xóa"
 fi
 
