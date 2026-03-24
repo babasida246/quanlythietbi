@@ -1,12 +1,12 @@
 <script lang="ts">
   import { onMount } from 'svelte'
   import {
-    listUsers, updateUser, deleteUser, resetPassword,
-    type AdminUser
+    listUsers, updateUser, deleteUser, resetPassword, getUnifiedEffectivePerms,
+    type AdminUser, type UnifiedEffectivePerms
   } from '$lib/api/admin'
   import {
     Pencil, Trash2, KeyRound, Check, X,
-    RefreshCw, Search, User, Eye, EyeOff
+    RefreshCw, Search, User, Eye, EyeOff, ShieldCheck, ChevronDown
   } from 'lucide-svelte'
 
   const ROLES = [
@@ -50,6 +50,12 @@
   let showPwdNew = $state(false)
   let showPwdConfirm = $state(false)
 
+  // ── Effective perms inline viewer ────────────────────────────────────────────
+  let permsUserId = $state<string | null>(null)
+  let permsData = $state<UnifiedEffectivePerms | null>(null)
+  let permsLoading = $state(false)
+  let permsError = $state('')
+
   const filtered = $derived(
     search.trim()
       ? users.filter(u =>
@@ -78,7 +84,7 @@
   function startEdit(u: AdminUser) {
     editingId = u.id; editName = u.name; editEmail = u.email
     editRole = u.role; editActive = u.isActive
-    pwdUserId = null
+    pwdUserId = null; permsUserId = null
   }
 
   async function doUpdate() {
@@ -109,7 +115,7 @@
   // ── Reset password ───────────────────────────────────────────────────────────
   function startResetPwd(u: AdminUser) {
     pwdUserId = u.id; pwdNew = ''; pwdConfirm = ''; pwdError = ''
-    editingId = null
+    editingId = null; permsUserId = null
   }
 
   async function doResetPwd() {
@@ -123,6 +129,21 @@
       pwdError = e?.message ?? 'Đổi mật khẩu thất bại'
     } finally {
       pwdSaving = false
+    }
+  }
+
+  // ── Effective perms ──────────────────────────────────────────────────────────
+  async function togglePerms(u: AdminUser) {
+    if (permsUserId === u.id) { permsUserId = null; permsData = null; return }
+    editingId = null; pwdUserId = null
+    permsUserId = u.id; permsData = null; permsLoading = true; permsError = ''
+    try {
+      const res = await getUnifiedEffectivePerms(u.id)
+      permsData = res.data
+    } catch (e: any) {
+      permsError = e?.message ?? 'Không thể tải quyền thực tế'
+    } finally {
+      permsLoading = false
     }
   }
 
@@ -174,13 +195,14 @@
             <th class="text-left px-4 py-2.5 text-xs text-slate-400 font-medium">Vai trò</th>
             <th class="text-left px-4 py-2.5 text-xs text-slate-400 font-medium">Trạng thái</th>
             <th class="text-left px-4 py-2.5 text-xs text-slate-400 font-medium">Đăng nhập cuối</th>
-            <th class="px-4 py-2.5 w-24"></th>
+            <th class="px-4 py-2.5 w-28"></th>
           </tr>
         </thead>
         <tbody>
           {#each filtered as u (u.id)}
             <tr class="border-b border-surface-3/50 last:border-0 transition-colors
-              {!u.isActive ? 'opacity-50' : 'hover:bg-surface-2/30'}">
+              {!u.isActive ? 'opacity-50' : 'hover:bg-surface-2/30'}
+              {permsUserId === u.id ? 'bg-violet-900/10' : ''}">
               <td class="px-4 py-3">
                 <div class="flex items-center gap-2.5">
                   <div class="w-8 h-8 rounded-full bg-surface-3 flex items-center justify-center flex-shrink-0">
@@ -209,6 +231,15 @@
               </td>
               <td class="px-4 py-3">
                 <div class="flex items-center gap-0.5 justify-end">
+                  <!-- View effective permissions -->
+                  <button
+                    class="p-1.5 rounded hover:bg-surface-3 transition-colors
+                      {permsUserId === u.id ? 'text-violet-400 bg-violet-900/20' : 'text-slate-500 hover:text-violet-400'}"
+                    title="Quyền thực tế"
+                    onclick={() => togglePerms(u)}
+                  >
+                    <ShieldCheck class="w-3.5 h-3.5" />
+                  </button>
                   <button
                     class="p-1.5 rounded hover:bg-surface-3 text-slate-500 hover:text-sky-400 transition-colors"
                     title="Đổi mật khẩu"
@@ -229,6 +260,78 @@
                 </div>
               </td>
             </tr>
+
+            <!-- Effective permissions row -->
+            {#if permsUserId === u.id}
+              <tr class="border-b border-surface-3/50 bg-violet-900/5">
+                <td colspan="5" class="px-4 py-4">
+                  <div class="flex items-center gap-2 mb-3">
+                    <ShieldCheck class="w-3.5 h-3.5 text-violet-400" />
+                    <p class="text-xs font-semibold text-violet-300">Quyền thực tế — {u.name}</p>
+                    <button class="ml-auto p-1 rounded hover:bg-surface-3 text-slate-500" onclick={() => { permsUserId = null; permsData = null }}>
+                      <X class="w-3 h-3" />
+                    </button>
+                  </div>
+
+                  {#if permsLoading}
+                    <div class="text-xs text-slate-500 py-2">Đang tải...</div>
+                  {:else if permsError}
+                    <p class="text-xs text-rose-400">{permsError}</p>
+                  {:else if permsData}
+                    <!-- Source breakdown -->
+                    <div class="mb-3 p-2.5 rounded-lg border border-surface-3 bg-surface-2/40 text-xs text-slate-400 space-y-1">
+                      <p>
+                        <span class="font-semibold text-slate-300">L1 — Role defaults:</span>
+                        {permsData.sources?.classic?.length ?? 0} quyền từ role
+                        <code class="bg-surface-3 px-1 rounded ml-1">{permsData.roleSlug ?? 'none'}</code>
+                      </p>
+                      <p>
+                        <span class="font-semibold text-emerald-400">L2 ALLOW:</span>
+                        {permsData.sources?.policyAllowed?.length ?? 0} quyền cộng thêm qua User/Group/OU
+                      </p>
+                      <p>
+                        <span class="font-semibold text-rose-400">L2 DENY:</span>
+                        {permsData.sources?.policyDenied?.length ?? 0} quyền bị thu hồi (luôn thắng ALLOW)
+                      </p>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                      <!-- ALLOWED -->
+                      <div>
+                        <p class="text-xs font-bold text-emerald-400 mb-2">
+                          ✓ ALLOWED ({permsData.allowed.length})
+                        </p>
+                        {#if permsData.allowed.length === 0}
+                          <p class="text-xs text-slate-500">Không có quyền nào.</p>
+                        {:else}
+                          <div class="flex flex-col gap-0.5 max-h-52 overflow-y-auto">
+                            {#each [...permsData.allowed].sort() as key}
+                              <code class="text-xs px-2 py-0.5 rounded bg-emerald-900/20 border border-emerald-700/30 text-emerald-300">{key}</code>
+                            {/each}
+                          </div>
+                        {/if}
+                      </div>
+
+                      <!-- DENIED -->
+                      <div>
+                        <p class="text-xs font-bold text-rose-400 mb-2">
+                          ✕ DENIED ({permsData.denied.length})
+                        </p>
+                        {#if permsData.denied.length === 0}
+                          <p class="text-xs text-slate-500">Không có quyền nào bị từ chối.</p>
+                        {:else}
+                          <div class="flex flex-col gap-0.5 max-h-52 overflow-y-auto">
+                            {#each [...permsData.denied].sort() as key}
+                              <code class="text-xs px-2 py-0.5 rounded bg-rose-900/20 border border-rose-700/30 text-rose-300">{key}</code>
+                            {/each}
+                          </div>
+                        {/if}
+                      </div>
+                    </div>
+                  {/if}
+                </td>
+              </tr>
+            {/if}
 
             <!-- Edit row -->
             {#if editingId === u.id}
