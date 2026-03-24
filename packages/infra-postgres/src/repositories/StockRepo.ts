@@ -56,7 +56,7 @@ const mapViewRow = (row: StockViewRow): StockViewRecord => ({
 
 function normalizePagination(filters: StockViewFilters): { page: number; limit: number; offset: number } {
     const page = Math.max(1, filters.page ?? 1)
-    const limit = Math.min(Math.max(1, filters.limit ?? 20), 100)
+    const limit = Math.min(Math.max(1, filters.limit ?? 50), 200)
     const offset = (page - 1) * limit
     return { page, limit, offset }
 }

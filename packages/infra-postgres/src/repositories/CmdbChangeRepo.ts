@@ -48,16 +48,16 @@ const mapRow = (row: ChangeRow): CmdbChangeRecord => ({
     impactSnapshot: row.impact_snapshot ?? null,
     implementationPlan: row.implementation_plan,
     rollbackPlan: row.rollback_plan,
-    plannedStartAt: row.planned_start_at,
-    plannedEndAt: row.planned_end_at,
+    plannedStartAt: row.planned_start_at ? row.planned_start_at.toISOString() : null,
+    plannedEndAt: row.planned_end_at ? row.planned_end_at.toISOString() : null,
     requestedBy: row.requested_by,
     approvedBy: row.approved_by,
     implementedBy: row.implemented_by,
-    implementedAt: row.implemented_at,
-    closedAt: row.closed_at,
+    implementedAt: row.implemented_at ? row.implemented_at.toISOString() : null,
+    closedAt: row.closed_at ? row.closed_at.toISOString() : null,
     metadata: row.metadata,
-    createdAt: row.created_at,
-    updatedAt: row.updated_at
+    createdAt: row.created_at.toISOString(),
+    updatedAt: row.updated_at.toISOString()
 })
 
 function normalizePagination(filters: CmdbChangeListFilters): { page: number; limit: number; offset: number } {

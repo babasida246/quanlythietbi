@@ -1,7 +1,7 @@
 {
   "admin": {
     "title": "Admin Console",
-    "subtitle": "Manage OU directory, policies and audit logs",
+    "subtitle": "Manage users, OU directory, policies and audit logs",
     "sectionLabel": "Section",
     "sections": {
       "quickWins": "Quick Wins",

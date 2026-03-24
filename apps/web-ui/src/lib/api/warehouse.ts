@@ -1,13 +1,15 @@
 import { API_BASE, apiJson, apiJsonData } from './httpClient'
 import { buildQuery, getAssetHeaders, type Asset } from './assets'
+import type {
+    StockDocType, StockDocStatus, MovementType, RepairStatus, RepairSeverity, RepairType,
+    WarehouseRecord, StockDocumentRecord, StockDocumentLineRecord, StockDocumentLineInput, StockDocumentDetail,
+    RepairOrderRecord, RepairOrderPartRecord, RepairOrderDetail, RepairOrderSummary
+} from '@qltb/contracts'
 
-export type WarehouseRecord = {
-    id: string
-    code: string
-    name: string
-    locationId?: string | null
-    createdAt: string
-}
+export type { StockDocType, StockDocStatus, MovementType, RepairStatus, RepairSeverity, RepairType }
+export type { WarehouseRecord, StockDocumentRecord, StockDocumentLineRecord, StockDocumentDetail }
+export type { RepairOrderRecord, RepairOrderPartRecord, RepairOrderDetail, RepairOrderSummary }
+export type StockDocumentLine = StockDocumentLineInput
 
 export type SparePartRecord = {
     id: string
@@ -100,50 +102,12 @@ export type ValuationResult = {
     }>
 }
 
-export type StockDocumentRecord = {
-    id: string
-    docType: 'receipt' | 'issue' | 'adjust' | 'transfer'
-    code: string
-    status: 'draft' | 'submitted' | 'approved' | 'posted' | 'canceled'
-    warehouseId?: string | null
-    targetWarehouseId?: string | null
-    docDate: string
-    refType?: string | null
-    refId?: string | null
-    note?: string | null
-    supplier?: string | null
-    submitterName?: string | null
-    receiverName?: string | null
-    department?: string | null
-    createdBy?: string | null
-    approvedBy?: string | null
-    correlationId?: string | null
-    createdAt: string
-    updatedAt: string
-}
-
-export type StockDocumentLine = {
-    id?: string
-    documentId?: string
-    partId: string
-    qty: number
-    unitCost?: number | null
-    serialNo?: string | null
-    note?: string | null
-    adjustDirection?: 'plus' | 'minus' | null
-    specFields?: Record<string, unknown> | null
-}
-
-export type StockDocumentDetail = {
-    document: StockDocumentRecord
-    lines: StockDocumentLine[]
-}
 
 export type StockMovementRecord = {
     id: string
     warehouseId: string
     partId: string
-    movementType: 'in' | 'out' | 'adjust_in' | 'adjust_out' | 'transfer_in' | 'transfer_out' | 'reserve' | 'release'
+    movementType: MovementType
     qty: number
     unitCost?: number | null
     refType?: string | null
@@ -153,51 +117,6 @@ export type StockMovementRecord = {
     createdAt: string
 }
 
-export type RepairOrderRecord = {
-    id: string
-    assetId: string
-    ciId?: string | null
-    code: string
-    title: string
-    description?: string | null
-    severity: 'low' | 'medium' | 'high' | 'critical'
-    status: 'open' | 'diagnosing' | 'waiting_parts' | 'repaired' | 'closed' | 'canceled'
-    openedAt: string
-    closedAt?: string | null
-    diagnosis?: string | null
-    resolution?: string | null
-    repairType: 'internal' | 'vendor'
-    technicianName?: string | null
-    vendorId?: string | null
-    laborCost?: number | null
-    partsCost?: number | null
-    downtimeMinutes?: number | null
-    createdBy?: string | null
-    correlationId?: string | null
-    createdAt: string
-    updatedAt: string
-}
-
-export type RepairOrderPartRecord = {
-    id: string
-    repairOrderId: string
-    partId?: string | null
-    partName?: string | null
-    warehouseId?: string | null
-    action: 'replace' | 'add' | 'remove' | 'upgrade'
-    qty: number
-    unitCost?: number | null
-    serialNo?: string | null
-    note?: string | null
-    stockDocumentId?: string | null
-    createdAt: string
-}
-
-export type RepairOrderDetail = {
-    order: RepairOrderRecord
-    parts: RepairOrderPartRecord[]
-}
-
 export type RepairOrderEvent = {
     id: string
     eventType: string
@@ -205,21 +124,6 @@ export type RepairOrderEvent = {
     createdAt: string
 }
 
-export type RepairOrderSummary = {
-    total: number
-    activeCount: number
-    closedCount: number
-    canceledCount: number
-    totalLaborCost: number
-    totalPartsCost: number
-    totalCost: number
-    totalDowntimeMinutes: number
-    avgDowntimeMinutes: number | null
-    avgResolutionHours: number | null
-    byStatus: Record<RepairOrderRecord['status'], number>
-    bySeverity: Record<RepairOrderRecord['severity'], number>
-    byType: Record<RepairOrderRecord['repairType'], number>
-}
 
 export type StockDocumentCreateInput = {
     docType: StockDocumentRecord['docType']
@@ -234,6 +138,8 @@ export type StockDocumentCreateInput = {
     submitterName?: string | null
     receiverName?: string | null
     department?: string | null
+    /** Destination location for issue documents */
+    locationId?: string | null
     lines: StockDocumentLine[]
 }
 
@@ -246,7 +152,18 @@ export type StockDocumentUpdateInput = {
     submitterName?: string | null
     receiverName?: string | null
     department?: string | null
+    /** Destination location for issue documents */
+    locationId?: string | null
     lines: StockDocumentLine[]
+}
+
+/** Lightweight asset record used in the issue-line picker */
+export type WarehouseAssetOption = {
+    id: string
+    assetCode: string
+    serialNo: string | null
+    modelName: string | null
+    categoryName: string | null
 }
 
 type ApiResponse<T> = { data: T; meta?: { total?: number; page?: number; limit?: number } }
@@ -288,6 +205,20 @@ export async function listWarehouseAssets(
     return apiJson<ApiResponse<Asset[]>>(`${API_BASE}/v1/warehouses/${warehouseId}/assets${query}`, {
         headers: getAssetHeaders()
     })
+}
+
+/** List in-stock assets at a specific warehouse (for issue-line asset picker) */
+export async function listStockAssets(
+    warehouseId: string,
+    q?: string
+): Promise<WarehouseAssetOption[]> {
+    const params: Record<string, string> = { warehouseId }
+    if (q) params.q = q
+    const query = buildQuery(params)
+    const res = await apiJson<ApiResponse<WarehouseAssetOption[]>>(`${API_BASE}/v1/stock/assets${query}`, {
+        headers: getAssetHeaders()
+    })
+    return res.data
 }
 
 export async function listSpareParts(params: { q?: string; page?: number; limit?: number } = {}): Promise<ApiResponse<SparePartRecord[]>> {

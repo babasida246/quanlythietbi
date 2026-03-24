@@ -10,6 +10,7 @@ declare module 'fastify' {
             email?: string
             status?: string
             permissions?: string[]
+            deniedPermissions?: string[]
         }
         userContext?: {
             userId: string

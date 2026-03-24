@@ -16,7 +16,7 @@ import type {
 import type { Queryable } from './types.js'
 
 type VendorRow = { id: string; name: string; tax_code: string | null; phone: string | null; email: string | null; address: string | null; created_at: Date }
-type LocationRow = { id: string; name: string; parent_id: string | null; path: string; created_at: Date }
+type LocationRow = { id: string; name: string; parent_id: string | null; path: string; organization_id: string | null; organization_name: string | null; created_at: Date }
 type CategoryRow = { id: string; name: string; created_at: Date }
 type ModelRow = {
     id: string
@@ -55,6 +55,8 @@ const mapLocation = (row: LocationRow): LocationRecord => ({
     name: row.name,
     parentId: row.parent_id,
     path: row.path,
+    organizationId: row.organization_id,
+    organizationName: row.organization_name,
     createdAt: row.created_at
 })
 
@@ -84,7 +86,13 @@ export class CatalogRepo implements ICatalogRepo {
     }
 
     async listLocations(): Promise<LocationRecord[]> {
-        const result = await this.pg.query<LocationRow>('SELECT id, name, parent_id, path, created_at FROM locations ORDER BY path ASC')
+        const result = await this.pg.query<LocationRow>(`
+            SELECT l.id, l.name, l.parent_id, l.path, l.organization_id, l.created_at,
+                   o.name AS organization_name
+            FROM locations l
+            LEFT JOIN organizations o ON o.id = l.organization_id
+            ORDER BY l.path ASC
+        `)
         return result.rows.map(mapLocation)
     }
 
@@ -126,7 +134,13 @@ export class CatalogRepo implements ICatalogRepo {
     }
 
     async getLocationById(id: string): Promise<LocationRecord | null> {
-        const result = await this.pg.query<LocationRow>('SELECT id, name, parent_id, path, created_at FROM locations WHERE id = $1', [id])
+        const result = await this.pg.query<LocationRow>(`
+            SELECT l.id, l.name, l.parent_id, l.path, l.organization_id, l.created_at,
+                   o.name AS organization_name
+            FROM locations l
+            LEFT JOIN organizations o ON o.id = l.organization_id
+            WHERE l.id = $1
+        `, [id])
         return result.rows[0] ? mapLocation(result.rows[0]) : null
     }
 
@@ -234,28 +248,26 @@ export class CatalogRepo implements ICatalogRepo {
     }
 
     async createLocation(input: LocationCreateInput): Promise<LocationRecord> {
-        const result = await this.pg.query<LocationRow>(
-            'INSERT INTO locations (name, parent_id, path) VALUES ($1,$2,$3) RETURNING id, name, parent_id, path, created_at',
-            [input.name, input.parentId ?? null, input.path ?? '/']
+        const result = await this.pg.query<{ id: string }>(
+            'INSERT INTO locations (name, parent_id, path, organization_id) VALUES ($1,$2,$3,$4) RETURNING id',
+            [input.name, input.parentId ?? null, input.path ?? '/', input.organizationId ?? null]
         )
-        return mapLocation(result.rows[0])
+        return (await this.getLocationById(result.rows[0].id))!
     }
 
     async updateLocation(id: string, patch: LocationUpdatePatch): Promise<LocationRecord | null> {
         const updates = buildUpdates(patch as Record<string, unknown>, [
             ['name', 'name'],
             ['parentId', 'parent_id'],
-            ['path', 'path']
+            ['path', 'path'],
+            ['organizationId', 'organization_id']
         ])
-        if (updates.length === 0) {
-            const existing = await this.pg.query<LocationRow>('SELECT id, name, parent_id, path, created_at FROM locations WHERE id = $1', [id])
-            return existing.rows[0] ? mapLocation(existing.rows[0]) : null
-        }
+        if (updates.length === 0) return this.getLocationById(id)
         const setClause = updates.map((update, index) => `${update.column} = $${index + 1}`).join(', ')
         const params = updates.map(update => update.value)
         params.push(id)
-        const result = await this.pg.query<LocationRow>(`UPDATE locations SET ${setClause} WHERE id = $${params.length} RETURNING id, name, parent_id, path, created_at`, params)
-        return result.rows[0] ? mapLocation(result.rows[0]) : null
+        await this.pg.query(`UPDATE locations SET ${setClause} WHERE id = $${params.length}`, params)
+        return this.getLocationById(id)
     }
 
     async deleteLocation(id: string): Promise<boolean> {

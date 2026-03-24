@@ -74,12 +74,12 @@
   <div class="bg-surface-2 border border-slate-700 rounded-lg p-4 space-y-4">
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <div>
-        <label class="label-base mb-2">{$isLoading ? 'Location name' : $_('assets.locationName')}</label>
-        <input class="input-base" bind:value={form.name} placeholder="HQ / Floor 2" />
+        <label for="location-name" class="label-base mb-2">{$isLoading ? 'Location name' : $_('assets.locationName')}</label>
+        <input id="location-name" class="input-base" bind:value={form.name} placeholder="HQ / Floor 2" />
       </div>
       <div>
-        <label class="label-base mb-2">{$isLoading ? 'Parent location' : $_('assets.parentLocation')}</label>
-        <select class="select-base" bind:value={form.parentId}>
+        <label for="location-parent" class="label-base mb-2">{$isLoading ? 'Parent location' : $_('assets.parentLocation')}</label>
+        <select id="location-parent" class="select-base" bind:value={form.parentId}>
           <option value="">{$isLoading ? 'No parent' : $_('assets.noParent')}</option>
           {#each safeLocations as location}
             <option value={location.id}>{location.name}</option>

@@ -2,7 +2,7 @@
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
   import { page } from '$app/state';
-  import { Plus, RefreshCw, Edit, Trash2 } from 'lucide-svelte';
+  import { Plus, RefreshCw, Edit, Trash2, FileCode } from 'lucide-svelte';
   import { Button } from '$lib/components/ui';
   import Skeleton from '$lib/components/Skeleton.svelte';
   import { z } from 'zod';
@@ -36,10 +36,11 @@
   import { Table, TableHeader, TableHeaderCell, TableRow, TableCell } from '$lib/components/ui';
   import { Tabs, TabsList, TabsTrigger } from '$lib/components/ui';
   import CmdbServicesPanel from '$lib/cmdb/CmdbServicesPanel.svelte';
+  import CmdbConfigFilesPanel from '$lib/cmdb/CmdbConfigFilesPanel.svelte';
   import TopologyGraph from '$lib/cmdb/TopologyGraph.svelte';
   import { _, isLoading } from '$lib/i18n';
 
-  const allTabs = ['types', 'cis', 'relationships', 'services', 'topology'] as const;
+  const allTabs = ['types', 'cis', 'relationships', 'services', 'config-files', 'topology'] as const;
   type CmdbTab = (typeof allTabs)[number];
 
   const tabLabels: Record<CmdbTab, string> = $derived({
@@ -47,6 +48,7 @@
     cis: $isLoading ? 'CIs' : $_('cmdb.tabs.ci'),
     relationships: $isLoading ? 'Relationships' : $_('cmdb.tabs.rel'),
     services: $isLoading ? 'Services' : $_('cmdb.tabs.svc'),
+    'config-files': $isLoading ? 'Config Files' : $_('cmdb.configFiles.tab'),
     topology: $isLoading ? 'Topology' : $_('cmdb.tabs.topology')
   });
 
@@ -384,6 +386,8 @@
 
   {#if activeTab === 'services'}
     <CmdbServicesPanel />
+  {:else if activeTab === 'config-files'}
+    <CmdbConfigFilesPanel />
   {:else if activeTab === 'topology'}
     <TopologyGraph depth={2} direction="both" />
   {:else}
@@ -440,6 +444,12 @@
               {/if}
               <TableCell align="right">
                 <div class="cell-actions">
+                  {#if activeTab === 'cis'}
+                    <Button size="sm" variant="ghost" title={$isLoading ? 'Config Files' : $_('cmdb.configFiles.tab')}
+                      onclick={() => goto(`/cmdb/cis/${getRowId(rowAny)}?tab=config-files`)}>
+                      {#snippet leftIcon()}<FileCode class="h-3 w-3" />{/snippet}
+                    </Button>
+                  {/if}
                   <Button size="sm" variant="secondary" data-testid={`row-edit-${getRowId(rowAny)}`}
                     onclick={() => { editingItem = rowAny as Record<string, unknown>; editOpen = true; }}>
                     {#snippet leftIcon()}<Edit class="h-3 w-3" />{/snippet}

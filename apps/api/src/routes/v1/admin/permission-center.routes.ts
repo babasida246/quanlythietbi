@@ -7,6 +7,7 @@
 
 import type { FastifyPluginAsync, FastifyRequest } from 'fastify'
 import type { PgClient } from '@qltb/infra-postgres'
+import type { PoolClient } from 'pg'
 import {
     PgOrgUnitRepo,
     PgRbacAclRepo,
@@ -21,6 +22,7 @@ import { z } from 'zod'
 import { ForbiddenError, NotFoundError } from '../../../shared/errors/http-errors.js'
 import { createSuccessResponse } from '../../../shared/utils/response.utils.js'
 import { requirePermission } from '../assets/assets.helpers.js'
+import { invalidateAllowanceCache, invalidateDenialCache, invalidatePermissionCache } from '../../../shared/security/jwt-auth.js'
 import { rbacAdRoutes } from './rbac-ad.routes.js'
 
 interface PermissionCenterRoutesOptions {
@@ -83,7 +85,24 @@ export const permissionCenterRoutes: FastifyPluginAsync<PermissionCenterRoutesOp
             return row.rows[0].role ?? null
         },
         getClassicRolePermissions: async (roleSlug: string) => {
-            const result = await query<{ key: string }>(
+            // Policy Library is authoritative (migration 060+): read from policy_permissions.
+            // Falls back to role_permissions only if no policy with matching slug exists.
+            const result = await query<{ key: string | null; policy_exists: boolean }>(
+                `SELECT p.name AS key,
+                        (SELECT EXISTS(SELECT 1 FROM policies WHERE slug = $1)) AS policy_exists
+                 FROM policies pol
+                 LEFT JOIN policy_permissions pp ON pp.policy_id = pol.id
+                 LEFT JOIN permissions p ON p.id = pp.permission_id
+                 WHERE pol.slug = $1`,
+                [roleSlug]
+            )
+            if (result.rows.length > 0 && result.rows[0].policy_exists) {
+                return result.rows
+                    .filter((r): r is { key: string; policy_exists: boolean } => r.key !== null)
+                    .map(r => ({ key: r.key }))
+            }
+            // Fallback: classic role_permissions
+            const roleResult = await query<{ key: string }>(
                 `SELECT p.name AS key
                  FROM roles r
                  JOIN role_permissions rp ON rp.role_id = r.id
@@ -91,7 +110,7 @@ export const permissionCenterRoutes: FastifyPluginAsync<PermissionCenterRoutesOp
                  WHERE r.slug = $1`,
                 [roleSlug]
             )
-            return result.rows
+            return roleResult.rows
         },
         // Resolve unified policy permissions for a system user:
         //   - Direct USER assignments
@@ -212,8 +231,11 @@ export const permissionCenterRoutes: FastifyPluginAsync<PermissionCenterRoutesOp
     })
 
     fastify.get('/effective/system-users/:id', async (request, reply) => {
-        await requirePermission(request, 'admin:roles')
         const id = (request.params as { id: string }).id
+        // Allow self-lookup without admin:roles; viewing other users' perms requires admin:roles
+        if (request.user?.id !== id) {
+            await requirePermission(request, 'admin:roles')
+        }
         const result = await permissionCenterService.getEffectiveForSystemUser(id)
         return reply.send({ data: result })
     })
@@ -310,6 +332,7 @@ export const permissionCenterRoutes: FastifyPluginAsync<PermissionCenterRoutesOp
             resource: 'role_permissions',
             details: { roleSlug: slug, permissionCount: body.permissionIds.length },
         })
+        invalidatePermissionCache(slug) // flush cached role perms so auth picks up new set
 
         return reply.send({ data: { success: true, roleSlug: slug, permissionCount: body.permissionIds.length } })
     })
@@ -683,25 +706,25 @@ export const permissionCenterRoutes: FastifyPluginAsync<PermissionCenterRoutesOp
         const check = await query<{ id: string }>(`SELECT id FROM policies WHERE id = $1`, [id])
         if (check.rowCount === 0) throw new NotFoundError('Policy not found')
 
-        await pgClient.query('BEGIN')
-        try {
-            await pgClient.query(`DELETE FROM policy_permissions WHERE policy_id = $1`, [id])
+        // Use pgClient.transaction() — checkouts a single PoolClient, ensuring
+        // BEGIN/DELETE/INSERT/COMMIT all run on the same connection (atomic).
+        await pgClient.transaction(async (tx: PoolClient) => {
+            await tx.query(`DELETE FROM policy_permissions WHERE policy_id = $1`, [id])
             if (body.permissionIds.length > 0) {
                 const vals = body.permissionIds.map((_, i) => `($1, $${i + 2})`).join(', ')
-                await pgClient.query(
+                await tx.query(
                     `INSERT INTO policy_permissions (policy_id, permission_id) VALUES ${vals} ON CONFLICT DO NOTHING`,
                     [id, ...body.permissionIds]
                 )
             }
-            await pgClient.query('COMMIT')
-        } catch (err) {
-            await pgClient.query('ROLLBACK')
-            throw err
-        }
+        })
         await appendAuditLog(pgClient, request, {
             actorUserId: ctx.userId, action: 'permissions.policy.permissions_updated',
             resource: 'policy_permissions', details: { policyId: id, permissionCount: body.permissionIds.length },
         })
+        // Changing policy permissions affects all users assigned to this policy — flush all caches
+        invalidateDenialCache()
+        invalidatePermissionCache() // flush role permission cache so auth middleware re-reads policy_permissions
         return reply.send({ data: { success: true, permissionCount: body.permissionIds.length } })
     })
 
@@ -769,6 +792,15 @@ export const permissionCenterRoutes: FastifyPluginAsync<PermissionCenterRoutesOp
             actorUserId: ctx.userId, action: 'permissions.policy.assignment_added',
             resource: 'policy_assignments', details: { policyId: id, ...body },
         })
+        // Invalidate caches so changes take effect on the next request
+        if (body.principalType === 'USER') {
+            invalidateDenialCache(body.principalId)
+            invalidateAllowanceCache(body.principalId)
+        } else {
+            // GROUP/OU — flush all, affected users unknown
+            invalidateDenialCache()
+            invalidateAllowanceCache()
+        }
         return reply.status(201).send({
             data: { id: result.rows[0].id, createdAt: result.rows[0].created_at.toISOString() },
         })
@@ -778,13 +810,25 @@ export const permissionCenterRoutes: FastifyPluginAsync<PermissionCenterRoutesOp
     fastify.delete('/policies/:id/assignments/:assignmentId', async (request, reply) => {
         const ctx = await requirePermission(request, 'admin:roles')
         const { id, assignmentId } = request.params as { id: string; assignmentId: string }
-        const check = await query<{ id: string }>(`SELECT id FROM policy_assignments WHERE id = $1 AND policy_id = $2`, [assignmentId, id])
+        const check = await query<{ id: string; principal_type: string; principal_id: string }>(
+            `SELECT id, principal_type, principal_id FROM policy_assignments WHERE id = $1 AND policy_id = $2`,
+            [assignmentId, id]
+        )
         if (check.rowCount === 0) throw new NotFoundError('Assignment not found')
         await pgClient.query(`DELETE FROM policy_assignments WHERE id = $1`, [assignmentId])
         await appendAuditLog(pgClient, request, {
             actorUserId: ctx.userId, action: 'permissions.policy.assignment_removed',
             resource: 'policy_assignments', details: { policyId: id, assignmentId },
         })
+        // Invalidate caches for affected user (or all if GROUP/OU assignment)
+        const deleted = check.rows[0]
+        if (deleted.principal_type === 'USER') {
+            invalidateDenialCache(deleted.principal_id)
+            invalidateAllowanceCache(deleted.principal_id)
+        } else {
+            invalidateDenialCache()
+            invalidateAllowanceCache()
+        }
         return reply.send({ data: { success: true } })
     })
 
@@ -830,6 +874,9 @@ export const permissionCenterRoutes: FastifyPluginAsync<PermissionCenterRoutesOp
             actorUserId: ctx.userId, action: 'permissions.policy.bulk_ou_assigned',
             resource: 'policy_assignments', details: { policyId: id, ouId: body.ouId, effect: body.effect, inserted },
         })
+        // Flush all per-user caches — affected users span an entire OU subtree
+        invalidateDenialCache()
+        invalidateAllowanceCache()
         return reply.send({ data: { success: true, inserted } })
     })
 }

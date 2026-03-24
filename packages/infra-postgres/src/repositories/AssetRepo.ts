@@ -8,11 +8,11 @@ import type {
     AssetBulkUpsertResult,
     IAssetRepo
 } from '@qltb/contracts'
-import type { PgClient } from '../PgClient.js'
+import type { Queryable } from './types.js'
 import { BASE_SELECT, buildSearchConditions, mapAssetRow, normalizePagination, resolveSort, type AssetRow } from './asset-queries.js'
 
 export class AssetRepo implements IAssetRepo {
-    constructor(private pg: PgClient) { }
+    constructor(private pg: Queryable) { }
 
     async create(asset: AssetCreateInput): Promise<AssetRecord> {
         const result = await this.pg.query<AssetRow>(
@@ -32,9 +32,10 @@ export class AssetRepo implements IAssetRepo {
                 purchase_date,
                 warranty_end,
                 vendor_id,
-                notes
+                notes,
+                source_doc_line_id
             ) VALUES (
-                $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16
+                $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17
             )
             RETURNING *`,
             [
@@ -53,7 +54,8 @@ export class AssetRepo implements IAssetRepo {
                 asset.purchaseDate ?? null,
                 asset.warrantyEnd ?? null,
                 asset.vendorId ?? null,
-                asset.notes ?? null
+                asset.notes ?? null,
+                asset.sourceDocLineId ?? null
             ]
         )
 
@@ -134,20 +136,21 @@ export class AssetRepo implements IAssetRepo {
     }
 
     async bulkUpsert(items: AssetBulkUpsertInput[]): Promise<AssetBulkUpsertResult> {
-        return await this.pg.transaction(async (client) => {
+        await this.pg.query('BEGIN')
+        try {
             let created = 0
             let updated = 0
             const records: AssetRecord[] = []
 
             for (const item of items) {
-                const existing = await client.query<{ id: string }>(
+                const existing = await this.pg.query<{ id: string }>(
                     'SELECT id FROM assets WHERE asset_code = $1',
                     [item.assetCode]
                 )
 
                 if (existing.rows.length > 0) {
                     const id = existing.rows[0]?.id as string
-                    const updateResult = await client.query<AssetRow>(
+                    const updateResult = await this.pg.query<AssetRow>(
                         `UPDATE assets
                          SET asset_code = $1,
                              model_id = $2,
@@ -189,7 +192,7 @@ export class AssetRepo implements IAssetRepo {
                     records.push(mapAssetRow(updateResult.rows[0]))
                     updated += 1
                 } else {
-                    const insertResult = await client.query<AssetRow>(
+                    const insertResult = await this.pg.query<AssetRow>(
                         `INSERT INTO assets (
                             asset_code,
                             model_id,
@@ -233,8 +236,12 @@ export class AssetRepo implements IAssetRepo {
                 }
             }
 
+            await this.pg.query('COMMIT')
             return { created, updated, items: records }
-        })
+        } catch (e) {
+            await this.pg.query('ROLLBACK')
+            throw e
+        }
     }
 
     async search(filters: AssetSearchFilters): Promise<AssetSearchResult> {

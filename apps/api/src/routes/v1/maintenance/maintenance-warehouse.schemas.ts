@@ -53,7 +53,7 @@ export const stockViewSchema = z.object({
     q: z.string().optional(),
     belowMin: z.coerce.boolean().optional(),
     page: z.coerce.number().int().min(1).optional(),
-    limit: z.coerce.number().int().min(1).max(100).optional()
+    limit: z.coerce.number().int().min(1).max(200).optional()
 })
 
 export const stockDocumentIdParamsSchema = z.object({
@@ -61,13 +61,30 @@ export const stockDocumentIdParamsSchema = z.object({
 })
 
 export const stockDocumentLineSchema = z.object({
-    partId: z.string().uuid(),
+    lineType: z.enum(['spare_part', 'asset']).default('spare_part'),
+    /** Required for spare_part lines */
+    partId: z.string().uuid().optional(),
     qty: z.coerce.number().int().min(1),
     unitCost: z.coerce.number().min(0).optional(),
     serialNo: z.string().optional(),
     note: z.string().optional(),
     adjustDirection: z.enum(['plus', 'minus']).optional(),
-    specFields: z.record(z.unknown()).nullable().optional()
+    specFields: z.record(z.unknown()).nullable().optional(),
+    /** Asset lines (receipt): model to create from */
+    assetModelId: z.string().uuid().optional(),
+    assetCategoryId: z.string().uuid().optional(),
+    assetName: z.string().max(255).optional(),
+    /** Optional explicit code; auto-generated if omitted */
+    assetCode: z.string().max(100).optional(),
+    /** Asset lines (issue): the specific asset to deploy */
+    assetId: z.string().uuid().optional()
+}).superRefine((val, ctx) => {
+    if (val.lineType === 'spare_part' && !val.partId) {
+        ctx.addIssue({ code: 'custom', path: ['partId'], message: 'partId is required for spare_part lines' })
+    }
+    if (val.lineType === 'asset' && !val.assetModelId && !val.assetId) {
+        ctx.addIssue({ code: 'custom', path: ['assetModelId'], message: 'assetModelId (receipt) or assetId (issue) is required for asset lines' })
+    }
 })
 
 export const stockDocumentCreateSchema = z.object({
@@ -83,6 +100,8 @@ export const stockDocumentCreateSchema = z.object({
     submitterName: z.string().max(255).nullable().optional(),
     receiverName: z.string().max(255).nullable().optional(),
     department: z.string().max(255).nullable().optional(),
+    /** Destination location for issue documents */
+    locationId: z.string().uuid().nullable().optional(),
     lines: z.array(stockDocumentLineSchema).min(1, 'At least one line is required')
 })
 
@@ -95,6 +114,8 @@ export const stockDocumentUpdateSchema = z.object({
     submitterName: z.string().max(255).nullable().optional(),
     receiverName: z.string().max(255).nullable().optional(),
     department: z.string().max(255).nullable().optional(),
+    /** Destination location for issue documents */
+    locationId: z.string().uuid().nullable().optional(),
     lines: z.array(stockDocumentLineSchema).min(1, 'At least one line is required')
 })
 

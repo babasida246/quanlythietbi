@@ -683,6 +683,7 @@
     "vendor": "Nhà cung cấp",
     "model": "Model",
     "location": "Vị trí",
+    "organization": "Tổ chức / Đơn vị",
     "warehouse": "Kho",
     "status": "Trạng thái",
     "specs": "Thông số",
@@ -810,6 +811,8 @@
       "corrective": "Sửa chữa khắc phục",
       "preventive": "Sửa chữa phòng ngừa",
       "emergency": "Sửa chữa khẩn cấp",
+      "internal": "Nội bộ",
+      "vendor": "Nhà cung cấp",
       "downtime": "Thời gian ngừng",
       "diagnosis": "Chẩn đoán",
       "resolution": "Hướng xử lý",
@@ -871,7 +874,9 @@
       "vendorName": "Dell",
       "assigneeId": "ID người được gán",
       "assigneeName": "Tên người được gán",
-      "note": "Ghi chú"
+      "note": "Ghi chú",
+      "noLocation": "— Không có vị trí —",
+      "noOrganization": "— Không có đơn vị —"
     },
     "errors": {
       "loadCatalogsFailed": "Tải danh mục thất bại",
@@ -1517,6 +1522,10 @@
       "interWarehouse": "Chuyển kho"
     },
     "toast": {
+      "submittedDoc": "Đã trình duyệt phiếu",
+      "approvedDoc": "Đã duyệt phiếu",
+      "postedDoc": "Đã ghi sổ phiếu",
+      "cancelledDoc": "Đã hủy phiếu",
       "submitted": "Đã trình duyệt {code}",
       "submitFailed": "Trình duyệt thất bại",
       "approved": "Đã duyệt {code}",
@@ -1551,6 +1560,7 @@
       "actions": "THAO TÁC"
     },
     "action": {
+      "cancel": "Hủy",
       "submit": "Gửi duyệt",
       "approve": "Duyệt",
       "post": "Ghi sổ",
@@ -1579,7 +1589,33 @@
       "section": "Bộ phận",
       "performer": "Người thực hiện",
       "note": "Ghi chú",
-      "generalNote": "Ghi chú chung"
+      "generalNote": "Ghi chú chung",
+      "receivingLocation": "Vị trí nhận",
+      "noLocation": "-- Không chỉ định vị trí --",
+      "warehouse": "Kho",
+      "sourceWarehouse": "Kho nguồn",
+      "destWarehouse": "Kho đích",
+      "selectWarehouse": "-- Chọn kho --",
+      "selectDestWarehouse": "-- Chọn kho đích --",
+      "submitterPlaceholder": "Họ tên người nhập...",
+      "receiverPlaceholder": "Họ tên người nhận...",
+      "departmentPlaceholder": "Phòng ban...",
+      "executor": "Người thực hiện",
+      "executorPlaceholder": "Họ tên người thực hiện...",
+      "supplierPlaceholder": "Tên nhà cung cấp..."
+    },
+    "errors": {
+      "loadCatalogsFailed": "Không tải được dữ liệu danh mục.",
+      "missingWarehouse": "Vui lòng chọn kho.",
+      "atLeastOneLine": "Cần ít nhất một dòng hàng hóa.",
+      "missingCodeOrPart": "Vui lòng chọn vật tư cho tất cả các dòng linh kiện.",
+      "missingAssetId": "Vui lòng chọn thiết bị cho tất cả các dòng thiết bị (phiếu xuất).",
+      "missingAssetModel": "Vui lòng chọn model cho tất cả các dòng thiết bị (phiếu nhập).",
+      "createDocumentFailed": "Tạo phiếu thất bại.",
+      "postFailed": "Ghi sổ thất bại",
+      "cancelFailed": "Hủy thất bại",
+      "submitFailed": "Trình duyệt thất bại",
+      "approveFailed": "Duyệt thất bại"
     },
     "placeholder": {
       "selectWarehouse": "-- Chọn kho --",
@@ -1594,6 +1630,7 @@
       "generalNote": "Nội dung / diễn giải cho phiếu..."
     },
     "linesHeading": "Chi tiết hàng hóa / vật tư",
+    "linesCount": "dòng",
     "createdAtLabel": "Tạo:",
     "pagination": "Trang {page} / {totalPages} · {total} chứng từ",
     "purchasePlan": {
@@ -4710,7 +4747,8 @@
       "vendors": "Nhà cung cấp",
       "models": "Mẫu mã",
       "locations": "Vị trí",
-      "statuses": "Trạng thái"
+      "statuses": "Trạng thái",
+      "organizations": "Tổ chức"
     },
     "validation": {
       "categoryNameRequired": "Tên danh mục là bắt buộc",
@@ -4719,13 +4757,15 @@
       "categoryRequired": "Danh mục là bắt buộc",
       "locationNameRequired": "Tên vị trí là bắt buộc",
       "statusNameRequired": "Tên trạng thái là bắt buộc",
-      "codeRequired": "Code là bắt buộc"
+      "codeRequired": "Code là bắt buộc",
+      "orgNameRequired": "Tên tổ chức là bắt buộc"
     },
     "createTitle": "Tạo mới {entity}",
     "editTitle": "Chỉnh sửa {entity}",
     "header": {
       "categoryName": "Tên danh mục",
-      "locationName": "Tên vị trí"
+      "locationName": "Tên vị trí",
+      "organization": "Đơn vị (OU)"
     },
     "field": {
       "categoryName": "Tên danh mục",
@@ -4736,6 +4776,7 @@
       "vendor": "Nhà cung cấp",
       "locationName": "Tên vị trí",
       "parentLocation": "Vị trí cha",
+      "locationOrganization": "Thuộc đơn vị (OU)",
       "statusName": "Tên trạng thái",
       "statusCode": "Mã trạng thái",
       "isTerminal": "Trạng thái kết thúc",
@@ -4745,16 +4786,18 @@
       "noParentCategory": "Không có danh mục cha",
       "selectCategory": "Chọn danh mục",
       "selectVendor": "Chọn nhà cung cấp",
-      "noParentLocation": "Không có vị trí cha"
+      "noParentLocation": "Không có vị trí cha",
+      "noOrganization": "— Không thuộc đơn vị nào —"
     }
   },
   "stockDoc": {
     "addLine": "+ Thêm dòng",
     "lineCount": "{count} dòng",
     "header": {
+      "lineType": "Loại",
       "item": "Vật tư / Hàng hóa",
       "partName": "Vật tư / Hàng hóa",
-      "category": "Loại",
+      "category": "Danh mục",
       "unit": "ĐVT",
       "direction": "Hướng",
       "quantity": "Số lượng",
@@ -4774,7 +4817,15 @@
     "adjustPlus": "+ Tăng",
     "adjustMinus": "− Giảm",
     "specFromCatalog": "Thông số kỹ thuật (từ danh mục)",
-    "total": "Tổng cộng ({count} dòng):"
+    "total": "Tổng cộng ({count} dòng):",
+    "addAssetLine": "+ Thêm thiết bị",
+    "lineTypeSparePart": "Linh kiện",
+    "lineTypeAsset": "Thiết bị",
+    "selectAsset": "Chọn thiết bị",
+    "selectModel": "Chọn model",
+    "noAssetsInStock": "Không có thiết bị tồn kho",
+    "assetNamePlaceholder": "Tên thiết bị (tuỳ chọn)",
+    "assetCodePlaceholder": "Mã TS (tự động nếu để trống)"
   },
   "wfRequest": {
     "service": "(dịch vụ)",

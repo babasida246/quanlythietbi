@@ -4,14 +4,18 @@
  */
 
 import { API_BASE, apiJson, requireAccessToken } from './httpClient'
+import type {
+    WfRequestType,
+    WfPriority,
+    WfRequestStatus,
+    WfApprovalStatus,
+    WfRequestLineItemType,
+    WfRequestLineStatus,
+} from '@qltb/contracts'
 
 // ==================== Shared types ====================
 
-export type WfRequestType = 'asset_request' | 'repair_request' | 'disposal_request' | 'purchase' | 'other';
-export type WfPriority = 'low' | 'normal' | 'high' | 'urgent';
-export type WfRequestStatus =
-    | 'draft' | 'submitted' | 'in_review' | 'approved' | 'rejected' | 'cancelled' | 'closed';
-export type WfApprovalStatus = 'pending' | 'approved' | 'rejected' | 'skipped' | 'cancelled';
+export type { WfRequestType, WfPriority, WfRequestStatus, WfApprovalStatus, WfRequestLineItemType, WfRequestLineStatus }
 
 export interface WfRequest {
     id: string;
@@ -65,9 +69,6 @@ export interface WfEvent {
 }
 
 // ==================== Request Lines ====================
-
-export type WfRequestLineItemType = 'asset' | 'part' | 'service';
-export type WfRequestLineStatus = 'pending' | 'partial' | 'fulfilled' | 'cancelled';
 
 export interface WfRequestLine {
     id: string;

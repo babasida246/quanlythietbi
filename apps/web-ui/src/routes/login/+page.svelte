@@ -4,7 +4,9 @@
   import { Loader2, Lock, Mail } from 'lucide-svelte';
 
   import { login } from '$lib/api/auth';
+  import { getUnifiedEffectivePerms } from '$lib/api/admin';
   import { defaultLandingPath, getCapabilities } from '$lib/auth/capabilities';
+  import { effectivePermsStore } from '$lib/stores/effectivePermsStore';
   import { _, isLoading as i18nLoading } from '$lib/i18n';
   import { getSetupStatus } from '$lib/api/setup';
 
@@ -30,6 +32,21 @@
     error = null;
     try {
       const result = await login(email.trim(), password);
+
+      // Fetch effective permissions BEFORE redirect so the first render uses
+      // the correct policy-aware capabilities. Without this, the layout falls back
+      // to ROLE_PERMISSIONS['admin']=['*'] on the first render, letting DENY'd routes
+      // flash visible until the async onMount fetch completes (race condition).
+      try {
+        const permsRes = await getUnifiedEffectivePerms(result.user.id);
+        effectivePermsStore.set({
+          userId: result.user.id,
+          allowed: permsRes.data.allowed,
+          denied: permsRes.data.denied,
+          cachedAt: Date.now(),
+        });
+      } catch { /* non-critical — layout will retry in onMount */ }
+
       const query = new URLSearchParams(window.location.search);
       const redirect = query.get('redirect');
       if (isSafePostLoginRedirect(redirect)) {
@@ -37,8 +54,12 @@
         return;
       }
 
-      const caps = getCapabilities(result.user.role);
-      goto(defaultLandingPath(caps), { replaceState: true });
+      // Use policy-aware effective perms for landing path; falls back to role defaults
+      // if the perms fetch above failed.
+      const allowed = effectivePermsStore.getAllowed();
+      const caps = getCapabilities(result.user.role, allowed.length > 0 ? allowed : undefined);
+      const landing = defaultLandingPath(caps);
+      goto(landing, { replaceState: true });
     } catch (err) {
       error = err instanceof Error ? err.message : ($i18nLoading ? 'Login failed' : $_('auth.errors.failed', { default: 'Đăng nhập thất bại' }));
     } finally {
@@ -49,7 +70,13 @@
   onMount(() => {
     const token = localStorage.getItem('authToken');
     if (token) {
-      const caps = getCapabilities(localStorage.getItem('userRole'));
+      // Use cached effective perms if available; otherwise fall back to role defaults.
+      // effectivePermsStore may already be populated from sessionStorage.
+      const allowed = effectivePermsStore.getAllowed();
+      const caps = getCapabilities(
+        localStorage.getItem('userRole'),
+        allowed.length > 0 ? allowed : undefined
+      );
       goto(defaultLandingPath(caps), { replaceState: true });
       return;
     }
@@ -69,7 +96,7 @@
     <div class="login-card">
       <!-- Logo & heading -->
       <div class="mb-8 text-center">
-        <div class="login-logo">AI</div>
+        <div class="login-logo">QLTB</div>
         <h1 class="login-title">
           {$i18nLoading ? 'Sign in' : $_('auth.signIn', { default: 'Đăng nhập' })}
         </h1>

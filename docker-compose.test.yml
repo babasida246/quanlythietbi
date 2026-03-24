@@ -127,26 +127,6 @@ services:
     networks:
       - test-network
 
-  # Test data seeder
-  test-seeder:
-    build:
-      context: .
-      dockerfile: apps/api/Dockerfile
-      target: development
-    container_name: qlts-test-seeder
-    environment:
-      NODE_ENV: test
-      DATABASE_URL: postgresql://postgres:postgres@postgres-test:5432/assets_test
-    depends_on:
-      postgres-test:
-        condition: service_healthy
-    volumes:
-      - ./db:/app/db
-      - ./scripts:/app/scripts
-    command: ["sh", "/app/scripts/seed-test-data.sh"]
-    networks:
-      - test-network
-    restart: "no"
 
 volumes:
   postgres_test_data:

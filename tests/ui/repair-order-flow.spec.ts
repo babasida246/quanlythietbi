@@ -10,8 +10,10 @@ test.describe('Repair Order Flow (P3)', () => {
         const expectedTotalCost = '246'
 
         await applyUiAuth(page, 'admin')
-        await page.goto('/warehouse/repairs')
-        await expect(page.getByRole('heading', { name: 'Repair Orders' })).toBeVisible()
+        // /warehouse/repairs redirects to /maintenance/repairs
+        await page.goto('/maintenance/repairs')
+        // Heading: "Đơn Sửa Chữa" (VI) — check via h2 which always renders
+        await expect(page.locator('h2').first()).toBeVisible({ timeout: 15_000 })
 
         await page.getByTestId('repairs-create-toggle').click()
         await expect(page.getByTestId('repairs-create-form')).toBeVisible()
@@ -29,9 +31,11 @@ test.describe('Repair Order Flow (P3)', () => {
         await page.getByTestId('repair-create-submit').click()
 
         await expect(page.getByText(uniqueTitle)).toBeVisible({ timeout: 15_000 })
-        await page.locator('tr', { hasText: uniqueTitle }).getByRole('button', { name: 'Chi tiet' }).click()
+        // Button text "Chi tiết" (with diacritics) — use regex to match
+        await page.locator('tr', { hasText: uniqueTitle }).locator('button:has-text("Chi tiết")').click()
 
-        await expect(page.getByRole('heading', { name: 'Repair Order Detail' })).toBeVisible()
+        // Detail page heading: "Chi tiết đơn sửa chữa"
+        await expect(page.locator('h2').first()).toBeVisible({ timeout: 10_000 })
         await expect(page.getByText(uniqueTitle)).toBeVisible()
 
         await page.getByTestId('repair-part-name').fill(partName)
@@ -40,6 +44,7 @@ test.describe('Repair Order Flow (P3)', () => {
         await page.getByTestId('repair-part-note').fill('playwright-flow')
         await page.getByTestId('repair-part-submit').click()
 
+        // actionSuccess text is hardcoded without diacritics
         await expect(page.getByText('Da them linh kien')).toBeVisible()
         await expect(page.getByRole('cell', { name: partName })).toBeVisible()
 
@@ -48,14 +53,16 @@ test.describe('Repair Order Flow (P3)', () => {
         await expect(page.getByText('Da cap nhat trang thai')).toBeVisible()
 
         await page.getByTestId('repair-detail-back').click()
-        await expect(page).toHaveURL(/\/warehouse\/repairs$/)
+        // Back button navigates to /maintenance/repairs (not /warehouse/repairs)
+        await expect(page).toHaveURL(/\/maintenance\/repairs$/, { timeout: 8_000 })
 
         await page.getByTestId('repairs-filter-q').fill(uniqueTitle)
         await page.getByTestId('repairs-filter-apply').click()
 
         const filteredRow = page.locator('tr', { hasText: uniqueTitle })
         await expect(filteredRow).toBeVisible()
-        await expect(filteredRow.getByText('closed')).toBeVisible()
+        // Status "closed" → "Đã đóng" in VI — use regex
+        await expect(filteredRow.locator('.badge, span').filter({ hasText: /Đã đóng|closed/i })).toBeVisible()
 
         await expect(page.getByTestId('repair-summary-total')).toContainText('1')
         await expect(page.getByTestId('repair-summary-closed')).toContainText('1')

@@ -1,3 +1,6 @@
 packages:
-  - 'apps/*'
-  - 'packages/*'
+  - apps/*
+  - packages/*
+
+patchedDependencies:
+  flowbite-svelte@0.46.23: patches/flowbite-svelte@0.46.23.patch

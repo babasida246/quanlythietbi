@@ -1,5 +1,5 @@
 import type { AssetAssignmentInput, AssetAssignmentRecord, IAssignmentRepo } from '@qltb/contracts'
-import type { PgClient } from '../PgClient.js'
+import type { Queryable } from './types.js'
 
 interface AssignmentRow {
     id: string
@@ -10,6 +10,8 @@ interface AssignmentRow {
     assigned_at: Date
     returned_at: Date | null
     note: string | null
+    location_id: string | null
+    organization_id: string | null
 }
 
 function mapAssignmentRow(row: AssignmentRow): AssetAssignmentRecord {
@@ -21,12 +23,14 @@ function mapAssignmentRow(row: AssignmentRow): AssetAssignmentRecord {
         assigneeName: row.assignee_name,
         assignedAt: row.assigned_at,
         returnedAt: row.returned_at,
-        note: row.note
+        note: row.note,
+        locationId: row.location_id,
+        organizationId: row.organization_id
     }
 }
 
 export class AssignmentRepo implements IAssignmentRepo {
-    constructor(private pg: PgClient) { }
+    constructor(private pg: Queryable) { }
 
     async assign(assetId: string, assignment: AssetAssignmentInput): Promise<AssetAssignmentRecord> {
         const result = await this.pg.query<AssignmentRow>(
@@ -36,8 +40,10 @@ export class AssignmentRepo implements IAssignmentRepo {
                 assignee_id,
                 assignee_name,
                 assigned_at,
-                note
-            ) VALUES ($1,$2,$3,$4,$5,$6)
+                note,
+                location_id,
+                organization_id
+            ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
             RETURNING *`,
             [
                 assetId,
@@ -45,7 +51,9 @@ export class AssignmentRepo implements IAssignmentRepo {
                 assignment.assigneeId,
                 assignment.assigneeName,
                 assignment.assignedAt ?? new Date(),
-                assignment.note ?? null
+                assignment.note ?? null,
+                assignment.locationId ?? null,
+                assignment.organizationId ?? null
             ]
         )
 

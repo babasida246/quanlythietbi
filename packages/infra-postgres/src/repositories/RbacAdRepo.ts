@@ -294,6 +294,7 @@ export class PgRbacUserRepo implements IRbacUserRepo {
         if (input.displayName !== undefined) { sets.push(`display_name = $${idx}`); params.push(input.displayName); idx++ }
         if (input.email !== undefined) { sets.push(`email = $${idx}`); params.push(input.email); idx++ }
         if (input.status !== undefined) { sets.push(`status = $${idx}`); params.push(input.status); idx++ }
+        if ('linkedUserId' in input) { sets.push(`linked_user_id = $${idx}`); params.push(input.linkedUserId ?? null); idx++ }
 
         params.push(id)
         const result = await this.pg.query<RbacUserRow>(

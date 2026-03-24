@@ -1,3 +1,12 @@
+export type {
+    AssetStatus,
+    AssigneeType,
+    MaintenanceSeverity,
+    MaintenanceStatus,
+    AssetEventType,
+    InventorySessionStatus,
+    InventoryItemStatus,
+} from '@qltb/domain'
 import type { AssetStatus, AssigneeType, MaintenanceSeverity, MaintenanceStatus, AssetEventType } from '@qltb/domain'
 
 export const AssetSortValues = ['newest', 'asset_code_asc', 'asset_code_desc', 'warranty_end_asc'] as const
@@ -72,6 +81,10 @@ export interface AssetUpsertFields {
     vendorId?: string | null
     notes?: string | null
     spec?: Record<string, unknown> | null
+    /** Unit cost / acquisition cost (set from receipt line) */
+    unitCost?: number | null
+    /** FK to the stock_document_line that created this asset (receipt flow) */
+    sourceDocLineId?: string | null
 }
 
 export type AssetCreateInput = AssetUpsertFields
@@ -89,6 +102,8 @@ export interface AssetAssignmentRecord {
     assignedAt: Date
     returnedAt?: Date | null
     note?: string | null
+    locationId?: string | null
+    organizationId?: string | null
 }
 
 export interface AssetAssignmentInput {
@@ -97,6 +112,8 @@ export interface AssetAssignmentInput {
     assigneeName: string
     assignedAt?: Date
     note?: string | null
+    locationId?: string | null
+    organizationId?: string | null
 }
 
 export interface MaintenanceTicketRecord {

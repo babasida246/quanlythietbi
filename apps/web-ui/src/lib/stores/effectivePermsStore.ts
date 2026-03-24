@@ -11,9 +11,12 @@
  *  - Không dùng localStorage vì perms có thể thay đổi khi admin chỉnh sửa
  */
 
-import { writable, get } from 'svelte/store'
+import { writable, get, derived } from 'svelte/store'
 
 const STORAGE_KEY = 'qltb_effective_perms_v1'
+
+// Callback để layout trigger re-fetch khi store bị clear từ nơi khác
+let _refreshCallback: (() => void) | null = null
 
 export interface CachedEffectivePerms {
     userId: string
@@ -54,12 +57,31 @@ export const effectivePermsStore = {
         saveToSession(data)
     },
 
-    /** Xóa khi logout */
+    /** Xóa khi logout hoặc sau khi thay đổi policy */
     clear(): void {
         _store.set(null)
         if (typeof sessionStorage !== 'undefined') {
             sessionStorage.removeItem(STORAGE_KEY)
         }
+    },
+
+    /** Đăng ký callback để layout tự re-fetch sau khi store bị clear */
+    onRefreshNeeded(cb: () => void): void {
+        _refreshCallback = cb
+    },
+
+    /**
+     * Xóa cache sessionStorage và yêu cầu layout re-fetch.
+     * Gọi sau khi thay đổi policy/assignment để UI phản ánh ngay.
+     * Giữ nguyên in-memory store trong khi đang re-fetch (stale-while-revalidate)
+     * để tránh fallback về wildcard SYSTEM_ROLE_PERMISSIONS trong khoảng thời gian fetch.
+     */
+    invalidate(): void {
+        // Chỉ xóa sessionStorage — store trong memory vẫn giữ để tránh wildcard fallback
+        if (typeof sessionStorage !== 'undefined') {
+            sessionStorage.removeItem(STORAGE_KEY)
+        }
+        _refreshCallback?.()
     },
 
     /** Lấy allowed Set — dùng trong getCapabilities */
@@ -78,7 +100,21 @@ export const effectivePermsStore = {
     hasCache(userId: string): boolean {
         const data = get(_store)
         if (!data || data.userId !== userId) return false
-        // Cache hết hạn sau 5 phút
-        return Date.now() - data.cachedAt < 5 * 60 * 1000
+        // Cache hết hạn sau 1 phút — đủ ngắn để phản ánh thay đổi policy kịp thời
+        return Date.now() - data.cachedAt < 60 * 1000
     },
 }
+
+/**
+ * Reactive store trả về mảng allowed permissions.
+ * Dùng trong components: `const caps = $derived(getCapabilities(role, $allowedPerms))`
+ * Tự động cập nhật khi effectivePermsStore thay đổi (bao gồm sau khi invalidate()).
+ */
+export const allowedPerms = derived(_store, ($s) => $s?.allowed ?? [])
+
+/**
+ * True khi effectivePermsStore đã được populate từ server (kể cả khi allowed=[]).
+ * Dùng để phân biệt "chưa fetch" (null → dùng ROLE_PERMISSIONS fallback) với
+ * "đã fetch nhưng không còn quyền" ([] → truyền [] để disable wildcard fallback).
+ */
+export const permsLoaded = derived(_store, ($s) => $s !== null)

@@ -19,7 +19,8 @@
     ShieldCheck,
     HelpCircle,
     GitBranch,
-    Palette
+    Palette,
+    TrendingDown
   } from 'lucide-svelte';
 
   type NavItem = {
@@ -43,15 +44,9 @@
 
   const myItems: NavItem[] = [
     { href: '/me/assets', labelKey: 'nav.myAssets', icon: HardDrive, testId: 'nav-my-assets', requires: (caps) => caps.assets.read },
-    {
-      href: '/requests',
-      labelKey: 'nav.requests',
-      icon: ClipboardList,
-      testId: 'nav-requests',
-      requires: (caps) => caps.requests.read,
-      match: (path) => path === '/requests' || path.startsWith('/requests?') || path === '/me/requests' || path === '/inbox'
-    },
+    { href: '/me/requests', labelKey: 'nav.myRequests', icon: ClipboardList, testId: 'nav-my-requests', requires: (caps) => caps.requests.read },
     { href: '/notifications', labelKey: 'nav.notifications', icon: Bell, testId: 'nav-notifications', requires: (caps) => caps.requests.read || caps.assets.read },
+    { href: '/inbox', labelKey: 'nav.inbox', icon: ClipboardList, testId: 'nav-inbox', requires: (caps) => caps.requests.read },
   ];
 
   const assetItems: NavItem[] = [
@@ -68,7 +63,17 @@
     { href: '/inventory', labelKey: 'nav.inventory', icon: ClipboardList, testId: 'nav-inventory', requires: (caps) => caps.inventory.read },
     { href: '/warehouse/stock', labelKey: 'nav.warehouse', icon: Warehouse, testId: 'nav-warehouse', requires: (caps) => caps.warehouse.read },
     { href: '/maintenance', labelKey: 'nav.maintenance', icon: Wrench, testId: 'nav-maintenance', requires: (caps) => caps.maintenance.read, match: (path) => path === '/maintenance' || path.startsWith('/maintenance/') },
-    { href: '/reports', labelKey: 'nav.reports', icon: BarChart3, testId: 'nav-reports', requires: (caps) => caps.reports.read, match: (path) => path.startsWith('/reports') },
+    {
+      href: '/requests',
+      labelKey: 'nav.requests',
+      icon: ClipboardList,
+      testId: 'nav-requests',
+      requires: (caps) => caps.requests.read,
+      match: (path) => path === '/requests' || path.startsWith('/requests?')
+    },
+    { href: '/depreciation', labelKey: 'nav.depreciation', icon: TrendingDown, testId: 'nav-depreciation', requires: (caps) => caps.depreciation.read },
+    { href: '/warehouse/reports', labelKey: 'nav.warehouseReports', icon: BarChart3, testId: 'nav-warehouse-reports', requires: (caps) => caps.warehouse.read },
+    { href: '/reports', labelKey: 'nav.reports', icon: BarChart3, testId: 'nav-reports', requires: (caps) => caps.reports.read, match: (path) => path.startsWith('/reports') && !path.startsWith('/reports/assets') },
     { href: '/analytics', labelKey: 'nav.analytics', icon: TrendingUp, testId: 'nav-analytics', requires: (caps) => caps.analytics.read },
     { href: '/automation', labelKey: 'nav.automation', icon: GitBranch, testId: 'nav-automation', requires: (caps) => caps.automation.read },
     { href: '/integrations', labelKey: 'nav.integrations', icon: Link, testId: 'nav-integrations', requires: (caps) => caps.integrations.read },

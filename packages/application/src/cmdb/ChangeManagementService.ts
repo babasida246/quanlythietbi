@@ -95,7 +95,7 @@ export class ChangeManagementService {
         const updated = await this.changes.update(id, {
             status: 'implemented',
             implementedBy: ctx.userId,
-            implementedAt: new Date(),
+            implementedAt: new Date().toISOString(),
             impactSnapshot
         })
         if (!updated) throw AppError.notFound('CMDB change not found')
@@ -110,7 +110,7 @@ export class ChangeManagementService {
         }
         const updated = await this.changes.update(id, {
             status: 'closed',
-            closedAt: new Date()
+            closedAt: new Date().toISOString()
         })
         if (!updated) throw AppError.notFound('CMDB change not found')
         await this.appendEvent(updated.id, 'CMDB_CHANGE_CLOSED', {}, ctx)

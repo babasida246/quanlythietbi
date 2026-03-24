@@ -228,7 +228,7 @@ export async function createAdUser(data: { username: string; displayName: string
         method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data)
     })
 }
-export async function updateAdUser(id: string, data: { displayName?: string; email?: string; status?: string }): Promise<{ data: AdRbacUser }> {
+export async function updateAdUser(id: string, data: { displayName?: string; email?: string; status?: string; linkedUserId?: string | null }): Promise<{ data: AdRbacUser }> {
     return authJson(`${RBAC_AD_BASE}/users/${id}`, {
         method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data)
     })

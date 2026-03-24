@@ -14,7 +14,7 @@ const mapRow = (row: CiTypeRow): CiTypeRecord => ({
     code: row.code,
     name: row.name,
     description: row.description,
-    createdAt: row.created_at
+    createdAt: row.created_at.toISOString()
 })
 
 export class CiTypeRepo implements ICiTypeRepo {

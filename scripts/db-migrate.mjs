@@ -94,6 +94,12 @@ const MIGRATIONS = [
     { label: '20260304_001_fix_wf_definitions_request_types.sql', path: join(DB_MIGRATIONS, '20260304_001_fix_wf_definitions_request_types.sql') },
     { label: '20260304_002_business_integrity_constraints.sql', path: join(DB_MIGRATIONS, '20260304_002_business_integrity_constraints.sql') },
     { label: '20260310_001_add_unit_cost_to_spare_parts.sql', path: join(DB_MIGRATIONS, '20260310_001_add_unit_cost_to_spare_parts.sql') },
+    { label: '20260319_001_organizations_hierarchy.sql', path: join(DB_MIGRATIONS, '20260319_001_organizations_hierarchy.sql') },
+    { label: '20260319_002_assignments_location_org.sql', path: join(DB_MIGRATIONS, '20260319_002_assignments_location_org.sql') },
+    { label: '20260319_003_locations_organization_link.sql', path: join(DB_MIGRATIONS, '20260319_003_locations_organization_link.sql') },
+    { label: '20260319_004_stock_doc_asset_lines.sql', path: join(DB_MIGRATIONS, '20260319_004_stock_doc_asset_lines.sql') },
+    { label: '20260322_001_root_role.sql', path: join(DB_MIGRATIONS, '20260322_001_root_role.sql') },
+    { label: '20260322_002_cmdb_config_files.sql', path: join(DB_MIGRATIONS, '20260322_002_cmdb_config_files.sql') },
 ]
 
 const client = new pg.Client(DATABASE_URL)

@@ -1,10 +1,8 @@
 import { API_BASE, apiJson, authorizedFetch, requireAccessToken } from './httpClient'
+import type { AssetStatus, AssigneeType, MaintenanceSeverity, MaintenanceStatus } from '@qltb/contracts'
 
-export type AssetStatus = 'in_stock' | 'in_use' | 'in_repair' | 'retired' | 'disposed' | 'lost'
+export type { AssetStatus, AssigneeType, MaintenanceSeverity, MaintenanceStatus }
 export type AssetStatusCounts = Record<AssetStatus, number>
-export type AssigneeType = 'person' | 'department' | 'system'
-export type MaintenanceSeverity = 'low' | 'medium' | 'high' | 'critical'
-export type MaintenanceStatus = 'open' | 'in_progress' | 'closed' | 'canceled'
 
 export type Asset = {
     id: string
@@ -110,6 +108,8 @@ export type AssetAssignInput = {
     assigneeName: string
     assignedAt?: string
     note?: string
+    locationId?: string | null
+    organizationId?: string | null
 }
 
 export type MaintenanceCreateInput = {
@@ -134,6 +134,24 @@ export function buildQuery(params: Record<string, string | number | undefined>):
         .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(String(value))}`)
         .join('&')
     return `?${query}`
+}
+
+export type AssetModelOption = { id: string; name: string; categoryName?: string | null }
+
+export async function listAssetModels(params: { limit?: number; categoryId?: string } = {}): Promise<ApiResponse<AssetModelOption[]>> {
+    const qs = new URLSearchParams()
+    if (params.categoryId) qs.set('categoryId', params.categoryId)
+    const suffix = qs.toString() ? `?${qs.toString()}` : ''
+    const response = await apiJson<ApiResponse<Array<{ id: string; model: string; categoryId?: string | null }>>>(
+        `${API_BASE}/v1/asset-models${suffix}`,
+        { headers: getAssetHeaders() }
+    )
+    const data = (Array.isArray(response.data) ? response.data : []).map(m => ({
+        id: m.id,
+        name: m.model,
+        categoryName: null as string | null
+    }))
+    return { ...response, data }
 }
 
 export async function listAssets(params: AssetSearchParams = {}): Promise<ApiResponse<Asset[]>> {

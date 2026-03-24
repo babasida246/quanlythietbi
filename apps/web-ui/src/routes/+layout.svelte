@@ -4,7 +4,7 @@
   import { page } from '$app/state';
   import { defaultLandingPath, getCapabilities, isRouteAllowed } from '$lib/auth/capabilities';
   import { getUnifiedEffectivePerms } from '$lib/api/admin';
-  import { effectivePermsStore } from '$lib/stores/effectivePermsStore';
+  import { effectivePermsStore, allowedPerms, permsLoaded } from '$lib/stores/effectivePermsStore';
   import { locale, _, isLoading } from '$lib/i18n';
   import LanguageSwitcher from '$lib/components/LanguageSwitcher.svelte';
   import ToastHost from '$lib/components/ToastHost.svelte';
@@ -47,10 +47,15 @@
   ];
   const legacyRedirectTarget = '/me/assets';
 
-  // Capabilities: dùng unified effective perms khi đã cache, fallback về hardcode
+  // Capabilities: reactive via $allowedPerms derived store — updates immediately when
+  // fetchEffectivePerms() completes (first login, page refresh, or invalidate).
+  // Falls back to SYSTEM_ROLE_PERMISSIONS hardcode only when store hasn't been loaded yet
+  // (null). If store is loaded but allowed=[], pass [] so policy DENY is respected
+  // and admin doesn't get wildcard fallback from ROLE_PERMISSIONS['admin']=['*'].
   const capabilities = $derived.by(() => {
-    const allowed = effectivePermsStore.getAllowed();
-    return getCapabilities(userRole, allowed.length > 0 ? allowed : undefined);
+    const allowed = $allowedPerms;
+    const loaded = $permsLoaded;
+    return getCapabilities(userRole, loaded ? allowed : undefined);
   });
   const isShelllessRoute = $derived.by(() => shelllessPaths.some((path) => page.url.pathname.startsWith(path)));
 
@@ -84,9 +89,21 @@
     printWordTemplates.init();
 
     // Load unified effective perms (Classic RBAC + Policy System)
-    void (async () => {
-      const userId = localStorage.getItem('userId') || '';
-      if (!userId || effectivePermsStore.hasCache(userId)) return;
+    async function fetchEffectivePerms(force = false) {
+      let userId = localStorage.getItem('userId') || '';
+      // Fallback: decode userId from JWT if localStorage key is missing (old sessions)
+      if (!userId) {
+        try {
+          const token = localStorage.getItem('authToken') || '';
+          if (token) {
+            const payload = JSON.parse(atob(token.split('.')[1]));
+            userId = payload.userId || '';
+            if (userId) localStorage.setItem('userId', userId);
+          }
+        } catch { /* malformed token — ignore */ }
+      }
+      if (!userId) return;
+      if (!force && effectivePermsStore.hasCache(userId)) return;
       try {
         const res = await getUnifiedEffectivePerms(userId);
         effectivePermsStore.set({
@@ -95,8 +112,22 @@
           denied: res.data.denied,
           cachedAt: Date.now(),
         });
+        // Enforce route guard immediately — don't rely solely on Svelte 5 $effect scheduling
+        // after an async store update (microtask ordering not guaranteed before next render).
+        const currentRole = localStorage.getItem('userRole') || '';
+        const newCaps = getCapabilities(currentRole, res.data.allowed);
+        const pathname = window.location.pathname;
+        if (!isRouteAllowed(pathname, newCaps)) {
+          const fallback = defaultLandingPath(newCaps);
+          window.location.replace(`/forbidden?from=${encodeURIComponent(pathname)}&home=${encodeURIComponent(fallback)}`);
+        }
       } catch { /* non-critical — fallback to hardcoded ROLE_PERMISSIONS */ }
-    })();
+    }
+
+    // Register callback so any component can trigger a re-fetch after policy changes
+    effectivePermsStore.onRefreshNeeded(() => void fetchEffectivePerms(true));
+
+    void fetchEffectivePerms();
 
     return () => {
       media.removeEventListener('change', update);
@@ -158,7 +189,7 @@
 
     if (!token || isPublicPath) return;
 
-    const caps = getCapabilities(localStorage.getItem('userRole') || userRole);
+    const caps = capabilities;
     const routeId = page.route.id ?? '';
     const isLegacyNotFoundRoute = routeId === '/[legacy]' || routeId === '/[legacy]/[...rest]';
     if (!isRouteAllowed(pathname, caps)) {

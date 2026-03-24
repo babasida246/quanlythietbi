@@ -9,6 +9,7 @@ import type {
     StockDocumentUpdatePatch
 } from '@qltb/contracts'
 import type { Queryable } from './types.js'
+
 type DocumentRow = {
     id: string
     doc_type: StockDocumentRecord['docType']
@@ -25,25 +26,44 @@ type DocumentRow = {
     submitter_name: string | null
     receiver_name: string | null
     department: string | null
+    location_id: string | null
     created_by: string | null
     approved_by: string | null
     correlation_id: string | null
     created_at: Date
     updated_at: Date
 }
+
 type LineRow = {
     id: string
     document_id: string
-    part_id: string
+    line_type: 'spare_part' | 'asset'
+    part_id: string | null
     qty: number
     unit_cost: number | string | null
     serial_no: string | null
     note: string | null
     adjust_direction: 'plus' | 'minus' | null
     spec_fields: Record<string, unknown> | null
+    asset_model_id: string | null
+    asset_category_id: string | null
+    asset_name: string | null
+    asset_code: string | null
+    asset_id: string | null
 }
+
 type Update = { column: string; value: unknown }
+
+const DOC_COLS = `id, doc_type, code, status, warehouse_id, target_warehouse_id, doc_date, ref_type, ref_id,
+                  note, idempotency_key, supplier, submitter_name, receiver_name, department, location_id,
+                  created_by, approved_by, correlation_id, created_at, updated_at`
+
+const LINE_COLS = `id, document_id, line_type, part_id, qty, unit_cost, serial_no, note,
+                   adjust_direction, spec_fields, asset_model_id, asset_category_id,
+                   asset_name, asset_code, asset_id`
+
 const mapDocDate = (value: Date): string => value.toISOString().slice(0, 10)
+
 const mapDocument = (row: DocumentRow): StockDocumentRecord => ({
     id: row.id,
     docType: row.doc_type,
@@ -60,23 +80,32 @@ const mapDocument = (row: DocumentRow): StockDocumentRecord => ({
     submitterName: row.submitter_name,
     receiverName: row.receiver_name,
     department: row.department,
+    locationId: row.location_id,
     createdBy: row.created_by,
     approvedBy: row.approved_by,
     correlationId: row.correlation_id,
-    createdAt: row.created_at,
-    updatedAt: row.updated_at
+    createdAt: row.created_at.toISOString(),
+    updatedAt: row.updated_at.toISOString()
 })
+
 const mapLine = (row: LineRow): StockDocumentLineRecord => ({
     id: row.id,
     documentId: row.document_id,
+    lineType: row.line_type ?? 'spare_part',
     partId: row.part_id,
     qty: row.qty,
     unitCost: row.unit_cost === null ? null : Number(row.unit_cost),
     serialNo: row.serial_no,
     note: row.note,
     adjustDirection: row.adjust_direction,
-    specFields: row.spec_fields ?? null
+    specFields: row.spec_fields ?? null,
+    assetModelId: row.asset_model_id,
+    assetCategoryId: row.asset_category_id,
+    assetName: row.asset_name,
+    assetCode: row.asset_code,
+    assetId: row.asset_id
 })
+
 function buildUpdates(patch: StockDocumentUpdatePatch): Update[] {
     const updates: Update[] = []
     if (patch.docDate !== undefined) updates.push({ column: 'doc_date', value: patch.docDate })
@@ -87,40 +116,30 @@ function buildUpdates(patch: StockDocumentUpdatePatch): Update[] {
     if (patch.submitterName !== undefined) updates.push({ column: 'submitter_name', value: patch.submitterName })
     if (patch.receiverName !== undefined) updates.push({ column: 'receiver_name', value: patch.receiverName })
     if (patch.department !== undefined) updates.push({ column: 'department', value: patch.department })
+    if (patch.locationId !== undefined) updates.push({ column: 'location_id', value: patch.locationId })
     if (patch.correlationId !== undefined) updates.push({ column: 'correlation_id', value: patch.correlationId })
     return updates
 }
+
 function normalizePagination(filters: StockDocumentListFilters): { page: number; limit: number; offset: number } {
     const page = Math.max(1, filters.page ?? 1)
     const limit = Math.min(Math.max(1, filters.limit ?? 20), 100)
     const offset = (page - 1) * limit
     return { page, limit, offset }
 }
+
 export class StockDocumentRepo implements IStockDocumentRepo {
     constructor(private pg: Queryable) { }
+
     async create(input: StockDocumentCreateInput): Promise<StockDocumentRecord> {
         const docDate = input.docDate ?? new Date().toISOString().slice(0, 10)
         const result = await this.pg.query<DocumentRow>(
             `INSERT INTO stock_documents (
-                doc_type,
-                code,
-                status,
-                warehouse_id,
-                target_warehouse_id,
-                doc_date,
-                ref_type,
-                ref_id,
-                note,
-                supplier,
-                submitter_name,
-                receiver_name,
-                department,
-                created_by,
-                correlation_id
-             ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)
-             RETURNING id, doc_type, code, status, warehouse_id, target_warehouse_id, doc_date, ref_type, ref_id,
-                       note, idempotency_key, supplier, submitter_name, receiver_name, department,
-                       created_by, approved_by, correlation_id, created_at, updated_at`,
+                doc_type, code, status, warehouse_id, target_warehouse_id, doc_date,
+                ref_type, ref_id, note, supplier, submitter_name, receiver_name,
+                department, location_id, created_by, correlation_id
+             ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16)
+             RETURNING ${DOC_COLS}`,
             [
                 input.docType,
                 input.code,
@@ -135,6 +154,7 @@ export class StockDocumentRepo implements IStockDocumentRepo {
                 input.submitterName ?? null,
                 input.receiverName ?? null,
                 input.department ?? null,
+                input.locationId ?? null,
                 input.createdBy ?? null,
                 input.correlationId ?? null
             ]
@@ -153,9 +173,7 @@ export class StockDocumentRepo implements IStockDocumentRepo {
         const result = await this.pg.query<DocumentRow>(
             `UPDATE stock_documents SET ${setClause}, updated_at = NOW()
              WHERE id = $${params.length}
-             RETURNING id, doc_type, code, status, warehouse_id, target_warehouse_id, doc_date, ref_type, ref_id,
-                       note, idempotency_key, supplier, submitter_name, receiver_name, department,
-                       created_by, approved_by, correlation_id, created_at, updated_at`,
+             RETURNING ${DOC_COLS}`,
             params
         )
         return result.rows[0] ? mapDocument(result.rows[0]) : null
@@ -163,10 +181,7 @@ export class StockDocumentRepo implements IStockDocumentRepo {
 
     async getById(id: string): Promise<StockDocumentRecord | null> {
         const result = await this.pg.query<DocumentRow>(
-            `SELECT id, doc_type, code, status, warehouse_id, target_warehouse_id, doc_date, ref_type, ref_id,
-                    note, idempotency_key, supplier, submitter_name, receiver_name, department,
-                    created_by, approved_by, correlation_id, created_at, updated_at
-             FROM stock_documents WHERE id = $1`,
+            `SELECT ${DOC_COLS} FROM stock_documents WHERE id = $1`,
             [id]
         )
         return result.rows[0] ? mapDocument(result.rows[0]) : null
@@ -206,26 +221,19 @@ export class StockDocumentRepo implements IStockDocumentRepo {
 
         const listParams = [...params, limit, offset]
         const result = await this.pg.query<DocumentRow>(
-            `SELECT id, doc_type, code, status, warehouse_id, target_warehouse_id, doc_date, ref_type, ref_id,
-                    note, idempotency_key, supplier, submitter_name, receiver_name, department,
-                    created_by, approved_by, correlation_id, created_at, updated_at
+            `SELECT ${DOC_COLS}
              FROM stock_documents
              ${whereClause}
              ORDER BY doc_date DESC, created_at DESC
              LIMIT $${params.length + 1} OFFSET $${params.length + 2}`,
             listParams
         )
-        return {
-            items: result.rows.map(mapDocument),
-            total,
-            page,
-            limit
-        }
+        return { items: result.rows.map(mapDocument), total, page, limit }
     }
 
     async listLines(documentId: string): Promise<StockDocumentLineRecord[]> {
         const result = await this.pg.query<LineRow>(
-            `SELECT id, document_id, part_id, qty, unit_cost, serial_no, note, adjust_direction, spec_fields
+            `SELECT ${LINE_COLS}
              FROM stock_document_lines
              WHERE document_id = $1
              ORDER BY id ASC`,
@@ -233,42 +241,52 @@ export class StockDocumentRepo implements IStockDocumentRepo {
         )
         return result.rows.map(mapLine)
     }
+
     async replaceLines(documentId: string, lines: StockDocumentLineInput[]): Promise<StockDocumentLineRecord[]> {
         await this.pg.query('DELETE FROM stock_document_lines WHERE document_id = $1', [documentId])
         if (lines.length === 0) return []
+
+        const COLS_PER_ROW = 13
         const params: unknown[] = []
         const values = lines.map((line, index) => {
-            const base = index * 8
+            const base = index * COLS_PER_ROW
             params.push(
                 documentId,
-                line.partId,
+                line.lineType ?? 'spare_part',
+                line.partId ?? null,
                 line.qty,
                 line.unitCost ?? null,
                 line.serialNo ?? null,
                 line.note ?? null,
                 line.adjustDirection ?? null,
-                line.specFields ? JSON.stringify(line.specFields) : null
+                line.specFields ? JSON.stringify(line.specFields) : null,
+                line.assetModelId ?? null,
+                line.assetCategoryId ?? null,
+                line.assetName ?? null,
+                line.assetCode ?? null
             )
-            return `($${base + 1},$${base + 2},$${base + 3},$${base + 4},$${base + 5},$${base + 6},$${base + 7},$${base + 8})`
+            const p = (n: number) => `$${base + n}`
+            return `(${p(1)},${p(2)},${p(3)},${p(4)},${p(5)},${p(6)},${p(7)},${p(8)},${p(9)},${p(10)},${p(11)},${p(12)},${p(13)})`
         })
+
         const result = await this.pg.query<LineRow>(
             `INSERT INTO stock_document_lines (
-                document_id,
-                part_id,
-                qty,
-                unit_cost,
-                serial_no,
-                note,
-                adjust_direction,
-                spec_fields
+                document_id, line_type, part_id, qty, unit_cost, serial_no, note,
+                adjust_direction, spec_fields, asset_model_id, asset_category_id,
+                asset_name, asset_code
              ) VALUES ${values.join(', ')}
-             RETURNING id, document_id, part_id, qty, unit_cost, serial_no, note, adjust_direction, spec_fields`,
+             RETURNING ${LINE_COLS}`,
             params
         )
         return result.rows.map(mapLine)
     }
 
-    async setStatus(id: string, status: StockDocumentRecord['status'], approvedBy?: string | null, idempotencyKey?: string | null): Promise<StockDocumentRecord | null> {
+    async setStatus(
+        id: string,
+        status: StockDocumentRecord['status'],
+        approvedBy?: string | null,
+        idempotencyKey?: string | null
+    ): Promise<StockDocumentRecord | null> {
         const result = await this.pg.query<DocumentRow>(
             `UPDATE stock_documents
              SET status = $1,
@@ -276,11 +294,16 @@ export class StockDocumentRepo implements IStockDocumentRepo {
                  idempotency_key = COALESCE($4, idempotency_key),
                  updated_at = NOW()
              WHERE id = $3
-             RETURNING id, doc_type, code, status, warehouse_id, target_warehouse_id, doc_date, ref_type, ref_id,
-                       note, idempotency_key, supplier, submitter_name, receiver_name, department,
-                       created_by, approved_by, correlation_id, created_at, updated_at`,
+             RETURNING ${DOC_COLS}`,
             [status, approvedBy ?? null, id, idempotencyKey ?? null]
         )
         return result.rows[0] ? mapDocument(result.rows[0]) : null
+    }
+
+    async setAssetOnLine(lineId: string, assetId: string): Promise<void> {
+        await this.pg.query(
+            `UPDATE stock_document_lines SET asset_id = $1 WHERE id = $2`,
+            [assetId, lineId]
+        )
     }
 }

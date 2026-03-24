@@ -198,16 +198,16 @@
 <div class="bg-surface-2 border border-slate-700 rounded-lg p-4 space-y-4">
   <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
     <div>
-        <label class="label-base mb-2">{$isLoading ? 'Model' : $_('common.model')}</label>
-      <input class="input-base" bind:value={form.model} placeholder="Latitude 7420" />
+        <label for="model-model" class="label-base mb-2">{$isLoading ? 'Model' : $_('common.model')}</label>
+      <input id="model-model" class="input-base" bind:value={form.model} placeholder="Latitude 7420" />
     </div>
     <div>
-        <label class="label-base mb-2">{$isLoading ? 'Brand' : $_('common.brand')}</label>
-        <input class="input-base" bind:value={form.brand} placeholder={$isLoading ? 'Dell' : $_('assets.placeholders.brand')} />
+        <label for="model-brand" class="label-base mb-2">{$isLoading ? 'Brand' : $_('common.brand')}</label>
+        <input id="model-brand" class="input-base" bind:value={form.brand} placeholder={$isLoading ? 'Dell' : $_('assets.placeholders.brand')} />
     </div>
     <div>
-      <label class="label-base mb-2">{$isLoading ? 'Category' : $_('assets.category')}</label>
-      <select class="select-base" bind:value={form.categoryId} onchange={() => useVersionDefs = false}>
+      <label for="model-category" class="label-base mb-2">{$isLoading ? 'Category' : $_('assets.category')}</label>
+      <select id="model-category" class="select-base" bind:value={form.categoryId} onchange={() => useVersionDefs = false}>
         <option value="">{$isLoading ? 'No category' : $_('assets.noCategory')}</option>
         {#each safeCategories as category}
           <option value={category.id}>{category.name}</option>
@@ -215,8 +215,8 @@
       </select>
     </div>
     <div>
-        <label class="label-base mb-2">{$isLoading ? 'Vendor' : $_('common.vendor')}</label>
-        <select class="select-base" bind:value={form.vendorId}>
+        <label for="model-vendor" class="label-base mb-2">{$isLoading ? 'Vendor' : $_('common.vendor')}</label>
+        <select id="model-vendor" class="select-base" bind:value={form.vendorId}>
           <option value="">{$isLoading ? 'No vendor' : $_('assets.noVendor')}</option>
         {#each safeVendors as vendor}
           <option value={vendor.id}>{vendor.name}</option>
@@ -226,7 +226,7 @@
   </div>
   {#if form.categoryId}
     <div>
-        <label class="label-base mb-2">{$isLoading ? 'Specifications' : $_('assets.specifications')}</label>
+        <p class="label-base mb-2">{$isLoading ? 'Specifications' : $_('assets.specifications')}</p>
       {#if specLoading}
         <div class="flex items-center justify-center p-8"><div class="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div></div>
       {:else if specDefs.length > 0}

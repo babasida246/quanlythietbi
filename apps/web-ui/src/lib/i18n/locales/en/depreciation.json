@@ -1,0 +1,164 @@
+{
+  "depreciation": {
+    "title": "Asset Depreciation",
+    "subtitle": "Manage depreciation schedules and track asset values",
+    "schedules": "Depreciation Schedules",
+    "schedule": "Depreciation Schedule",
+    "entries": "Depreciation Entries",
+    "runs": "Depreciation Runs",
+    "createSchedule": "Create Schedule",
+    "newSchedule": "New Depreciation Schedule",
+    "stopSchedule": "Stop Schedule",
+    "previewSchedule": "Preview Schedule",
+    "runMonthly": "Run Monthly Depreciation",
+    "postEntries": "Post Entries",
+
+    "tab": {
+      "schedules": "Schedules",
+      "entries": "Journal Entries",
+      "runs": "Run History"
+    },
+
+    "field": {
+      "asset": "Asset",
+      "assetTag": "Asset Tag",
+      "assetName": "Asset Name",
+      "method": "Depreciation Method",
+      "originalCost": "Original Cost",
+      "salvageValue": "Salvage Value",
+      "usefulLifeYears": "Useful Life (years)",
+      "startDate": "Start Date",
+      "endDate": "End Date",
+      "annualRate": "Annual Depreciation Rate",
+      "monthlyAmount": "Monthly Depreciation",
+      "annualAmount": "Annual Depreciation",
+      "accumulated": "Accumulated Depreciation",
+      "bookValue": "Book Value",
+      "remainingMonths": "Remaining Months",
+      "progress": "Depreciation Progress",
+      "status": "Status",
+      "notes": "Notes",
+      "category": "Category",
+      "stoppedReason": "Stop Reason",
+      "period": "Period",
+      "depreciationAmount": "Depreciation Amount",
+      "beginningValue": "Beginning Value",
+      "endingValue": "Ending Value",
+      "posted": "Posted"
+    },
+
+    "method": {
+      "straight_line": "Straight Line",
+      "declining_balance": "Declining Balance",
+      "double_declining": "Double Declining Balance",
+      "sum_of_years": "Sum of Years' Digits",
+      "units_of_production": "Units of Production"
+    },
+
+    "status": {
+      "active": "Active",
+      "fully_depreciated": "Fully Depreciated",
+      "stopped": "Stopped"
+    },
+
+    "dashboard": {
+      "totalOriginalCost": "Total Original Cost",
+      "totalAccumulated": "Total Accumulated",
+      "totalBookValue": "Total Book Value",
+      "activeSchedules": "Active Schedules",
+      "fullyDepreciated": "Fully Depreciated",
+      "pendingEntries": "Pending Entries",
+      "thisMonthAmount": "This Month",
+      "endingSoon": "Ending Soon"
+    },
+
+    "filter": {
+      "allStatus": "All statuses",
+      "allMethods": "All methods",
+      "endingSoon": "Ending soon"
+    },
+
+    "preview": {
+      "title": "Depreciation Schedule Preview",
+      "depreciableAmount": "Depreciable Amount",
+      "totalMonths": "Total Months",
+      "monthlyAmount": "Monthly Depreciation",
+      "schedule": "Depreciation Table (first 36 months)",
+      "period": "Period",
+      "amount": "Amount",
+      "accumulated": "Accumulated",
+      "bookValue": "Book Value"
+    },
+
+    "entry": {
+      "filterPending": "Pending",
+      "filterAll": "All",
+      "postSelected": "Post selected ({count})",
+      "noPending": "No pending journal entries",
+      "noPendingHint": "Run monthly depreciation to generate new entries for all active assets",
+      "noEntries": "No entries yet",
+      "postedAt": "Posted At",
+      "adjustmentLabel": "Adjustment"
+    },
+
+    "run": {
+      "code": "Run Code",
+      "period": "Period",
+      "type": "Type",
+      "assets": "Assets",
+      "amount": "Total Amount",
+      "completedAt": "Completed At",
+      "empty": "No depreciation runs yet",
+      "emptyHint": "Run monthly depreciation to automatically generate entries for all active assets",
+      "status": {
+        "pending": "Pending",
+        "processing": "Processing",
+        "completed": "Completed",
+        "failed": "Failed"
+      },
+      "type_label": {
+        "monthly": "Monthly",
+        "adjustment": "Adjustment",
+        "closing": "Closing"
+      }
+    },
+
+    "hint": {
+      "originalCost": "Enter the asset's original cost (purchase price, may be taken from warehouse receipt)",
+      "salvageValue": "Estimated residual value at end of useful life (default: 0)",
+      "usefulLifeYears": "Planned useful life in years. Circular 45: IT equipment 3–5 years, servers 5 years",
+      "startDate": "Usually the date placed into service or the purchase date"
+    },
+
+    "confirm": {
+      "stop": "Are you sure you want to stop this depreciation schedule? This action cannot be undone.",
+      "runMonthly": "Run depreciation for all assets for {month}/{year}?",
+      "postEntries": "Post {count} selected entries? This action cannot be undone."
+    },
+
+    "error": {
+      "loadFailed": "Failed to load depreciation data",
+      "createFailed": "Failed to create depreciation schedule",
+      "stopFailed": "Failed to stop depreciation schedule",
+      "alreadyActive": "Asset already has an active depreciation schedule",
+      "previewFailed": "Failed to generate preview",
+      "runFailed": "Failed to run depreciation",
+      "postFailed": "Failed to post entries",
+      "listEntriesFailed": "Failed to load entries",
+      "listRunsFailed": "Failed to load run history"
+    },
+
+    "success": {
+      "created": "Depreciation schedule created successfully",
+      "stopped": "Depreciation schedule stopped",
+      "posted": "Posted {count} entries",
+      "run": "Depreciation {month}/{year} completed: {count} assets",
+      "runStarted": "Depreciation run started"
+    },
+
+    "empty": {
+      "schedules": "No depreciation schedules yet",
+      "schedulesHint": "Create a depreciation schedule for an asset to track its value over time"
+    }
+  }
+}

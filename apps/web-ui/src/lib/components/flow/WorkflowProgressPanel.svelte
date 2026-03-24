@@ -1,7 +1,8 @@
 <script lang="ts">
   import MermaidDiagram from './MermaidDiagram.svelte';
   import WorkflowDiagram from './WorkflowDiagram.svelte';
-  import { Button, Card } from 'flowbite-svelte';
+  import Button from 'flowbite-svelte/Button.svelte';
+  import Card from 'flowbite-svelte/Card.svelte';
   
   type DiagramType = 'mermaid' | 'workflow';
   
@@ -34,7 +35,7 @@
 
   // Convert workflow steps to flow nodes and edges
   function generateFlowData() {
-    const nodes = steps.map((step, index) => ({
+    const nodes = steps.map((step: WorkflowStep, index: number) => ({
       id: step.id,
       position: { x: (index % 3) * 200, y: Math.floor(index / 3) * 150 },
       data: {
@@ -47,8 +48,8 @@
       style: getNodeStyle(step.status)
     }));
 
-    const edges = steps.flatMap(step => 
-      (step.dependencies || []).map(depId => ({
+    const edges = steps.flatMap((step: WorkflowStep) =>
+      (step.dependencies || []).map((depId: string) => ({
         id: `${depId}-${step.id}`,
         source: depId,
         target: step.id,
@@ -64,7 +65,7 @@
     const lines = ['graph TD'];
     
     // Add nodes
-    steps.forEach(step => {
+    steps.forEach((step: WorkflowStep) => {
       const statusSymbol = getStatusSymbol(step.status);
       lines.push(`    ${step.id}[${statusSymbol} ${step.name}]`);
       
@@ -75,8 +76,8 @@
     });
 
     // Add edges
-    steps.forEach(step => {
-      (step.dependencies || []).forEach(depId => {
+    steps.forEach((step: WorkflowStep) => {
+      (step.dependencies || []).forEach((depId: string) => {
         lines.push(`    ${depId} --> ${step.id}`);
       });
     });
@@ -114,15 +115,15 @@
   }
 
   // Reactive data
-  $: flowData = generateFlowData();
-  $: mermaidDiagram = generateMermaidDiagram();
+  const flowData = $derived(generateFlowData());
+  const mermaidDiagram = $derived(generateMermaidDiagram());
 
   // Summary statistics
-  $: totalSteps = steps.length;
-  $: completedSteps = steps.filter(s => s.status === 'completed').length;
-  $: inProgressSteps = steps.filter(s => s.status === 'in-progress').length;
-  $: failedSteps = steps.filter(s => s.status === 'failed').length;
-  $: overallProgress = totalSteps > 0 ? Math.round((completedSteps / totalSteps) * 100) : 0;
+  const totalSteps = $derived(steps.length);
+  const completedSteps = $derived(steps.filter((s: WorkflowStep) => s.status === 'completed').length);
+  const inProgressSteps = $derived(steps.filter((s: WorkflowStep) => s.status === 'in-progress').length);
+  const failedSteps = $derived(steps.filter((s: WorkflowStep) => s.status === 'failed').length);
+  const overallProgress = $derived(totalSteps > 0 ? Math.round((completedSteps / totalSteps) * 100) : 0);
 </script>
 
 <Card class="w-full">
@@ -173,7 +174,7 @@
         edges={flowData.edges}
         class="w-full h-full"
         onNodeClick={(event, node) => {
-          const step = steps.find(s => s.id === node.id);
+          const step = steps.find((s: WorkflowStep) => s.id === node.id);
           if (step) onStepClick?.(step);
         }}
       />
@@ -222,7 +223,7 @@
             {#if editable}
               <select
                 value={step.status}
-                onchange={(e) => updateStepStatus(step.id, e.target.value)}
+                onchange={(e) => updateStepStatus(step.id, (e.target as HTMLSelectElement).value as WorkflowStep['status'])}
                 class="text-xs border rounded px-2 py-1"
               >
                 <option value="pending">Pending</option>

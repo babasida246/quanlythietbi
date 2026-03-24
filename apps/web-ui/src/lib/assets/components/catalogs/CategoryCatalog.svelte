@@ -79,8 +79,8 @@
   <div class="bg-surface-2 border border-slate-700 rounded-lg p-4">
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
       <div>
-        <label class="label-base mb-2">{$isLoading ? 'Category name' : $_('assets.categoryName')}</label>
-        <input class="input-base" bind:value={name} placeholder={$isLoading ? 'Laptop' : $_('assets.placeholders.categoryName')} />
+        <label for="category-name" class="label-base mb-2">{$isLoading ? 'Category name' : $_('assets.categoryName')}</label>
+        <input id="category-name" class="input-base" bind:value={name} placeholder={$isLoading ? 'Laptop' : $_('assets.placeholders.categoryName')} />
       </div>
       <div class="flex gap-2">
         <Button onclick={save} disabled={saving || !name.trim()}>

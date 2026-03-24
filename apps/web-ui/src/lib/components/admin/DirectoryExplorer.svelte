@@ -1,17 +1,19 @@
 <script lang="ts">
   import { onMount } from 'svelte'
   import {
-    FolderOpen, Folder, ChevronRight, ChevronDown, Users, UsersRound, ShieldCheck,
-    Info, Plus, Pencil, Trash2, UserPlus, FolderPlus, X, Check, Move,
-    RefreshCw, Search, LinkIcon, Unlink, Building2, User, Shield
+    FolderOpen, Folder, ChevronRight, ChevronDown, UsersRound, ShieldCheck,
+    Info, Plus, Pencil, Trash2, UserPlus, FolderPlus, X, Check,
+    RefreshCw, Search, LinkIcon, Unlink, Building2, User, KeyRound
   } from 'lucide-svelte'
   import {
     getAdOuTree, listAdUsers, listAdGroups,
     createAdOu, updateAdOu, deleteAdOu,
-    createAdUser, updateAdUser, deleteAdUser, moveAdUser,
+    createAdUser, updateAdUser, deleteAdUser,
     createAdGroup, updateAdGroup, deleteAdGroup,
     listPoliciesByOu, listPolicies, addPolicyAssignment, removePolicyAssignment,
-    type AdOrgUnit, type AdRbacUser, type AdRbacGroup, type OuPolicyLink, type Policy
+    resetPassword, listUsers, createUser, updateUser,
+    type AdOrgUnit, type AdRbacUser, type AdRbacGroup, type OuPolicyLink, type Policy,
+    type AdminUser
   } from '$lib/api/admin'
 
   // ── Tree ──────────────────────────────────────────────────────────────────
@@ -46,6 +48,7 @@
   let groups = $state<AdRbacGroup[]>([])
   let ouPolicies = $state<OuPolicyLink[]>([])
   let allPolicies = $state<Policy[]>([])
+  let systemUsers = $state<AdminUser[]>([])
 
   let loading = $state(false)
   let contentLoading = $state(false)
@@ -54,6 +57,7 @@
 
   // inline form state
   let showCreateOu = $state(false)
+  let formCreateAtRoot = $state(false)
   let showCreateUser = $state(false)
   let showCreateGroup = $state(false)
   let showLinkPolicy = $state(false)
@@ -64,16 +68,29 @@
   let formDisplayName = $state('')
   let formEmail = $state('')
   let formStatus = $state<'active' | 'disabled'>('active')
+  let formPassword = $state('')
+  let formRole = $state('viewer')
+  let formShowPwd = $state(false)
   let formSaving = $state(false)
+  let formError = $state('')
 
   let editingUserId = $state<string | null>(null)
   let editUserName = $state('')
   let editUserEmail = $state('')
   let editUserStatus = $state<'active' | 'disabled' | 'locked'>('active')
+  let editUserLinkedId = $state<string | null>(null)
+  let editUserRole = $state('viewer')
 
   let editingGroupId = $state<string | null>(null)
   let editGroupName = $state('')
   let editGroupDesc = $state('')
+
+  let changePwdUserId = $state<string | null>(null)
+  let changePwdLinkedId = $state<string | null>(null)
+  let changePwdNew = $state('')
+  let changePwdConfirm = $state('')
+  let changePwdSaving = $state(false)
+  let changePwdError = $state('')
 
   let editingOuId = $state<string | null>(null)
   let editOuName = $state('')
@@ -104,9 +121,10 @@
   onMount(async () => {
     loading = true
     try {
-      const [ouRes, policyRes] = await Promise.all([getAdOuTree(), listPolicies()])
+      const [ouRes, policyRes, usersRes] = await Promise.all([getAdOuTree(), listPolicies(), listUsers()])
       allOus = ouRes.data ?? []
       allPolicies = policyRes.data ?? []
+      systemUsers = usersRes.data ?? []
       // auto-expand roots
       allOus.filter(o => !o.parentId).forEach(r => expandedOus.add(r.id))
     } catch (e: any) {
@@ -158,7 +176,9 @@
   function resetForms() {
     showCreateOu = false; showCreateUser = false; showCreateGroup = false; showLinkPolicy = false
     formName = ''; formDesc = ''; formUsername = ''; formDisplayName = ''; formEmail = ''
+    formPassword = ''; formRole = 'viewer'; formShowPwd = false; formError = ''
     editingUserId = null; editingGroupId = null; editingOuId = null
+    changePwdUserId = null; changePwdNew = ''; changePwdConfirm = ''; changePwdError = ''
   }
 
   async function refresh() {
@@ -180,9 +200,10 @@
     if (!formName.trim()) return
     formSaving = true
     try {
-      await createAdOu({ name: formName.trim(), parentId: selectedOu?.id ?? null, description: formDesc.trim() || undefined })
+      const parentId = formCreateAtRoot ? null : (selectedOu?.id ?? null)
+      await createAdOu({ name: formName.trim(), parentId, description: formDesc.trim() || undefined })
       await refresh()
-      showCreateOu = false; formName = ''; formDesc = ''
+      showCreateOu = false; formName = ''; formDesc = ''; formCreateAtRoot = false
     } catch (e: any) { error = e?.message ?? 'Failed to create OU' }
     finally { formSaving = false }
   }
@@ -198,24 +219,51 @@
     finally { formSaving = false }
   }
 
-  async function doDeleteOu(id: string) {
-    if (!confirm('Xóa OU này? Tất cả nội dung bên trong sẽ bị ảnh hưởng.')) return
+  async function doDeleteOu(ouToDelete: AdOrgUnit) {
+    const hasParent = !!ouToDelete.parentId
+    const msg = hasParent
+      ? `Xóa OU "${ouToDelete.name}"?\nCác người dùng trong OU này sẽ được chuyển lên OU cha.`
+      : `Xóa OU gốc "${ouToDelete.name}"?\nCác người dùng trong OU này sẽ bị xóa khỏi thư mục (tài khoản đăng nhập vẫn được giữ).`
+    if (!confirm(msg)) return
     try {
-      await deleteAdOu(id)
-      if (selectedOu?.id === id) selectedOu = null
+      await deleteAdOu(ouToDelete.id)
+      if (selectedOu?.id === ouToDelete.id) selectedOu = null
       await refresh()
     } catch (e: any) { error = e?.message ?? 'Failed to delete OU' }
   }
 
   // ── Users ──────────────────────────────────────────────────────────────────
   async function doCreateUser() {
-    if (!selectedOu || !formUsername.trim() || !formDisplayName.trim()) return
-    formSaving = true
+    if (!selectedOu || !formUsername.trim() || !formDisplayName.trim() || !formEmail.trim() || !formPassword) return
+    formSaving = true; formError = ''
     try {
-      await createAdUser({ username: formUsername.trim(), displayName: formDisplayName.trim(), email: formEmail.trim() || undefined, ouId: selectedOu.id, status: formStatus })
+      // Tạo tài khoản đăng nhập trước, rồi tạo mục thư mục và liên kết
+      const newSysUser = await createUser({
+        name: formDisplayName.trim(),
+        email: formEmail.trim(),
+        password: formPassword,
+        role: formRole
+      })
+      const linkedUserId = (newSysUser as any).id ?? (newSysUser as any).data?.id
+
+      await createAdUser({
+        username: formUsername.trim(),
+        displayName: formDisplayName.trim(),
+        email: formEmail.trim(),
+        ouId: selectedOu.id,
+        status: formStatus,
+        linkedUserId
+      })
+
+      // Refresh systemUsers để role hiển thị đúng trong danh sách
+      const usersRes = await listUsers()
+      systemUsers = usersRes.data ?? []
+
       await loadOuContent(selectedOu.id)
-      showCreateUser = false; formUsername = ''; formDisplayName = ''; formEmail = ''; formStatus = 'active'
-    } catch (e: any) { error = e?.message ?? 'Failed to create user' }
+      showCreateUser = false
+      formUsername = ''; formDisplayName = ''; formEmail = ''
+      formStatus = 'active'; formPassword = ''; formRole = 'viewer'; formShowPwd = false; formError = ''
+    } catch (e: any) { formError = e?.message ?? 'Tạo người dùng thất bại' }
     finally { formSaving = false }
   }
 
@@ -223,7 +271,21 @@
     if (!editingUserId) return
     formSaving = true
     try {
-      await updateAdUser(editingUserId, { displayName: editUserName.trim() || undefined, email: editUserEmail.trim() || undefined, status: editUserStatus })
+      await updateAdUser(editingUserId, {
+        displayName: editUserName.trim() || undefined,
+        email: editUserEmail.trim() || undefined,
+        status: editUserStatus
+      })
+      // Cập nhật tên, email, role trong bảng users nếu đã có tài khoản đăng nhập
+      if (editUserLinkedId) {
+        await updateUser(editUserLinkedId, {
+          name: editUserName.trim() || undefined,
+          email: editUserEmail.trim() || undefined,
+          role: editUserRole
+        })
+        const usersRes = await listUsers()
+        systemUsers = usersRes.data ?? []
+      }
       if (selectedOu) await loadOuContent(selectedOu.id)
       editingUserId = null
     } catch (e: any) { error = e?.message ?? 'Failed to update user' }
@@ -239,7 +301,42 @@
   }
 
   function startEditUser(u: AdRbacUser) {
-    editingUserId = u.id; editUserName = u.displayName; editUserEmail = u.email ?? ''; editUserStatus = u.status as any
+    editingUserId = u.id; editUserName = u.displayName; editUserEmail = u.email ?? ''
+    editUserStatus = u.status as any; editUserLinkedId = u.linkedUserId
+    const linked = u.linkedUserId ? systemUsers.find(s => s.id === u.linkedUserId) : null
+    editUserRole = linked?.role ?? 'viewer'
+    changePwdUserId = null; changePwdNew = ''; changePwdConfirm = ''; changePwdError = ''
+  }
+
+  function startChangePwd(u: AdRbacUser) {
+    changePwdUserId = u.id
+    changePwdLinkedId = u.linkedUserId
+    changePwdNew = ''; changePwdConfirm = ''; changePwdError = ''
+    editingUserId = null
+  }
+
+  async function doChangePassword() {
+    if (!changePwdLinkedId) {
+      changePwdError = 'Người dùng chưa liên kết với tài khoản hệ thống.'
+      return
+    }
+    if (changePwdNew.length < 12) {
+      changePwdError = 'Mật khẩu phải có ít nhất 12 ký tự.'
+      return
+    }
+    if (changePwdNew !== changePwdConfirm) {
+      changePwdError = 'Mật khẩu xác nhận không khớp.'
+      return
+    }
+    changePwdSaving = true; changePwdError = ''
+    try {
+      await resetPassword(changePwdLinkedId, changePwdNew)
+      changePwdUserId = null; changePwdNew = ''; changePwdConfirm = ''
+    } catch (e: any) {
+      changePwdError = e?.message ?? 'Đổi mật khẩu thất bại.'
+    } finally {
+      changePwdSaving = false
+    }
   }
 
   // ── Groups ─────────────────────────────────────────────────────────────────
@@ -422,18 +519,32 @@
           <input class="input-base w-full text-xs h-7" bind:value={formName} placeholder="Tên OU mới" />
           <input class="input-base w-full text-xs h-7" bind:value={formDesc} placeholder="Mô tả (tuỳ chọn)" />
           {#if selectedOu}
-            <p class="text-xs text-slate-500">Con của: <span class="text-slate-400">{selectedOu.name}</span></p>
+            <!-- Toggle: tạo con hay tạo gốc -->
+            <div class="flex rounded-md overflow-hidden border border-surface-3 text-xs">
+              <button
+                type="button"
+                class="flex-1 px-2 py-1 transition-colors
+                  {!formCreateAtRoot ? 'bg-primary/20 text-primary font-medium' : 'text-slate-500 hover:text-slate-300'}"
+                onclick={() => formCreateAtRoot = false}
+              >Con của: {selectedOu.name}</button>
+              <button
+                type="button"
+                class="flex-1 px-2 py-1 border-l border-surface-3 transition-colors
+                  {formCreateAtRoot ? 'bg-primary/20 text-primary font-medium' : 'text-slate-500 hover:text-slate-300'}"
+                onclick={() => formCreateAtRoot = true}
+              >Cấp gốc</button>
+            </div>
           {/if}
           <div class="flex gap-1">
             <button class="btn btn-primary px-2 py-1 text-xs flex-1" onclick={doCreateOu} disabled={formSaving || !formName.trim()}>Tạo</button>
-            <button class="btn px-2 py-1 text-xs bg-surface-3 text-slate-400" onclick={() => { showCreateOu = false; formName = ''; formDesc = '' }}>
+            <button class="btn px-2 py-1 text-xs bg-surface-3 text-slate-400" onclick={() => { showCreateOu = false; formName = ''; formDesc = ''; formCreateAtRoot = false }}>
               <X class="w-3 h-3" />
             </button>
           </div>
         </div>
       {:else}
         <button class="flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-300 w-full transition-colors py-1"
-          onclick={() => { showCreateOu = true }}>
+          onclick={() => { showCreateOu = true; formCreateAtRoot = false }}>
           <FolderPlus class="w-3.5 h-3.5" />
           Tạo OU{selectedOu ? ' con' : ' gốc'}
         </button>
@@ -469,7 +580,7 @@
           <button
             class="p-1.5 rounded hover:bg-surface-3 text-slate-500 hover:text-rose-400 transition-colors"
             title="Xóa OU"
-            onclick={() => doDeleteOu(selectedOu!.id)}
+            onclick={() => doDeleteOu(selectedOu!)}
           >
             <Trash2 class="w-3.5 h-3.5" />
           </button>
@@ -540,21 +651,40 @@
                           <span class="text-xs text-slate-500 block mb-0.5">Email</span>
                           <input class="input-base w-full text-xs h-7" type="email" bind:value={editUserEmail} />
                         </label>
+                        <label>
+                          <span class="text-xs text-slate-500 block mb-0.5">Vai trò</span>
+                          {#if editUserLinkedId}
+                            <select class="select-base w-full text-xs h-7" bind:value={editUserRole}>
+                              <option value="viewer">Viewer</option>
+                              <option value="user">User</option>
+                              <option value="requester">Requester</option>
+                              <option value="technician">Technician</option>
+                              <option value="warehouse_keeper">Warehouse Keeper</option>
+                              <option value="it_asset_manager">IT Asset Manager</option>
+                              <option value="admin">Admin</option>
+                            </select>
+                          {:else}
+                            <div class="input-base w-full text-xs h-7 flex items-center text-amber-400 cursor-not-allowed">
+                              Chưa có tài khoản đăng nhập
+                            </div>
+                          {/if}
+                        </label>
+                        <label>
+                          <span class="text-xs text-slate-500 block mb-0.5">Trạng thái</span>
+                          <select class="select-base w-full text-xs h-7" bind:value={editUserStatus}>
+                            <option value="active">Hoạt động</option>
+                            <option value="disabled">Vô hiệu</option>
+                            <option value="locked">Khoá</option>
+                          </select>
+                        </label>
                       </div>
-                      <label class="flex items-center gap-2">
-                        <span class="text-xs text-slate-500">Trạng thái:</span>
-                        <select class="select-base text-xs h-7 px-2" bind:value={editUserStatus}>
-                          <option value="active">Hoạt động</option>
-                          <option value="disabled">Vô hiệu</option>
-                          <option value="locked">Khoá</option>
-                        </select>
-                      </label>
                       <div class="flex gap-1">
                         <button class="btn btn-primary px-3 h-7 text-xs" onclick={doUpdateUser} disabled={formSaving}>Lưu</button>
                         <button class="btn px-3 h-7 text-xs bg-surface-3 text-slate-400" onclick={() => editingUserId = null}>Hủy</button>
                       </div>
                     </div>
                   {:else}
+                    {@const linkedSys = u.linkedUserId ? systemUsers.find(s => s.id === u.linkedUserId) : null}
                     <div class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-surface-2/60 group border border-transparent hover:border-surface-3/60 transition-all">
                       <div class="w-7 h-7 rounded-full bg-surface-3 flex items-center justify-center flex-shrink-0">
                         <User class="w-3.5 h-3.5 text-slate-400" />
@@ -563,12 +693,72 @@
                         <p class="text-xs font-medium text-slate-200 truncate">{u.displayName}</p>
                         <p class="text-xs text-slate-500 truncate">{u.username}{u.email ? ` · ${u.email}` : ''}</p>
                       </div>
+                      {#if linkedSys}
+                        <span class="text-xs px-1.5 py-0.5 rounded bg-surface-3 text-slate-400 font-mono">{linkedSys.role}</span>
+                      {/if}
                       <span class="text-xs {STATUS_COLOR[u.status] ?? 'text-slate-500'}">{u.status}</span>
                       <div class="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button
+                          class="p-1 rounded hover:bg-surface-3 transition-colors
+                            {u.linkedUserId ? 'text-slate-500 hover:text-sky-400' : 'text-slate-700 cursor-not-allowed'}"
+                          title={u.linkedUserId ? 'Đổi mật khẩu' : 'Chưa liên kết tài khoản hệ thống'}
+                          disabled={!u.linkedUserId}
+                          onclick={() => startChangePwd(u)}
+                        ><KeyRound class="w-3 h-3" /></button>
                         <button class="p-1 rounded hover:bg-surface-3 text-slate-500 hover:text-amber-400 transition-colors" onclick={() => startEditUser(u)}><Pencil class="w-3 h-3" /></button>
                         <button class="p-1 rounded hover:bg-surface-3 text-slate-500 hover:text-rose-400 transition-colors" onclick={() => doDeleteUser(u.id)}><Trash2 class="w-3 h-3" /></button>
                       </div>
                     </div>
+
+                    {#if changePwdUserId === u.id}
+                      <div class="rounded-lg border border-sky-700/40 bg-sky-900/10 p-3 space-y-2 ml-2">
+                        <p class="text-xs font-semibold text-sky-300 flex items-center gap-1.5">
+                          <KeyRound class="w-3.5 h-3.5" />
+                          Đổi mật khẩu — {u.displayName}
+                        </p>
+                        <div class="grid grid-cols-2 gap-2">
+                          <label>
+                            <span class="text-xs text-slate-500 block mb-0.5">Mật khẩu mới *</span>
+                            <input
+                              class="input-base w-full text-xs h-7"
+                              type="password"
+                              bind:value={changePwdNew}
+                              placeholder="Tối thiểu 12 ký tự"
+                              autocomplete="new-password"
+                            />
+                          </label>
+                          <label>
+                            <span class="text-xs text-slate-500 block mb-0.5">Xác nhận mật khẩu *</span>
+                            <input
+                              class="input-base w-full text-xs h-7"
+                              type="password"
+                              bind:value={changePwdConfirm}
+                              placeholder="Nhập lại mật khẩu"
+                              autocomplete="new-password"
+                            />
+                          </label>
+                        </div>
+                        <p class="text-xs text-slate-600">
+                          Yêu cầu: ≥12 ký tự, có chữ hoa, chữ thường, số và ký tự đặc biệt.
+                        </p>
+                        {#if changePwdError}
+                          <p class="text-xs text-rose-400">{changePwdError}</p>
+                        {/if}
+                        <div class="flex gap-1">
+                          <button
+                            class="btn btn-primary px-3 h-7 text-xs"
+                            onclick={doChangePassword}
+                            disabled={changePwdSaving || !changePwdNew || !changePwdConfirm}
+                          >
+                            {changePwdSaving ? 'Đang lưu...' : 'Đổi mật khẩu'}
+                          </button>
+                          <button
+                            class="btn px-3 h-7 text-xs bg-surface-3 text-slate-400"
+                            onclick={() => { changePwdUserId = null; changePwdError = '' }}
+                          >Hủy</button>
+                        </div>
+                      </div>
+                    {/if}
                   {/if}
                 {/each}
               </div>
@@ -588,8 +778,44 @@
                     <input class="input-base w-full text-xs h-7" bind:value={formDisplayName} placeholder="John Doe" />
                   </label>
                   <label>
-                    <span class="text-xs text-slate-500 block mb-0.5">Email</span>
+                    <span class="text-xs text-slate-500 block mb-0.5">Email *</span>
                     <input class="input-base w-full text-xs h-7" type="email" bind:value={formEmail} placeholder="john@example.com" />
+                  </label>
+                  <label>
+                    <span class="text-xs text-slate-500 block mb-0.5">Vai trò</span>
+                    <select class="select-base w-full text-xs h-7" bind:value={formRole}>
+                      <option value="viewer">Viewer</option>
+                      <option value="user">User</option>
+                      <option value="requester">Requester</option>
+                      <option value="technician">Technician</option>
+                      <option value="warehouse_keeper">Warehouse Keeper</option>
+                      <option value="it_asset_manager">IT Asset Manager</option>
+                      <option value="admin">Admin</option>
+                    </select>
+                  </label>
+                  <label>
+                    <span class="text-xs text-slate-500 block mb-0.5">Mật khẩu *</span>
+                    <div class="relative">
+                      <input
+                        class="input-base w-full text-xs h-7 pr-8"
+                        type={formShowPwd ? 'text' : 'password'}
+                        bind:value={formPassword}
+                        placeholder="Tối thiểu 12 ký tự"
+                        autocomplete="new-password"
+                      />
+                      <button
+                        type="button"
+                        class="absolute right-1.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300"
+                        onclick={() => formShowPwd = !formShowPwd}
+                        tabindex="-1"
+                      >
+                        {#if formShowPwd}
+                          <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                        {:else}
+                          <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                        {/if}
+                      </button>
+                    </div>
                   </label>
                   <label>
                     <span class="text-xs text-slate-500 block mb-0.5">Trạng thái</span>
@@ -599,9 +825,19 @@
                     </select>
                   </label>
                 </div>
+                <p class="text-xs text-slate-600">Mật khẩu: ≥12 ký tự, có chữ hoa, chữ thường, số và ký tự đặc biệt.</p>
+                {#if formError}
+                  <p class="text-xs text-rose-400">{formError}</p>
+                {/if}
                 <div class="flex gap-1">
-                  <button class="btn btn-primary px-3 h-7 text-xs" onclick={doCreateUser} disabled={formSaving || !formUsername.trim() || !formDisplayName.trim()}>Tạo</button>
-                  <button class="btn px-3 h-7 text-xs bg-surface-3 text-slate-400" onclick={() => { showCreateUser = false; formUsername = ''; formDisplayName = ''; formEmail = '' }}>Hủy</button>
+                  <button
+                    class="btn btn-primary px-3 h-7 text-xs"
+                    onclick={doCreateUser}
+                    disabled={formSaving || !formUsername.trim() || !formDisplayName.trim() || !formEmail.trim() || !formPassword}
+                  >
+                    {formSaving ? 'Đang tạo...' : 'Tạo'}
+                  </button>
+                  <button class="btn px-3 h-7 text-xs bg-surface-3 text-slate-400" onclick={() => { showCreateUser = false; resetForms() }}>Hủy</button>
                 </div>
               </div>
             {:else}

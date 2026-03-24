@@ -36,16 +36,16 @@
   });
 </script>
 
-<Modal bind:open title="{$isLoading ? 'Open Maintenance' : $_('maintenance.openMaintenance')} {assetCode ? `(${assetCode})` : ''}">
+<Modal bind:open title={($isLoading ? 'Open Maintenance' : $_('maintenance.openMaintenance')) + (assetCode ? ` (${assetCode})` : '')}>
 
   <div class="space-y-4">
     <div>
-      <label class="label-base mb-2">{$isLoading ? 'Title' : $_('maintenance.ticketTitle')}</label>
-      <input class="input-base" bind:value={title} placeholder={$isLoading ? 'Issue summary' : $_('assets.placeholders.issueSummary')} />
+      <label for="maint-title" class="label-base mb-2">{$isLoading ? 'Title' : $_('maintenance.ticketTitle')}</label>
+      <input id="maint-title" class="input-base" bind:value={title} placeholder={$isLoading ? 'Issue summary' : $_('assets.placeholders.issueSummary')} />
     </div>
     <div>
-      <label class="label-base mb-2">{$isLoading ? 'Severity' : $_('maintenance.severity')}</label>
-      <select class="select-base" bind:value={severity}>
+      <label for="maint-severity" class="label-base mb-2">{$isLoading ? 'Severity' : $_('maintenance.severity')}</label>
+      <select id="maint-severity" class="select-base" bind:value={severity}>
         <option value="low">{$isLoading ? 'Low' : $_('maintenance.low')}</option>
         <option value="medium">{$isLoading ? 'Medium' : $_('maintenance.medium')}</option>
         <option value="high">{$isLoading ? 'High' : $_('maintenance.high')}</option>
@@ -53,12 +53,12 @@
       </select>
     </div>
     <div>
-      <label class="label-base mb-2">{$isLoading ? 'Diagnosis' : $_('maintenance.diagnosis')}</label>
-      <input class="input-base" bind:value={diagnosis} placeholder={$isLoading ? 'Optional diagnosis' : $_('assets.placeholders.optionalDiagnosis')} />
+      <label for="maint-diagnosis" class="label-base mb-2">{$isLoading ? 'Diagnosis' : $_('maintenance.diagnosis')}</label>
+      <input id="maint-diagnosis" class="input-base" bind:value={diagnosis} placeholder={$isLoading ? 'Optional diagnosis' : $_('assets.placeholders.optionalDiagnosis')} />
     </div>
     <div>
-      <label class="label-base mb-2">{$isLoading ? 'Resolution' : $_('maintenance.resolution')}</label>
-      <input class="input-base" bind:value={resolution} placeholder={$isLoading ? 'Optional resolution' : $_('assets.placeholders.optionalResolution')} />
+      <label for="maint-resolution" class="label-base mb-2">{$isLoading ? 'Resolution' : $_('maintenance.resolution')}</label>
+      <input id="maint-resolution" class="input-base" bind:value={resolution} placeholder={$isLoading ? 'Optional resolution' : $_('assets.placeholders.optionalResolution')} />
     </div>
   </div>
 

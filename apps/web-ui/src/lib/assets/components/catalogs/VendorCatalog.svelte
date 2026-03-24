@@ -89,24 +89,24 @@
   <div class="bg-surface-2 border border-slate-700 rounded-lg p-4 space-y-4">
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
       <div>
-        <label class="label-base mb-2">{$isLoading ? 'Vendor name' : $_('assets.vendorName')}</label>
-        <input class="input-base" bind:value={form.name} placeholder={$isLoading ? 'Dell' : $_('assets.placeholders.vendorName')} />
+        <label for="vendor-name" class="label-base mb-2">{$isLoading ? 'Vendor name' : $_('assets.vendorName')}</label>
+        <input id="vendor-name" class="input-base" bind:value={form.name} placeholder={$isLoading ? 'Dell' : $_('assets.placeholders.vendorName')} />
       </div>
       <div>
-        <label class="label-base mb-2">{$isLoading ? 'Tax code' : $_('assets.taxCode')}</label>
-        <input class="input-base" bind:value={form.taxCode} placeholder={$isLoading ? 'Optional' : $_('assets.placeholders.taxCode')} />
+        <label for="vendor-tax" class="label-base mb-2">{$isLoading ? 'Tax code' : $_('assets.taxCode')}</label>
+        <input id="vendor-tax" class="input-base" bind:value={form.taxCode} placeholder={$isLoading ? 'Optional' : $_('assets.placeholders.taxCode')} />
       </div>
       <div>
-        <label class="label-base mb-2">{$isLoading ? 'Phone' : $_('assets.phone')}</label>
-        <input class="input-base" bind:value={form.phone} placeholder={$isLoading ? 'Optional' : $_('assets.placeholders.phone')} />
+        <label for="vendor-phone" class="label-base mb-2">{$isLoading ? 'Phone' : $_('assets.phone')}</label>
+        <input id="vendor-phone" class="input-base" bind:value={form.phone} placeholder={$isLoading ? 'Optional' : $_('assets.placeholders.phone')} />
       </div>
       <div>
-        <label class="label-base mb-2">{$isLoading ? 'Email' : $_('assets.email')}</label>
-        <input class="input-base" bind:value={form.email} placeholder={$isLoading ? 'Optional' : $_('assets.placeholders.email')} />
+        <label for="vendor-email" class="label-base mb-2">{$isLoading ? 'Email' : $_('assets.email')}</label>
+        <input id="vendor-email" class="input-base" bind:value={form.email} placeholder={$isLoading ? 'Optional' : $_('assets.placeholders.email')} />
       </div>
       <div class="md:col-span-2">
-        <label class="label-base mb-2">{$isLoading ? 'Address' : $_('assets.address')}</label>
-        <input class="input-base" bind:value={form.address} placeholder={$isLoading ? 'Optional' : $_('assets.placeholders.address')} />
+        <label for="vendor-address" class="label-base mb-2">{$isLoading ? 'Address' : $_('assets.address')}</label>
+        <input id="vendor-address" class="input-base" bind:value={form.address} placeholder={$isLoading ? 'Optional' : $_('assets.placeholders.address')} />
       </div>
     </div>
     <div class="flex gap-2">

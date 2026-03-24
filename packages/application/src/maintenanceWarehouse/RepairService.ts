@@ -67,7 +67,7 @@ export class RepairService {
     async changeStatus(id: string, status: RepairOrderRecord['status'], ctx: MaintenanceWarehouseContext): Promise<RepairOrderRecord> {
         const patch: RepairOrderUpdatePatch = {
             status,
-            closedAt: status === 'closed' ? new Date() : undefined,
+            closedAt: status === 'closed' ? new Date().toISOString() : undefined,
             correlationId: ctx.correlationId
         }
         const updated = await this.repairs.update(id, patch)

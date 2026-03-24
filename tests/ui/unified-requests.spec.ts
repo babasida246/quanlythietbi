@@ -514,10 +514,14 @@ test.describe('Legacy Redirects', () => {
         expect(url).toMatch(/\/requests(\?tab=mine)?$|\/requests\?/)
     })
 
-    test('/inbox redirects to /requests?tab=inbox', async ({ page }) => {
+    test('/inbox loads inbox page (no longer redirects)', async ({ page }) => {
         await page.goto('/inbox')
-        await page.waitForURL(/requests/, { timeout: 8000 })
+        await page.waitForLoadState('domcontentloaded')
+        await page.waitForTimeout(500)
+        // /inbox now has its own page (moved from root/inbox to (assets)/inbox)
+        // It should not be on the login page
         const url = page.url()
-        expect(url).toMatch(/requests/)
+        expect(url).not.toContain('/login')
+        expect(url).not.toContain('/forbidden')
     })
 })

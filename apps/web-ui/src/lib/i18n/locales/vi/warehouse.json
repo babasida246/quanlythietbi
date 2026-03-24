@@ -117,7 +117,16 @@
       "postDocumentFailed": "Đăng tài liệu thất bại",
       "cancelDocumentFailed": "Hủy tài liệu thất bại",
       "loadReportFailed": "Tải báo cáo thất bại",
-      "loadDocuments": "Lỗi tải danh sách chứng từ"
+      "loadDocuments": "Lỗi tải danh sách chứng từ",
+      "missingWarehouse": "Vui lòng chọn kho.",
+      "atLeastOneLine": "Cần ít nhất một dòng hàng hóa.",
+      "missingCodeOrPart": "Vui lòng chọn vật tư cho tất cả các dòng linh kiện.",
+      "missingAssetId": "Vui lòng chọn thiết bị cho tất cả các dòng thiết bị (phiếu xuất).",
+      "missingAssetModel": "Vui lòng chọn model cho tất cả các dòng thiết bị (phiếu nhập).",
+      "postFailed": "Ghi sổ thất bại",
+      "cancelFailed": "Hủy thất bại",
+      "submitFailed": "Trình duyệt thất bại",
+      "approveFailed": "Duyệt thất bại"
     },
     "currencyConversion": "Xem trước quy đổi tiền tệ",
     "expiringSoon": "SẮP HẾT HẠN",
@@ -200,7 +209,11 @@
       "postFailedDetail": "Ghi sổ phiếu thất bại: {error}",
       "cancelFailedDetail": "Hủy phiếu thất bại: {error}",
       "submitFailedDetail": "Trình duyệt phiếu thất bại: {error}",
-      "approveFailedDetail": "Duyệt phiếu thất bại: {error}"
+      "approveFailedDetail": "Duyệt phiếu thất bại: {error}",
+      "submittedDoc": "Đã trình duyệt phiếu",
+      "approvedDoc": "Đã duyệt phiếu",
+      "postedDoc": "Đã ghi sổ phiếu",
+      "cancelledDoc": "Đã hủy phiếu"
     },
     "pageTitle": "Nhập / Xuất kho",
     "createDocument": "Tạo chứng từ",
@@ -219,6 +232,7 @@
       "actions": "THAO TÁC"
     },
     "action": {
+      "cancel": "Hủy",
       "submit": "Gửi duyệt",
       "approve": "Duyệt",
       "post": "Ghi sổ",
@@ -247,7 +261,20 @@
       "section": "Bộ phận",
       "performer": "Người thực hiện",
       "note": "Ghi chú",
-      "generalNote": "Ghi chú chung"
+      "generalNote": "Ghi chú chung",
+      "warehouse": "Kho",
+      "sourceWarehouse": "Kho nguồn",
+      "destWarehouse": "Kho đích",
+      "selectWarehouse": "-- Chọn kho --",
+      "selectDestWarehouse": "-- Chọn kho đích --",
+      "submitterPlaceholder": "Họ tên người nhập...",
+      "receiverPlaceholder": "Họ tên người nhận...",
+      "departmentPlaceholder": "Phòng ban...",
+      "receivingLocation": "Vị trí nhận",
+      "noLocation": "-- Không chỉ định vị trí --",
+      "executor": "Người thực hiện",
+      "executorPlaceholder": "Họ tên người thực hiện...",
+      "supplierPlaceholder": "Tên nhà cung cấp..."
     },
     "placeholder": {
       "selectWarehouse": "-- Chọn kho --",
@@ -262,6 +289,7 @@
       "generalNote": "Nội dung / diễn giải cho phiếu..."
     },
     "linesHeading": "Chi tiết hàng hóa / vật tư",
+    "linesCount": "dòng",
     "createdAtLabel": "Tạo:",
     "pagination": "Trang {page} / {totalPages} · {total} chứng từ",
     "purchasePlan": {
@@ -332,6 +360,43 @@
       "submitError": "Không thể tạo phiếu điều chỉnh",
       "submitSuccess": "Đã tạo {documents} phiếu điều chỉnh cho {variances} dòng chênh lệch"
     }
+  },
+  "stockDoc": {
+    "addLine": "+ Thêm dòng",
+    "lineCount": "{count} dòng",
+    "header": {
+      "lineType": "Loại",
+      "item": "Vật tư / Hàng hóa",
+      "partName": "Vật tư / Hàng hóa",
+      "category": "Danh mục",
+      "unit": "ĐVT",
+      "direction": "Hướng",
+      "quantity": "Số lượng",
+      "qty": "SL",
+      "unitPrice": "Đơn giá (₫)",
+      "amount": "Thành tiền (₫)",
+      "notes": "Ghi chú"
+    },
+    "emptyState": "Chưa có dòng hàng hóa nào.",
+    "emptyHint": "Nhấn \"+ Thêm dòng\" để bắt đầu.",
+    "selectPart": "-- Chọn vật tư --",
+    "available": "Khả dụng:",
+    "overStock": "Vượt tồn kho!",
+    "checking": "Đang kiểm tra...",
+    "hideSpecs": "▲ Ẩn thông số",
+    "showSpecs": "▼ Thông số kỹ thuật",
+    "adjustPlus": "+ Tăng",
+    "adjustMinus": "− Giảm",
+    "specFromCatalog": "Thông số kỹ thuật (từ danh mục)",
+    "total": "Tổng cộng ({count} dòng):",
+    "addAssetLine": "+ Thêm thiết bị",
+    "lineTypeSparePart": "Linh kiện",
+    "lineTypeAsset": "Thiết bị",
+    "selectAsset": "-- Chọn thiết bị --",
+    "selectModel": "-- Chọn model --",
+    "noAssetsInStock": "Không có thiết bị tồn kho tại kho này",
+    "assetNamePlaceholder": "Tên thiết bị (tuỳ chọn)",
+    "assetCodePlaceholder": "Mã TS (tự động nếu để trống)"
   },
   "wfRequest": {
     "service": "(dịch vụ)",

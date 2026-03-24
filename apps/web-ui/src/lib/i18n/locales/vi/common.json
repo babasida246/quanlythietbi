@@ -5,11 +5,11 @@
     "stats": "Thống kê",
     "models": "Mô hình AI",
     "tools": "Công cụ",
-    "cmdb": "CMDB",
+    "cmdb": "Quản lý cấu hình",
     "assets": "Tài sản",
     "catalogs": "Danh mục",
     "maintenance": "Bảo trì",
-    "inventory": "Kho",
+    "inventory": "Kiểm kê",
     "warehouse": "Kho hàng",
     "requests": "Yêu cầu",
     "assetReports": "Báo cáo tài sản",
@@ -40,7 +40,8 @@
     "printCustomizer": "Tuy chinh mau in",
     "groupMy": "CỦA TÔI",
     "groupAssets": "QUẢN LÝ TÀI SẢN",
-    "groupSupport": "HỖ TRỢ"
+    "groupSupport": "HỖ TRỢ",
+    "depreciation": "Khấu hao"
   },
   "common": {
     "success": "Thành công",

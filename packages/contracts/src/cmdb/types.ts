@@ -1,3 +1,13 @@
+export type {
+    CiStatus,
+    Environment,
+    CmdbFieldType,
+    SpecVersionStatus,
+    RelationshipStatus,
+    RelationshipDirection,
+    CmdbChangeRisk,
+    CmdbChangeStatus,
+} from '@qltb/domain'
 import type {
     CiStatus,
     Environment,
@@ -13,7 +23,7 @@ export interface CiTypeRecord {
     code: string
     name: string
     description?: string | null
-    createdAt: Date
+    createdAt: string
 }
 
 export interface CiTypeVersionRecord {
@@ -22,7 +32,7 @@ export interface CiTypeVersionRecord {
     version: number
     status: SpecVersionStatus
     createdBy?: string | null
-    createdAt: Date
+    createdAt: string
 }
 
 export interface CiAttrDefRecord {
@@ -45,8 +55,8 @@ export interface CiAttrDefRecord {
     isFilterable: boolean
     sortOrder: number
     isActive: boolean
-    createdAt: Date
-    updatedAt: Date
+    createdAt: string
+    updatedAt: string
 }
 
 export interface CiAttrDefInput {
@@ -86,8 +96,8 @@ export interface CiRecord {
     locationId?: string | null
     ownerTeam?: string | null
     notes?: string | null
-    createdAt: Date
-    updatedAt: Date
+    createdAt: string
+    updatedAt: string
 }
 
 export interface CiAttrValueRecord {
@@ -96,7 +106,7 @@ export interface CiAttrValueRecord {
     versionId: string
     key: string
     value?: unknown
-    updatedAt: Date
+    updatedAt: string
 }
 
 export interface CiCreateInput {
@@ -143,7 +153,7 @@ export interface RelationshipRecord {
     status: RelationshipStatus
     sinceDate?: string | null
     note?: string | null
-    createdAt: Date
+    createdAt: string
 }
 
 export interface CmdbServiceRecord {
@@ -155,7 +165,7 @@ export interface CmdbServiceRecord {
     owner?: string | null
     sla?: string | null
     status?: string | null
-    createdAt: Date
+    createdAt: string
 }
 
 export interface CmdbServiceMemberRecord {
@@ -163,7 +173,7 @@ export interface CmdbServiceMemberRecord {
     serviceId: string
     ciId: string
     role?: string | null
-    createdAt: Date
+    createdAt: string
 }
 
 export interface CiListFilters {
@@ -210,16 +220,16 @@ export interface CmdbChangeRecord {
     impactSnapshot?: unknown
     implementationPlan?: string | null
     rollbackPlan?: string | null
-    plannedStartAt?: Date | null
-    plannedEndAt?: Date | null
+    plannedStartAt?: string | null
+    plannedEndAt?: string | null
     requestedBy?: string | null
     approvedBy?: string | null
     implementedBy?: string | null
-    implementedAt?: Date | null
-    closedAt?: Date | null
+    implementedAt?: string | null
+    closedAt?: string | null
     metadata?: Record<string, unknown> | null
-    createdAt: Date
-    updatedAt: Date
+    createdAt: string
+    updatedAt: string
 }
 
 export interface CmdbChangeCreateInput {
@@ -229,8 +239,8 @@ export interface CmdbChangeCreateInput {
     primaryCiId?: string | null
     implementationPlan?: string | null
     rollbackPlan?: string | null
-    plannedStartAt?: Date | null
-    plannedEndAt?: Date | null
+    plannedStartAt?: string | null
+    plannedEndAt?: string | null
     metadata?: Record<string, unknown> | null
     requestedBy?: string | null
 }
@@ -242,14 +252,14 @@ export interface CmdbChangeUpdatePatch {
     primaryCiId?: string | null
     implementationPlan?: string | null
     rollbackPlan?: string | null
-    plannedStartAt?: Date | null
-    plannedEndAt?: Date | null
+    plannedStartAt?: string | null
+    plannedEndAt?: string | null
     status?: CmdbChangeStatus
     impactSnapshot?: unknown
     approvedBy?: string | null
     implementedBy?: string | null
-    implementedAt?: Date | null
-    closedAt?: Date | null
+    implementedAt?: string | null
+    closedAt?: string | null
     metadata?: Record<string, unknown> | null
 }
 
@@ -264,6 +274,76 @@ export interface CmdbChangeListFilters {
 
 export interface CmdbChangePage {
     items: CmdbChangeRecord[]
+    total: number
+    page: number
+    limit: number
+}
+
+// ── Config Files ──────────────────────────────────────────────────────────────
+
+export type CmdbConfigFileType = 'config' | 'script' | 'template' | 'env' | 'other'
+
+export interface CmdbConfigFileRecord {
+    id: string
+    ciId: string
+    ciName?: string | null       // populated in list queries (JOIN with cmdb_cis)
+    name: string
+    fileType: CmdbConfigFileType
+    language?: string | null
+    description?: string | null
+    filePath?: string | null
+    content: string
+    currentVersion: number
+    isActive: boolean
+    createdBy?: string | null
+    updatedBy?: string | null
+    createdAt: string
+    updatedAt: string
+}
+
+export interface CmdbConfigFileVersionRecord {
+    id: string
+    configFileId: string
+    version: number
+    content: string
+    changeSummary?: string | null
+    createdBy?: string | null
+    createdAt: string
+}
+
+export interface CmdbConfigFileCreateInput {
+    ciId: string
+    name: string
+    fileType?: CmdbConfigFileType
+    language?: string | null
+    description?: string | null
+    filePath?: string | null
+    content: string
+    changeSummary?: string | null
+    createdBy?: string | null
+}
+
+export interface CmdbConfigFileUpdatePatch {
+    name?: string
+    fileType?: CmdbConfigFileType
+    language?: string | null
+    description?: string | null
+    filePath?: string | null
+    content?: string
+    changeSummary?: string | null
+    updatedBy?: string | null
+}
+
+export interface CmdbConfigFileListFilters {
+    ciId?: string
+    fileType?: CmdbConfigFileType
+    q?: string
+    page?: number
+    limit?: number
+}
+
+export interface CmdbConfigFilePage {
+    items: CmdbConfigFileRecord[]
     total: number
     page: number
     limit: number

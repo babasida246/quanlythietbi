@@ -9,6 +9,7 @@
         type Policy, type PolicyAssignment, type PolicyPrincipal,
     } from '$lib/api/admin'
     import type { RbacPermission } from '$lib/api/admin'
+    import { effectivePermsStore } from '$lib/stores/effectivePermsStore'
     import {
         Laptop, FolderTree, Network, Package, ClipboardList, Key, Puzzle,
         FlaskConical, Cpu, ArrowLeftRight, FileText, Wrench, BarChart3,
@@ -162,31 +163,31 @@
     }
 
     // ── Resource / action meta ────────────────────────────────────────────────
-    const resourceMeta: Record<string, { Icon: any; color: string }> = {
-        assets:       { Icon: Laptop,          color: 'text-blue-400'    },
-        categories:   { Icon: FolderTree,      color: 'text-violet-400'  },
-        cmdb:         { Icon: Network,         color: 'text-cyan-400'    },
-        warehouse:    { Icon: Package,         color: 'text-amber-400'   },
-        inventory:    { Icon: ClipboardList,   color: 'text-emerald-400' },
-        licenses:     { Icon: Key,             color: 'text-yellow-400'  },
-        accessories:  { Icon: Puzzle,          color: 'text-pink-400'    },
-        consumables:  { Icon: FlaskConical,    color: 'text-orange-400'  },
-        components:   { Icon: Cpu,             color: 'text-teal-400'    },
-        checkout:     { Icon: ArrowLeftRight,  color: 'text-indigo-400'  },
-        requests:     { Icon: FileText,        color: 'text-sky-400'     },
-        maintenance:  { Icon: Wrench,          color: 'text-red-400'     },
-        reports:      { Icon: BarChart3,       color: 'text-lime-400'    },
-        analytics:    { Icon: TrendingUp,      color: 'text-green-400'   },
-        depreciation: { Icon: TrendingDown,    color: 'text-slate-400'   },
-        labels:       { Icon: Tag,             color: 'text-rose-400'    },
-        documents:    { Icon: Files,           color: 'text-zinc-400'    },
-        automation:   { Icon: Zap,             color: 'text-yellow-300'  },
-        integrations: { Icon: Plug,            color: 'text-purple-400'  },
-        security:     { Icon: Shield,          color: 'text-red-500'     },
-        admin:        { Icon: Settings,        color: 'text-rose-400'    },
-        rbac:         { Icon: Lock,            color: 'text-indigo-400'  },
-        tool:         { Icon: Settings,        color: 'text-gray-400'    },
-        site:         { Icon: LayoutDashboard, color: 'text-sky-300'     },
+    const resourceMeta: Record<string, { Icon: any; color: string; accent: string }> = {
+        assets:       { Icon: Laptop,          color: 'text-blue-400',    accent: 'bg-blue-500'     },
+        categories:   { Icon: FolderTree,      color: 'text-violet-400',  accent: 'bg-violet-500'   },
+        cmdb:         { Icon: Network,         color: 'text-cyan-400',    accent: 'bg-cyan-500'     },
+        warehouse:    { Icon: Package,         color: 'text-amber-400',   accent: 'bg-amber-500'    },
+        inventory:    { Icon: ClipboardList,   color: 'text-emerald-400', accent: 'bg-emerald-500'  },
+        licenses:     { Icon: Key,             color: 'text-yellow-400',  accent: 'bg-yellow-500'   },
+        accessories:  { Icon: Puzzle,          color: 'text-pink-400',    accent: 'bg-pink-500'     },
+        consumables:  { Icon: FlaskConical,    color: 'text-orange-400',  accent: 'bg-orange-500'   },
+        components:   { Icon: Cpu,             color: 'text-teal-400',    accent: 'bg-teal-500'     },
+        checkout:     { Icon: ArrowLeftRight,  color: 'text-indigo-400',  accent: 'bg-indigo-500'   },
+        requests:     { Icon: FileText,        color: 'text-sky-400',     accent: 'bg-sky-500'      },
+        maintenance:  { Icon: Wrench,          color: 'text-red-400',     accent: 'bg-red-500'      },
+        reports:      { Icon: BarChart3,       color: 'text-lime-400',    accent: 'bg-lime-500'     },
+        analytics:    { Icon: TrendingUp,      color: 'text-green-400',   accent: 'bg-green-500'    },
+        depreciation: { Icon: TrendingDown,    color: 'text-slate-400',   accent: 'bg-slate-500'    },
+        labels:       { Icon: Tag,             color: 'text-rose-400',    accent: 'bg-rose-500'     },
+        documents:    { Icon: Files,           color: 'text-zinc-400',    accent: 'bg-zinc-500'     },
+        automation:   { Icon: Zap,             color: 'text-yellow-300',  accent: 'bg-yellow-400'   },
+        integrations: { Icon: Plug,            color: 'text-purple-400',  accent: 'bg-purple-500'   },
+        security:     { Icon: Shield,          color: 'text-red-500',     accent: 'bg-red-600'      },
+        admin:        { Icon: Settings,        color: 'text-rose-400',    accent: 'bg-rose-500'     },
+        rbac:         { Icon: Lock,            color: 'text-indigo-400',  accent: 'bg-indigo-500'   },
+        tool:         { Icon: Settings,        color: 'text-gray-400',    accent: 'bg-gray-500'     },
+        site:         { Icon: LayoutDashboard, color: 'text-sky-300',     accent: 'bg-sky-400'      },
     }
 
     const actionCls: Record<string, string> = {
@@ -251,6 +252,8 @@
             const pm = new Map(pending); pm.delete(id); pending = pm
             // Update permission count in list
             policies = policies.map(p => p.id === id ? { ...p, permissionCount: ws.size } : p)
+            // Invalidate frontend capability cache so changes take effect immediately
+            effectivePermsStore.invalidate()
             setSuccess('Đã lưu thành công')
         } catch (e: any) {
             error = e?.message ?? 'Failed to save'
@@ -303,7 +306,7 @@
                 effect: newAssignEffect, inherit: newAssignInherit,
             })
             assignments = (await listPolicyAssignments(selectedId)).data
-            newAssignId = ''; setSuccess('Assignment đã được thêm')
+            newAssignId = ''; effectivePermsStore.invalidate(); setSuccess('Assignment đã được thêm')
         } catch (e: any) { error = e?.message ?? 'Failed to add assignment' }
         finally { assignLoading = false }
     }
@@ -314,6 +317,7 @@
         try {
             await removePolicyAssignment(selectedId, assignmentId)
             assignments = assignments.filter(a => a.id !== assignmentId)
+            effectivePermsStore.invalidate()
             setSuccess('Assignment đã được gỡ')
         } catch (e: any) { error = e?.message ?? 'Failed to remove' }
         finally { removingAssignId = '' }
@@ -325,6 +329,7 @@
         try {
             const res = await bulkAssignPolicyToOu(selectedId, { ouId: bulkOuId, includeSubOUs: bulkSubOUs, effect: bulkEffect })
             assignments = (await listPolicyAssignments(selectedId)).data
+            effectivePermsStore.invalidate()
             setSuccess(`Đã gán cho ${res.data.inserted} user(s)`)
             bulkOuId = ''
         } catch (e: any) { error = e?.message ?? 'Failed' }
@@ -400,7 +405,8 @@
 
                         {#if editingId === pol.id}
                             <!-- Inline edit form -->
-                            <div class="p-2 space-y-1.5" onclick={(e) => e.stopPropagation()}>
+                            <!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
+                            <div class="p-2 space-y-1.5" role="presentation" onclick={(e) => e.stopPropagation()}>
                                 <input type="text" class="input-base text-xs w-full" bind:value={editName} />
                                 <input type="text" placeholder="Mô tả" class="input-base text-xs w-full" bind:value={editDesc} />
                                 <div class="flex gap-1.5">
@@ -431,6 +437,16 @@
                                             <span class="text-[10px] text-amber-400">● unsaved</span>
                                         {/if}
                                     </div>
+                                    <!-- Coverage progress bar -->
+                                    {#if catalog.length > 0}
+                                        <div class="mt-1.5 h-0.5 rounded-full bg-surface-3/60 overflow-hidden">
+                                            <div class="h-full rounded-full transition-all duration-500
+                                                {(pol.permissionCount ?? 0) >= catalog.length * 0.7 ? 'bg-emerald-500/70'
+                                                 : (pol.permissionCount ?? 0) > 0 ? 'bg-amber-500/70' : ''}"
+                                                style="width: {Math.min(100, Math.round(((pol.permissionCount ?? 0) / catalog.length) * 100))}%">
+                                            </div>
+                                        </div>
+                                    {/if}
                                 </div>
                                 <!-- Actions (visible on hover or selection) -->
                                 {#if !pol.isSystem}
@@ -469,10 +485,20 @@
         {:else}
             <!-- Header -->
             <div class="px-5 py-3 border-b border-surface-3 flex items-center gap-3 bg-surface-2/30">
-                <ShieldCheck class="w-5 h-5 text-primary flex-shrink-0" />
+                <div class="w-9 h-9 rounded-lg bg-primary/15 border border-primary/25 flex items-center justify-center flex-shrink-0">
+                    <ShieldCheck class="w-4.5 h-4.5 text-primary" />
+                </div>
                 <div class="flex-1 min-w-0">
-                    <h3 class="text-sm font-semibold text-white">{selectedPolicy.name}</h3>
-                    <p class="text-xs text-slate-500 font-mono">{selectedPolicy.slug}</p>
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <h3 class="text-sm font-semibold text-slate-100">{selectedPolicy.name}</h3>
+                        {#if selectedPolicy.isSystem}
+                            <span class="text-[9px] uppercase tracking-wide px-1.5 py-0.5 rounded-full bg-indigo-900/40 border border-indigo-700/50 text-indigo-400 font-medium">system</span>
+                        {/if}
+                    </div>
+                    <p class="text-[11px] font-mono text-slate-500 mt-0.5">{selectedPolicy.slug}</p>
+                    {#if selectedPolicy.description}
+                        <p class="text-xs text-slate-400 mt-0.5 truncate">{selectedPolicy.description}</p>
+                    {/if}
                 </div>
                 <!-- Save / revert -->
                 {#if isDirty}
@@ -513,7 +539,10 @@
                         onclick={() => { rightTab = tab.id as any }}>
                         {$isLoading ? tab.id : $_((tab as any).labelKey)}
                         {#if tab.id === 'permissions'}
-                            <span class="ml-1.5 text-[10px] px-1.5 py-0.5 rounded-full bg-surface-3 text-slate-400">
+                            <span class="ml-1.5 text-[10px] px-1.5 py-0.5 rounded-full border
+                                {effectiveSet.size === 0 ? 'bg-surface-3 border-slate-700 text-slate-500'
+                                 : effectiveSet.size >= catalog.length * 0.7 ? 'bg-emerald-900/50 border-emerald-800/50 text-emerald-400'
+                                 : 'bg-amber-900/50 border-amber-800/50 text-amber-400'}">
                                 {effectiveSet.size}/{catalog.length}
                             </span>
                         {:else}
@@ -532,11 +561,15 @@
                             <input type="text" placeholder={$isLoading ? 'Filter...' : $_('admin.policyLib.filterPlaceholder')} class="input-base pl-6 py-1 text-xs w-32"
                                 bind:value={searchQuery} />
                         </div>
-                        <button class="text-xs text-emerald-400 hover:text-emerald-300"
-                            onclick={() => toggleAll(true)}>{$_('admin.policyLib.grantAll')}</button>
-                        <span class="text-slate-600">|</span>
-                        <button class="text-xs text-rose-400 hover:text-rose-300"
-                            onclick={() => toggleAll(false)}>{$_('admin.policyLib.clearAll')}</button>
+                        <button class="inline-flex items-center gap-1 text-xs text-emerald-400 hover:text-emerald-300 px-2 py-1 rounded hover:bg-emerald-900/20 transition-colors"
+                            onclick={() => toggleAll(true)}>
+                            <CheckSquare2 class="w-3 h-3" />{$_('admin.policyLib.grantAll')}
+                        </button>
+                        <span class="text-slate-700">|</span>
+                        <button class="inline-flex items-center gap-1 text-xs text-rose-400 hover:text-rose-300 px-2 py-1 rounded hover:bg-rose-900/20 transition-colors"
+                            onclick={() => toggleAll(false)}>
+                            <X class="w-3 h-3" />{$_('admin.policyLib.clearAll')}
+                        </button>
                     </div>
                 {/if}
             </div>
@@ -552,15 +585,20 @@
                         {@const allGranted = granted_n === total_n}
                         {@const someGranted = granted_n > 0 && !allGranted}
 
-                        <div class="rounded-xl border overflow-hidden transition-all
+                        <div class="rounded-xl border overflow-hidden transition-all relative
                             {allGranted ? 'border-emerald-700/40 bg-emerald-950/20'
                              : someGranted ? 'border-amber-700/30 bg-amber-950/10'
                              : 'border-surface-3 bg-surface-2/30'}">
 
+                            <!-- Left accent strip -->
+                            <div class="absolute left-0 top-0 bottom-0 w-0.5 {meta.accent ?? 'bg-slate-600'} opacity-60 rounded-l"></div>
+
                             <!-- Card header -->
-                            <div class="flex items-center gap-2.5 px-4 py-2.5
+                            <div class="flex items-center gap-2.5 pl-5 pr-4 py-2.5
                                 {allGranted ? 'bg-emerald-900/20' : someGranted ? 'bg-amber-900/10' : 'bg-surface-3/20'}">
-                                <ResourceIcon class="w-4 h-4 flex-shrink-0 {meta.color}" />
+                                <div class="w-6 h-6 rounded-md bg-surface-3/70 flex items-center justify-center flex-shrink-0">
+                                    <ResourceIcon class="w-3.5 h-3.5 {meta.color}" />
+                                </div>
                                 <span class="text-xs font-semibold text-slate-200 flex-1">{$isLoading ? resource : $_(`admin.policyLib.resources.${resource}`)}</span>
 
                                 <!-- Count badge -->
@@ -573,25 +611,33 @@
 
                                 <!-- Toggle all in group -->
                                 <button type="button"
-                                    class="text-[10px] {allGranted ? 'text-rose-400 hover:text-rose-300' : 'text-emerald-400 hover:text-emerald-300'}"
+                                    class="inline-flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded transition-colors
+                                        {allGranted
+                                            ? 'text-rose-400 hover:text-rose-300 hover:bg-rose-900/20'
+                                            : 'text-emerald-400 hover:text-emerald-300 hover:bg-emerald-900/20'}"
                                     onclick={() => toggleGroup(resource)}>
                                     {allGranted ? $_('admin.policyLib.clearAll') : $_('admin.policyLib.grantAll')}
                                 </button>
                             </div>
 
                             <!-- Chip row -->
-                            <div class="px-4 py-3 flex flex-wrap gap-2">
+                            <div class="pl-5 pr-4 py-3 flex flex-wrap gap-2">
                                 {#each perms as perm (perm.id)}
                                     {@const checked = effectiveSet.has(perm.id)}
                                     {@const cls = actionCls[perm.action] ?? 'bg-slate-800 text-slate-400 border-slate-700'}
                                     <button
                                         type="button"
                                         title={perm.description ?? perm.name}
-                                        class="px-3 py-1 rounded-full text-xs font-medium border transition-all select-none
+                                        class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border transition-all select-none
                                             {checked
                                                 ? cls + ' shadow-sm'
                                                 : 'bg-surface-2/50 text-slate-600 border-slate-700/50 hover:border-slate-500 hover:text-slate-400'}"
                                         onclick={() => togglePermission(perm.id)}>
+                                        {#if checked}
+                                            <CircleCheck class="w-3 h-3 flex-shrink-0 opacity-80" />
+                                        {:else}
+                                            <span class="w-2.5 h-2.5 rounded-full border border-slate-700/80 bg-surface-3/30 flex-shrink-0"></span>
+                                        {/if}
                                         {perm.action}
                                     </button>
                                 {/each}

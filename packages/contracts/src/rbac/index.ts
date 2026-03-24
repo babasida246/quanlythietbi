@@ -2,6 +2,8 @@
 // Contracts: RBAC AD — DTOs, Repo Interfaces, Service Interfaces
 // ============================================================================
 
+export * from './roles.js'
+
 import type {
     OrgUnit, RbacUser, RbacGroup, GroupMember,
     RbacRole, RbacAdPermission, AclEntry,
@@ -34,6 +36,7 @@ export interface RbacUserUpdateInput {
     displayName?: string
     email?: string
     status?: RbacUserStatus
+    linkedUserId?: string | null
 }
 
 // Group

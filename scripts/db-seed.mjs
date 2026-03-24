@@ -36,6 +36,9 @@ const SEED_FILES = [
     'seed-qlts-demo.sql',       // 9. CMDB CIs, wf_definitions (needed by next files)
     'seed-workflows.sql',       // 10. wf_requests + automation (depends on wf_definitions)
     'seed-inventory-audit.sql', // 11. Inventory audit (depends on cmdb_cis)
+    'seed-depreciation-2026.sql', // 12. Depreciation schedules + 2026 runs/entries
+    'seed-new-features.sql',     // 13. Organizations hierarchy, spare part stock, stock documents, notifications
+    'seed-cmdb-config-files.sql', // 14. CMDB config files & version history
 ]
 
 const client = new pg.Client(DATABASE_URL)

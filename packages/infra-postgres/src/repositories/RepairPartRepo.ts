@@ -28,7 +28,7 @@ const mapRepairPart = (row: RepairPartRow): RepairOrderPartRecord => ({
     serialNo: row.serial_no,
     note: row.note,
     stockDocumentId: row.stock_document_id,
-    createdAt: row.created_at
+    createdAt: row.created_at.toISOString()
 })
 
 export class RepairPartRepo implements IRepairPartRepo {

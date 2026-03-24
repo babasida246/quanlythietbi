@@ -1,6 +1,7 @@
 import type { FastifyRequest } from 'fastify'
 import { ForbiddenError, UnauthorizedError } from '../../../shared/errors/http-errors.js'
 import { normalizeUserRole } from '../../../shared/security/jwt-auth.js'
+import { SYSTEM_ROLE_PERMISSIONS } from '@qltb/contracts'
 
 export function getHeader(request: FastifyRequest, name: string): string | undefined {
     const value = request.headers[name.toLowerCase()]
@@ -28,7 +29,8 @@ export function getUserContext(request: FastifyRequest): { userId: string; role:
 
 export function requireRole(request: FastifyRequest, allowed: string[]): { userId: string; correlationId: string } {
     const ctx = getUserContext(request)
-    const elevated = new Set(['admin', 'super_admin'])
+    // root and super_admin always pass regardless of the allowed list
+    const elevated = new Set(['root', 'super_admin'])
     const normalizedAllowed = new Set(allowed.map(normalizeUserRole))
     if (!normalizedAllowed.has(ctx.role) && !elevated.has(ctx.role)) {
         throw new ForbiddenError('Insufficient role for this action')
@@ -36,83 +38,6 @@ export function requireRole(request: FastifyRequest, allowed: string[]): { userI
     return { userId: ctx.userId, correlationId: ctx.correlationId }
 }
 
-// ─── Permission fallback table (mirror migration 050) ─────────────────────────
-// Dùng khi role_permissions chưa được seed vào DB (setup mới / test).
-const ROLE_DEFAULT_PERMISSIONS: Record<string, string[]> = {
-    admin: ['*'],
-    super_admin: ['*'],
-    it_asset_manager: [
-        'assets:read', 'assets:create', 'assets:update', 'assets:delete', 'assets:export', 'assets:import', 'assets:assign',
-        'categories:read', 'categories:manage',
-        'cmdb:read', 'cmdb:create', 'cmdb:update', 'cmdb:delete',
-        'warehouse:read', 'warehouse:create', 'warehouse:approve',
-        'inventory:read', 'inventory:create', 'inventory:manage',
-        'licenses:read', 'licenses:manage',
-        'accessories:read', 'accessories:manage',
-        'consumables:read', 'consumables:manage',
-        'components:read', 'components:manage',
-        'checkout:read', 'checkout:create', 'checkout:approve',
-        'requests:read', 'requests:create', 'requests:approve',
-        'maintenance:read', 'maintenance:create', 'maintenance:manage',
-        'reports:read', 'reports:export', 'analytics:read',
-        'depreciation:read', 'depreciation:manage',
-        'labels:read', 'labels:manage',
-        'documents:read', 'documents:upload', 'documents:delete',
-        'automation:read', 'automation:manage',
-        'integrations:read', 'integrations:manage',
-        'security:read',
-    ],
-    warehouse_keeper: [
-        'assets:read', 'assets:create', 'assets:update', 'assets:export',
-        'categories:read',
-        'warehouse:read', 'warehouse:create',
-        'inventory:read', 'inventory:create',
-        'accessories:read', 'accessories:manage',
-        'consumables:read', 'consumables:manage',
-        'components:read', 'components:manage',
-        'requests:read', 'requests:create',
-        'audit:read', 'audit:create',
-        'maintenance:read',
-        'reports:read', 'reports:export',
-        'depreciation:read',
-        'labels:read', 'labels:manage',
-        'documents:read', 'documents:upload',
-    ],
-    technician: [
-        'assets:read', 'categories:read', 'cmdb:read',
-        'warehouse:read', 'inventory:read',
-        'accessories:read', 'consumables:read',
-        'components:read', 'components:manage',
-        'checkout:read', 'checkout:create',
-        'requests:read', 'requests:create',
-        'maintenance:read', 'maintenance:create', 'maintenance:manage',
-        'reports:read', 'labels:read',
-        'documents:read', 'documents:upload',
-    ],
-    requester: [
-        'assets:read', 'categories:read', 'licenses:read',
-        'checkout:read', 'checkout:create',
-        'requests:read', 'requests:create',
-        'maintenance:read', 'maintenance:create',
-        'reports:read', 'documents:read',
-    ],
-    // 'user' = backward-compat alias cho 'requester'
-    user: [
-        'assets:read', 'categories:read', 'licenses:read',
-        'checkout:read', 'checkout:create',
-        'requests:read', 'requests:create',
-        'maintenance:read', 'maintenance:create',
-        'reports:read', 'documents:read',
-    ],
-    viewer: [
-        'assets:read', 'categories:read', 'cmdb:read',
-        'warehouse:read', 'inventory:read', 'licenses:read',
-        'accessories:read', 'consumables:read', 'components:read',
-        'checkout:read', 'requests:read', 'maintenance:read',
-        'reports:read', 'analytics:read', 'depreciation:read',
-        'labels:read', 'security:read', 'documents:read', 'automation:read',
-    ],
-}
 
 /**
  * Kiểm tra permission cụ thể trên request đã xác thực.
@@ -127,20 +52,29 @@ export function requirePermission(
 ): { userId: string; correlationId: string } {
     const ctx = getUserContext(request)
 
-    // Admin/super_admin: bypass mọi kiểm tra
-    if (ctx.role === 'admin' || ctx.role === 'super_admin') {
+    // Option A (AD-model): only 'root' is inviolable — bypasses all policy checks.
+    // 'admin' and 'super_admin' go through normal permission enforcement so that
+    // Policy DENY assignments take effect (e.g. disabling Security/Analytics for admin).
+    if (ctx.role === 'root') {
         return { userId: ctx.userId, correlationId: ctx.correlationId }
+    }
+
+    // Policy DENY overrides everything for non-root roles.
+    const deniedPerms: string[] = request.user?.deniedPermissions ?? []
+    if (deniedPerms.includes(permission)) {
+        throw new ForbiddenError(`Permission required: ${permission}`)
     }
 
     const userPerms: string[] = request.user?.permissions ?? []
 
     if (userPerms.length > 0) {
+        // permissions loaded from policy_permissions — enforce as-is
         if (!userPerms.includes(permission)) {
             throw new ForbiddenError(`Permission required: ${permission}`)
         }
     } else {
-        // Fallback: dùng bảng mặc định
-        const defaults = ROLE_DEFAULT_PERMISSIONS[ctx.role] ?? []
+        // Fallback khi DB chưa có policy: dùng bảng mặc định từ contracts.
+        const defaults = SYSTEM_ROLE_PERMISSIONS[ctx.role] ?? []
         if (!defaults.includes('*') && !defaults.includes(permission)) {
             throw new ForbiddenError(`Permission required: ${permission}`)
         }
@@ -171,15 +105,25 @@ export function requireAnyPermission(
     ...permissions: string[]
 ): { userId: string; correlationId: string } {
     const ctx = getUserContext(request)
-    if (ctx.role === 'admin' || ctx.role === 'super_admin') {
+
+    // Option A (AD-model): only 'root' is inviolable.
+    if (ctx.role === 'root') {
         return { userId: ctx.userId, correlationId: ctx.correlationId }
     }
 
+    // Remove any permissions that are explicitly denied
+    const deniedPerms = new Set(request.user?.deniedPermissions ?? [])
+    const notDenied = permissions.filter(p => !deniedPerms.has(p))
+    if (notDenied.length === 0) {
+        throw new ForbiddenError(`One of these permissions required: ${permissions.join(', ')}`)
+    }
+
     const userPerms: string[] = request.user?.permissions ?? []
-    const defaults = ROLE_DEFAULT_PERMISSIONS[ctx.role] ?? []
+    // Fallback khi DB chưa có policy: dùng bảng mặc định (admin có '*' → luôn pass)
+    const defaults = SYSTEM_ROLE_PERMISSIONS[ctx.role] ?? []
     const effectivePerms = userPerms.length > 0 ? userPerms : defaults
 
-    const hasAny = permissions.some(p => effectivePerms.includes('*') || effectivePerms.includes(p))
+    const hasAny = notDenied.some(p => effectivePerms.includes('*') || effectivePerms.includes(p))
     if (!hasAny) {
         throw new ForbiddenError(`One of these permissions required: ${permissions.join(', ')}`)
     }

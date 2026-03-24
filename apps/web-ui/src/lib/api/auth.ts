@@ -1,4 +1,5 @@
 import { API_BASE, apiJsonData, authorizedFetch, clearStoredSession, setStoredTokens, setStoredUser, unwrapApiData } from './httpClient'
+import { effectivePermsStore } from '$lib/stores/effectivePermsStore'
 
 export interface AuthResponse {
     accessToken: string
@@ -29,6 +30,8 @@ export async function login(email: string, password: string): Promise<AuthRespon
     if (typeof window !== 'undefined') {
         localStorage.setItem('userId', result.user.id)
     }
+    // Clear stale effective perms cache — new session may have different role/permissions
+    effectivePermsStore.clear()
     return result
 }
 
@@ -58,6 +61,7 @@ export async function logout(): Promise<void> {
         body: JSON.stringify({ refreshToken })
     })
     clearStoredSession()
+    effectivePermsStore.clear()
 }
 
 export async function getCurrentUser() {

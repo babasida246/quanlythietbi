@@ -13,7 +13,7 @@
     class?: string;
     leftIcon?: Snippet;
     rightIcon?: Snippet;
-    children: Snippet;
+    children?: Snippet;
     onclick?: (e: MouseEvent) => void;
     [key: string]: any;
   }
@@ -87,7 +87,7 @@
   {#if leftIcon}
     {@render leftIcon()}
   {/if}
-  {@render children()}
+  {#if children}{@render children()}{/if}
   {#if rightIcon}
     {@render rightIcon()}
   {/if}

@@ -1,14 +1,7 @@
+import { SYSTEM_ROLE_PERMISSIONS } from '@qltb/contracts'
+
 // ─── Danh sách vai trò hệ thống ──────────────────────────────────────────────
-export type SystemRole =
-  | 'admin'
-  | 'super_admin'
-  | 'it_asset_manager'
-  | 'warehouse_keeper'
-  | 'technician'
-  | 'requester'
-  | 'user'    // backward-compat alias của 'requester'
-  | 'viewer'
-  | string    // custom roles tương lai
+export type { SystemRole } from '@qltb/contracts'
 
 // ─── Ma trận Capabilities ─────────────────────────────────────────────────────
 export type Capabilities = {
@@ -162,76 +155,10 @@ export type Capabilities = {
   canApproveRequests: boolean
 }
 
-// ─── Permission set per role (mirrors migration 050) ──────────────────────────
-const ROLE_PERMISSIONS: Record<string, Set<string>> = {
-  admin: new Set(['*']),
-  super_admin: new Set(['*']),
-  it_asset_manager: new Set([
-    'assets:read', 'assets:create', 'assets:update', 'assets:delete', 'assets:export', 'assets:import', 'assets:assign',
-    'categories:read', 'categories:manage',
-    'cmdb:read', 'cmdb:create', 'cmdb:update', 'cmdb:delete',
-    'warehouse:read', 'warehouse:create', 'warehouse:approve',
-    'inventory:read', 'inventory:create', 'inventory:manage',
-    'licenses:read', 'licenses:manage',
-    'accessories:read', 'accessories:manage',
-    'consumables:read', 'consumables:manage',
-    'components:read', 'components:manage',
-    'checkout:read', 'checkout:create', 'checkout:approve',
-    'requests:read', 'requests:create', 'requests:approve',
-    'maintenance:read', 'maintenance:create', 'maintenance:manage',
-    'reports:read', 'reports:export', 'analytics:read',
-    'depreciation:read', 'depreciation:manage',
-    'labels:read', 'labels:manage',
-    'documents:read', 'documents:upload', 'documents:delete',
-    'automation:read', 'automation:manage',
-    'integrations:read', 'integrations:manage',
-    'security:read',
-  ]),
-  warehouse_keeper: new Set([
-    'assets:read', 'assets:create', 'assets:update', 'assets:export',
-    'categories:read',
-    'warehouse:read', 'warehouse:create',
-    'inventory:read', 'inventory:create',
-    'accessories:read', 'accessories:manage',
-    'consumables:read', 'consumables:manage',
-    'components:read', 'components:manage',
-    'requests:read', 'requests:create',
-    'audit:read', 'audit:create',
-    'maintenance:read',
-    'reports:read', 'reports:export',
-    'depreciation:read',
-    'labels:read', 'labels:manage',
-    'documents:read', 'documents:upload',
-  ]),
-  technician: new Set([
-    'assets:read', 'categories:read', 'cmdb:read',
-    'warehouse:read', 'inventory:read',
-    'accessories:read', 'consumables:read',
-    'components:read', 'components:manage',
-    'checkout:read', 'checkout:create',
-    'requests:read', 'requests:create',
-    'maintenance:read', 'maintenance:create', 'maintenance:manage',
-    'reports:read', 'labels:read',
-    'documents:read', 'documents:upload',
-  ]),
-  requester: new Set([
-    'assets:read', 'categories:read', 'licenses:read',
-    'checkout:read', 'checkout:create',
-    'requests:read', 'requests:create',
-    'maintenance:read', 'maintenance:create',
-    'reports:read', 'documents:read',
-  ]),
-  viewer: new Set([
-    'assets:read', 'categories:read', 'cmdb:read',
-    'warehouse:read', 'inventory:read', 'licenses:read',
-    'accessories:read', 'consumables:read', 'components:read',
-    'checkout:read', 'requests:read', 'maintenance:read',
-    'reports:read', 'analytics:read', 'depreciation:read',
-    'labels:read', 'security:read', 'documents:read', 'automation:read',
-  ]),
-}
-// 'user' = alias cho 'requester'
-ROLE_PERMISSIONS['user'] = ROLE_PERMISSIONS['requester']
+// ─── Permission set per role — built from single source of truth in @qltb/contracts ──
+const ROLE_PERMISSIONS: Record<string, Set<string>> = Object.fromEntries(
+  Object.entries(SYSTEM_ROLE_PERMISSIONS).map(([role, perms]) => [role, new Set(perms)])
+)
 
 export function normalizeRole(role: string | null | undefined): string {
   const value = (role ?? '').trim().toLowerCase()
@@ -254,11 +181,23 @@ export function getCapabilities(
 ): Capabilities {
   const role = normalizeRole(roleInput)
 
-  const perms: Set<string> = permissionsOverride && permissionsOverride.length > 0
-    ? new Set(permissionsOverride)
-    : (ROLE_PERMISSIONS[role] ?? new Set<string>())
+  // Option A (AD-model): only 'root' is inviolable — always gets wildcard '*'.
+  // 'admin' and 'super_admin' keep isAdmin=true for routing/landing-path purposes,
+  // but their permissions come from effectivePermsStore (policy DENY/ALLOW applies).
+  // This lets admins be restricted via Policy DENY without losing admin UI access.
+  const isRootRole  = role === 'root'
+  const isAdminRole = isRootRole || role === 'admin' || role === 'super_admin'
 
-  const isAdmin = role === 'admin' || role === 'super_admin'
+  // permissionsOverride !== undefined → server has replied; use it even if empty
+  // (empty means all permissions were DENY'd). Only fall back to ROLE_PERMISSIONS
+  // when override is undefined, i.e. the store hasn't been populated yet.
+  const perms: Set<string> = isRootRole
+    ? new Set(['*'])
+    : permissionsOverride !== undefined
+      ? new Set(permissionsOverride)
+      : (ROLE_PERMISSIONS[role] ?? new Set<string>())
+
+  const isAdmin = isAdminRole
 
   return {
     role,
@@ -391,9 +330,12 @@ export function isRouteAllowed(pathname: string, caps: Capabilities): boolean {
 
   // Asset management
   if (pathname.startsWith('/assets')) {
-    const parts = pathname.split('/').filter(Boolean)
-    const maybeId = parts[1] ?? ''
-    if (parts.length === 2 && isUuidLike(maybeId)) return caps.assets.read
+    // Create routes require explicit create permission
+    if (pathname === '/assets/new') return caps.assets.create
+    if (pathname.startsWith('/assets/asset-increases/new')) return caps.assets.create
+    if (pathname.startsWith('/assets/purchase-plans/new')) return caps.assets.create
+    // Catalogs management requires categories permission
+    if (pathname.startsWith('/assets/catalogs')) return caps.categories.read
     return caps.assets.read
   }
 

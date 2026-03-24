@@ -6,6 +6,7 @@ import { RepairPartRepo } from './RepairPartRepo.js'
 import { StockDocumentRepo } from './StockDocumentRepo.js'
 import { StockRepo } from './StockRepo.js'
 import { OpsEventRepo } from './OpsEventRepo.js'
+import { AssetRepo } from './AssetRepo.js'
 
 export class WarehouseUnitOfWork implements IWarehouseUnitOfWork {
     constructor(private pg: PgClient, private useOpsEvents = true) { }
@@ -18,6 +19,7 @@ export class WarehouseUnitOfWork implements IWarehouseUnitOfWork {
                 movements: new MovementRepo(client),
                 repairs: new RepairOrderRepo(client),
                 repairParts: new RepairPartRepo(client),
+                assets: new AssetRepo(client),
                 opsEvents: this.useOpsEvents ? new OpsEventRepo(client) : undefined
             }
             return await handler(context)

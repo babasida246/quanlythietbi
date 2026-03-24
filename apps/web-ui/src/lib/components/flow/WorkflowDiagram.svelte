@@ -71,7 +71,7 @@
 
   // Update node styles based on status
   $effect(() => {
-    nodes = nodes.map(node => ({
+    nodes = nodes.map((node: FlowNode) => ({
       ...node,
       style: getNodeStyle(node.data.status)
     }));

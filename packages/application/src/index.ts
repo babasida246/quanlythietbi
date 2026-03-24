@@ -93,7 +93,49 @@ export { IntegrationService } from './integration/IntegrationService.js'
 // Feature: Security & Compliance
 export { SecurityService } from './compliance/SecurityService.js'
 
+// Feature: Knowledge Base Documents
+export { DocumentService } from './documents/DocumentService.js'
+
+// Feature: Label Printing
+export { LabelsService } from './labels/LabelsService.js'
+export type { ILabelsRepository } from './labels/LabelsService.js'
+
 // Feature: AD-style RBAC
 export { AuthorizationService } from './rbac/AuthorizationService.js'
 export { RbacAdminService } from './rbac/RbacAdminService.js'
 export { PermissionCenterService } from './rbac/PermissionCenterService.js'
+
+// Feature: Accessories
+export { AccessoryService } from './accessories/AccessoryService.js'
+export type { IAccessoryRepository } from './accessories/AccessoryService.js'
+
+// Feature: Audit (Inventory Check)
+export { AuditService } from './audit/AuditService.js'
+export type { IAuditRepository } from './audit/AuditService.js'
+
+// Feature: Checkout
+export { CheckoutService } from './checkout/CheckoutService.js'
+export type { ICheckoutRepository } from './checkout/CheckoutService.js'
+
+// Feature: Components
+export { ComponentService } from './components/ComponentService.js'
+export type { IComponentRepository } from './components/ComponentService.js'
+
+// Feature: Consumables
+export { ConsumableService } from './consumables/ConsumableService.js'
+export type { IConsumableRepository } from './consumables/ConsumableService.js'
+
+// Feature: Depreciation
+export { DepreciationService } from './depreciation/DepreciationService.js'
+export type { IDepreciationRepository } from './depreciation/DepreciationService.js'
+
+// Feature: Licenses
+export { LicenseService } from './licenses/LicenseService.js'
+export type { ILicenseRepository } from './licenses/LicenseService.js'
+
+// Feature: Workflow (Requests & Approvals)
+export { WfService, WfError, WfNotFoundError, WfForbiddenError } from './wf/WfService.js'
+export type { IWfRepository, IApproverResolver } from './wf/WfService.js'
+
+// Organizations (OU)
+export { OrganizationService } from './organizations/OrganizationService.js'

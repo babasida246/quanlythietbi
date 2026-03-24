@@ -11,8 +11,44 @@ type TokenPayload = {
     role: string
 }
 
-// Cache permission lookups per (role, pgClient) for 5 minutes
+// Cache permission lookups per role slug for 5 minutes
 const permissionCache = new Map<string, { perms: string[]; expiresAt: number }>()
+
+// Cache policy DENY lookups per userId for 5 minutes
+const denialCache = new Map<string, { perms: string[]; expiresAt: number }>()
+
+// Cache policy ALLOW (per-user/OU/group assignments) per userId for 5 minutes
+const allowanceCache = new Map<string, { perms: string[]; expiresAt: number }>()
+
+/** Invalidate denial cache for a user — call after policy assignments change */
+export function invalidateDenialCache(userId?: string): void {
+    if (userId) {
+        denialCache.delete(userId)
+    } else {
+        denialCache.clear()
+    }
+}
+
+/** Invalidate allowance cache for a user — call after policy assignments change */
+export function invalidateAllowanceCache(userId?: string): void {
+    if (userId) {
+        allowanceCache.delete(userId)
+    } else {
+        allowanceCache.clear()
+    }
+}
+
+/** Invalidate role permission cache — call after policy permissions change */
+export function invalidatePermissionCache(roleSlug?: string): void {
+    if (roleSlug) {
+        permissionCache.delete(roleSlug)
+    } else {
+        permissionCache.clear()
+    }
+    // Policy permission changes affect all per-user ALLOW caches too
+    // (assignments point to policies, so policy content change = stale allowance cache)
+    allowanceCache.clear()
+}
 
 type AuthUserRecord = {
     id: string
@@ -88,19 +124,142 @@ async function getRolePermissions(pgClient: PgClient, role: string): Promise<str
     if (cached && cached.expiresAt > Date.now()) return cached.perms
 
     try {
-        const result = await pgClient.query<{ name: string }>(
-            `SELECT p.name
-             FROM permissions p
-             JOIN role_permissions rp ON rp.permission_id = p.id
-             JOIN roles r ON r.id = rp.role_id
-             WHERE r.slug = $1`,
+        // Policy Library is authoritative: read from policy_permissions (migration 060+).
+        // Falls back to role_permissions only if no policy with matching slug exists.
+        const result = await pgClient.query<{ name: string | null; policy_exists: boolean }>(
+            `SELECT p.name,
+                    (SELECT EXISTS(SELECT 1 FROM policies WHERE slug = $1)) AS policy_exists
+             FROM policies pol
+             LEFT JOIN policy_permissions pp ON pp.policy_id = pol.id
+             LEFT JOIN permissions p ON p.id = pp.permission_id
+             WHERE pol.slug = $1`,
             [role]
         )
-        const perms = result.rows.map(r => r.name)
+        let perms: string[]
+        if (result.rows.length > 0 && result.rows[0].policy_exists) {
+            // Policy exists — use policy_permissions (may be empty if admin cleared all)
+            perms = result.rows.map(r => r.name).filter((n): n is string => n !== null)
+        } else {
+            // No policy with this slug → fallback to classic role_permissions
+            const roleResult = await pgClient.query<{ name: string }>(
+                `SELECT p.name
+                 FROM permissions p
+                 JOIN role_permissions rp ON rp.permission_id = p.id
+                 JOIN roles r ON r.id = rp.role_id
+                 WHERE r.slug = $1`,
+                [role]
+            )
+            perms = roleResult.rows.map(r => r.name)
+        }
         permissionCache.set(cacheKey, { perms, expiresAt: Date.now() + 5 * 60_000 })
         return perms
     } catch {
         // Bảng roles/permissions chưa tồn tại → trả về rỗng (fallback về role-based trong helpers)
+        return []
+    }
+}
+
+// Layer 2 ALLOW: load additive permission grants from per-user/OU/group policy assignments.
+// These are unioned with the role defaults (Layer 1) — not limited by a ceiling.
+// Cached per userId for 5 minutes to avoid per-request DB overhead.
+async function getPolicyAllowancesForUser(pgClient: PgClient, userId: string): Promise<string[]> {
+    const cached = allowanceCache.get(userId)
+    if (cached && cached.expiresAt > Date.now()) return cached.perms
+
+    try {
+        const result = await pgClient.query<{ name: string }>(
+            `SELECT DISTINCT pm.name
+             FROM policy_assignments pa
+             JOIN policy_permissions pp ON pp.policy_id = pa.policy_id
+             JOIN permissions pm ON pm.id = pp.permission_id
+             WHERE pa.effect = 'ALLOW'
+               AND (
+                 -- Direct USER assignment
+                 (pa.principal_type = 'USER' AND pa.principal_id = $1)
+                 OR
+                 -- Via GROUP membership
+                 (pa.principal_type = 'GROUP' AND EXISTS (
+                   SELECT 1 FROM rbac_group_members gm
+                   JOIN rbac_users ru ON ru.id = gm.member_user_id
+                                     AND ru.linked_user_id = $1
+                   WHERE gm.group_id = pa.principal_id
+                     AND gm.member_type = 'USER'
+                 ))
+                 OR
+                 -- Via OU (direct or inherited)
+                 (pa.principal_type = 'OU' AND EXISTS (
+                   SELECT 1 FROM rbac_users ru
+                   JOIN org_units user_ou ON user_ou.id = ru.ou_id
+                   WHERE ru.linked_user_id = $1
+                     AND (
+                       pa.principal_id = ru.ou_id
+                       OR (pa.inherit = true AND EXISTS (
+                         SELECT 1 FROM org_units scope_ou
+                         WHERE scope_ou.id = pa.principal_id
+                           AND user_ou.path LIKE scope_ou.path || '%'
+                       ))
+                     )
+                 ))
+               )`,
+            [userId]
+        )
+        const perms = result.rows.map(r => r.name)
+        allowanceCache.set(userId, { perms, expiresAt: Date.now() + 5 * 60_000 })
+        return perms
+    } catch {
+        // policy_assignments table may not exist yet — fail open (no extra allowances)
+        return []
+    }
+}
+
+// Load policy DENY permissions for a specific user (USER + GROUP + OU assignments).
+// Cached per userId for 5 minutes to avoid per-request DB overhead.
+async function getPolicyDenialsForUser(pgClient: PgClient, userId: string): Promise<string[]> {
+    const cached = denialCache.get(userId)
+    if (cached && cached.expiresAt > Date.now()) return cached.perms
+
+    try {
+        const result = await pgClient.query<{ name: string }>(
+            `SELECT DISTINCT pm.name
+             FROM policy_assignments pa
+             JOIN policy_permissions pp ON pp.policy_id = pa.policy_id
+             JOIN permissions pm ON pm.id = pp.permission_id
+             WHERE pa.effect = 'DENY'
+               AND (
+                 -- Direct USER assignment
+                 (pa.principal_type = 'USER' AND pa.principal_id = $1)
+                 OR
+                 -- Via GROUP membership
+                 (pa.principal_type = 'GROUP' AND EXISTS (
+                   SELECT 1 FROM rbac_group_members gm
+                   JOIN rbac_users ru ON ru.id = gm.member_user_id
+                                     AND ru.linked_user_id = $1
+                   WHERE gm.group_id = pa.principal_id
+                     AND gm.member_type = 'USER'
+                 ))
+                 OR
+                 -- Via OU (direct or inherited)
+                 (pa.principal_type = 'OU' AND EXISTS (
+                   SELECT 1 FROM rbac_users ru
+                   JOIN org_units user_ou ON user_ou.id = ru.ou_id
+                   WHERE ru.linked_user_id = $1
+                     AND (
+                       pa.principal_id = ru.ou_id
+                       OR (pa.inherit = true AND EXISTS (
+                         SELECT 1 FROM org_units scope_ou
+                         WHERE scope_ou.id = pa.principal_id
+                           AND user_ou.path LIKE scope_ou.path || '%'
+                       ))
+                     )
+                 ))
+               )`,
+            [userId]
+        )
+        const perms = result.rows.map(r => r.name)
+        denialCache.set(userId, { perms, expiresAt: Date.now() + 5 * 60_000 })
+        return perms
+    } catch {
+        // policy_assignments table may not exist yet — fail open (no denials)
         return []
     }
 }
@@ -177,13 +336,30 @@ export async function authenticateBearerRequest(request: FastifyRequest, pgClien
     }
 
     const normalizedRole = normalizeUserRole(user.role)
-    const permissions = pgClient ? await getRolePermissions(pgClient, normalizedRole) : []
+
+    // AD-style 3-layer permission resolution (all 3 queries run in parallel):
+    //   Layer 1: role defaults  → getRolePermissions
+    //   Layer 2 ALLOW: additive grants via User/Group/OU assignments
+    //   Layer 2 DENY:  explicit revocations (always win over any ALLOW)
+    const [rolePerms, deniedPermissions, policyAllowed] = await Promise.all([
+        pgClient ? getRolePermissions(pgClient, normalizedRole) : Promise.resolve([]),
+        pgClient ? getPolicyDenialsForUser(pgClient, user.id) : Promise.resolve([]),
+        pgClient ? getPolicyAllowancesForUser(pgClient, user.id) : Promise.resolve([]),
+    ])
+
+    // Effective = UNION(layer1_role, layer2_allow) − layer2_deny
+    // Mirrors AD Security Group model: cumulative ALLOW, DENY always overrides.
+    const deniedSet = new Set(deniedPermissions)
+    const unionSet = new Set([...rolePerms, ...policyAllowed])
+    for (const d of deniedSet) unionSet.delete(d)
+    const permissions = [...unionSet]
 
     request.user = {
         id: user.id,
         email: user.email,
         role: normalizedRole,
         status: user.status,
-        permissions
+        permissions,
+        deniedPermissions,
     }
 }

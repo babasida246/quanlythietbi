@@ -58,8 +58,8 @@ const mapRow = (row: DefRow): CiAttrDefRecord => ({
     isFilterable: row.is_filterable,
     sortOrder: row.sort_order,
     isActive: row.is_active,
-    createdAt: row.created_at,
-    updatedAt: row.updated_at
+    createdAt: row.created_at.toISOString(),
+    updatedAt: row.updated_at.toISOString()
 })
 
 function buildUpdates(patch: CiAttrDefUpdatePatch): Update[] {

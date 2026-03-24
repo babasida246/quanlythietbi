@@ -32,6 +32,7 @@ register('vi', () => import('./locales/vi/analytics.json'))
 register('vi', () => import('./locales/vi/modules.json'))
 register('vi', () => import('./locales/vi/netops.json'))
 register('vi', () => import('./locales/vi/setup.json'))
+register('vi', () => import('./locales/vi/depreciation.json'))
 
 // ── English ───────────────────────────────────────────────────────────────────
 register('en', () => import('./locales/en/common.json'))
@@ -45,6 +46,7 @@ register('en', () => import('./locales/en/analytics.json'))
 register('en', () => import('./locales/en/modules.json'))
 register('en', () => import('./locales/en/netops.json'))
 register('en', () => import('./locales/en/setup.json'))
+register('en', () => import('./locales/en/depreciation.json'))
 
 // ─────────────────────────────────────────────────────────────────────────────
 

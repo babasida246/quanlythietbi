@@ -7,44 +7,57 @@
     createStockDocument,
     listSpareParts,
     listWarehouses,
+    listStockAssets,
     type SparePartRecord,
     type StockDocumentLine,
-    type WarehouseRecord
+    type WarehouseRecord,
+    type WarehouseAssetOption
   } from '$lib/api/warehouse';
-  import { getAssetCatalogs, type Vendor } from '$lib/api/assetCatalogs';
+  import { getAssetCatalogs, listLocations, type Vendor, type Location } from '$lib/api/assetCatalogs';
+  import { listAssetModels } from '$lib/api/assets';
 
-  let warehouses = $state<WarehouseRecord[]>([]);
-  let parts = $state<SparePartRecord[]>([]);
-  let vendors = $state<Vendor[]>([]);
-  let lines = $state<StockDocumentLine[]>([]);
+  type ModelOption = { id: string; name: string; categoryName?: string | null };
 
-  let loading = $state(true);
-  let saving = $state(false);
-  let error = $state('');
+  let warehouses     = $state<WarehouseRecord[]>([]);
+  let parts          = $state<SparePartRecord[]>([]);
+  let vendors        = $state<Vendor[]>([]);
+  let locations      = $state<Location[]>([]);
+  let models         = $state<ModelOption[]>([]);
+  let warehouseAssets= $state<WarehouseAssetOption[]>([]);
+  let lines          = $state<StockDocumentLine[]>([]);
 
-  let docType = $state<'receipt' | 'issue' | 'adjust' | 'transfer'>('receipt');
-  let warehouseId = $state('');
-  let targetWarehouseId = $state('');
-  let docDate = $state(new Date().toISOString().slice(0, 10));
-  let note = $state('');
+  let loading  = $state(true);
+  let saving   = $state(false);
+  let error    = $state('');
 
-  // --- Extended header fields ---
-  let supplier = $state('');
-  let submitterName = $state('');
-  let receiverName = $state('');
-  let department = $state('');
+  let docType          = $state<'receipt' | 'issue' | 'adjust' | 'transfer'>('receipt');
+  let warehouseId      = $state('');
+  let targetWarehouseId= $state('');
+  let locationId       = $state('');
+  let docDate          = $state(new Date().toISOString().slice(0, 10));
+  let note             = $state('');
+  let supplier         = $state('');
+  let submitterName    = $state('');
+  let receiverName     = $state('');
+  let department       = $state('');
 
   async function loadCatalogs() {
     try {
       loading = true;
-      const [warehousesResponse, partsResponse, catalogsResponse] = await Promise.all([
+      const [warehousesRes, partsRes, catalogsRes, locationsRes, modelsRes] = await Promise.all([
         listWarehouses(),
         listSpareParts({ page: 1, limit: 200 }),
-        getAssetCatalogs()
+        getAssetCatalogs(),
+        listLocations(),
+        listAssetModels({ limit: 500 })
       ]);
-      warehouses = warehousesResponse.data ?? [];
-      parts = partsResponse.data ?? [];
-      vendors = catalogsResponse.data?.vendors ?? [];
+      warehouses = warehousesRes.data ?? [];
+      parts      = partsRes.data ?? [];
+      vendors    = catalogsRes.data?.vendors ?? [];
+      locations  = locationsRes.data ?? [];
+      models     = (modelsRes.data ?? []).map((m: { id: string; name: string; categoryName?: string | null }) => ({
+        id: m.id, name: m.name, categoryName: m.categoryName ?? null
+      }));
     } catch (err) {
       error = err instanceof Error ? err.message : $_('warehouse.errors.loadCatalogsFailed');
     } finally {
@@ -52,27 +65,44 @@
     }
   }
 
+  // Reload in-stock assets when warehouse or docType changes
+  $effect(() => {
+    if (warehouseId && (docType === 'issue' || docType === 'transfer')) {
+      listStockAssets(warehouseId).then(r => { warehouseAssets = r; }).catch(() => {});
+    } else {
+      warehouseAssets = [];
+    }
+  });
+
+  function validateLines(): string {
+    for (const l of lines) {
+      if (l.lineType === 'asset') {
+        if ((docType === 'issue' || docType === 'transfer') && !l.assetId) {
+          return $_('warehouse.errors.missingAssetId');
+        }
+        if (docType === 'receipt' && !l.assetModelId) {
+          return $_('warehouse.errors.missingAssetModel');
+        }
+      } else {
+        if (!l.partId) return $_('warehouse.errors.missingCodeOrPart');
+      }
+    }
+    return '';
+  }
+
   async function submit() {
-    if (!warehouseId) {
-      error = $_('warehouse.errors.missingWarehouse');
-      return;
-    }
-    if (lines.length === 0) {
-      error = $_('warehouse.errors.atLeastOneLine');
-      return;
-    }
-    const hasEmptyPart = lines.some((l) => !l.partId);
-    if (hasEmptyPart) {
-      error = $_('warehouse.errors.missingCodeOrPart');
-      return;
-    }
+    if (!warehouseId) { error = $_('warehouse.errors.missingWarehouse'); return; }
+    if (lines.length === 0) { error = $_('warehouse.errors.atLeastOneLine'); return; }
+    const lineErr = validateLines();
+    if (lineErr) { error = lineErr; return; }
     try {
       saving = true;
-      error = '';
+      error  = '';
       const response = await createStockDocument({
         docType,
         warehouseId: warehouseId || null,
         targetWarehouseId: docType === 'transfer' ? (targetWarehouseId || null) : null,
+        locationId: docType === 'issue' ? (locationId || null) : null,
         docDate,
         note: note || null,
         supplier: supplier || null,
@@ -89,13 +119,11 @@
     }
   }
 
-  $effect(() => {
-    void loadCatalogs();
-  });
+  $effect(() => { void loadCatalogs(); });
 </script>
 
 <div class="space-y-0">
-  <!-- ── Top action bar ──────────────────────────────────────────────────── -->
+  <!-- ── Top action bar ─────────────────────────────────────────────────── -->
   <div class="mb-4 flex items-center justify-between">
     <div>
       <h2 class="text-lg font-semibold text-slate-100">{$isLoading ? 'New Document' : $_('warehouse.newDocument')}</h2>
@@ -118,7 +146,7 @@
       <div class="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
     </div>
   {:else}
-    <!-- ── Header form (ERP-style compact grid) ──────────────────────────── -->
+    <!-- ── Header form ─────────────────────────────────────────────────── -->
     <div class="rounded-t-xl border border-slate-700 bg-slate-800/50 px-5 py-4">
       <div class="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-3">
 
@@ -128,7 +156,7 @@
           <select id="new-doc-type" class="select-base text-sm" bind:value={docType}>
             <option value="receipt">{$isLoading ? 'Receipt' : $_('warehouse.docType.receipt')}</option>
             <option value="issue">{$isLoading ? 'Issue' : $_('warehouse.docType.issue')}</option>
-            <option value="adjust">{$isLoading ? 'Adjustment' : $_('warehouse.docType.adjustment')}</option>
+            <option value="adjust">{$isLoading ? 'Adjustment' : $_('warehouse.docType.adjust')}</option>
             <option value="transfer">{$isLoading ? 'Transfer' : $_('warehouse.docType.transfer')}</option>
           </select>
         </div>
@@ -142,7 +170,7 @@
         <!-- Kho nguồn -->
         <div>
           <label for="new-doc-warehouse" class="mb-1 block text-xs font-medium text-slate-400">
-            {docType === 'issue' ? ($isLoading ? 'Source Warehouse' : $_('warehouse.field.sourceWarehouse')) : docType === 'transfer' ? ($isLoading ? 'Source Warehouse' : $_('warehouse.field.sourceWarehouse')) : ($isLoading ? 'Warehouse' : $_('warehouse.field.warehouse'))} <span class="text-red-400">*</span>
+            {docType === 'transfer' || docType === 'issue' ? ($isLoading ? 'Source Warehouse' : $_('warehouse.field.sourceWarehouse')) : ($isLoading ? 'Warehouse' : $_('warehouse.field.warehouse'))} <span class="text-red-400">*</span>
           </label>
           <select id="new-doc-warehouse" class="select-base text-sm" bind:value={warehouseId}>
             <option value="">{$isLoading ? '-- Select --' : $_('warehouse.field.selectWarehouse')}</option>
@@ -182,7 +210,7 @@
           </div>
         {/if}
 
-        <!-- issue: Người nhận + Phòng ban -->
+        <!-- issue: Người nhận + Phòng ban + Vị trí nhận -->
         {#if docType === 'issue'}
           <div>
             <label for="new-doc-receiver" class="mb-1 block text-xs font-medium text-slate-400">{$isLoading ? 'Receiver' : $_('warehouse.field.receiver')}</label>
@@ -191,6 +219,15 @@
           <div>
             <label for="new-doc-dept" class="mb-1 block text-xs font-medium text-slate-400">{$isLoading ? 'Department' : $_('warehouse.field.department')}</label>
             <input id="new-doc-dept" class="input-base text-sm" bind:value={department} placeholder={$isLoading ? 'Department...' : $_('warehouse.field.departmentPlaceholder')} />
+          </div>
+          <div>
+            <label for="new-doc-location" class="mb-1 block text-xs font-medium text-slate-400">{$isLoading ? 'Receiving Location' : $_('warehouse.field.receivingLocation')}</label>
+            <select id="new-doc-location" class="select-base text-sm" bind:value={locationId}>
+              <option value="">{$isLoading ? '-- No location --' : $_('warehouse.field.noLocation')}</option>
+              {#each locations as loc}
+                <option value={loc.id}>{loc.name}</option>
+              {/each}
+            </select>
           </div>
         {/if}
 
@@ -206,9 +243,8 @@
           </div>
         {/if}
 
-        <!-- Ghi chú – takes remaining columns -->
-        <div class="col-span-2 md:col-span-{docType === 'transfer' ? '2' : '3'}"
-             style="grid-column: span 2">
+        <!-- Ghi chú -->
+        <div style="grid-column: span 2">
           <label for="new-doc-note" class="mb-1 block text-xs font-medium text-slate-400">{$isLoading ? 'Notes' : $_('common.note')}</label>
           <input id="new-doc-note" class="input-base text-sm" bind:value={note} placeholder={$isLoading ? 'Enter notes...' : $_('common.notePlaceholder')} />
         </div>
@@ -220,7 +256,7 @@
       <div class="mb-3 flex items-center gap-3">
         <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-400">{$isLoading ? 'Item Lines' : $_('warehouse.linesHeading')}</h3>
       </div>
-      <StockDocumentLines bind:lines {parts} {docType} {warehouseId} />
+      <StockDocumentLines bind:lines {parts} {models} {warehouseAssets} {docType} {warehouseId} />
     </div>
 
     <!-- ── Bottom action bar ─────────────────────────────────────────────── -->

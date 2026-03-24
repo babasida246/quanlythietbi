@@ -3,7 +3,7 @@ export interface WarehouseRecord {
     code: string
     name: string
     locationId?: string | null
-    createdAt: Date
+    createdAt: string
 }
 
 export interface WarehouseCreateInput {

@@ -1,14 +1,14 @@
 import { API_BASE, apiJson } from './httpClient'
 import { getAssetHeaders } from './assets'
+import type { SpecFieldType, NormalizeMode, SpecVersionStatus } from '@qltb/contracts'
+
+export type { SpecFieldType, NormalizeMode, SpecVersionStatus }
 
 export type Vendor = { id: string; name: string; taxCode?: string | null; phone?: string | null; email?: string | null; address?: string | null }
-export type Location = { id: string; name: string; parentId?: string | null; path: string }
+export type Location = { id: string; name: string; parentId?: string | null; path: string; organizationId?: string | null; organizationName?: string | null }
 export type AssetCategory = { id: string; name: string }
 export type AssetModel = { id: string; model: string; brand?: string | null; categoryId?: string | null; specVersionId?: string | null; vendorId?: string | null; spec: Record<string, unknown> }
 export type AssetStatusCatalog = { id: string; name: string; code: string; isTerminal: boolean; color?: string | null; createdAt?: string }
-export type SpecFieldType = 'string' | 'number' | 'boolean' | 'enum' | 'date' | 'ip' | 'mac' | 'hostname' | 'cidr' | 'port' | 'regex' | 'json' | 'multi_enum'
-export type NormalizeMode = 'trim' | 'upper' | 'lower'
-export type SpecVersionStatus = 'draft' | 'active' | 'retired'
 export type CategorySpecVersion = {
     id: string
     categoryId: string
@@ -57,7 +57,7 @@ export type Catalogs = {
 export type VendorInput = { name: string; taxCode?: string | null; phone?: string | null; email?: string | null; address?: string | null }
 export type CategoryInput = { name: string }
 export type ModelInput = { model: string; brand?: string | null; categoryId?: string | null; specVersionId?: string | null; vendorId?: string | null; spec?: Record<string, unknown> | null }
-export type LocationInput = { name: string; parentId?: string | null }
+export type LocationInput = { name: string; parentId?: string | null; organizationId?: string | null }
 export type StatusCatalogInput = { name: string; code: string; isTerminal?: boolean; color?: string | null }
 export type CategorySpecDefInput = {
     key: string
@@ -145,7 +145,9 @@ function normalizeLocation(value: unknown): Location | null {
         id,
         name,
         parentId: readOptionalString(value.parentId),
-        path: readOptionalString(value.path) ?? `/${id}`
+        path: readOptionalString(value.path) ?? `/${id}`,
+        organizationId: readOptionalString(value.organizationId),
+        organizationName: readOptionalString(value.organizationName)
     }
 }
 
@@ -283,6 +285,13 @@ export async function deleteModel(id: string): Promise<ApiResponse<{ id: string 
         method: 'DELETE',
         headers: { ...getAssetHeaders() }
     })
+}
+
+export async function listLocations(): Promise<ApiResponse<Location[]>> {
+    const response = await apiJson<ApiResponse<unknown>>(`${API_BASE}/v1/assets/catalogs/locations`, {
+        headers: { ...getAssetHeaders() }
+    })
+    return { ...response, data: normalizeList(response.data, normalizeLocation) }
 }
 
 export async function createLocation(input: LocationInput): Promise<ApiResponse<Location>> {

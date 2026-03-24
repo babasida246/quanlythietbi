@@ -19,6 +19,12 @@ import type {
     CmdbChangePage,
     CmdbChangeRecord,
     CmdbChangeUpdatePatch,
+    CmdbConfigFileCreateInput,
+    CmdbConfigFileListFilters,
+    CmdbConfigFilePage,
+    CmdbConfigFileRecord,
+    CmdbConfigFileUpdatePatch,
+    CmdbConfigFileVersionRecord,
     RelationshipRecord,
     RelationshipTypeRecord
 } from './types.js'
@@ -107,4 +113,14 @@ export interface IServiceRepo {
     addMember(serviceId: string, input: { ciId: string; role?: string | null }): Promise<CmdbServiceMemberRecord>
     removeMember(memberId: string): Promise<boolean>
     listMembers(serviceId: string): Promise<CmdbServiceMemberRecord[]>
+}
+
+export interface ICmdbConfigFileRepo {
+    create(input: CmdbConfigFileCreateInput): Promise<CmdbConfigFileRecord>
+    update(id: string, patch: CmdbConfigFileUpdatePatch): Promise<CmdbConfigFileRecord | null>
+    getById(id: string): Promise<CmdbConfigFileRecord | null>
+    list(filters: CmdbConfigFileListFilters): Promise<CmdbConfigFilePage>
+    softDelete(id: string): Promise<boolean>
+    listVersions(configFileId: string): Promise<CmdbConfigFileVersionRecord[]>
+    getVersion(configFileId: string, version: number): Promise<CmdbConfigFileVersionRecord | null>
 }

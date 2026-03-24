@@ -49,7 +49,9 @@ export const assignmentSchema = z.object({
     assigneeId: z.string().min(1),
     assigneeName: z.string().min(1),
     assignedAt: z.coerce.date().optional(),
-    note: z.string().optional()
+    note: z.string().optional(),
+    locationId: z.string().uuid().nullable().optional(),
+    organizationId: z.string().uuid().nullable().optional()
 })
 
 export const returnSchema = z.object({

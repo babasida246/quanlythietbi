@@ -37,6 +37,7 @@ export { RelationshipTypeRepo } from './repositories/RelationshipTypeRepo.js'
 export { RelationshipRepo } from './repositories/RelationshipRepo.js'
 export { CmdbServiceRepo } from './repositories/CmdbServiceRepo.js'
 export { CmdbChangeRepo } from './repositories/CmdbChangeRepo.js'
+export { CmdbConfigFileRepo } from './repositories/CmdbConfigFileRepo.js'
 export { PurchasePlanRepo } from './repositories/PurchasePlanRepo.js'
 export { AssetIncreaseRepo } from './repositories/AssetIncreaseRepo.js'
 export { ApprovalRepo } from './repositories/ApprovalRepo.js'
@@ -47,6 +48,41 @@ export { AnalyticsRepo, CostRecordRepo, PerformanceMetricRepo, DashboardConfigRe
 export { IntegrationConnectorRepo, SyncRuleRepo, WebhookRepo } from './repositories/IntegrationRepo.js'
 export { RbacPermissionRepo, SecurityAuditRepo, ComplianceRepo } from './repositories/SecurityComplianceRepo.js'
 export { DiscoveryRuleRepo, DiscoveryResultRepo, SmartTagRepo, ChangeAssessmentRepo } from './repositories/CmdbEnhancementRepo.js'
+
+// Knowledge base documents
+export { DocumentRepo } from './repositories/DocumentRepo.js'
+export type { KbDocFileRow } from './repositories/DocumentRepo.js'
+
+// Labels
+export { LabelsRepository } from './repositories/LabelsRepo.js'
+
+// Accessories
+export { AccessoryRepo } from './repositories/AccessoryRepo.js'
+
+// Audit
+export { AuditRepo } from './repositories/AuditRepo.js'
+
+// Checkout
+export { CheckoutRepo } from './repositories/CheckoutRepo.js'
+
+// Components
+export { ComponentRepo } from './repositories/ComponentRepo.js'
+
+// Consumables
+export { ConsumableRepo } from './repositories/ConsumableRepo.js'
+
+// Depreciation
+export { DepreciationRepo } from './repositories/DepreciationRepo.js'
+
+// Licenses
+export { LicenseRepo } from './repositories/LicenseRepo.js'
+
+// Organizations (OU)
+export { OrganizationRepo } from './repositories/OrganizationRepo.js'
+
+// Workflow
+export { WfRepo } from './repositories/WfRepo.js'
+export { WfApproverResolverRepo } from './repositories/WfApproverResolverRepo.js'
 
 // AD-style RBAC repositories
 export {
