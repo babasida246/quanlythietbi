@@ -1,5 +1,6 @@
 import { sveltekit } from '@sveltejs/kit/vite';
 import { createLogger, defineConfig } from 'vite';
+import { resolve } from 'path';
 
 const logger = createLogger();
 const loggerWarn = logger.warn;
@@ -13,6 +14,8 @@ logger.warn = (msg, options) => {
 };
 
 export default defineConfig({
+    // Đọc .env từ monorepo root (chứa VITE_API_BASE, POSTGRES_*, JWT_*...)
+    envDir: resolve(__dirname, '../..'),
     customLogger: logger,
     logLevel: 'error',
     plugins: [sveltekit()],
