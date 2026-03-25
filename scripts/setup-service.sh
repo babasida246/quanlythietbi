@@ -403,6 +403,18 @@ NGINX
     log_ok "Site enabled"
   fi
 
+  # Cấp quyền đọc file tĩnh cho nginx (www-data)
+  # Cần thiết khi project nằm trong /home/<user>/ — home dir thường là 700
+  _home_dir="$(eval echo ~"${SERVICE_USER}" 2>/dev/null || echo "/home/${SERVICE_USER}")"
+  if [[ -d "$_home_dir" ]]; then
+    chmod o+x "$_home_dir" 2>/dev/null || true
+    log_info "Đã mở execute bit trên ${_home_dir} để nginx traverse"
+  fi
+  if [[ -d "${ROOT}/apps/web-ui/build/client" ]]; then
+    chmod -R o+rX "${ROOT}/apps/web-ui/build/client"
+    log_ok "Quyền đọc build/client — OK (nginx có thể phục vụ file tĩnh)"
+  fi
+
   # Test config
   if nginx -t 2>/dev/null; then
     systemctl enable nginx

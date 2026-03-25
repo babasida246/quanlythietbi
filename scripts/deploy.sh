@@ -220,7 +220,18 @@ if [[ "$OPT_SKIP_WEB" == "false" ]]; then
     log_error "Build Web UI thất bại"
     exit 1
   fi
-  log_ok "apps/web-ui → dist/"
+  log_ok "apps/web-ui → build/"
+  # Cấp quyền đọc cho nginx (www-data) khi project nằm trong /home/<user>/
+  if [[ -d "$ROOT/apps/web-ui/build/client" ]]; then
+    chmod -R o+rX "$ROOT/apps/web-ui/build/client" 2>/dev/null || true
+    # Đảm bảo nginx có thể traverse tất cả parent dirs lên tới build/
+    _dir="$ROOT"
+    while [[ "$_dir" != "/" ]]; do
+      chmod o+x "$_dir" 2>/dev/null || true
+      _dir="$(dirname "$_dir")"
+    done
+    log_ok "Quyền đọc build/client — OK"
+  fi
 else
   log_info "Bỏ qua build web-ui (--skip-web)"
 fi
