@@ -15,6 +15,7 @@
 #   --skip-web    Chỉ build API, bỏ qua web-ui
 #   --no-install  Bỏ qua bước pnpm install
 #   --clean       Xóa toàn bộ dist/ trước khi build
+#   --restart     Restart systemd services (qltb-api, qltb-web) sau khi build xong
 #   -h, --help    Hiển thị help
 #
 # Requirements:
@@ -48,6 +49,7 @@ OPT_SEED=false
 OPT_SKIP_WEB=false
 OPT_NO_INSTALL=false
 OPT_CLEAN=false
+OPT_RESTART=false
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -56,8 +58,9 @@ while [[ $# -gt 0 ]]; do
     --skip-web)   OPT_SKIP_WEB=true ;;
     --no-install) OPT_NO_INSTALL=true ;;
     --clean)      OPT_CLEAN=true ;;
+    --restart)    OPT_RESTART=true ;;
     -h|--help)
-      sed -n '3,25p' "$0" | sed 's/^# \?//'
+      sed -n '3,26p' "$0" | sed 's/^# \?//'
       exit 0 ;;
     *) log_error "Unknown option: $1"; exit 1 ;;
   esac
@@ -239,6 +242,31 @@ if [[ "$OPT_SEED" == "true" ]]; then
     exit 1
   fi
   log_ok "Seed hoàn tất"
+fi
+
+# ══════════════════════════════════════════════════════════════════════════════
+# BƯỚC 9 — Restart systemd services (tuỳ chọn)
+# ══════════════════════════════════════════════════════════════════════════════
+if [[ "$OPT_RESTART" == "true" ]]; then
+  log_step "Restart systemd services"
+  if ! command -v systemctl &>/dev/null; then
+    log_warn "systemd không có sẵn — bỏ qua restart"
+  else
+    if systemctl is-active --quiet qltb-api 2>/dev/null; then
+      systemctl restart qltb-api
+      log_ok "qltb-api restarted"
+    else
+      log_warn "qltb-api service chưa được cài đặt — chạy setup-service.sh lần đầu"
+    fi
+    # Web UI dùng adapter-static → nginx phục vụ trực tiếp từ build/
+    # Không cần restart service, nginx tự nhận file mới sau build
+    if [[ "$OPT_SKIP_WEB" == "false" ]]; then
+      if command -v nginx &>/dev/null && systemctl is-active --quiet nginx 2>/dev/null; then
+        systemctl reload nginx
+        log_ok "nginx reloaded (web-ui static files updated)"
+      fi
+    fi
+  fi
 fi
 
 # ══════════════════════════════════════════════════════════════════════════════
