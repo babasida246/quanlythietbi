@@ -166,7 +166,10 @@ function buildCss(config: ThemeCustomizerConfig): string {
         .map(([key, value]) => `  ${key}: ${value};`)
         .join('\n');
 
-    return `:root {\n${toBlock(config.dark)}\n}\n\nhtml:not([data-theme="dark"]) {\n${toBlock(config.light)}\n}`;
+    // themes.css dùng [data-color-scheme="X"][data-theme="dark"] có specificity 0,2,0.
+    // Phải dùng selector có specificity cao hơn (0,2,1) để custom overrides thắng.
+    // html[data-color-scheme][data-theme="dark"] = element(0,0,1) + attr(0,1,0) + attr(0,1,0) = 0,2,1
+    return `html[data-color-scheme][data-theme="dark"] {\n${toBlock(config.dark)}\n}\n\nhtml[data-color-scheme]:not([data-theme="dark"]) {\n${toBlock(config.light)}\n}`;
 }
 
 function applyStyle(cssText: string, enabled: boolean) {

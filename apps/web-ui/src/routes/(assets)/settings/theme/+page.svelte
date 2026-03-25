@@ -198,7 +198,7 @@
                   <input
                     type="color"
                     value={getHex(token)}
-                    onchange={(e) => onPick(token, e)}
+                    oninput={(e) => onPick(token, e)}
                     class="h-8 w-10 rounded border border-slate-500/30 bg-transparent"
                     aria-label={token.key}
                   />
