@@ -1,15 +1,19 @@
-import adapter from '@sveltejs/adapter-static';
+import adapterStatic from '@sveltejs/adapter-static';
+import adapterNode   from '@sveltejs/adapter-node';
 import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
+
+// ADAPTER=node  → adapter-node  (Node.js server, dùng cho Docker / SSR)
+// ADAPTER=static (default) → adapter-static (file tĩnh, nginx phục vụ trực tiếp)
+const useNode = process.env.ADAPTER === 'node';
+
+const adapter = useNode
+    ? adapterNode({ out: 'build' })
+    : adapterStatic({ pages: 'build', assets: 'build', fallback: 'index.html' });
 
 const config = {
     preprocess: vitePreprocess(),
     kit: {
-        adapter: adapter({
-            pages: 'build',
-            assets: 'build',
-            fallback: 'index.html',  // SPA mode: unknown routes → index.html
-            precompress: false
-        }),
+        adapter,
         alias: {
             $lib: './src/lib'
         }

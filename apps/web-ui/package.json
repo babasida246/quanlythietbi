@@ -7,6 +7,7 @@
         "dev": "vite dev --port 5173",
         "build": "svelte-kit sync && NODE_OPTIONS=--max-old-space-size=4096 vite build",
         "build:prod": "svelte-kit sync && NODE_OPTIONS=--max-old-space-size=4096 vite build --mode production",
+        "build:node": "svelte-kit sync && ADAPTER=node NODE_OPTIONS=--max-old-space-size=4096 vite build",
         "preview": "vite preview",
         "lint": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.check.json",
         "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.check.json",
@@ -14,6 +15,7 @@
         "test:e2e": "playwright test"
     },
     "devDependencies": {
+        "@sveltejs/adapter-node": "^5.5.4",
         "@sveltejs/adapter-static": "^3.0.8",
         "@sveltejs/kit": "^2.55.0",
         "@sveltejs/vite-plugin-svelte": "^4.0.4",

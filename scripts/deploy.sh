@@ -169,7 +169,12 @@ fi
 # ══════════════════════════════════════════════════════════════════════════════
 if [[ "$OPT_NO_INSTALL" == "false" ]]; then
   log_step "Cài dependencies (pnpm install)"
-  pnpm install --frozen-lockfile
+  if ! pnpm install --frozen-lockfile; then
+    log_error "pnpm-lock.yaml không khớp với package.json"
+    log_error "Hãy chạy 'pnpm install' trên máy dev, commit pnpm-lock.yaml, rồi git pull lại."
+    log_error "Hoặc chạy 'pnpm install' trực tiếp trên server nếu bạn chủ ý thay đổi dependencies."
+    exit 1
+  fi
   log_ok "Dependencies đã cài đặt"
 else
   log_info "Bỏ qua pnpm install (--no-install)"
