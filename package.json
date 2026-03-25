@@ -24,6 +24,7 @@
         "deploy:migrate": "bash scripts/deploy.sh --migrate",
         "deploy:update": "bash scripts/deploy.sh --migrate --restart",
         "deploy:fresh": "bash scripts/deploy.sh --migrate --seed --clean",
+        "deploy:init": "bash scripts/deploy.sh --migrate --seed --clean && sudo bash scripts/setup-service.sh",
         "deploy:docker": "docker-compose -f docker-compose.app.yml up -d --build",
         "service:setup": "sudo bash scripts/setup-service.sh",
         "service:restart": "sudo bash scripts/setup-service.sh --restart",

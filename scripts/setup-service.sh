@@ -122,6 +122,9 @@ if [[ "$OPT_REMOVE" == "true" ]]; then
   done
   systemctl daemon-reload
 
+  [[ -f "/etc/systemd/system/qltb-web.env" ]] && \
+    rm "/etc/systemd/system/qltb-web.env" && log_ok "Removed qltb-web.env"
+
   if [[ -f "$NGINX_CONF" ]]; then
     [[ -L "$NGINX_ENABLED" ]] && rm "$NGINX_ENABLED"
     rm "$NGINX_CONF" && log_ok "Removed nginx site config"
@@ -146,6 +149,9 @@ if [[ "$OPT_RESTART" == "true" ]]; then
   log_step "Restart QLTB services"
   systemctl restart qltb-api  && log_ok "qltb-api restarted"
   [[ "$OPT_SKIP_WEB" == "false" ]] && systemctl restart qltb-web && log_ok "qltb-web restarted"
+  if command -v nginx &>/dev/null && systemctl is-active --quiet nginx 2>/dev/null; then
+    systemctl reload nginx && log_ok "nginx reloaded"
+  fi
   exit 0
 fi
 
@@ -213,6 +219,17 @@ EOF
 log_ok "qltb-api.service → port ${API_PORT} (localhost only)"
 
 if [[ "$OPT_SKIP_WEB" == "false" ]]; then
+  # Ghi file env riêng cho web service (được load SAU .env, ưu tiên cao hơn)
+  # Cần thiết vì .env có PORT=3000 (cho API), service web phải dùng PORT khác
+  cat > /etc/systemd/system/qltb-web.env <<EOF
+PORT=${WEB_PORT}
+NODE_ENV=production
+PROTOCOL_HEADER=x-forwarded-proto
+HOST_HEADER=x-forwarded-host
+EOF
+  chmod 640 /etc/systemd/system/qltb-web.env
+  log_ok "qltb-web.env → PORT=${WEB_PORT}"
+
   cat > /etc/systemd/system/qltb-web.service <<EOF
 [Unit]
 Description=QLTB Web UI (SvelteKit adapter-node)
@@ -229,9 +246,10 @@ RestartSec=5s
 StandardOutput=journal
 StandardError=journal
 SyslogIdentifier=qltb-web
+# Load .env trước (PORT=3000 từ đây bị override bên dưới)
 EnvironmentFile=-${ROOT}/.env
-Environment=PORT=${WEB_PORT}
-Environment=NODE_ENV=production
+# Load web-specific env SAU — PORT=${WEB_PORT} ở đây thắng .env
+EnvironmentFile=/etc/systemd/system/qltb-web.env
 LimitNOFILE=65536
 
 [Install]
@@ -287,6 +305,12 @@ if [[ "$OPT_SKIP_NGINX" == "false" ]]; then
 limit_req_zone \$binary_remote_addr zone=api_limit:10m rate=30r/s;
 limit_req_zone \$binary_remote_addr zone=web_limit:10m rate=60r/s;
 
+# WebSocket upgrade mapping
+map \$http_upgrade \$connection_upgrade {
+    default  upgrade;
+    ''       close;
+}
+
 server {
     listen 80;
     server_name ${OPT_DOMAIN};
@@ -330,15 +354,28 @@ server {
 
         proxy_pass http://127.0.0.1:${API_PORT};
         proxy_http_version 1.1;
-        proxy_set_header Host              \$host;
-        proxy_set_header X-Real-IP         \$remote_addr;
-        proxy_set_header X-Forwarded-For   \$proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto \$scheme;
+        proxy_set_header Host               \$host;
+        proxy_set_header X-Real-IP          \$remote_addr;
+        proxy_set_header X-Forwarded-For    \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto  \$scheme;
+        proxy_set_header X-Forwarded-Host   \$host;
 
         client_max_body_size 50M;
         proxy_read_timeout   120s;
         proxy_send_timeout   120s;
 
+        add_header Cache-Control "no-store" always;
+    }
+
+    # ── Swagger UI (/docs) — proxy đến Fastify ───────────────────────────────
+    location /docs {
+        proxy_pass http://127.0.0.1:${API_PORT};
+        proxy_http_version 1.1;
+        proxy_set_header Host               \$host;
+        proxy_set_header X-Real-IP          \$remote_addr;
+        proxy_set_header X-Forwarded-For    \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto  \$scheme;
+        proxy_set_header X-Forwarded-Host   \$host;
         add_header Cache-Control "no-store" always;
     }
 
@@ -348,12 +385,13 @@ server {
 
         proxy_pass http://127.0.0.1:${WEB_PORT};
         proxy_http_version 1.1;
-        proxy_set_header Host              \$host;
-        proxy_set_header X-Real-IP         \$remote_addr;
-        proxy_set_header X-Forwarded-For   \$proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto \$scheme;
-        proxy_set_header Upgrade           \$http_upgrade;
-        proxy_set_header Connection        "upgrade";
+        proxy_set_header Host               \$host;
+        proxy_set_header X-Real-IP          \$remote_addr;
+        proxy_set_header X-Forwarded-For    \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto  \$scheme;
+        proxy_set_header X-Forwarded-Host   \$host;
+        proxy_set_header Upgrade            \$http_upgrade;
+        proxy_set_header Connection         \$connection_upgrade;
         proxy_read_timeout 60s;
     }
 }
