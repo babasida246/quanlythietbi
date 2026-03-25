@@ -175,12 +175,12 @@ log_step "Kiểm tra build artifacts"
 log_ok "apps/api/dist/main.js"
 
 if [[ "$OPT_SKIP_WEB" == "false" ]]; then
-  [[ ! -f "$ROOT/apps/web-ui/build/index.html" ]] && {
-    log_error "Không tìm thấy apps/web-ui/build/index.html"
+  [[ ! -f "$ROOT/apps/web-ui/build/index.js" ]] && {
+    log_error "Không tìm thấy apps/web-ui/build/index.js"
     log_error "Hãy chạy: bash scripts/deploy.sh --migrate"
     exit 1
   }
-  log_ok "apps/web-ui/build/index.html (adapter-static)"
+  log_ok "apps/web-ui/build/index.js"
 fi
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -212,12 +212,44 @@ WantedBy=multi-user.target
 EOF
 log_ok "qltb-api.service → port ${API_PORT} (localhost only)"
 
-# Web UI dùng adapter-static — nginx phục vụ trực tiếp, không cần Node service
+if [[ "$OPT_SKIP_WEB" == "false" ]]; then
+  cat > /etc/systemd/system/qltb-web.service <<EOF
+[Unit]
+Description=QLTB Web UI (SvelteKit adapter-node)
+After=network.target qltb-api.service
+Wants=network.target
+
+[Service]
+Type=simple
+User=${SERVICE_USER}
+WorkingDirectory=${ROOT}/apps/web-ui
+ExecStart=${NODE_BIN} ${ROOT}/apps/web-ui/build
+Restart=on-failure
+RestartSec=5s
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=qltb-web
+EnvironmentFile=-${ROOT}/.env
+Environment=PORT=${WEB_PORT}
+Environment=NODE_ENV=production
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target
+EOF
+  log_ok "qltb-web.service → port ${WEB_PORT} (localhost only)"
+fi
 
 systemctl daemon-reload
 systemctl enable qltb-api
 systemctl restart qltb-api
 log_ok "qltb-api: enabled + started"
+
+if [[ "$OPT_SKIP_WEB" == "false" ]]; then
+  systemctl enable qltb-web
+  systemctl restart qltb-web
+  log_ok "qltb-web: enabled + started"
+fi
 
 # ══════════════════════════════════════════════════════════════════════════════
 # BƯỚC 2 — Nginx: cài đặt + cấu hình
@@ -241,18 +273,19 @@ if [[ "$OPT_SKIP_NGINX" == "false" ]]; then
     log_info "Đã xóa nginx default site"
   fi
 
-  # adapter-static: toàn bộ output là static files trong build/
-  STATIC_DIR="${ROOT}/apps/web-ui/build"
+  # adapter-node: static assets trong build/client/, SSR qua Node port WEB_PORT
+  STATIC_DIR="${ROOT}/apps/web-ui/build/client"
 
   cat > "$NGINX_CONF" <<NGINX
 # ============================================================
-# QLTB — Nginx: Static SPA + API Reverse Proxy
+# QLTB — Nginx Reverse Proxy
 # Tạo bởi: scripts/setup-service.sh
 # Sửa tại: ${NGINX_CONF}
 # ============================================================
 
 # Rate limiting chống brute-force / DDoS đơn giản
 limit_req_zone \$binary_remote_addr zone=api_limit:10m rate=30r/s;
+limit_req_zone \$binary_remote_addr zone=web_limit:10m rate=60r/s;
 
 server {
     listen 80;
@@ -272,6 +305,25 @@ server {
                text/javascript image/svg+xml;
     gzip_min_length 1024;
 
+    # ── Static assets (_app/) — nginx phục vụ trực tiếp, không qua Node ──────
+    # SvelteKit đặt hashed assets tại build/client/_app/ → cache vĩnh viễn
+    location /_app/ {
+        root ${STATIC_DIR};
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+        access_log off;
+        gzip_static on;
+        try_files \$uri =404;
+    }
+
+    # Favicon, robots.txt
+    location ~* ^/(favicon\.(ico|png)|robots\.txt|site\.webmanifest)$ {
+        root ${STATIC_DIR};
+        expires 30d;
+        access_log off;
+        try_files \$uri =404;
+    }
+
     # ── API (/api/*) — proxy đến Fastify ─────────────────────────────────────
     location /api/ {
         limit_req zone=api_limit burst=50 nodelay;
@@ -290,27 +342,19 @@ server {
         add_header Cache-Control "no-store" always;
     }
 
-    # ── Hashed assets (_app/) — cache vĩnh viễn ──────────────────────────────
-    # SvelteKit tạo tên file theo hash (app-abc123.js) → immutable cache
-    location /_app/ {
-        root ${STATIC_DIR};
-        expires 1y;
-        add_header Cache-Control "public, immutable";
-        access_log off;
-        gzip_static on;
-        try_files \$uri =404;
-    }
-
-    # ── SPA static files — nginx phục vụ trực tiếp ───────────────────────────
-    # fallback: 'index.html' trong adapter-static → mọi route về index.html
+    # ── Web UI — proxy đến SvelteKit Node server ──────────────────────────────
     location / {
-        root ${STATIC_DIR};
-        try_files \$uri \$uri/ /index.html;
+        limit_req zone=web_limit burst=100 nodelay;
 
-        # index.html: không cache (để browser nhận update mới ngay)
-        location = /index.html {
-            add_header Cache-Control "no-cache, must-revalidate";
-        }
+        proxy_pass http://127.0.0.1:${WEB_PORT};
+        proxy_http_version 1.1;
+        proxy_set_header Host              \$host;
+        proxy_set_header X-Real-IP         \$remote_addr;
+        proxy_set_header X-Forwarded-For   \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto \$scheme;
+        proxy_set_header Upgrade           \$http_upgrade;
+        proxy_set_header Connection        "upgrade";
+        proxy_read_timeout 60s;
     }
 }
 NGINX
@@ -409,6 +453,7 @@ _svc_status() {
 }
 
 _svc_status qltb-api
+[[ "$OPT_SKIP_WEB" == "false" ]]   && _svc_status qltb-web
 [[ "$OPT_SKIP_NGINX" == "false" ]] && _svc_status nginx
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -430,8 +475,8 @@ fi
 
 echo -e "  ${BOLD}Xem log realtime:${RESET}"
 echo -e "    ${CYAN}journalctl -u qltb-api -f${RESET}"
-[[ "$OPT_SKIP_NGINX" == "false" ]] && \
-echo -e "    ${CYAN}tail -f /var/log/nginx/access.log${RESET}   # nginx access log"
+[[ "$OPT_SKIP_WEB" == "false" ]] && \
+echo -e "    ${CYAN}journalctl -u qltb-web -f${RESET}"
 echo ""
 
 echo -e "  ${BOLD}Workflow deploy sau này:${RESET}"

@@ -263,12 +263,12 @@ if [[ "$OPT_RESTART" == "true" ]]; then
     else
       log_warn "qltb-api service chưa được cài đặt — chạy setup-service.sh lần đầu"
     fi
-    # Web UI dùng adapter-static → nginx phục vụ trực tiếp từ build/
-    # Không cần restart service, nginx tự nhận file mới sau build
     if [[ "$OPT_SKIP_WEB" == "false" ]]; then
-      if command -v nginx &>/dev/null && systemctl is-active --quiet nginx 2>/dev/null; then
-        systemctl reload nginx
-        log_ok "nginx reloaded (web-ui static files updated)"
+      if systemctl is-active --quiet qltb-web 2>/dev/null; then
+        systemctl restart qltb-web
+        log_ok "qltb-web restarted"
+      else
+        log_warn "qltb-web service chưa được cài đặt — chạy setup-service.sh lần đầu"
       fi
     fi
   fi
