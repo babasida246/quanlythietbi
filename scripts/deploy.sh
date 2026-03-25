@@ -210,6 +210,10 @@ if ! pnpm --filter "@qltb/api" build 2>&1 | sed 's/^/    /'; then
   exit 1
 fi
 log_ok "apps/api → dist/main.js"
+# Tự động restart nếu service đang chạy
+if command -v systemctl &>/dev/null && systemctl is-active --quiet qltb-api 2>/dev/null; then
+  systemctl restart qltb-api && log_ok "qltb-api restarted"
+fi
 
 # ══════════════════════════════════════════════════════════════════════════════
 # BƯỚC 6 — Build Web UI (Vite SPA)
@@ -231,6 +235,15 @@ if [[ "$OPT_SKIP_WEB" == "false" ]]; then
       _dir="$(dirname "$_dir")"
     done
     log_ok "Quyền đọc build/client — OK"
+  fi
+  # Tự động restart nếu service đang chạy
+  if command -v systemctl &>/dev/null; then
+    if systemctl is-active --quiet qltb-web 2>/dev/null; then
+      systemctl restart qltb-web && log_ok "qltb-web restarted"
+    fi
+    if systemctl is-active --quiet nginx 2>/dev/null; then
+      systemctl reload nginx && log_ok "nginx reloaded"
+    fi
   fi
 else
   log_info "Bỏ qua build web-ui (--skip-web)"
@@ -261,26 +274,21 @@ if [[ "$OPT_SEED" == "true" ]]; then
 fi
 
 # ══════════════════════════════════════════════════════════════════════════════
-# BƯỚC 9 — Restart systemd services (tuỳ chọn)
+# BƯỚC 9 — Force-start services (--restart: khởi động kể cả khi đang stopped)
+# Lưu ý: nếu services đã active, chúng đã được restart tự động sau bước build
 # ══════════════════════════════════════════════════════════════════════════════
 if [[ "$OPT_RESTART" == "true" ]]; then
-  log_step "Restart systemd services"
+  log_step "Force-start systemd services (--restart)"
   if ! command -v systemctl &>/dev/null; then
-    log_warn "systemd không có sẵn — bỏ qua restart"
+    log_warn "systemd không có sẵn — bỏ qua"
   else
-    if systemctl is-active --quiet qltb-api 2>/dev/null; then
-      systemctl restart qltb-api
-      log_ok "qltb-api restarted"
-    else
-      log_warn "qltb-api service chưa được cài đặt — chạy setup-service.sh lần đầu"
-    fi
+    systemctl start qltb-api  2>/dev/null \
+      && log_ok "qltb-api started/running" \
+      || log_warn "qltb-api chưa được setup — chạy: sudo bash scripts/setup-service.sh"
     if [[ "$OPT_SKIP_WEB" == "false" ]]; then
-      if systemctl is-active --quiet qltb-web 2>/dev/null; then
-        systemctl restart qltb-web
-        log_ok "qltb-web restarted"
-      else
-        log_warn "qltb-web service chưa được cài đặt — chạy setup-service.sh lần đầu"
-      fi
+      systemctl start qltb-web 2>/dev/null \
+        && log_ok "qltb-web started/running" \
+        || log_warn "qltb-web chưa được setup — chạy: sudo bash scripts/setup-service.sh"
     fi
   fi
 fi
