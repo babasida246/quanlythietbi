@@ -149,13 +149,16 @@ fi
 # BƯỚC 2 — Clean (tuỳ chọn)
 # ══════════════════════════════════════════════════════════════════════════════
 if [[ "$OPT_CLEAN" == "true" ]]; then
-  log_step "Xóa dist/ (--clean)"
-  # xargs -r: không chạy rm nếu không có input (tránh lỗi khi chưa có dist/)
+  log_step "Xóa build artifacts (--clean)"
+  # web-ui dùng adapter-node → output ra build/ (không phải dist/)
+  rm -rf "$ROOT/apps/web-ui/build" "$ROOT/apps/web-ui/.svelte-kit"
+  # packages và api đều output ra dist/
+  # xargs -r: không chạy rm nếu không có input (tránh lỗi khi chưa build lần nào)
   find "$ROOT" \( -path '*/node_modules' -prune \) -o \( -name 'dist' -type d -print \) \
     | xargs -r rm -rf
   find "$ROOT" \( -path '*/node_modules' -prune \) -o \( -name '*.tsbuildinfo' -print \) \
     | xargs -r rm -f
-  log_ok "dist/ và *.tsbuildinfo đã xóa"
+  log_ok "build artifacts đã xóa"
 fi
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -252,7 +255,7 @@ echo -e "\n${BOLD}${GREEN}  ✅  Deploy thành công! (${MINS}m ${SECS}s)${RESET
 echo -e "  ${BOLD}Artifacts:${RESET}"
 echo -e "    API  → ${CYAN}apps/api/dist/main.js${RESET}"
 [[ "$OPT_SKIP_WEB" == "false" ]] && \
-  echo -e "    Web  → ${CYAN}apps/web-ui/dist/${RESET}"
+  echo -e "    Web  → ${CYAN}apps/web-ui/build/${RESET}"
 
 echo ""
 echo -e "  ${BOLD}Khởi động API:${RESET}"
@@ -260,9 +263,9 @@ echo -e "    ${CYAN}cd apps/api && node dist/main.js${RESET}"
 echo -e "    ${CYAN}# hoặc: NODE_ENV=production node apps/api/dist/main.js${RESET}"
 
 echo ""
-echo -e "  ${BOLD}Serve Web UI (ví dụ với nginx):${RESET}"
-echo -e "    ${CYAN}# Trỏ nginx root → apps/web-ui/dist/${RESET}"
-echo -e "    ${CYAN}# try_files \$uri \$uri/ /index.html (SPA mode)${RESET}"
+echo -e "  ${BOLD}Khởi động Web UI (adapter-node):${RESET}"
+echo -e "    ${CYAN}PORT=3001 node apps/web-ui/build${RESET}"
+echo -e "    ${CYAN}# hoặc: NODE_ENV=production PORT=3001 node apps/web-ui/build${RESET}"
 
 echo ""
 hr

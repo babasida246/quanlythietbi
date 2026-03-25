@@ -12,8 +12,18 @@ import { dirname } from 'path'
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 
-// Load .env files from workspace root (local overrides docker)
-const rootDir = resolve(__dirname, '../../../..')
+// Tìm project root bằng cách đi lên từ __dirname cho đến khi tìm thấy pnpm-workspace.yaml.
+// Cần thiết vì tsup bundle tất cả vào dist/main.js — __dirname lúc runtime là apps/api/dist/,
+// không phải apps/api/src/config/ như lúc dev.
+function findRoot(startDir: string): string {
+    let dir = startDir
+    for (let i = 0; i < 8; i++) {
+        if (existsSync(resolve(dir, 'pnpm-workspace.yaml'))) return dir
+        dir = resolve(dir, '..')
+    }
+    return startDir
+}
+const rootDir = findRoot(__dirname)
 const envPath = resolve(rootDir, '.env')
 const envLocalPath = resolve(rootDir, '.env.local')
 
