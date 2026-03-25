@@ -9,11 +9,11 @@
  *   DATABASE_URL  — PostgreSQL connection string (default: postgresql://postgres:postgres@localhost:5432/qltb)
  */
 import pg from 'pg'
-import { readFileSync } from 'fs'
+import { readFileSync, existsSync } from 'fs'
 import { join, dirname } from 'path'
 import { fileURLToPath } from 'url'
 import { config } from 'dotenv'
-import { existsSync } from 'fs'
+import { pgConfig } from './_pg-connect.mjs'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const ROOT = join(__dirname, '..')
@@ -25,7 +25,6 @@ const ENV_LOCAL_PATH = join(ROOT, '.env.local')
 if (existsSync(ENV_PATH)) config({ path: ENV_PATH })
 if (existsSync(ENV_LOCAL_PATH)) config({ path: ENV_LOCAL_PATH, override: true })
 
-const DATABASE_URL = process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/qltb'
 
 // Strip psql meta-commands (\i, \echo, \set, \connect, etc.) and BOM — mirrors setup.service.ts executeSqlFile()
 function stripMetaCommands(sql) {
@@ -102,7 +101,7 @@ const MIGRATIONS = [
     { label: '20260322_002_cmdb_config_files.sql', path: join(DB_MIGRATIONS, '20260322_002_cmdb_config_files.sql') },
 ]
 
-const client = new pg.Client(DATABASE_URL)
+const client = new pg.Client(pgConfig())
 await client.connect()
 
 // Tạo bảng tracking migrations nếu chưa có

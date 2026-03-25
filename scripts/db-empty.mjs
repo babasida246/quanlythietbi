@@ -9,6 +9,7 @@ import { config } from 'dotenv'
 import { resolve, dirname } from 'path'
 import { fileURLToPath } from 'url'
 import { existsSync } from 'fs'
+import { pgConfig } from './_pg-connect.mjs'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -20,9 +21,8 @@ if (existsSync(envPath)) config({ path: envPath })
 if (existsSync(envLocalPath)) config({ path: envLocalPath, override: true })
 
 const { Client } = pg
-const url = process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/qltb'
 
-const c = new Client(url)
+const c = new Client(pgConfig())
 await c.connect()
 try {
     await c.query('DROP SCHEMA public CASCADE')

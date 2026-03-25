@@ -11,6 +11,7 @@ import { readFileSync, existsSync } from 'fs'
 import { join, dirname } from 'path'
 import { fileURLToPath } from 'url'
 import { config } from 'dotenv'
+import { pgConfig } from './_pg-connect.mjs'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const DB_DIR = join(__dirname, '..', 'db')
@@ -20,8 +21,6 @@ const ENV_LOCAL_PATH = join(ROOT, '.env.local')
 
 if (existsSync(ENV_PATH)) config({ path: ENV_PATH })
 if (existsSync(ENV_LOCAL_PATH)) config({ path: ENV_LOCAL_PATH, override: true })
-
-const DATABASE_URL = process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/qltb'
 
 const SEED_FILES = [
     'seed-data.sql',            // 1. Foundation: users, locations, vendors
@@ -41,7 +40,7 @@ const SEED_FILES = [
     'seed-cmdb-config-files.sql', // 14. CMDB config files & version history
 ]
 
-const client = new pg.Client(DATABASE_URL)
+const client = new pg.Client(pgConfig())
 await client.connect()
 
 console.log(`\n🌱  Running ${SEED_FILES.length} seed files...`)

@@ -26,6 +26,7 @@ export default defineConfig({
         }
     },
     build: {
+        sourcemap: false,
         chunkSizeWarningLimit: 2200,
         rollupOptions: {
             onwarn(warning, warn) {
