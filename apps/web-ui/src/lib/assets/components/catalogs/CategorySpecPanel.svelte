@@ -12,7 +12,8 @@
     getSpecDefsByVersion,
     publishSpecVersion,
     type CategorySpecDef,
-    type CategorySpecVersion
+    type CategorySpecVersion,
+    type SpecPublishSyncSummary
   } from '$lib/api/assetCatalogs';
 
   type CategoryRef = { id: string; name: string };
@@ -33,6 +34,7 @@
   let versions = $state<CategorySpecVersion[]>([]);
   let selectedVersionId = $state('');
   let publishWarnings = $state<Array<{ modelId: string; modelName: string; missingKeys: string[] }>>([]);
+  let publishSync = $state<SpecPublishSyncSummary | null>(null);
   let loading = $state(false);
   let saving = $state(false);
   let error = $state('');
@@ -49,12 +51,15 @@
     loadVersions();
   });
 
-  async function loadVersions() {
+  async function loadVersions(resetPublishState = true) {
     if (!category) return;
     try {
       loading = true;
       error = '';
-      publishWarnings = [];
+      if (resetPublishState) {
+        publishWarnings = [];
+        publishSync = null;
+      }
       const response = await getCategorySpecVersions(category.id);
       versions = response.data;
       const draft = versions.find((version) => version.status === 'draft');
@@ -127,8 +132,9 @@
       saving = true;
       error = '';
       const response = await publishSpecVersion(selectedVersionId);
+      await loadVersions(false);
       publishWarnings = response.data.warnings ?? [];
-      await loadVersions();
+      publishSync = response.data.sync ?? null;
       onupdated?.();
     } catch (err) {
       const message = err instanceof Error ? err.message : ($isLoading ? 'Failed to publish version' : $_('categorySpec.publishFailed'));
@@ -146,6 +152,7 @@
     versions = [];
     selectedVersionId = '';
     publishWarnings = [];
+    publishSync = null;
     lastCategoryId = null;
   }
 </script>
@@ -155,7 +162,7 @@
     {#if error}
       <div class="alert alert-error mb-4">{error}</div>
     {/if}
-    <SpecWarnings warnings={publishWarnings} />
+    <SpecWarnings warnings={publishWarnings} sync={publishSync} />
 
     <div class="space-y-4">
       <SpecVersionControls

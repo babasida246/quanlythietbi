@@ -11,6 +11,8 @@ import type {
 } from '@qltb/contracts'
 import { matchCategoryTemplate } from './categorySpecTemplates.js'
 import { validateSpecDefInput, validateSpecDefPatch } from './catalogSpecValidation.js'
+import { applyComputedSpec } from './categorySpecExtractor.js'
+import { normalizeSpecValues } from './categorySpecNormalize.js'
 
 export interface CategorySpecContext {
     userId: string
@@ -21,6 +23,12 @@ export interface SpecCompatibilityWarning {
     modelId: string
     modelName: string
     missingKeys: string[]
+}
+
+export interface SpecPublishSyncSummary {
+    totalModels: number
+    syncedModels: number
+    modelsMissingRequired: number
 }
 
 export class CategorySpecService {
@@ -64,19 +72,44 @@ export class CategorySpecService {
     async publishSpecVersion(
         versionId: string,
         ctx: CategorySpecContext
-    ): Promise<{ version: CategorySpecVersionRecord; warnings: SpecCompatibilityWarning[] }> {
-        const result = await this.specs.withTransaction(async ({ versions }) => {
+    ): Promise<{ version: CategorySpecVersionRecord; warnings: SpecCompatibilityWarning[]; sync: SpecPublishSyncSummary }> {
+        const result = await this.specs.withTransaction(async ({ versions, specs, catalogs }) => {
             const existing = await versions.getById(versionId)
             if (!existing) throw AppError.notFound('Spec version not found')
             const updated = await versions.updateStatus(versionId, 'active')
             if (!updated) throw AppError.notFound('Spec version not found')
             await versions.retireOtherActive(existing.categoryId, versionId)
-            return updated
+            const defs = await specs.listByVersion(updated.id)
+            const models = await catalogs.searchModels({ categoryId: existing.categoryId })
+            let syncedModels = 0
+            for (const model of models) {
+                const nextSpec = this.buildSyncedSpec(defs, model.model, model.spec)
+                const applied = await catalogs.updateModel(model.id, {
+                    spec: nextSpec,
+                    specVersionId: updated.id
+                })
+                if (applied) syncedModels += 1
+            }
+            return {
+                version: updated,
+                sync: {
+                    totalModels: models.length,
+                    syncedModels,
+                    modelsMissingRequired: 0
+                }
+            }
         })
-        const defs = await this.specs.listByVersion(result.id)
-        const warnings = await this.getCompatibilityWarnings(result.categoryId, defs)
-        await this.appendSpecEvent(result.categoryId, 'SPEC_VERSION_PUBLISHED', { version: result.version }, ctx)
-        return { version: result, warnings }
+        const defs = await this.specs.listByVersion(result.version.id)
+        const warnings = await this.getCompatibilityWarnings(result.version.categoryId, defs)
+        const sync: SpecPublishSyncSummary = {
+            ...result.sync,
+            modelsMissingRequired: warnings.length
+        }
+        await this.appendSpecEvent(result.version.categoryId, 'SPEC_VERSION_PUBLISHED', {
+            version: result.version.version,
+            sync
+        }, ctx)
+        return { version: result.version, warnings, sync }
     }
 
     async addSpecDef(versionId: string, input: CategorySpecDefInput, ctx: CategorySpecContext): Promise<CategorySpecDefRecord> {
@@ -159,6 +192,41 @@ export class CategorySpecService {
         if (!versionId) return undefined
         const version = await this.versions.getById(versionId)
         return version?.categoryId
+    }
+
+    private buildSyncedSpec(
+        defs: CategorySpecDefRecord[],
+        modelName: string,
+        currentSpec: Record<string, unknown> | null | undefined
+    ): Record<string, unknown> {
+        const base: Record<string, unknown> = {
+            ...(currentSpec ?? {})
+        }
+        for (const def of defs) {
+            if (base[def.key] !== undefined) continue
+            base[def.key] = this.resolveMissingSpecValue(def)
+        }
+        const withComputed = applyComputedSpec(modelName, defs, base)
+        return normalizeSpecValues(defs, withComputed)
+    }
+
+    private resolveMissingSpecValue(def: CategorySpecDefRecord): unknown {
+        if (def.defaultValue !== undefined && def.defaultValue !== null) {
+            return def.defaultValue
+        }
+        switch (def.fieldType) {
+            case 'string':
+            case 'enum':
+            case 'date':
+            case 'ip':
+            case 'mac':
+            case 'hostname':
+            case 'cidr':
+            case 'regex':
+                return ''
+            default:
+                return null
+        }
     }
 }
 

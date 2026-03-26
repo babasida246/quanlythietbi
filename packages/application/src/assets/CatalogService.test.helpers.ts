@@ -53,7 +53,19 @@ export class FakeCatalogRepo implements ICatalogRepo {
     seedModel(record: AssetModelRecord) {
         this.models.push(record)
     }
-    async updateModel(id: string, patch: Partial<AssetModelCreateInput>): Promise<AssetModelRecord | null> { throw new Error('Not implemented') }
+    async updateModel(id: string, patch: Partial<AssetModelCreateInput>): Promise<AssetModelRecord | null> {
+        const target = this.models.find(model => model.id === id)
+        if (!target) return null
+        const updated: AssetModelRecord = {
+            ...target,
+            ...patch,
+            spec: patch.spec === undefined ? target.spec : (patch.spec ?? {}),
+            model: patch.model ?? target.model,
+            createdAt: target.createdAt
+        }
+        this.models = this.models.map(model => model.id === id ? updated : model)
+        return updated
+    }
     async deleteModel(id: string): Promise<boolean> { throw new Error('Not implemented') }
     async createLocation(input: LocationCreateInput) {
         const record: LocationRecord = {

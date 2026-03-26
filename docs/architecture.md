@@ -1,159 +1,54 @@
-# Architecture Guide - QLTB
+# Architecture
 
-Tai lieu nay mo ta kien truc thuc te cua QLTB theo goc nhin implementation.
+## Monorepo Structure
 
-## 1. System context
+QLTB dung pnpm workspace voi 2 nhom chinh:
 
-QLTB la he thong IT Asset Management gom 2 thanh phan runtime:
+- `apps/*`: runtime applications
+- `packages/*`: shared domain/application/infrastructure libraries
 
-- Web UI SPA (`apps/web-ui`) cho nguoi dung cuoi
-- API service (`apps/api`) cung cap REST cho UI, test, va automation
+Cau truc chinh:
 
-Data va integration layer:
+- `apps/api`: Fastify backend
+- `apps/web-ui`: SvelteKit frontend
+- `packages/contracts`: DTOs/interfaces shared
+- `packages/domain`: entities/value objects
+- `packages/application`: use-cases/services
+- `packages/infra-postgres`: Postgres repositories + schema/migrations
+- `db`: app-level migrations + seed files
+- `scripts`: db and deployment scripts
+- `tests`: Playwright E2E + fixtures
 
-- PostgreSQL 16: transactional source of truth
-- Redis: cache va queue support
+## Layer Dependency Direction
 
-## 2. Monorepo topology
+Huong phu thuoc theo thiet ke hien tai:
 
-```text
-apps/
-  api/
-  web-ui/
-packages/
-  contracts/
-  domain/
-  application/
-  infra-postgres/
-db/
-  migrations/
-  seed-*.sql
-scripts/
-tests/
-```
+1. `domain`
+2. `contracts` (can import from domain)
+3. `infra-postgres` (depends on contracts/domain)
+4. `application` (depends on contracts/domain/infra abstractions)
+5. `apps/api` (compose routes + services + repos)
+6. `apps/web-ui` (consume API)
 
-Muc tieu cua topology:
+## Backend Runtime Flow
 
-- Tach ro boundary theo Clean Architecture
-- Tai su dung contracts va domain logic giua app modules
-- Co the build/test theo package dependency chain
+1. API boot tu [../apps/api/src/main.ts](../apps/api/src/main.ts)
+2. Env validate tai [../apps/api/src/config/env.ts](../apps/api/src/config/env.ts)
+3. Fastify app setup tai [../apps/api/src/core/app.ts](../apps/api/src/core/app.ts)
+4. Modules register qua assets module + route contexts
+5. Requests /api/v1/* qua auth hook tru /api/v1/auth/*
 
-## 3. Layering and dependency rules
+## Frontend Runtime Flow
 
-Dependency flow:
+1. Root layout tai [../apps/web-ui/src/routes/+layout.svelte](../apps/web-ui/src/routes/+layout.svelte)
+2. Sidebar shell cho main routes, shell-less cho login/setup
+3. HTTP calls di qua [../apps/web-ui/src/lib/api/httpClient.ts](../apps/web-ui/src/lib/api/httpClient.ts)
+4. JWT refresh singleton tren 401
+5. i18n load split files qua [../apps/web-ui/src/lib/i18n/index.ts](../apps/web-ui/src/lib/i18n/index.ts)
 
-```text
-Routes (apps/api/src/routes/v1/**)
-  -> Services (packages/application/**)
-    -> Repositories (packages/infra-postgres/**)
-      -> PostgreSQL
-```
+## Build Artifacts
 
-Shared contract flow:
+- API: `apps/api/dist/main.js`
+- Web: `apps/web-ui/build/`
 
-```text
-packages/contracts <- duoc dung boi tat ca layers
-packages/domain    <- pure domain logic, khong import layer khac
-```
-
-Rules bat buoc:
-
-- Route khong import truc tiep repository implementation.
-- Domain khong phu thuoc vao application/infra.
-- Contracts la nguon truth cho DTOs/interfaces.
-
-## 4. API runtime flow
-
-Request lifecycle (rui ro va diem can chu y):
-
-1. Client goi `/api/v1/*` kem `Authorization: Bearer <jwt>`.
-2. Fastify hooks chay theo thu tu:
-   - request id hook
-   - auth hook (bo qua auth routes)
-   - context hook (attach db/user context)
-   - request logging hook
-3. Route validate input bang Zod.
-4. Route goi service trong application layer.
-5. Service goi repository layer, doc/ghi Postgres.
-6. API tra ve response format chuan:
-   - Success: `{ success: true, data, meta? }`
-   - Error: `{ success: false, error: { code, message } }`
-
-## 5. Authentication and session model
-
-Login flow:
-
-1. `POST /api/v1/auth/login` -> accessToken + refreshToken + user profile
-2. Frontend luu token vao localStorage
-3. Moi request API tu frontend gui access token
-4. Khi access token het han:
-   - `httpClient` goi `POST /api/v1/auth/refresh`
-   - su dung singleton refresh promise de tranh refresh song song
-5. Neu refresh fail:
-   - clear stored session
-   - redirect ve `/login`
-
-## 6. Frontend architecture
-
-Routing strategy:
-
-- Shellless pages: `login`, `setup`, mot so print pages
-- Main app pages: route group co sidebar/header layout
-
-State strategy:
-
-- Local component state su dung Svelte 5 runes (`$state`, `$derived`, `$effect`)
-- Global stores cho auth/theme/notification context
-
-i18n strategy:
-
-- Dung split-domain locales:
-  - `apps/web-ui/src/lib/i18n/locales/vi/*.json`
-  - `apps/web-ui/src/lib/i18n/locales/en/*.json`
-- Khong dua key moi vao monolithic locale file neu file do khong duoc register.
-
-Design system strategy:
-
-- Uu tien design tokens trong `tokens.css`
-- Uu tien semantic utility/classes thay vi hardcode hex
-
-## 7. Warehouse and asset lifecycle
-
-Phan tach trach nhiem nghiep vu:
-
-- Stock document (nhap/xuat): quan ly vi tri vat ly va trang thai trong kho
-- Assignment: quan ly ai dang su dung tai san
-
-Asset lifecycle can ban:
-
-1. Receipt line type `asset` -> tao asset record, status `in_stock`
-2. Issue line type `asset` -> cap nhat status `in_use`, roi kho
-3. Assignment duoc tao qua flow gan tai san rieng, khong tu dong tao trong posting stock document
-
-## 8. Transaction boundary and repository contracts
-
-Warehouse transactions su dung transaction context de dam bao dong bo cac repository lien quan.
-
-Mau tu duy implementation:
-
-- Repo constructors nen nhan `Queryable` thay vi concrete `PgClient`
-- Cung mot repo co the dung voi pool client (ngoai transaction) va tx client (trong transaction)
-
-Loi thuong gap can tranh:
-
-- Goi API methods phu thuoc concrete client trong khi context chi expose `query()`.
-
-## 9. Architecture checklist khi code review
-
-- Dung layer chua? (route -> service -> repo)
-- Dung contracts cho request/response va DTO mapping chua?
-- Co vo tinh import nguoc dependency (infra -> route, domain -> app) khong?
-- Co giu chuan response format API khong?
-- Co cap nhat docs khi thay doi behavior quan trong khong?
-
-## 10. Related docs
-
-- `database.md`
-- `api-reference.md`
-- `testing.md`
-- `deployment.md`
+Build commands tham chieu tu [../package.json](../package.json).

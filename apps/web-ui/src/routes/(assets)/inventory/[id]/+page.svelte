@@ -20,6 +20,7 @@
   } from '$lib/api/assetMgmt';
   import { getAssetCatalogs, type Location } from '$lib/api/assetCatalogs';
   import QrCameraScanner from '$lib/assets/components/QrCameraScanner.svelte';
+  import type { ResolvedScanPayload } from '$lib/assets/components/QrCameraScanner.utils';
 
   let session = $state<InventorySession | null>(null);
   let items = $state<InventoryItem[]>([]);
@@ -124,18 +125,21 @@
     }
   }
 
-  async function handleQrDetected(code: string) {
-    if (!code.trim() || scanning || !canScan) return;
+  async function handleQrDetected(scan: ResolvedScanPayload) {
+    const scannedCode = (scan.assetCode ?? scan.resolved ?? '').trim();
+    const scannedAssetId = (scan.assetId ?? '').trim();
+    if ((!scannedCode && !scannedAssetId) || scanning || !canScan) return;
     try {
       scanning = true;
       scanError = '';
       scanSuccess = '';
       await scanInventoryAsset(sessionId, {
-        assetCode: code.trim(),
+        assetId: scannedAssetId || undefined,
+        assetCode: scannedCode || undefined,
         scannedLocationId: scanLocationId || undefined,
         note: scanNote.trim() || undefined
       });
-      scanSuccess = `✓ ${$_('inventory.scanSuccess')}: ${code.trim()}`;
+      scanSuccess = `✓ ${$_('inventory.scanSuccess')}: ${scannedCode || scannedAssetId}`;
       scanNote = '';
       await Promise.all([loadSession(), loadMissingAssets()]);
       setTimeout(() => { scanSuccess = ''; }, 3000);

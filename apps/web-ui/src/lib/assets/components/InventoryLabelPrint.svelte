@@ -26,8 +26,16 @@
     return statusLabels[status] ?? status;
   }
 
-  function qrUrl(value: string): string {
-    return `https://api.qrserver.com/v1/create-qr-code/?size=90x90&data=${encodeURIComponent(value)}&bgcolor=ffffff&color=000000&margin=2`;
+  function buildQrPayload(asset: Asset): string {
+    const code = asset.assetCode ?? '';
+    const id = asset.id ?? '';
+    if (!code) return id;
+    if (!id) return code;
+    return `https://qltb.local/assets/${encodeURIComponent(code)}?assetId=${encodeURIComponent(id)}`;
+  }
+
+  function qrUrl(asset: Asset): string {
+    return `https://api.qrserver.com/v1/create-qr-code/?size=90x90&data=${encodeURIComponent(buildQrPayload(asset))}&bgcolor=ffffff&color=000000&margin=2`;
   }
 
   function handlePrint() {
@@ -72,7 +80,7 @@
             <div class="label-card">
               <div class="label-qr">
                 <img
-                  src={qrUrl(asset.assetCode)}
+                  src={qrUrl(asset)}
                   alt="QR {asset.assetCode}"
                   width="90"
                   height="90"

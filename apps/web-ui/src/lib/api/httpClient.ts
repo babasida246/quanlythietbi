@@ -152,6 +152,8 @@ export async function apiJson<T>(input: string, init?: RequestInit): Promise<T> 
     const response = await authorizedFetch(input, init)
     const contentType = (response.headers.get('content-type') || '').toLowerCase()
     const bodyText = await response.text()
+    const trimmedBody = bodyText.trim()
+    const isHtmlBody = contentType.includes('text/html') || trimmedBody.startsWith('<!doctype') || trimmedBody.startsWith('<html') || trimmedBody.startsWith('<')
 
     if (!response.ok) {
         let apiMessage: string | null = null
@@ -163,15 +165,24 @@ export async function apiJson<T>(input: string, init?: RequestInit): Promise<T> 
                 // Fall through to raw body message below.
             }
         }
-        throw new Error(apiMessage || bodyText || `HTTP ${response.status}`)
+        if (apiMessage) {
+            throw new Error(apiMessage)
+        }
+        if (isHtmlBody) {
+            if (response.status === 503) {
+                throw new Error(`Service temporarily unavailable (HTTP 503). Please try again shortly.`)
+            }
+            throw new Error(`Unexpected HTML error from API (HTTP ${response.status}). Check API/proxy health.`)
+        }
+        throw new Error(trimmedBody || `HTTP ${response.status}`)
     }
 
-    if (!bodyText.trim()) {
+    if (!trimmedBody) {
         return undefined as T
     }
 
     if (!contentType.includes('application/json')) {
-        const preview = bodyText.trim().slice(0, 120)
+        const preview = trimmedBody.slice(0, 120)
         if (preview.startsWith('<')) {
             throw new Error(`Expected JSON but received HTML from ${input}. Check API_BASE/proxy configuration.`)
         }

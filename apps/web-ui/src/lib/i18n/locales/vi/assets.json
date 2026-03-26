@@ -765,7 +765,11 @@
     "loadVersionsFailed": "Tải phiên bản thất bại",
     "loadFieldsFailed": "Tải trường spec thất bại",
     "createDraftFailed": "Tạo bản nháp thất bại",
-    "publishFailed": "Xuất bản thất bại"
+    "publishFailed": "Xuất bản thất bại",
+    "syncSummary": "Đã đồng bộ {synced}/{total} model",
+    "syncMissingRequired": "{count} model vẫn thiếu trường bắt buộc",
+    "publishWarningsTitle": "Cảnh báo khi xuất bản:",
+    "publishWarningItem": "Model {model}: thiếu {keys}"
   },
   "inventoryLabel": {
     "title": "In tem kiểm kê",

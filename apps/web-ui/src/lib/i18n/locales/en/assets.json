@@ -765,7 +765,11 @@
     "loadVersionsFailed": "Failed to load spec versions",
     "loadFieldsFailed": "Failed to load spec fields",
     "createDraftFailed": "Failed to create draft",
-    "publishFailed": "Failed to publish version"
+    "publishFailed": "Failed to publish version",
+    "syncSummary": "Synced {synced}/{total} models",
+    "syncMissingRequired": "{count} models are still missing required fields",
+    "publishWarningsTitle": "Publish warnings:",
+    "publishWarningItem": "Model {model}: missing {keys}"
   },
   "inventoryLabel": {
     "title": "Print Inventory Labels",

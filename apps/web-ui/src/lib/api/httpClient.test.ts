@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { authorizedFetch, clearStoredSession, requireAccessToken, setStoredTokens } from './httpClient'
+import { apiJson, authorizedFetch, clearStoredSession, requireAccessToken, setStoredTokens } from './httpClient'
 import { sendChatMessage } from './chat'
 
 describe('auth token guard', () => {
@@ -38,5 +38,16 @@ describe('auth token guard', () => {
     it('blocks chat calls when no JWT is available', async () => {
         clearStoredSession()
         await expect(sendChatMessage({ message: 'hello from test' })).rejects.toThrow(/Authentication required/i)
+    })
+
+    it('returns friendly message for HTML 503 responses', async () => {
+        setStoredTokens('token-123', 'refresh-123')
+
+        global.fetch = vi.fn(async () => new Response(
+            '<html><body><h1>503 Service Temporarily Unavailable</h1></body></html>',
+            { status: 503, headers: { 'Content-Type': 'text/html' } }
+        ))
+
+        await expect(apiJson('/api/v1/inventory/sessions')).rejects.toThrow(/Service temporarily unavailable/i)
     })
 })

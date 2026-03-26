@@ -47,6 +47,18 @@ export type CategorySpecDef = {
     updatedAt?: string
 }
 
+export type SpecPublishWarning = {
+    modelId: string
+    modelName: string
+    missingKeys: string[]
+}
+
+export type SpecPublishSyncSummary = {
+    totalModels: number
+    syncedModels: number
+    modelsMissingRequired: number
+}
+
 export type Catalogs = {
     categories: AssetCategory[]
     locations: Location[]
@@ -365,8 +377,8 @@ export async function createCategorySpecVersion(categoryId: string): Promise<Api
     })
 }
 
-export async function publishSpecVersion(versionId: string): Promise<ApiResponse<{ version: CategorySpecVersion; warnings: Array<{ modelId: string; modelName: string; missingKeys: string[] }> }>> {
-    return apiJson<ApiResponse<{ version: CategorySpecVersion; warnings: Array<{ modelId: string; modelName: string; missingKeys: string[] }> }>>(`${API_BASE}/v1/spec-versions/${versionId}/publish`, {
+export async function publishSpecVersion(versionId: string): Promise<ApiResponse<{ version: CategorySpecVersion; warnings: SpecPublishWarning[]; sync: SpecPublishSyncSummary }>> {
+    return apiJson<ApiResponse<{ version: CategorySpecVersion; warnings: SpecPublishWarning[]; sync: SpecPublishSyncSummary }>>(`${API_BASE}/v1/spec-versions/${versionId}/publish`, {
         method: 'POST',
         headers: { ...getAssetHeaders() }
     })

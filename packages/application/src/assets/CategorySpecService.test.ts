@@ -65,7 +65,13 @@ describe('CategorySpecService', () => {
         const result = await service.publishSpecVersion('ver-2', { userId: 'u1', correlationId: 'c1' })
         expect(result.version.status).toBe('active')
         expect(versions.versions.find(version => version.id === 'ver-1')?.status).toBe('retired')
+        expect(result.sync.totalModels).toBe(1)
+        expect(result.sync.syncedModels).toBe(1)
+        expect(result.sync.modelsMissingRequired).toBe(1)
         expect(result.warnings.length).toBe(1)
         expect(result.warnings[0]?.missingKeys).toContain('memorySizeGb')
+        const updatedModel = (await catalogs.searchModels({ categoryId: 'cat-1' }))[0]
+        expect(updatedModel?.specVersionId).toBe('ver-2')
+        expect(updatedModel?.spec?.memorySizeGb).toBeNull()
     })
 })

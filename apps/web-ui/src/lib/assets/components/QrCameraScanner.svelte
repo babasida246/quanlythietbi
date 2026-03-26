@@ -5,12 +5,14 @@
    * Falls back gracefully when camera is unavailable.
    */
 
+  import { buildCameraConstraintCandidates, resolveScannedPayload, type ResolvedScanPayload } from './QrCameraScanner.utils';
+
   let {
     onscanned,
     disabled = false,
     placeholder = 'Quét QR hoặc nhập thủ công...'
   } = $props<{
-    onscanned?: (code: string) => void
+    onscanned?: (scan: ResolvedScanPayload) => void
     disabled?: boolean
     placeholder?: string
   }>();
@@ -25,10 +27,29 @@
   let videoEl = $state<HTMLVideoElement | null>(null);
   let canvasEl = $state<HTMLCanvasElement | null>(null);
   let stream = $state<MediaStream | null>(null);
-  let rafId = $state<number | null>(null);
+  let scanTimerId = $state<number | null>(null);
 
-  // Dynamically import jsQR (available as a CDN ESM module via skypack or local)
+  // Dynamically import jsQR for fallback decoding when BarcodeDetector is not available.
   let jsQR: ((data: Uint8ClampedArray, width: number, height: number) => { data: string } | null) | null = null;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let barcodeDetector: any = null;
+
+  async function initBarcodeDetector() {
+    if (barcodeDetector) return true;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const Detector = (globalThis as any).BarcodeDetector;
+    if (!Detector) return false;
+    try {
+      if (typeof Detector.getSupportedFormats === 'function') {
+        const formats: string[] = await Detector.getSupportedFormats();
+        if (!formats.includes('qr_code')) return false;
+      }
+      barcodeDetector = new Detector({ formats: ['qr_code'] });
+      return true;
+    } catch {
+      return false;
+    }
+  }
 
   async function loadJsQR() {
     if (jsQR) return true;
@@ -45,9 +66,20 @@
     }
   }
 
+  async function ensureScannerReady() {
+    const detectorReady = await initBarcodeDetector();
+    if (detectorReady) return true;
+    return loadJsQR();
+  }
+
   async function startCamera() {
     cameraError = '';
-    const loaded = await loadJsQR();
+    if (!window.isSecureContext) {
+      cameraError = 'Camera chỉ hoạt động trên HTTPS hoặc localhost. Hãy chuyển sang kết nối an toàn.';
+      return;
+    }
+
+    const loaded = await ensureScannerReady();
     if (!loaded) {
       cameraError = 'Không thể tải thư viện quét QR. Hãy nhập mã thủ công.';
       return;
@@ -59,18 +91,29 @@
     }
 
     try {
-      // First try with environment camera + resolution hints
-      stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: { ideal: 'environment' }, width: { ideal: 640 }, height: { ideal: 480 } }
-      }).catch(async () => {
-        // Fallback: try any available camera with no constraints
-        return await navigator.mediaDevices.getUserMedia({ video: true });
-      });
+      let opened: MediaStream | null = null;
+      const candidates = buildCameraConstraintCandidates(navigator.userAgent);
+
+      for (const candidate of candidates) {
+        try {
+          opened = await navigator.mediaDevices.getUserMedia({ video: candidate, audio: false });
+          break;
+        } catch {
+          // Try next camera profile.
+        }
+      }
+      if (!opened) {
+        opened = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+      }
+
+      stream = opened;
       if (!videoEl) return;
+      videoEl.setAttribute('playsinline', 'true');
+      videoEl.setAttribute('muted', 'true');
       videoEl.srcObject = stream;
       await videoEl.play();
       cameraActive = true;
-      scanLoop();
+      scheduleScan();
     } catch (err) {
       const name = err instanceof Error ? (err as { name?: string }).name ?? '' : '';
       if (name === 'NotFoundError' || name === 'DevicesNotFoundError') {
@@ -90,14 +133,24 @@
   }
 
   function stopCamera() {
-    if (rafId !== null) { cancelAnimationFrame(rafId); rafId = null; }
+    if (scanTimerId !== null) {
+      clearTimeout(scanTimerId);
+      scanTimerId = null;
+    }
     if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
     if (videoEl) { videoEl.srcObject = null; }
     cameraActive = false;
   }
 
-  function scanLoop() {
-    if (!cameraActive || !videoEl || !canvasEl || !jsQR) return;
+  function scheduleScan(delayMs = 140) {
+    if (!cameraActive) return;
+    scanTimerId = window.setTimeout(() => {
+      void processScanFrame();
+    }, delayMs);
+  }
+
+  async function processScanFrame() {
+    if (!cameraActive || !videoEl || !canvasEl) return;
     const video = videoEl;
     const canvas = canvasEl;
     if (video.readyState === video.HAVE_ENOUGH_DATA) {
@@ -106,34 +159,45 @@
       const ctx = canvas.getContext('2d');
       if (ctx) {
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        const result = jsQR(imageData.data, imageData.width, imageData.height);
-        if (result?.data && result.data !== lastScanned && !cooldown) {
-          lastScanned = result.data;
+        const detectedCode = await detectCode(video, canvas, ctx);
+        if (detectedCode && detectedCode !== lastScanned && !cooldown) {
+          lastScanned = detectedCode;
           cooldown = true;
-          handleDetected(result.data);
+          handleDetected(detectedCode);
           setTimeout(() => {
             cooldown = false;
             lastScanned = '';
           }, 1500);
+          scheduleScan(450);
+          return;
         }
       }
     }
-    rafId = requestAnimationFrame(scanLoop);
+    scheduleScan();
+  }
+
+  async function detectCode(video: HTMLVideoElement, canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D): Promise<string | null> {
+    if (barcodeDetector) {
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const detected = await (barcodeDetector as any).detect(video);
+        if (Array.isArray(detected) && detected.length > 0) {
+          const raw = detected[0]?.rawValue;
+          if (typeof raw === 'string' && raw.trim()) return raw;
+        }
+      } catch {
+        // Fall through to jsQR.
+      }
+    }
+
+    if (!jsQR) return null;
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const result = jsQR(imageData.data, imageData.width, imageData.height);
+    return result?.data ?? null;
   }
 
   function handleDetected(code: string) {
-    // If it looks like a URL (QR contains URL asset), extract the last path segment
-    let resolved = code;
-    try {
-      const url = new URL(code);
-      const parts = url.pathname.split('/').filter(Boolean);
-      if (parts.length > 0) {
-        resolved = parts[parts.length - 1];
-      }
-    } catch {
-      // not a URL — use code as-is
-    }
+    const resolved = resolveScannedPayload(code);
     onscanned?.(resolved);
   }
 
@@ -141,7 +205,7 @@
     e.preventDefault();
     const code = manualCode.trim();
     if (!code || scanning || disabled) return;
-    onscanned?.(code);
+    onscanned?.(resolveScannedPayload(code));
     manualCode = '';
   }
 
