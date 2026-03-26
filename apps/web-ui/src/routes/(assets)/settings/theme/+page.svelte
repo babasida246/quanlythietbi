@@ -4,6 +4,8 @@
   import { _, isLoading } from '$lib/i18n';
   import {
     TOKEN_GROUPS,
+    DEFAULT_DARK,
+    DEFAULT_LIGHT,
     themeCustomizer,
     tokenHexValue,
     type ThemeMode,
@@ -22,6 +24,13 @@
 
   const config = $derived($themeCustomizer);
   const activePreset = $derived($themePresets);
+
+  // Count tokens that differ from defaults in the current mode
+  const modifiedCount = $derived.by(() => {
+    const defaults = mode === 'dark' ? DEFAULT_DARK : DEFAULT_LIGHT;
+    const current = mode === 'dark' ? config.dark : config.light;
+    return Object.entries(current).filter(([k, v]) => v !== defaults[k]).length;
+  });
 
   function onPick(token: ThemeTokenDef, event: Event) {
     const hex = (event.target as HTMLInputElement).value;
@@ -147,43 +156,53 @@
 
   {#if settingsTab === 'tokens'}
     <div class="card p-4 space-y-4">
-      <div>
-        <h2 class="text-sm font-semibold" style="color: var(--color-text)">
-          {$isLoading ? 'Custom Color Overrides' : $_('themeCustomizer.sectionTitle')}
-        </h2>
-        <p class="text-xs mt-0.5" style="color: var(--color-text-muted)">
-          {$isLoading ? 'Fine-tune individual tokens on top of the selected theme.' : $_('themeCustomizer.sectionSubtitle')}
-        </p>
-      </div>
-      <div class="flex flex-wrap items-center gap-2">
-        <label class="inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-sm" style="border-color: var(--color-border); color: var(--color-text)">
-          <input
-            type="checkbox"
-            checked={config.enabled}
-            onchange={(e) => themeCustomizer.setEnabled((e.target as HTMLInputElement).checked)}
-          />
-          <span>{$isLoading ? 'Enable custom palette' : $_('themeCustomizer.enable')}</span>
-        </label>
-        <Button variant="secondary" size="sm" onclick={() => themeCustomizer.resetMode(mode)}>
-          {$isLoading ? 'Reset mode' : $_('themeCustomizer.resetMode')}
-        </Button>
-        <Button variant="danger" size="sm" onclick={() => themeCustomizer.resetAll()}>
-          {$isLoading ? 'Reset all' : $_('themeCustomizer.resetAll')}
-        </Button>
+      <div class="flex items-start justify-between gap-4 flex-wrap">
+        <div>
+          <h2 class="text-sm font-semibold" style="color: var(--color-text)">
+            {$isLoading ? 'Custom Color Overrides' : $_('themeCustomizer.sectionTitle')}
+          </h2>
+          <p class="text-xs mt-0.5" style="color: var(--color-text-muted)">
+            {$isLoading ? 'Fine-tune individual tokens on top of the selected theme.' : $_('themeCustomizer.sectionSubtitle')}
+          </p>
+        </div>
+        {#if config.enabled && modifiedCount > 0}
+          <span class="rounded-full px-2.5 py-0.5 text-xs font-semibold shrink-0" style="background: var(--color-primary-muted); color: var(--color-primary)">
+            {modifiedCount} override{modifiedCount !== 1 ? 's' : ''} active
+          </span>
+        {:else if config.enabled}
+          <span class="rounded-full px-2.5 py-0.5 text-xs" style="background: var(--color-success-bg); color: var(--color-success)">
+            Active (no overrides)
+          </span>
+        {/if}
       </div>
 
-      <div class="flex gap-2">
-        <button class="btn btn-sm {mode === 'dark' ? 'btn-primary' : 'btn-secondary'}" onclick={() => (mode = 'dark')}>
-          {$isLoading ? 'Dark Mode' : $_('themeCustomizer.dark')}
-        </button>
-        <button class="btn btn-sm {mode === 'light' ? 'btn-primary' : 'btn-secondary'}" onclick={() => (mode = 'light')}>
-          {$isLoading ? 'Light Mode' : $_('themeCustomizer.light')}
-        </button>
+      <div class="flex flex-wrap items-center gap-2">
+        <div class="flex gap-2">
+          <button class="btn btn-sm {mode === 'dark' ? 'btn-primary' : 'btn-secondary'}" onclick={() => (mode = 'dark')}>
+            {$isLoading ? 'Dark Mode' : $_('themeCustomizer.dark')}
+          </button>
+          <button class="btn btn-sm {mode === 'light' ? 'btn-primary' : 'btn-secondary'}" onclick={() => (mode = 'light')}>
+            {$isLoading ? 'Light Mode' : $_('themeCustomizer.light')}
+          </button>
+        </div>
+        <div class="ml-auto flex gap-2">
+          {#if config.enabled}
+            <Button variant="secondary" size="sm" onclick={() => themeCustomizer.setEnabled(false)}>
+              Disable overrides
+            </Button>
+          {/if}
+          <Button variant="secondary" size="sm" onclick={() => themeCustomizer.resetMode(mode)}>
+            {$isLoading ? 'Reset mode' : $_('themeCustomizer.resetMode')}
+          </Button>
+          <Button variant="danger" size="sm" onclick={() => themeCustomizer.resetAll()}>
+            {$isLoading ? 'Reset all' : $_('themeCustomizer.resetAll')}
+          </Button>
+        </div>
       </div>
 
       {#if !config.enabled}
-        <div class="alert alert-info">
-          {$isLoading ? 'Enable custom palette to apply your colors globally.' : $_('themeCustomizer.enableHint')}
+        <div class="rounded-md border px-3 py-2.5 text-sm" style="border-color: var(--color-primary-muted); background: var(--color-primary-muted); color: var(--color-primary)">
+          Pick any color below — overrides will activate automatically and save to your profile.
         </div>
       {/if}
 
@@ -192,8 +211,14 @@
           <h3 class="text-sm font-semibold" style="color: var(--color-text)">{$isLoading ? group.titleKey : $_(group.titleKey)}</h3>
           <div class="grid grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-3">
             {#each group.tokens as token}
-              <label class="flex items-center justify-between gap-3 rounded-md border px-3 py-2" style="border-color: var(--color-border); background: rgb(var(--color-surface-2))">
-                <span class="text-sm" style="color: var(--color-text)">{$isLoading ? token.key : $_(token.labelKey)}</span>
+              {@const isModified = (mode === 'dark' ? config.dark : config.light)[token.key] !== (mode === 'dark' ? DEFAULT_DARK : DEFAULT_LIGHT)[token.key]}
+              <label class="flex items-center justify-between gap-3 rounded-md border px-3 py-2" style="border-color: {isModified ? 'var(--color-primary)' : 'var(--color-border)'}; background: rgb(var(--color-surface-2))">
+                <span class="text-sm flex items-center gap-1.5" style="color: var(--color-text)">
+                  {$isLoading ? token.key : $_(token.labelKey)}
+                  {#if isModified}
+                    <span class="inline-block h-1.5 w-1.5 rounded-full" style="background: var(--color-primary)"></span>
+                  {/if}
+                </span>
                 <div class="flex items-center gap-2">
                   <input
                     type="color"

@@ -5,6 +5,7 @@ import { DocumentService, LabelsService, OrganizationService } from '@qltb/appli
 import { documentsRoute } from '../documents/documents.route.js'
 import { labelsRoute } from '../labels/labels.route.js'
 import { organizationsRoute } from '../organizations/organizations.route.js'
+import { userRoute } from '../user/user.routes.js'
 
 export async function registerContentContext(
     fastify: FastifyInstance,
@@ -21,4 +22,5 @@ export async function registerContentContext(
     await fastify.register(documentsRoute, { prefix: '/api/v1', documentService, pgClient })
     await fastify.register(labelsRoute, { prefix: '/api/v1', labelsService })
     await fastify.register(organizationsRoute, { prefix: '/api/v1', organizationService })
+    await fastify.register(userRoute, { prefix: '/api/v1', pgClient })
 }

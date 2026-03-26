@@ -68,7 +68,7 @@ export const TOKEN_GROUPS: ThemeTokenGroup[] = [
     }
 ];
 
-const DEFAULT_DARK: Record<string, string> = {
+export const DEFAULT_DARK: Record<string, string> = {
     '--color-bg': '11 18 32',
     '--color-surface': '18 27 46',
     '--color-surface-2': '15 23 42',
@@ -91,7 +91,7 @@ const DEFAULT_DARK: Record<string, string> = {
     '--sidebar-accent-text': '#38BDF8'
 };
 
-const DEFAULT_LIGHT: Record<string, string> = {
+export const DEFAULT_LIGHT: Record<string, string> = {
     '--color-bg': '248 250 252',
     '--color-surface': '255 255 255',
     '--color-surface-2': '236 242 248',
@@ -162,14 +162,25 @@ function normalizeConfig(raw: Partial<ThemeCustomizerConfig> | null): ThemeCusto
 }
 
 function buildCss(config: ThemeCustomizerConfig): string {
-    const toBlock = (vars: Record<string, string>) => Object.entries(vars)
-        .map(([key, value]) => `  ${key}: ${value};`)
-        .join('\n');
+    // Only output tokens that the user has explicitly changed from the defaults.
+    // Outputting ALL tokens (including sky defaults) would override preset colors
+    // because this selector (0,2,1) has higher specificity than themes.css (0,2,0).
+    const diffBlock = (vars: Record<string, string>, defaults: Record<string, string>) =>
+        Object.entries(vars)
+            .filter(([key, value]) => value !== defaults[key])
+            .map(([key, value]) => `  ${key}: ${value};`)
+            .join('\n');
 
-    // themes.css dùng [data-color-scheme="X"][data-theme="dark"] có specificity 0,2,0.
-    // Phải dùng selector có specificity cao hơn (0,2,1) để custom overrides thắng.
-    // html[data-color-scheme][data-theme="dark"] = element(0,0,1) + attr(0,1,0) + attr(0,1,0) = 0,2,1
-    return `html[data-color-scheme][data-theme="dark"] {\n${toBlock(config.dark)}\n}\n\nhtml[data-color-scheme]:not([data-theme="dark"]) {\n${toBlock(config.light)}\n}`;
+    // themes.css uses [data-color-scheme="X"][data-theme="dark"] at specificity 0,2,0.
+    // Use specificity 0,2,1 so user overrides win over the preset baseline.
+    // html[data-color-scheme][data-theme="dark"] = element(0,0,1) + attr×2(0,2,0) = 0,2,1
+    const darkBlock = diffBlock(config.dark, DEFAULT_DARK);
+    const lightBlock = diffBlock(config.light, DEFAULT_LIGHT);
+
+    const parts: string[] = [];
+    if (darkBlock) parts.push(`html[data-color-scheme][data-theme="dark"] {\n${darkBlock}\n}`);
+    if (lightBlock) parts.push(`html[data-color-scheme]:not([data-theme="dark"]) {\n${lightBlock}\n}`);
+    return parts.join('\n\n');
 }
 
 function applyStyle(cssText: string, enabled: boolean) {
@@ -219,6 +230,13 @@ function createThemeCustomizerStore() {
             set(cfg);
             applyStyle(buildCss(cfg), cfg.enabled);
         },
+        /** Apply config loaded from server (overwrites localStorage + applies CSS). */
+        initFromExternal(cfg: ThemeCustomizerConfig) {
+            const normalized = normalizeConfig(cfg);
+            set(normalized);
+            persistConfig(normalized);
+            applyStyle(buildCss(normalized), normalized.enabled);
+        },
         setEnabled(enabled: boolean) {
             update((current) => {
                 const next = { ...current, enabled };
@@ -234,6 +252,8 @@ function createThemeCustomizerStore() {
             update((current) => {
                 const next = {
                     ...current,
+                    // Auto-enable on first token change so user sees live preview immediately
+                    enabled: true,
                     [mode]: {
                         ...current[mode],
                         [tokenKey]: def.type === 'channel' ? hexToRgbChannels(hex) : hex

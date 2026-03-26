@@ -13,6 +13,8 @@
   import { theme } from '$lib/stores/themeStore';
   import { themeCustomizer } from '$lib/stores/themeCustomizer';
   import { themePresets } from '$lib/stores/themePresets';
+  import type { ThemePresetId } from '$lib/stores/themePresets';
+  import { getUserThemeSettings, putUserThemeSettings } from '$lib/api/userSettings';
   import { printTemplate } from '$lib/stores/printTemplateStore';
   import { printWordTemplates } from '$lib/stores/printWordTemplateStore';
   import { orgStore, orgLogoLetters } from '$lib/stores/orgStore';
@@ -31,6 +33,9 @@
   let isDesktop = $state(false);
   let userEmail = $state('');
   let userRole = $state('');
+  // Theme API sync — prevent saves before server settings are loaded
+  let themeApiSyncReady = $state(false);
+  let themeSaveTimer: ReturnType<typeof setTimeout> | undefined;
   const shelllessPaths = ['/login', '/setup', '/logout', '/print'];
   const legacyRedirectPrefixes = [
     '/chat',
@@ -68,6 +73,18 @@
     }
   });
 
+  // Auto-save theme settings to API (debounced) whenever preset or customizer changes.
+  // Only activates after server settings have been loaded to avoid overwriting server data on init.
+  $effect(() => {
+    const preset = $themePresets;
+    const customizer = $themeCustomizer;
+    if (!themeApiSyncReady) return;
+    clearTimeout(themeSaveTimer);
+    themeSaveTimer = setTimeout(() => {
+      void putUserThemeSettings({ preset, customizer });
+    }, 800);
+  });
+
   onMount(() => {
     if (typeof window === 'undefined') return;
     const media = window.matchMedia('(min-width: 1024px)');
@@ -87,6 +104,22 @@
     themeCustomizer.init();
     printTemplate.init();
     printWordTemplates.init();
+
+    // Load per-user theme settings from server (sync across devices).
+    // Falls back silently to localStorage state if unauthenticated or offline.
+    async function loadThemeFromApi() {
+      try {
+        const settings = await getUserThemeSettings();
+        if (settings?.preset) {
+          themePresets.setTheme(settings.preset as ThemePresetId);
+        }
+        if (settings?.customizer) {
+          themeCustomizer.initFromExternal(settings.customizer);
+        }
+      } catch { /* non-critical — localStorage state already applied */ }
+      themeApiSyncReady = true;
+    }
+    void loadThemeFromApi();
 
     // Load unified effective perms (Classic RBAC + Policy System)
     async function fetchEffectivePerms(force = false) {

@@ -82,7 +82,7 @@
   /* Text */
   --color-text:          rgba(15, 23, 42, 0.92);
   --color-text-muted:    rgba(15, 23, 42, 0.64);
-  --color-text-dim:      rgba(15, 23, 42, 0.44);
+  --color-text-dim:      rgba(15, 23, 42, 0.56);
 
   /* Primary / Accent */
   --color-primary:          #0ea5e9;
@@ -206,8 +206,8 @@
 
   /* Text */
   --color-text:          rgba(19, 78, 74, 0.92);
-  --color-text-muted:    rgba(15, 118, 110, 0.75);
-  --color-text-dim:      rgba(45, 106, 103, 0.65);
+  --color-text-muted:    rgba(13, 78, 74, 0.88);
+  --color-text-dim:      rgba(13, 78, 74, 0.72);
 
   /* Primary / Accent */
   --color-primary:          #0d9488;
@@ -337,7 +337,7 @@
   /* Text */
   --color-text:          rgba(30, 27, 75, 0.92);
   --color-text-muted:    rgba(76, 74, 109, 0.80);
-  --color-text-dim:      rgba(165, 163, 192, 0.90);
+  --color-text-dim:      rgba(76, 29, 149, 0.72);
 
   /* Primary / Accent */
   --color-primary:          #7c3aed;
@@ -452,8 +452,8 @@
 
   /* Text */
   --color-text:          rgba(30, 41, 59, 0.94);
-  --color-text-muted:    rgba(100, 116, 139, 0.90);
-  --color-text-dim:      rgba(148, 163, 184, 0.95);
+  --color-text-muted:    rgba(71, 85, 105, 0.90);
+  --color-text-dim:      rgba(30, 41, 59, 0.72);
 
   /* Primary / Accent */
   --color-primary:          #3b82f6;
@@ -578,7 +578,7 @@
   /* Text */
   --color-text:          rgba(28, 16, 1, 0.92);
   --color-text-muted:    rgba(87, 64, 15, 0.82);
-  --color-text-dim:      rgba(160, 120, 48, 0.80);
+  --color-text-dim:      rgba(120, 53, 15, 0.75);
 
   /* Primary / Accent */
   --color-primary:          #d97706;
