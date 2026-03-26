@@ -6,8 +6,16 @@
   let {
     sessionId = '',
     locations = [],
+    fixedAssetId,
+    fixedAssetCode,
     onscanned
-  } = $props<{ sessionId?: string; locations?: Array<{ id: string; name: string }>; onscanned?: () => void }>();
+  } = $props<{
+    sessionId?: string;
+    locations?: Array<{ id: string; name: string }>;
+    fixedAssetId?: string;
+    fixedAssetCode?: string;
+    onscanned?: () => void;
+  }>();
 
   let assetCode = $state('');
   let scannedLocationId = $state('');
@@ -46,10 +54,10 @@
 
   function mapScanError(message: string): string {
     const normalized = message.toLowerCase();
-    if (normalized.includes('not found')) return 'Không tìm thấy tài sản từ mã/QR đã quét';
-    if (normalized.includes('session')) return 'Phiên kiểm kê không hợp lệ hoặc đã đóng';
-    if (normalized.includes('location')) return 'Vị trí quét không hợp lệ';
-    if (normalized.includes('already')) return 'Tài sản đã được quét trong phiên này';
+    if (normalized.includes('not found')) return $_('assets.inventory.scanPanel.errors.notFound');
+    if (normalized.includes('session')) return $_('assets.inventory.scanPanel.errors.sessionInvalid');
+    if (normalized.includes('location')) return $_('assets.inventory.scanPanel.errors.locationInvalid');
+    if (normalized.includes('already')) return $_('assets.inventory.scanPanel.errors.alreadyScanned');
     return message;
   }
 
@@ -68,29 +76,41 @@
       error = $_('assets.inventory.selectSessionError');
       return;
     }
-    if (!assetCode.trim()) {
-      error = 'Vui lòng nhập mã tài sản hoặc QR URL';
-      return;
-    }
 
-    const parsed = parseAssetInput(assetCode);
-    if (!parsed || (!parsed.assetId && !parsed.assetCode)) {
-      error = 'Không đọc được dữ liệu từ mã quét';
-      return;
-    }
+    let payload: { assetId?: string; assetCode?: string; scannedLocationId?: string; note?: string };
+    if (fixedAssetId) {
+      payload = {
+        assetId: fixedAssetId,
+        scannedLocationId: scannedLocationId || undefined,
+        note: note || undefined
+      };
+      if (!canSubmitValue(`${fixedAssetId}:${sessionId}`)) return;
+    } else {
+      if (!assetCode.trim()) {
+        error = $_('assets.inventory.scanPanel.errors.codeRequired');
+        return;
+      }
 
-    if (!canSubmitValue(assetCode.trim())) return;
+      const parsed = parseAssetInput(assetCode);
+      if (!parsed || (!parsed.assetId && !parsed.assetCode)) {
+        error = $_('assets.inventory.scanPanel.errors.parseFailed');
+        return;
+      }
+
+      if (!canSubmitValue(assetCode.trim())) return;
+      payload = {
+        ...parsed,
+        scannedLocationId: scannedLocationId || undefined,
+        note: note || undefined
+      };
+    }
 
     try {
       scanning = true;
       error = '';
       success = '';
-      await scanInventoryAsset(sessionId, {
-        ...parsed,
-        scannedLocationId: scannedLocationId || undefined,
-        note: note || undefined
-      });
-      success = 'Quét thành công';
+      await scanInventoryAsset(sessionId, payload);
+      success = $_('assets.inventory.scanPanel.success');
       if (continuousMode) {
         assetCode = '';
       } else {
@@ -99,7 +119,7 @@
       }
       onscanned?.();
     } catch (err) {
-      error = err instanceof Error ? mapScanError(err.message) : 'Quét thất bại';
+      error = err instanceof Error ? mapScanError(err.message) : $_('assets.inventory.scanPanel.errors.scanFailed');
     } finally {
       scanning = false;
     }
@@ -120,10 +140,17 @@
     <div class="alert alert-success">{success}</div>
   {/if}
   <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-    <div>
-      <label for="scan-asset-code" class="label-base mb-2">{$isLoading ? 'Asset Code' : $_('assets.assetCode')}</label>
-      <input id="scan-asset-code" class="input-base" bind:value={assetCode} placeholder="ASSET-001 hoặc URL QR" onkeydown={onAssetCodeEnter} />
-    </div>
+    {#if fixedAssetId}
+      <div>
+        <div class="label-base mb-2">{$isLoading ? 'Asset' : $_('assets.asset')}</div>
+        <div class="input-base flex items-center text-sm text-slate-300">{fixedAssetCode || fixedAssetId}</div>
+      </div>
+    {:else}
+      <div>
+        <label for="scan-asset-code" class="label-base mb-2">{$isLoading ? 'Asset Code' : $_('assets.assetCode')}</label>
+        <input id="scan-asset-code" class="input-base" bind:value={assetCode} placeholder={$isLoading ? 'ASSET-001 or QR URL' : $_('assets.inventory.scanPanel.codePlaceholder')} onkeydown={onAssetCodeEnter} />
+      </div>
+    {/if}
     <div>
       <label for="scan-location" class="label-base mb-2">{$isLoading ? 'Scanned Location' : $_('assets.scannedLocation')}</label>
       <select id="scan-location" class="select-base" bind:value={scannedLocationId}>
@@ -142,11 +169,11 @@
   <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
     <label class="inline-flex items-center gap-2 text-sm">
       <input type="checkbox" bind:checked={continuousMode} />
-      <span>Chế độ quét liên tục</span>
+      <span>{$isLoading ? 'Continuous scan mode' : $_('assets.inventory.scanPanel.continuousMode')}</span>
     </label>
     <div>
-      <label for="scan-note" class="label-base mb-2">Ghi chú quét</label>
-      <input id="scan-note" class="input-base" bind:value={note} placeholder="Tùy chọn" />
+      <label for="scan-note" class="label-base mb-2">{$isLoading ? 'Scan note' : $_('assets.inventory.scanPanel.noteLabel')}</label>
+      <input id="scan-note" class="input-base" bind:value={note} placeholder={$isLoading ? 'Optional' : $_('assets.inventory.scanPanel.notePlaceholder')} />
     </div>
   </div>
 </div>

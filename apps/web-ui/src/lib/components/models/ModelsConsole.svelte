@@ -552,35 +552,35 @@
           <div class="card p-4 border border-slate-700 mb-4">
             <div class="grid md:grid-cols-3 gap-3">
               <div>
-                <label class="label-base">{$isLoading ? 'ID' : $_('common.id')}</label>
-                <input class="input-base" bind:value={newModel.id} placeholder="provider/model-id" />
+                <label class="label-base" for="new-model-id">{$isLoading ? 'ID' : $_('common.id')}</label>
+                <input id="new-model-id" class="input-base" bind:value={newModel.id} placeholder="provider/model-id" />
               </div>
               <div>
-                <label class="label-base">{$isLoading ? 'Provider' : $_('models.provider')}</label>
-                <input class="input-base" bind:value={newModel.provider} placeholder="openai" />
+                <label class="label-base" for="new-model-provider">{$isLoading ? 'Provider' : $_('models.provider')}</label>
+                <input id="new-model-provider" class="input-base" bind:value={newModel.provider} placeholder="openai" />
               </div>
               <div>
-                <label class="label-base">{$isLoading ? 'Display name' : $_('models.displayName')}</label>
-                <input class="input-base" bind:value={newModel.displayName} placeholder={$isLoading ? 'Friendly name' : $_('models.placeholders.displayName')} />
+                <label class="label-base" for="new-model-display-name">{$isLoading ? 'Display name' : $_('models.displayName')}</label>
+                <input id="new-model-display-name" class="input-base" bind:value={newModel.displayName} placeholder={$isLoading ? 'Friendly name' : $_('models.placeholders.displayName')} />
               </div>
               <div>
-                <label class="label-base">{$isLoading ? 'Tier' : $_('models.tier')}</label>
-                <input class="input-base" type="number" bind:value={newModel.tier} />
+                <label class="label-base" for="new-model-tier">{$isLoading ? 'Tier' : $_('models.tier')}</label>
+                <input id="new-model-tier" class="input-base" type="number" bind:value={newModel.tier} />
               </div>
               <div>
-                <label class="label-base">{$isLoading ? 'Priority' : $_('models.priority')}</label>
-                <input class="input-base" type="number" bind:value={newModel.priority} />
+                <label class="label-base" for="new-model-priority">{$isLoading ? 'Priority' : $_('models.priority')}</label>
+                <input id="new-model-priority" class="input-base" type="number" bind:value={newModel.priority} />
               </div>
               <div class="flex items-center gap-2">
                 <label class="relative inline-flex cursor-pointer items-center">
-                  <input type="checkbox" class="peer sr-only" bind:checked={newModel.enabled} />
+                  <input id="new-model-enabled" type="checkbox" class="peer sr-only" bind:checked={newModel.enabled} />
                   <div class="peer h-6 w-11 rounded-full bg-surface-3 after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:bg-white after:transition-all peer-checked:bg-primary peer-checked:after:translate-x-full"></div>
                 </label>
-                <label class="label-base">{$isLoading ? 'Enabled' : $_('common.enabled')}</label>
+                <label class="label-base" for="new-model-enabled">{$isLoading ? 'Enabled' : $_('common.enabled')}</label>
               </div>
               <div class="md:col-span-3">
-                <label class="label-base">{$isLoading ? 'Description' : $_('common.description')}</label>
-                <textarea class="textarea-base" bind:value={newModel.description} rows={2}></textarea>
+                <label class="label-base" for="new-model-description">{$isLoading ? 'Description' : $_('common.description')}</label>
+                <textarea id="new-model-description" class="textarea-base" bind:value={newModel.description} rows={2}></textarea>
               </div>
             </div>
             <div class="mt-3 flex gap-2">
@@ -687,39 +687,39 @@
                           <td colspan="9" class="px-4 py-4">
                             <div class="grid gap-3 md:grid-cols-2">
                               <div>
-                                <label class="label-base">{$isLoading ? 'Display name' : $_('models.displayName')}</label>
-                                <input class="input-base" bind:value={modelEdit.displayName} placeholder={$isLoading ? 'Friendly name' : $_('models.placeholders.displayName')} />
+                                <label class="label-base" for={`model-edit-display-name-${model.id}`}>{$isLoading ? 'Display name' : $_('models.displayName')}</label>
+                                <input id={`model-edit-display-name-${model.id}`} class="input-base" bind:value={modelEdit.displayName} placeholder={$isLoading ? 'Friendly name' : $_('models.placeholders.displayName')} />
                               </div>
                               <div>
-                                <label class="label-base">{$isLoading ? 'Tier' : $_('models.tier')}</label>
-                                <input class="input-base" type="number" bind:value={modelEdit.tier} />
+                                <label class="label-base" for={`model-edit-tier-${model.id}`}>{$isLoading ? 'Tier' : $_('models.tier')}</label>
+                                <input id={`model-edit-tier-${model.id}`} class="input-base" type="number" bind:value={modelEdit.tier} />
                               </div>
                               <div>
-                                <label class="label-base">{$isLoading ? 'Context window' : $_('models.contextWindow')}</label>
-                                <input class="input-base" type="number" bind:value={modelEdit.contextWindow} />
+                                <label class="label-base" for={`model-edit-context-window-${model.id}`}>{$isLoading ? 'Context window' : $_('models.contextWindow')}</label>
+                                <input id={`model-edit-context-window-${model.id}`} class="input-base" type="number" bind:value={modelEdit.contextWindow} />
                               </div>
                               <div>
-                                <label class="label-base">{$isLoading ? 'Max tokens' : $_('models.maxTokens')}</label>
-                                <input class="input-base" type="number" bind:value={modelEdit.maxTokens} />
+                                <label class="label-base" for={`model-edit-max-tokens-${model.id}`}>{$isLoading ? 'Max tokens' : $_('models.maxTokens')}</label>
+                                <input id={`model-edit-max-tokens-${model.id}`} class="input-base" type="number" bind:value={modelEdit.maxTokens} />
                               </div>
                               <div>
-                                <label class="label-base">{$isLoading ? 'Cost /1k input' : $_('models.costPer1kInput')}</label>
-                                <input class="input-base" type="number" step="0.0001" bind:value={modelEdit.costPer1kInput} />
+                                <label class="label-base" for={`model-edit-cost-input-${model.id}`}>{$isLoading ? 'Cost /1k input' : $_('models.costPer1kInput')}</label>
+                                <input id={`model-edit-cost-input-${model.id}`} class="input-base" type="number" step="0.0001" bind:value={modelEdit.costPer1kInput} />
                               </div>
                               <div>
-                                <label class="label-base">{$isLoading ? 'Cost /1k output' : $_('models.costPer1kOutput')}</label>
-                                <input class="input-base" type="number" step="0.0001" bind:value={modelEdit.costPer1kOutput} />
+                                <label class="label-base" for={`model-edit-cost-output-${model.id}`}>{$isLoading ? 'Cost /1k output' : $_('models.costPer1kOutput')}</label>
+                                <input id={`model-edit-cost-output-${model.id}`} class="input-base" type="number" step="0.0001" bind:value={modelEdit.costPer1kOutput} />
                               </div>
                               <div class="flex items-center gap-2">
                                 <label class="relative inline-flex cursor-pointer items-center">
-                                  <input type="checkbox" class="peer sr-only" bind:checked={modelEdit.enabled} />
+                                  <input id={`model-edit-enabled-${model.id}`} type="checkbox" class="peer sr-only" bind:checked={modelEdit.enabled} />
                                   <div class="peer h-6 w-11 rounded-full bg-surface-3 after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:bg-white after:transition-all peer-checked:bg-primary peer-checked:after:translate-x-full"></div>
                                 </label>
-                                <label class="label-base">{$isLoading ? 'Enabled' : $_('common.enabled')}</label>
+                                <label class="label-base" for={`model-edit-enabled-${model.id}`}>{$isLoading ? 'Enabled' : $_('common.enabled')}</label>
                               </div>
                               <div>
-                                <label class="label-base">{$isLoading ? 'Status' : $_('common.status')}</label>
-                                <select class="select-base" bind:value={modelEdit.status}>
+                                <label class="label-base" for={`model-edit-status-${model.id}`}>{$isLoading ? 'Status' : $_('common.status')}</label>
+                                <select id={`model-edit-status-${model.id}`} class="select-base" bind:value={modelEdit.status}>
                                   <option value="active">{$isLoading ? 'Active' : $_('cmdb.active')}</option>
                                   <option value="inactive">{$isLoading ? 'Inactive' : $_('cmdb.inactive')}</option>
                                   <option value="deprecated">{$isLoading ? 'Deprecated' : $_('models.deprecated')}</option>
@@ -833,39 +833,39 @@
                       <td colspan="9" class="px-4 py-4">
                         <div class="grid gap-3 md:grid-cols-2">
                           <div>
-                            <label class="label-base">{$isLoading ? 'Display name' : $_('models.displayName')}</label>
-                            <input class="input-base" bind:value={modelEdit.displayName} placeholder={$isLoading ? 'Friendly name' : $_('models.placeholders.displayName')} />
+                            <label class="label-base" for={`model-edit-display-name-flat-${model.id}`}>{$isLoading ? 'Display name' : $_('models.displayName')}</label>
+                            <input id={`model-edit-display-name-flat-${model.id}`} class="input-base" bind:value={modelEdit.displayName} placeholder={$isLoading ? 'Friendly name' : $_('models.placeholders.displayName')} />
                           </div>
                           <div>
-                            <label class="label-base">{$isLoading ? 'Tier' : $_('models.tier')}</label>
-                            <input class="input-base" type="number" bind:value={modelEdit.tier} />
+                            <label class="label-base" for={`model-edit-tier-flat-${model.id}`}>{$isLoading ? 'Tier' : $_('models.tier')}</label>
+                            <input id={`model-edit-tier-flat-${model.id}`} class="input-base" type="number" bind:value={modelEdit.tier} />
                           </div>
                           <div>
-                            <label class="label-base">{$isLoading ? 'Context window' : $_('models.contextWindow')}</label>
-                            <input class="input-base" type="number" bind:value={modelEdit.contextWindow} />
+                            <label class="label-base" for={`model-edit-context-window-flat-${model.id}`}>{$isLoading ? 'Context window' : $_('models.contextWindow')}</label>
+                            <input id={`model-edit-context-window-flat-${model.id}`} class="input-base" type="number" bind:value={modelEdit.contextWindow} />
                           </div>
                           <div>
-                            <label class="label-base">{$isLoading ? 'Max tokens' : $_('models.maxTokens')}</label>
-                            <input class="input-base" type="number" bind:value={modelEdit.maxTokens} />
+                            <label class="label-base" for={`model-edit-max-tokens-flat-${model.id}`}>{$isLoading ? 'Max tokens' : $_('models.maxTokens')}</label>
+                            <input id={`model-edit-max-tokens-flat-${model.id}`} class="input-base" type="number" bind:value={modelEdit.maxTokens} />
                           </div>
                           <div>
-                            <label class="label-base">{$isLoading ? 'Cost /1k input' : $_('models.costPer1kInput')}</label>
-                            <input class="input-base" type="number" step="0.0001" bind:value={modelEdit.costPer1kInput} />
+                            <label class="label-base" for={`model-edit-cost-input-flat-${model.id}`}>{$isLoading ? 'Cost /1k input' : $_('models.costPer1kInput')}</label>
+                            <input id={`model-edit-cost-input-flat-${model.id}`} class="input-base" type="number" step="0.0001" bind:value={modelEdit.costPer1kInput} />
                           </div>
                           <div>
-                            <label class="label-base">{$isLoading ? 'Cost /1k output' : $_('models.costPer1kOutput')}</label>
-                            <input class="input-base" type="number" step="0.0001" bind:value={modelEdit.costPer1kOutput} />
+                            <label class="label-base" for={`model-edit-cost-output-flat-${model.id}`}>{$isLoading ? 'Cost /1k output' : $_('models.costPer1kOutput')}</label>
+                            <input id={`model-edit-cost-output-flat-${model.id}`} class="input-base" type="number" step="0.0001" bind:value={modelEdit.costPer1kOutput} />
                           </div>
                           <div class="flex items-center gap-2">
                             <label class="relative inline-flex cursor-pointer items-center">
-                              <input type="checkbox" class="peer sr-only" bind:checked={modelEdit.enabled} />
+                              <input id={`model-edit-enabled-flat-${model.id}`} type="checkbox" class="peer sr-only" bind:checked={modelEdit.enabled} />
                               <div class="peer h-6 w-11 rounded-full bg-surface-3 after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:bg-white after:transition-all peer-checked:bg-primary peer-checked:after:translate-x-full"></div>
                             </label>
-                            <label class="label-base">{$isLoading ? 'Enabled' : $_('common.enabled')}</label>
+                            <label class="label-base" for={`model-edit-enabled-flat-${model.id}`}>{$isLoading ? 'Enabled' : $_('common.enabled')}</label>
                           </div>
                           <div>
-                            <label class="label-base">{$isLoading ? 'Status' : $_('common.status')}</label>
-                            <select class="select-base" bind:value={modelEdit.status}>
+                            <label class="label-base" for={`model-edit-status-flat-${model.id}`}>{$isLoading ? 'Status' : $_('common.status')}</label>
+                            <select id={`model-edit-status-flat-${model.id}`} class="select-base" bind:value={modelEdit.status}>
                             <option value="active">{$isLoading ? 'Active' : $_('cmdb.active')}</option>
                             <option value="inactive">{$isLoading ? 'Inactive' : $_('cmdb.inactive')}</option>
                             <option value="deprecated">{$isLoading ? 'Deprecated' : $_('models.deprecated')}</option>
@@ -922,20 +922,20 @@
           <div class="card p-4 border border-slate-700 mb-4">
             <div class="grid md:grid-cols-3 gap-3">
               <div>
-                <label class="label-base">{$isLoading ? 'ID' : $_('common.id')}</label>
-                <input class="input-base" bind:value={newProvider.id} placeholder="openai" />
+                <label class="label-base" for="new-provider-id">{$isLoading ? 'ID' : $_('common.id')}</label>
+                <input id="new-provider-id" class="input-base" bind:value={newProvider.id} placeholder="openai" />
               </div>
               <div>
-                <label class="label-base">{$isLoading ? 'Name' : $_('common.name')}</label>
-                <input class="input-base" bind:value={newProvider.name} placeholder={$isLoading ? 'OpenAI' : $_('models.placeholders.providerName')} />
+                <label class="label-base" for="new-provider-name">{$isLoading ? 'Name' : $_('common.name')}</label>
+                <input id="new-provider-name" class="input-base" bind:value={newProvider.name} placeholder={$isLoading ? 'OpenAI' : $_('models.placeholders.providerName')} />
               </div>
               <div>
-                <label class="label-base">{$isLoading ? 'API endpoint' : $_('models.apiEndpoint')}</label>
-                <input class="input-base" bind:value={newProvider.apiEndpoint} placeholder="https://..." />
+                <label class="label-base" for="new-provider-api-endpoint">{$isLoading ? 'API endpoint' : $_('models.apiEndpoint')}</label>
+                <input id="new-provider-api-endpoint" class="input-base" bind:value={newProvider.apiEndpoint} placeholder="https://..." />
               </div>
               <div>
-                <label class="label-base">{$isLoading ? 'Status' : $_('common.status')}</label>
-                <select class="select-base" bind:value={newProvider.status}>
+                <label class="label-base" for="new-provider-status">{$isLoading ? 'Status' : $_('common.status')}</label>
+                <select id="new-provider-status" class="select-base" bind:value={newProvider.status}>
                   <option value="active">{$isLoading ? 'Active' : $_('cmdb.active')}</option>
                   <option value="maintenance">{$isLoading ? 'Maintenance' : $_('cmdb.maintenance')}</option>
                   <option value="inactive">{$isLoading ? 'Inactive' : $_('cmdb.inactive')}</option>
@@ -1018,32 +1018,32 @@
                     {#if editingProviderId === provider.id}
                       <div class="mt-3 grid gap-3 md:grid-cols-2">
                         <div>
-                          <label class="label-base">{$isLoading ? 'Name' : $_('common.name')}</label>
-                          <input class="input-base" bind:value={providerEdit.name} />
+                          <label class="label-base" for={`provider-edit-name-${provider.id}`}>{$isLoading ? 'Name' : $_('common.name')}</label>
+                          <input id={`provider-edit-name-${provider.id}`} class="input-base" bind:value={providerEdit.name} />
                         </div>
                         <div>
-                          <label class="label-base">{$isLoading ? 'Status' : $_('common.status')}</label>
-                          <select class="select-base" bind:value={providerEdit.status}>
+                          <label class="label-base" for={`provider-edit-status-${provider.id}`}>{$isLoading ? 'Status' : $_('common.status')}</label>
+                          <select id={`provider-edit-status-${provider.id}`} class="select-base" bind:value={providerEdit.status}>
                             <option value="active">{$isLoading ? 'Active' : $_('models.active')}</option>
                             <option value="maintenance">{$isLoading ? 'Maintenance' : $_('models.maintenance')}</option>
                             <option value="inactive">{$isLoading ? 'Inactive' : $_('models.inactive')}</option>
                           </select>
                         </div>
                         <div>
-                          <label class="label-base">{$isLoading ? 'API endpoint' : $_('models.apiEndpoint')}</label>
-                          <input class="input-base" bind:value={providerEdit.apiEndpoint} />
+                          <label class="label-base" for={`provider-edit-api-endpoint-${provider.id}`}>{$isLoading ? 'API endpoint' : $_('models.apiEndpoint')}</label>
+                          <input id={`provider-edit-api-endpoint-${provider.id}`} class="input-base" bind:value={providerEdit.apiEndpoint} />
                         </div>
                         <div>
-                          <label class="label-base">{$isLoading ? 'API Key' : $_('models.apiKey')}</label>
-                          <input class="input-base" type="password" bind:value={providerEdit.apiKey} placeholder="******" />
+                          <label class="label-base" for={`provider-edit-api-key-${provider.id}`}>{$isLoading ? 'API Key' : $_('models.apiKey')}</label>
+                          <input id={`provider-edit-api-key-${provider.id}`} class="input-base" type="password" bind:value={providerEdit.apiKey} placeholder="******" />
                         </div>
                         <div>
-                          <label class="label-base">{$isLoading ? 'Credits' : $_('models.credits')}</label>
-                          <input class="input-base" type="number" step="0.0001" bind:value={providerEdit.creditsRemaining} />
+                          <label class="label-base" for={`provider-edit-credits-${provider.id}`}>{$isLoading ? 'Credits' : $_('models.credits')}</label>
+                          <input id={`provider-edit-credits-${provider.id}`} class="input-base" type="number" step="0.0001" bind:value={providerEdit.creditsRemaining} />
                         </div>
                         <div>
-                          <label class="label-base">{$isLoading ? 'Tokens' : $_('stats.tokens')}</label>
-                          <input class="input-base" type="number" bind:value={providerEdit.tokensUsed} />
+                          <label class="label-base" for={`provider-edit-tokens-${provider.id}`}>{$isLoading ? 'Tokens' : $_('stats.tokens')}</label>
+                          <input id={`provider-edit-tokens-${provider.id}`} class="input-base" type="number" bind:value={providerEdit.tokensUsed} />
                         </div>
                       </div>
                       <div class="flex gap-2 mt-3 justify-end">
@@ -1275,7 +1275,7 @@
     </div>
 
     <div>
-      <label class="label-base">{$isLoading ? 'Model Sequence' : $_('models.modelSequence')}</label>
+      <p class="label-base">{$isLoading ? 'Model Sequence' : $_('models.modelSequence')}</p>
       <div class="space-y-2">
         {#each ruleForm.modelSequence as model, idx}
           <div class="flex gap-2">
@@ -1303,10 +1303,10 @@
 
     <div class="flex items-center gap-2">
       <label class="relative inline-flex cursor-pointer items-center">
-        <input type="checkbox" class="peer sr-only" bind:checked={ruleForm.enabled} />
+        <input id="orchestration-rule-enabled" type="checkbox" class="peer sr-only" bind:checked={ruleForm.enabled} />
         <div class="peer h-6 w-11 rounded-full bg-surface-3 after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:bg-white after:transition-all peer-checked:bg-primary peer-checked:after:translate-x-full"></div>
       </label>
-      <label class="label-base">{$isLoading ? 'Enabled' : $_('common.enabled')}</label>
+      <label class="label-base" for="orchestration-rule-enabled">{$isLoading ? 'Enabled' : $_('common.enabled')}</label>
     </div>
   </div>
 
@@ -1338,8 +1338,8 @@
     <p class="text-sm text-slate-300 mb-3">{selectedRemote.id}</p>
     <div class="space-y-3">
       <div>
-        <label class="label-base">{$isLoading ? 'Priority' : $_('models.priority')}</label>
-        <input class="input-base" type="number" bind:value={importPriority} />
+        <label class="label-base" for="import-remote-priority">{$isLoading ? 'Priority' : $_('models.priority')}</label>
+        <input id="import-remote-priority" class="input-base" type="number" bind:value={importPriority} />
       </div>
       <div class="text-sm text-slate-500">
         Prompt $/1k: {selectedRemote.pricing?.prompt ?? '—'} | Completion $/1k: {selectedRemote.pricing?.completion ?? '—'}

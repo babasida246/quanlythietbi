@@ -181,10 +181,39 @@
       "sessionSelect": "Active session",
       "selectSession": "Select session",
       "selectSessionError": "Select an inventory session first.",
+      "manageSessions": "Manage sessions",
       "quickScan": "Quick scan",
+      "scanThisAsset": "Scan this asset",
+      "latestResult": "Latest inventory result",
+      "noResult": "No inventory result for this asset yet.",
+      "selectSessionFirst": "Please select an inventory session before scanning this asset.",
       "items": "Inventory items",
+      "assetHistory": "This asset inventory history",
       "empty": "No inventory items yet.",
-      "scannedAt": "Scanned at"
+      "scannedAt": "Scanned at",
+      "scannedLocation": "Scanned location",
+      "statuses": {
+        "found": "Found",
+        "moved": "Moved",
+        "missing": "Missing",
+        "unknown": "Unknown"
+      },
+      "scanPanel": {
+        "codePlaceholder": "ASSET-001 or QR URL",
+        "continuousMode": "Continuous scan mode",
+        "noteLabel": "Scan note",
+        "notePlaceholder": "Optional",
+        "success": "Scan successful",
+        "errors": {
+          "codeRequired": "Please enter asset code or QR URL",
+          "parseFailed": "Unable to parse scanned value",
+          "scanFailed": "Scan failed",
+          "notFound": "No asset found from scanned code/QR",
+          "sessionInvalid": "Inventory session is invalid or already closed",
+          "locationInvalid": "Scanned location is invalid",
+          "alreadyScanned": "Asset has already been scanned in this session"
+        }
+      }
     },
     "workflow": {
       "title": "Workflow request",
@@ -412,6 +441,45 @@
         "departmentLocationRequired": "Please select a location for Department assignee type",
         "personIdMinLength": "Employee ID must be at least 3 characters",
         "systemIdInvalid": "System ID can only contain letters, numbers, and _ . : -"
+      }
+    },
+    "print": {
+      "title": "Print Document",
+      "selectTemplate": "Select Template",
+      "noTemplates": "No print templates available",
+      "loadingTemplates": "Loading templates...",
+      "templateInfo": "Template Info",
+      "templateDescription": "Description",
+      "docType": "Document Type",
+      "preview": "Preview",
+      "previewLabel": "A4 Preview",
+      "fieldMapping": "Field Mapping",
+      "fieldName": "Field Name",
+      "fieldValue": "Value",
+      "autoMap": "Auto-map Fields",
+      "autoMapDesc": "The system will automatically fill in asset information to the fields in the template",
+      "autoMapping": "Auto-mapping...",
+      "renderingPreview": "Rendering preview...",
+      "step1": "Step 1: Select Template",
+      "step2": "Step 2: Preview",
+      "step3": "Step 3: Customize",
+      "exportFormat": "Export Format",
+      "exportFormatPdf": "PDF",
+      "exportFormatExcel": "Excel",
+      "exportFormatCsv": "CSV",
+      "exportFormatWord": "Word",
+      "exportFormatJson": "JSON",
+      "customize": "Customize Fields",
+      "export": "Export File",
+      "exporting": "Exporting...",
+      "back": "Back",
+      "next": "Next",
+      "downloading": "Downloading...",
+      "errors": {
+        "autoMapFailed": "Auto-mapping failed",
+        "renderFailed": "Preview rendering failed",
+        "exportFailed": "File export failed",
+        "templateNotFound": "Template not found"
       }
     }
   },

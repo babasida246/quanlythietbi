@@ -22,6 +22,9 @@ export { InventoryService } from './assets/InventoryService.js'
 export { WorkflowService } from './assets/WorkflowService.js'
 export { ReminderService } from './assets/ReminderService.js'
 
+// Print
+export { PrintService } from './print/PrintService.js'
+
 // Maintenance/Warehouse
 export { WarehouseCatalogService } from './maintenanceWarehouse/WarehouseCatalogService.js'
 export { StockDocumentService } from './maintenanceWarehouse/StockDocumentService.js'

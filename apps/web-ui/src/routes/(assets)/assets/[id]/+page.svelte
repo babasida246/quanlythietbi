@@ -6,13 +6,14 @@
     Tabs, TabsList, TabsTrigger
   } from '$lib/components/ui';
   import Modal from '$lib/components/Modal.svelte';
-  import { ArrowLeft, Download, Wrench, UserPlus, Undo2, ChevronDown, ChevronRight, PackageOpen } from 'lucide-svelte';
+  import { ArrowLeft, Download, Wrench, UserPlus, Undo2, ChevronDown, ChevronRight, PackageOpen, PrinterIcon } from 'lucide-svelte';
   import { _, isLoading } from '$lib/i18n';
   import { getCapabilities } from '$lib/auth/capabilities';
   import { allowedPerms } from '$lib/stores/effectivePermsStore';
   import AssetTimeline from '$lib/assets/components/AssetTimeline.svelte';
   import AssignModal from '$lib/assets/components/AssignModal.svelte';
   import MaintenanceModal from '$lib/assets/components/MaintenanceModal.svelte';
+  import { PrintDialog } from '$lib/components/print';
   import AttachmentList from '$lib/assets/components/AttachmentList.svelte';
   import AttachmentUploader from '$lib/assets/components/AttachmentUploader.svelte';
   import InventoryScanPanel from '$lib/assets/components/InventoryScanPanel.svelte';
@@ -58,6 +59,7 @@
   let reminders = $state<Reminder[]>([]);
   let inventorySessions = $state<InventorySession[]>([]);
   let inventoryItems = $state<InventoryItem[]>([]);
+  let inventoryStatusFilter = $state<'all' | InventoryItem['status']>('all');
   let catalogs = $state<Catalogs | null>(null);
   let loading = $state(true);
   let error = $state('');
@@ -65,6 +67,7 @@
   let showAssignModal = $state(false);
   let showMaintenanceModal = $state(false);
   let showReturnModal = $state(false);
+  let showPrintDialog = $state(false);
   let returning = $state(false);
   let returnNote = $state('');
   let remindersLoading = $state(false);
@@ -258,6 +261,20 @@
     return toComparableJson(asset.spec ?? {}) !== toComparableJson(specDraft);
   });
   const hasPendingChanges = $derived.by(() => overviewDirty || specsDirty);
+  const currentAssetInventoryItems = $derived.by(() => {
+    const current = asset;
+    if (!current) return [];
+    return inventoryItems.filter((item) => item.assetId === current.id);
+  });
+  const filteredAssetInventoryItems = $derived.by(() => {
+    if (inventoryStatusFilter === 'all') return currentAssetInventoryItems;
+    return currentAssetInventoryItems.filter((item) => item.status === inventoryStatusFilter);
+  });
+  const latestInventoryRecord = $derived.by(() => {
+    if (currentAssetInventoryItems.length === 0) return null;
+    return [...currentAssetInventoryItems]
+      .sort((a, b) => new Date(b.scannedAt ?? 0).getTime() - new Date(a.scannedAt ?? 0).getTime())[0];
+  });
   const lifecycleDiffEvents = $derived.by(() => {
     const rows: Array<{ id: string; at: string; eventType: string; changes: TimelineDiffRow[] }> = [];
     for (const event of timeline) {
@@ -319,6 +336,17 @@
       initDrafts();
     }
     activeTab = nextTab;
+  }
+
+  function inventoryStatusBadgeClass(status: string): string {
+    if (status === 'found') return 'badge-success';
+    if (status === 'moved') return 'badge-warning';
+    if (status === 'missing') return 'badge-error';
+    return 'badge-primary';
+  }
+
+  function inventoryStatusLabel(status: string): string {
+    return $_(`assets.inventory.statuses.${status}`);
   }
   async function loadDetail() {
     if (!assetId) return;
@@ -703,6 +731,14 @@
     }
   }
 
+  function handlePrintExport(format: string, payload: { html: string; mappings: Record<string, unknown> }) {
+    console.log('Print export completed:', {
+      format,
+      assetCode: asset?.assetCode,
+      fields: Object.keys(payload.mappings).length
+    });
+  }
+
   function downloadEvidencePack() {
     const payload = {
       asset,
@@ -786,6 +822,9 @@
         </Button>
         <Button size="sm" variant="secondary" onclick={() => showMaintenanceModal = true}>
           <Wrench class="w-4 h-4 mr-1" /> {$isLoading ? 'Maintenance' : $_('maintenance.title')}
+                <Button size="sm" variant="secondary" onclick={() => showPrintDialog = true}>
+                  <PrinterIcon class="w-4 h-4 mr-1" /> {$isLoading ? 'Print' : $_('assets.print.title')}
+                </Button>
         </Button>
       </div>
     {/if}
@@ -1420,29 +1459,20 @@
     {:else if activeTab === 'inventory' && caps.canManageAssets}
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div class="card p-4 sm:p-5">
-            <h2 class="text-base font-semibold mb-4">{$isLoading ? 'Sessions' : $_('assets.inventory.sessions')}</h2>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-              <div class="md:col-span-2">
-                <label class="label-base mb-2" for="inv-session-name">{$_('assets.inventory.sessionName')}</label>
-                <input id="inv-session-name" class="input-base" bind:value={newSessionName} placeholder={$_('assets.inventory.sessionNamePlaceholder')} />
-              </div>
-              <div>
-                <label class="label-base mb-2" for="inv-session-location">{$_('assets.inventory.sessionLocation')}</label>
-                <select id="inv-session-location" class="select-base" bind:value={newSessionLocationId}>
-                  <option value="">{$_('assets.placeholders.selectLocation')}</option>
-                  {#each locations as location}
-                    <option value={location.id}>{location.name}</option>
-                  {/each}
-                </select>
-              </div>
+            <div class="mb-4 flex items-center justify-between gap-2">
+              <h2 class="text-base font-semibold">{$isLoading ? 'Current session' : $_('assets.inventory.sessionSelect')}</h2>
+              <a href="/inventory" class="btn-sm btn-secondary inline-flex items-center gap-1 text-xs">{$isLoading ? 'Manage sessions' : $_('assets.inventory.manageSessions')}</a>
             </div>
-            <div class="mt-3 flex gap-2">
-              <Button size="sm" onclick={handleCreateSession} disabled={!newSessionName || creatingSession}>
-                {creatingSession ? $_('common.loading') : $_('assets.inventory.createSession')}
-              </Button>
-              <Button size="sm" variant="secondary" onclick={handleCloseSession} disabled={!activeInventorySessionId}>
-                {$_('assets.inventory.closeSession')}
-              </Button>
+            <div class="mb-4 rounded-md border border-border bg-surface-3 p-3 text-sm">
+              <div class="text-xs uppercase tracking-wide text-slate-500 mb-1">{$isLoading ? 'Latest inventory result' : $_('assets.inventory.latestResult')}</div>
+              {#if latestInventoryRecord}
+                <div class="flex items-center justify-between gap-2">
+                  <span class={inventoryStatusBadgeClass(latestInventoryRecord.status)}>{latestInventoryRecord.status}</span>
+                  <span class="text-xs text-slate-400">{formatDateTime(latestInventoryRecord.scannedAt)}</span>
+                </div>
+              {:else}
+                <div class="text-slate-500">{$_('assets.inventory.noResult')}</div>
+              {/if}
             </div>
             <div class="mt-4">
               <label class="label-base mb-2" for="inv-session-select">{$_('assets.inventory.sessionSelect')}</label>
@@ -1460,20 +1490,40 @@
             </div>
           </div>
           <div class="card p-4 sm:p-5">
-            <h2 class="text-base font-semibold mb-4">{$isLoading ? 'Quick scan' : $_('assets.inventory.quickScan')}</h2>
-            <InventoryScanPanel
-              sessionId={activeInventorySessionId}
-              {locations}
-              onscanned={() => loadInventorySessionDetail(activeInventorySessionId)}
-            />
+            <h2 class="text-base font-semibold mb-4">{$isLoading ? 'Scan this asset' : $_('assets.inventory.scanThisAsset')}</h2>
+            {#if !activeInventorySessionId}
+              <div class="rounded-md border border-border bg-surface-3 p-3 text-sm text-slate-400">
+                <p>{$_('assets.inventory.selectSessionFirst')}</p>
+                <a href="/inventory" class="mt-3 inline-flex btn-sm btn-secondary text-xs">{$_('assets.inventory.manageSessions')}</a>
+              </div>
+            {:else}
+              <InventoryScanPanel
+                sessionId={activeInventorySessionId}
+                fixedAssetId={asset.id}
+                fixedAssetCode={asset.assetCode}
+                {locations}
+                onscanned={() => loadInventorySessionDetail(activeInventorySessionId)}
+              />
+            {/if}
           </div>
         </div>
         <div class="mt-6">
           <div class="card p-4 sm:p-5">
-            <h2 class="text-base font-semibold mb-4">{$isLoading ? 'Inventory items' : $_('assets.inventory.items')}</h2>
+            <div class="mb-4 flex items-center justify-between gap-3">
+              <h2 class="text-base font-semibold">{$isLoading ? 'This asset inventory history' : $_('assets.inventory.assetHistory')}</h2>
+              <div class="w-44">
+                <select class="select-base" bind:value={inventoryStatusFilter}>
+                  <option value="all">{$_('common.all')}</option>
+                  <option value="found">{$_('assets.inventory.statuses.found')}</option>
+                  <option value="moved">{$_('assets.inventory.statuses.moved')}</option>
+                  <option value="missing">{$_('assets.inventory.statuses.missing')}</option>
+                  <option value="unknown">{$_('assets.inventory.statuses.unknown')}</option>
+                </select>
+              </div>
+            </div>
             {#if inventoryLoading}
               <div class="flex items-center justify-center p-8"><div class="h-6 w-6 animate-spin rounded-full border-4 border-primary border-t-transparent"></div></div>
-            {:else if inventoryItems.length === 0}
+            {:else if filteredAssetInventoryItems.length === 0}
               <p class="text-sm text-slate-500">{$_('assets.inventory.empty')}</p>
             {:else}
               <Table>
@@ -1481,14 +1531,18 @@
                   <tr>
                     <TableHeaderCell>{$isLoading ? 'Asset ID' : $_('assets.assetId')}</TableHeaderCell>
                     <TableHeaderCell>{$isLoading ? 'Status' : $_('assets.status')}</TableHeaderCell>
+                    <TableHeaderCell>{$isLoading ? 'Scanned Location' : $_('assets.inventory.scannedLocation')}</TableHeaderCell>
                     <TableHeaderCell>{$isLoading ? 'Scanned At' : $_('assets.inventory.scannedAt')}</TableHeaderCell>
                   </tr>
                 </TableHeader>
                 <tbody>
-                  {#each inventoryItems as item}
+                  {#each filteredAssetInventoryItems as item}
                     <TableRow>
                       <TableCell>{item.assetId || '-'}</TableCell>
-                      <TableCell>{item.status}</TableCell>
+                      <TableCell>
+                        <span class={inventoryStatusBadgeClass(item.status)}>{inventoryStatusLabel(item.status)}</span>
+                      </TableCell>
+                      <TableCell>{item.scannedLocationName || '-'}</TableCell>
                       <TableCell>{formatDateTime(item.scannedAt)}</TableCell>
                     </TableRow>
                   {/each}
@@ -1578,6 +1632,14 @@
 {#if caps.canManageAssets}
   <AssignModal bind:open={showAssignModal} assetCode={asset?.assetCode || ''} onassign={handleAssign} />
   <MaintenanceModal bind:open={showMaintenanceModal} assetCode={asset?.assetCode || ''} onsubmit={handleMaintenance} />
+    <PrintDialog
+      bind:isOpen={showPrintDialog}
+      docType="asset"
+      recordId={asset?.id || ''}
+      sourceData={asset ?? {}}
+      onClose={() => showPrintDialog = false}
+      onExport={handlePrintExport}
+    />
   <!-- Repair Order Creation Modal -->
   <Modal bind:open={showRepairModal} title={$isLoading ? 'Create Repair Order' : $_('assets.repairOrders.createBtn')}>
     <div class="space-y-4">

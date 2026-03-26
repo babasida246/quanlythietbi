@@ -4,7 +4,7 @@
   import { goto } from '$app/navigation';
   import { Button } from '$lib/components/ui';
   import { ArrowLeft, RefreshCw, Link2, Printer } from 'lucide-svelte';
-  import { openPrintPage } from '$lib/utils/printUtils';
+  import { PrintDialog } from '$lib/components/print';
   import {
     addRepairOrderPart,
     changeRepairOrderStatus,
@@ -44,6 +44,7 @@
   let error = $state('');
   let actionError = $state('');
   let actionSuccess = $state('');
+  let showPrintDialog = $state(false);
 
   let statusDraft = $state<RepairOrderRecord['status']>('open');
 
@@ -88,6 +89,24 @@
     remove: 'Tháo ra',
     upgrade: 'Nâng cấp'
   };
+
+  const printSourceData = $derived.by(() => {
+    if (!detail?.order) return {};
+    return {
+      ...detail.order,
+      statusLabel: statusLabel[detail.order.status] ?? detail.order.status,
+      severityLabel: severityLabel[detail.order.severity] ?? detail.order.severity,
+      repairTypeLabel: repairTypeLabel[detail.order.repairType] ?? detail.order.repairType,
+      parts: detail.parts.map((part, idx) => ({
+        ...part,
+        index: idx + 1,
+        actionLabel: actionLabel[part.action] ?? part.action,
+        warehouseLabel: getWarehouseLabel(part.warehouseId),
+        partLabel: part.partId ? getPartLabel(part.partId) : (part.partName || '-')
+      })),
+      events
+    };
+  });
   const ticketStatusLabel: Record<string, string> = {
     open: 'Mở',
     in_progress: 'Đang xử lý',
@@ -288,40 +307,11 @@
 
   function printRepairOrder() {
     if (!detail?.order) return;
-    const o = detail.order;
-    openPrintPage('lenh-sua-chua', o.id, {
-      code: o.code,
-      date: o.openedAt.slice(0, 10),
-      asset: {
-        code: o.assetId,
-        name: o.title,
-        serialNo: undefined,
-        category: undefined,
-        location: undefined,
-      },
-      issueDescription: o.description ?? o.title,
-      severity: o.severity,
-      diagnosis: o.diagnosis ?? undefined,
-      resolution: o.resolution ?? undefined,
-      technicianName: o.technicianName ?? undefined,
-      repairType: o.repairType,
-      vendorName: undefined,
-      status: o.status,
-      laborCost: o.laborCost ?? undefined,
-      partsCost: o.partsCost ?? undefined,
-      parts: (detail.parts ?? []).map((p) => ({
-        name: p.partName ?? `(part ${p.partId})`,
-        action: p.action,
-        qty: p.qty,
-        unitCost: p.unitCost ?? undefined,
-        serialNo: p.serialNo ?? undefined,
-        note: p.note ?? undefined,
-      })),
-      openedAt: o.openedAt.slice(0, 10),
-      closedAt: o.closedAt?.slice(0, 10) ?? undefined,
-      downtime: o.downtimeMinutes ?? undefined,
-      note: undefined,
-    });
+    showPrintDialog = true;
+  }
+
+  function handlePrintExport(format: string) {
+    actionSuccess = `Da xuat lenh sua chua (${format.toUpperCase()})`;
   }
 </script>
 
@@ -676,3 +666,12 @@
     </div>
   {/if}
 </div>
+
+<PrintDialog
+  bind:isOpen={showPrintDialog}
+  docType="repair_order"
+  recordId={detail?.order?.id}
+  sourceData={printSourceData}
+  onClose={() => (showPrintDialog = false)}
+  onExport={(format) => handlePrintExport(format)}
+/>

@@ -4,9 +4,9 @@
   import { page } from '$app/state';
   import { _, isLoading } from '$lib/i18n';
   import { Printer } from 'lucide-svelte';
+  import { PrintDialog } from '$lib/components/print';
   import { addNotification } from '$lib/stores/notifications';
   import StockDocumentLines from '$lib/warehouse/StockDocumentLines.svelte';
-  import { openPrintPage } from '$lib/utils/printUtils';
   import {
     approveStockDocument,
     cancelStockDocument,
@@ -32,6 +32,7 @@
   let loading = $state(true);
   let saving = $state(false);
   let error = $state('');
+  let showPrintDialog = $state(false);
 
   let warehouseId = $state('');
   let targetWarehouseId = $state('');
@@ -69,6 +70,25 @@
       return steps.map((s) => ({ step: s, label: $_(`warehouse.docStatus.${s}`), active: false, canceled: true }));
     }
     return steps.map((s, i) => ({ step: s, label: $_(`warehouse.docStatus.${s}`), active: i <= currentIdx, canceled: false }));
+  });
+
+  const printDocType = $derived.by(() => {
+    if (!document) return 'warehouse_issue';
+    return document.docType === 'receipt' ? 'warehouse_receipt' : 'warehouse_issue';
+  });
+
+  const printSourceData = $derived.by(() => {
+    if (!document) return {};
+    return {
+      ...document,
+      warehouseName,
+      targetWarehouseName,
+      lines: lines.map((line, idx) => ({
+        ...line,
+        index: idx + 1,
+        lineTotal: line.unitCost ? line.unitCost * line.qty : null
+      }))
+    };
   });
 
   async function loadDetail() {
@@ -200,41 +220,14 @@
 
   function printDoc() {
     if (!document) return;
-    const theLines = lines.map((l, i) => ({
-      stt: i + 1,
-      partCode: l.partId,
-      partName: `(${l.partId})`,
-      qty: l.qty,
-      unitCost: l.unitCost ?? undefined,
-      total: l.unitCost ? l.qty * l.unitCost : undefined,
-      serialNo: l.serialNo ?? undefined,
-      note: l.note ?? undefined,
-    }));
-    const printType = document.docType === 'receipt' ? 'phieu-nhap-kho' : 'phieu-xuat-kho';
-    const data = document.docType === 'receipt'
-      ? {
-          code: document.code,
-          date: document.docDate,
-          warehouseName: warehouseName || document.warehouseId || 'Kho',
-          supplier: document.supplier ?? undefined,
-          note: document.note ?? undefined,
-          lines: theLines,
-          preparedBy: document.submitterName ?? undefined,
-          approvedBy: document.approvedBy ?? undefined,
-          receivedBy: document.receiverName ?? undefined,
-        }
-      : {
-          code: document.code,
-          date: document.docDate,
-          warehouseName: warehouseName || document.warehouseId || 'Kho',
-          recipient: document.receiverName ?? undefined,
-          department: document.department ?? undefined,
-          note: document.note ?? undefined,
-          lines: theLines,
-          preparedBy: document.submitterName ?? undefined,
-          approvedBy: document.approvedBy ?? undefined,
-        };
-    openPrintPage(printType, document.id, data);
+    showPrintDialog = true;
+  }
+
+  function handlePrintExport(format: string) {
+    addNotification(
+      `${$isLoading ? 'Exported' : $_('assets.print.exportSuccess')} (${format.toUpperCase()})`,
+      'success'
+    );
   }
 </script>
 
@@ -423,3 +416,12 @@
     </div>
   {/if}
 </div>
+
+<PrintDialog
+  bind:isOpen={showPrintDialog}
+  docType={printDocType}
+  recordId={document?.id}
+  sourceData={printSourceData}
+  onClose={() => (showPrintDialog = false)}
+  onExport={(format) => handlePrintExport(format)}
+/>

@@ -16,22 +16,42 @@ interface InventoryRoutesOptions {
     pgClient: PgClient
 }
 
-/** Enrich inventory items with assetCode from the assets table */
+/** Enrich inventory items with assetCode, assetName, and scanned location name */
 async function enrichItems(
     pool: import('pg').Pool,
     items: InventoryItemRecord[]
-): Promise<(InventoryItemRecord & { assetCode?: string | null; assetName?: string | null })[]> {
-    const ids = items.map(i => i.assetId).filter(Boolean) as string[]
-    if (ids.length === 0) return items
-    const result = await pool.query<{ id: string; asset_code: string; name: string | null }>(
-        `SELECT a.id, a.asset_code, m.model AS name
-         FROM assets a
-         LEFT JOIN asset_models m ON m.id = a.model_id
-         WHERE a.id = ANY($1::uuid[])`,
-        [ids]
-    )
-    const map = new Map(result.rows.map(r => [r.id, { assetCode: r.asset_code, assetName: r.name }]))
-    return items.map(item => ({ ...item, ...(item.assetId ? map.get(item.assetId) : {}) }))
+): Promise<(InventoryItemRecord & { assetCode?: string | null; assetName?: string | null; scannedLocationName?: string | null })[]> {
+    const assetIds = items.map(i => i.assetId).filter(Boolean) as string[]
+    const locationIds = items.map(i => i.scannedLocationId).filter(Boolean) as string[]
+
+    // Fetch asset info
+    const assetMap = new Map<string, { assetCode: string; assetName: string | null }>()
+    if (assetIds.length > 0) {
+        const result = await pool.query<{ id: string; asset_code: string; name: string | null }>(
+            `SELECT a.id, a.asset_code, m.model AS name
+             FROM assets a
+             LEFT JOIN asset_models m ON m.id = a.model_id
+             WHERE a.id = ANY($1::uuid[])`,
+            [assetIds]
+        )
+        result.rows.forEach(r => assetMap.set(r.id, { assetCode: r.asset_code, assetName: r.name }))
+    }
+
+    // Fetch location info
+    const locationMap = new Map<string, string>()
+    if (locationIds.length > 0) {
+        const result = await pool.query<{ id: string; name: string }>(
+            `SELECT id, name FROM locations WHERE id = ANY($1::uuid[])`,
+            [locationIds]
+        )
+        result.rows.forEach(r => locationMap.set(r.id, r.name))
+    }
+
+    return items.map(item => ({
+        ...item,
+        ...(item.assetId ? assetMap.get(item.assetId) : {}),
+        scannedLocationName: item.scannedLocationId ? locationMap.get(item.scannedLocationId) ?? null : null
+    }))
 }
 
 export async function inventoryRoutes(

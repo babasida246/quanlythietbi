@@ -40,6 +40,9 @@ export * from './rbac/index.js'
 // Accessories
 export * from './accessories/index.js'
 
+// Print
+export * from './print/index.js'
+
 // Audit (Inventory Check)
 export * from './audit/index.js'
 

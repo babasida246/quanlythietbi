@@ -57,6 +57,7 @@ export type InventoryItem = {
     assetName?: string | null
     expectedLocationId?: string | null
     scannedLocationId?: string | null
+    scannedLocationName?: string | null
     scannedAt?: string | null
     status: 'found' | 'missing' | 'moved' | 'unknown'
     note?: string | null

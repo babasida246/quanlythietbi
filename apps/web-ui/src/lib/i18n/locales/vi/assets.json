@@ -120,10 +120,39 @@
       "sessionSelect": "Đợt hiện tại",
       "selectSession": "Chọn đợt",
       "selectSessionError": "Vui lòng chọn đợt kiểm kê trước.",
+      "manageSessions": "Quản lý đợt",
       "quickScan": "Quét nhanh",
+      "scanThisAsset": "Quét tài sản này",
+      "latestResult": "Kết quả kiểm kê gần nhất",
+      "noResult": "Chưa có kết quả kiểm kê cho tài sản này.",
+      "selectSessionFirst": "Vui lòng chọn đợt kiểm kê trước khi quét tài sản.",
       "items": "Danh sách kiểm kê",
+      "assetHistory": "Lịch sử kiểm kê của tài sản",
       "empty": "Chưa có dữ liệu kiểm kê.",
-      "scannedAt": "Thời điểm quét"
+      "scannedAt": "Thời điểm quét",
+      "scannedLocation": "Vị trí quét",
+      "statuses": {
+        "found": "Đã thấy",
+        "moved": "Sai vị trí",
+        "missing": "Thiếu",
+        "unknown": "Không xác định"
+      },
+      "scanPanel": {
+        "codePlaceholder": "ASSET-001 hoặc URL QR",
+        "continuousMode": "Chế độ quét liên tục",
+        "noteLabel": "Ghi chú quét",
+        "notePlaceholder": "Tùy chọn",
+        "success": "Quét thành công",
+        "errors": {
+          "codeRequired": "Vui lòng nhập mã tài sản hoặc QR URL",
+          "parseFailed": "Không đọc được dữ liệu từ mã quét",
+          "scanFailed": "Quét thất bại",
+          "notFound": "Không tìm thấy tài sản từ mã/QR đã quét",
+          "sessionInvalid": "Phiên kiểm kê không hợp lệ hoặc đã đóng",
+          "locationInvalid": "Vị trí quét không hợp lệ",
+          "alreadyScanned": "Tài sản đã được quét trong phiên này"
+        }
+      }
     },
     "workflow": {
       "title": "Yêu cầu workflow",
@@ -412,6 +441,45 @@
         "departmentLocationRequired": "Vui lòng chọn vị trí sử dụng cho kiểu Department",
         "personIdMinLength": "Mã nhân sự phải có ít nhất 3 ký tự",
         "systemIdInvalid": "Mã hệ thống chỉ gồm chữ/số và ký tự _ . : -"
+      }
+    },
+    "print": {
+      "title": "In tài liệu",
+      "selectTemplate": "Chọn mẫu in",
+      "noTemplates": "Không có mẫu in nào",
+      "loadingTemplates": "Đang tải mẫu...",
+      "templateInfo": "Thông tin mẫu",
+      "templateDescription": "Mô tả",
+      "docType": "Loại tài liệu",
+      "preview": "Xem trước",
+      "previewLabel": "Xem trước A4",
+      "fieldMapping": "Ánh xạ trường",
+      "fieldName": "Tên trường",
+      "fieldValue": "Giá trị",
+      "autoMap": "Tự động ánh xạ",
+      "autoMapDesc": "Hệ thống sẽ tự động điền thông tin từ tài sản vào các trường trong mẫu",
+      "autoMapping": "Đang ánh xạ...",
+      "renderingPreview": "Đang tạo bản xem trước...",
+      "step1": "Bước 1: Chọn mẫu",
+      "step2": "Bước 2: Xem trước",
+      "step3": "Bước 3: Tùy chỉnh",
+      "exportFormat": "Định dạng xuất",
+      "exportFormatPdf": "PDF",
+      "exportFormatExcel": "Excel",
+      "exportFormatCsv": "CSV",
+      "exportFormatWord": "Word",
+      "exportFormatJson": "JSON",
+      "customize": "Tùy chỉnh trường",
+      "export": "Xuất tệp",
+      "exporting": "Đang xuất...",
+      "back": "Quay lại",
+      "next": "Tiếp theo",
+      "downloading": "Đang tải xuống...",
+      "errors": {
+        "autoMapFailed": "Ánh xạ tự động thất bại",
+        "renderFailed": "Tạo bản xem trước thất bại",
+        "exportFailed": "Xuất tệp thất bại",
+        "templateNotFound": "Không tìm thấy mẫu in"
       }
     }
   },

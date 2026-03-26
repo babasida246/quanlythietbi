@@ -124,7 +124,7 @@
   });
 </script>
 
-<Modal bind:open title="{$isLoading ? 'Create Asset' : $_('assets.createAsset')}" size="lg">
+<Modal bind:open title={$isLoading ? 'Create Asset' : $_('assets.createAsset')} size="lg">
 
   {#if error}
     <div class="alert alert-error mb-4">{error}</div>
@@ -132,12 +132,12 @@
 
   <div class="space-y-4">
     <div>
-      <label class="label-base mb-2">{$isLoading ? 'Asset Code' : $_('assets.assetCode')}</label>
-      <input class="input-base" bind:value={form.assetCode} placeholder="ASSET-001" />
+      <label class="label-base mb-2" for="asset-code">{$isLoading ? 'Asset Code' : $_('assets.assetCode')}</label>
+      <input id="asset-code" class="input-base" bind:value={form.assetCode} placeholder="ASSET-001" />
     </div>
     <div>
-      <label class="label-base mb-2">{$isLoading ? 'Model' : $_('assets.model')}</label>
-      <select class="select-base" bind:value={form.modelId}>
+      <label class="label-base mb-2" for="asset-model">{$isLoading ? 'Model' : $_('assets.model')}</label>
+      <select id="asset-model" class="select-base" bind:value={form.modelId}>
         <option value="">{$isLoading ? 'Select model' : $_('assets.selectModel')}</option>
         {#each safeModels as model}
           <option value={model.id}>{[model.brand, model.model].filter(Boolean).join(' ') || model.model}</option>
@@ -146,8 +146,8 @@
     </div>
     <div class="grid grid-cols-2 gap-4">
       <div>
-        <label class="label-base mb-2">{$isLoading ? 'Status' : $_('assets.status')}</label>
-        <select class="select-base" bind:value={form.status}>
+        <label class="label-base mb-2" for="asset-status">{$isLoading ? 'Status' : $_('assets.status')}</label>
+        <select id="asset-status" class="select-base" bind:value={form.status}>
           <option value="in_stock">{$isLoading ? 'In stock' : $_('assets.filters.inStock')}</option>
           <option value="in_use">{$isLoading ? 'In use' : $_('assets.filters.inUse')}</option>
           <option value="in_repair">{$isLoading ? 'In repair' : $_('assets.filters.inRepair')}</option>
@@ -157,8 +157,8 @@
         </select>
       </div>
       <div>
-        <label class="label-base mb-2">{$isLoading ? 'Location' : $_('assets.location')}</label>
-        <select class="select-base" bind:value={form.locationId}>
+        <label class="label-base mb-2" for="asset-location">{$isLoading ? 'Location' : $_('assets.location')}</label>
+        <select id="asset-location" class="select-base" bind:value={form.locationId}>
           <option value="">{$isLoading ? 'Select location' : $_('assets.selectLocation')}</option>
           {#each safeLocations as location}
             <option value={location.id}>{location.name}</option>
@@ -168,8 +168,8 @@
     </div>
     <div class="grid grid-cols-2 gap-4">
       <div>
-        <label class="label-base mb-2">{$isLoading ? 'Vendor' : $_('assets.vendor')}</label>
-        <select class="select-base" bind:value={form.vendorId}>
+        <label class="label-base mb-2" for="asset-vendor">{$isLoading ? 'Vendor' : $_('assets.vendor')}</label>
+        <select id="asset-vendor" class="select-base" bind:value={form.vendorId}>
           <option value="">{$isLoading ? 'Select vendor' : $_('assets.selectVendor')}</option>
           {#each safeVendors as vendor}
             <option value={vendor.id}>{vendor.name}</option>
@@ -177,27 +177,27 @@
         </select>
       </div>
       <div>
-        <label class="label-base mb-2">{$isLoading ? 'Serial No' : $_('assets.serialNo')}</label>
-        <input class="input-base" bind:value={form.serialNo} />
+        <label class="label-base mb-2" for="asset-serial">{$isLoading ? 'Serial No' : $_('assets.serialNo')}</label>
+        <input id="asset-serial" class="input-base" bind:value={form.serialNo} />
       </div>
     </div>
     <div class="grid grid-cols-2 gap-4">
       <div>
-        <label class="label-base mb-2">{$isLoading ? 'Hostname' : $_('assets.hostname')}</label>
-        <input class="input-base" bind:value={form.hostname} />
+        <label class="label-base mb-2" for="asset-hostname">{$isLoading ? 'Hostname' : $_('assets.hostname')}</label>
+        <input id="asset-hostname" class="input-base" bind:value={form.hostname} />
       </div>
       <div>
-        <label class="label-base mb-2">{$isLoading ? 'Management IP' : $_('assets.managementIp')}</label>
-        <input class="input-base" bind:value={form.mgmtIp} />
+        <label class="label-base mb-2" for="asset-mgmt-ip">{$isLoading ? 'Management IP' : $_('assets.managementIp')}</label>
+        <input id="asset-mgmt-ip" class="input-base" bind:value={form.mgmtIp} />
       </div>
     </div>
     <div>
-      <label class="label-base mb-2">{$isLoading ? 'MAC Address' : $_('assets.macAddress')}</label>
-      <input class="input-base" bind:value={form.macAddress} />
+      <label class="label-base mb-2" for="asset-mac">{$isLoading ? 'MAC Address' : $_('assets.macAddress')}</label>
+      <input id="asset-mac" class="input-base" bind:value={form.macAddress} />
     </div>
     <div>
-      <label class="label-base mb-2">{$isLoading ? 'Notes' : $_('assets.notes')}</label>
-      <input class="input-base" bind:value={form.notes} />
+      <label class="label-base mb-2" for="asset-notes">{$isLoading ? 'Notes' : $_('assets.notes')}</label>
+      <input id="asset-notes" class="input-base" bind:value={form.notes} />
     </div>
     
     {#if selectedModel && selectedModel.categoryId}

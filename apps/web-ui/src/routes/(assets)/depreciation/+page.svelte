@@ -828,8 +828,24 @@
 
 <!-- ── Create modal ──────────────────────────────────────────────────────────── -->
 {#if showCreate}
-  <div class="fixed inset-0 z-40 flex items-center justify-center bg-black/60" onclick={() => { showCreate = false }}>
-    <div class="modal-panel w-full max-w-2xl max-h-[90vh] overflow-y-auto" onclick={(e) => e.stopPropagation()}>
+  <div
+    class="fixed inset-0 z-40 flex items-center justify-center bg-black/60"
+    role="button"
+    tabindex="0"
+    aria-label="Close create depreciation modal"
+    onclick={(e) => {
+      if (e.target === e.currentTarget) {
+        showCreate = false;
+      }
+    }}
+    onkeydown={(e) => {
+      if (e.key === 'Enter' || e.key === ' ' || e.key === 'Escape') {
+        e.preventDefault();
+        showCreate = false;
+      }
+    }}
+  >
+    <div class="modal-panel w-full max-w-2xl max-h-[90vh] overflow-y-auto">
       <div class="flex items-center justify-between mb-5">
         <h2 class="text-lg font-semibold">{t('depreciation.newSchedule')}</h2>
         <button class="btn btn-xs" onclick={() => { showCreate = false }}><X class="w-4 h-4" /></button>
@@ -959,8 +975,24 @@
 
 <!-- ── Preview modal ─────────────────────────────────────────────────────────── -->
 {#if showPreview && preview}
-  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/60" onclick={() => { showPreview = false }}>
-    <div class="modal-panel w-full max-w-xl max-h-[85vh] overflow-y-auto" onclick={(e) => e.stopPropagation()}>
+  <div
+    class="fixed inset-0 z-50 flex items-center justify-center bg-black/60"
+    role="button"
+    tabindex="0"
+    aria-label="Close depreciation preview modal"
+    onclick={(e) => {
+      if (e.target === e.currentTarget) {
+        showPreview = false;
+      }
+    }}
+    onkeydown={(e) => {
+      if (e.key === 'Enter' || e.key === ' ' || e.key === 'Escape') {
+        e.preventDefault();
+        showPreview = false;
+      }
+    }}
+  >
+    <div class="modal-panel w-full max-w-xl max-h-[85vh] overflow-y-auto">
       <div class="flex items-center justify-between mb-4">
         <h2 class="text-lg font-semibold">{t('depreciation.preview.title')}</h2>
         <button class="btn btn-xs" onclick={() => { showPreview = false }}><X class="w-4 h-4" /></button>
@@ -1027,8 +1059,24 @@
 
 <!-- ── Run Monthly modal ─────────────────────────────────────────────────────── -->
 {#if showRunModal}
-  <div class="fixed inset-0 z-40 flex items-center justify-center bg-black/60" onclick={() => { showRunModal = false }}>
-    <div class="modal-panel w-full max-w-md" onclick={(e) => e.stopPropagation()}>
+  <div
+    class="fixed inset-0 z-40 flex items-center justify-center bg-black/60"
+    role="button"
+    tabindex="0"
+    aria-label="Close run monthly modal"
+    onclick={(e) => {
+      if (e.target === e.currentTarget) {
+        showRunModal = false;
+      }
+    }}
+    onkeydown={(e) => {
+      if (e.key === 'Enter' || e.key === ' ' || e.key === 'Escape') {
+        e.preventDefault();
+        showRunModal = false;
+      }
+    }}
+  >
+    <div class="modal-panel w-full max-w-md">
       <div class="flex items-center justify-between mb-4">
         <h2 class="text-lg font-semibold flex items-center gap-2">
           <Play class="w-5 h-5 text-primary" />
@@ -1084,8 +1132,24 @@
 
 <!-- ── Post confirm modal ────────────────────────────────────────────────────── -->
 {#if showPostConfirm}
-  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/60" onclick={() => { showPostConfirm = false }}>
-    <div class="modal-panel w-full max-w-sm" onclick={(e) => e.stopPropagation()}>
+  <div
+    class="fixed inset-0 z-50 flex items-center justify-center bg-black/60"
+    role="button"
+    tabindex="0"
+    aria-label="Close post entries confirmation"
+    onclick={(e) => {
+      if (e.target === e.currentTarget) {
+        showPostConfirm = false;
+      }
+    }}
+    onkeydown={(e) => {
+      if (e.key === 'Enter' || e.key === ' ' || e.key === 'Escape') {
+        e.preventDefault();
+        showPostConfirm = false;
+      }
+    }}
+  >
+    <div class="modal-panel w-full max-w-sm">
       <h2 class="text-lg font-semibold mb-2">{t('depreciation.postEntries')}</h2>
       <p class="text-slate-400 text-sm mb-4">
         {t('depreciation.confirm.postEntries', { count: selectedPendingCount })}
@@ -1102,8 +1166,24 @@
 
 <!-- ── Stop modal ────────────────────────────────────────────────────────────── -->
 {#if stopTarget}
-  <div class="fixed inset-0 z-40 flex items-center justify-center bg-black/60" onclick={() => { stopTarget = null }}>
-    <div class="modal-panel w-full max-w-md" onclick={(e) => e.stopPropagation()}>
+  <div
+    class="fixed inset-0 z-40 flex items-center justify-center bg-black/60"
+    role="button"
+    tabindex="0"
+    aria-label="Close stop depreciation modal"
+    onclick={(e) => {
+      if (e.target === e.currentTarget) {
+        stopTarget = null;
+      }
+    }}
+    onkeydown={(e) => {
+      if (e.key === 'Enter' || e.key === ' ' || e.key === 'Escape') {
+        e.preventDefault();
+        stopTarget = null;
+      }
+    }}
+  >
+    <div class="modal-panel w-full max-w-md">
       <h2 class="text-lg font-semibold mb-2">{t('depreciation.stopSchedule')}</h2>
       <p class="text-slate-400 text-sm mb-3">{t('depreciation.confirm.stop')}</p>
       <p class="text-sm text-slate-300 mb-4 font-medium">{stopTarget.assetTag} — {stopTarget.assetName}</p>
@@ -1125,9 +1205,24 @@
 <!-- ── Detail drawer ─────────────────────────────────────────────────────────── -->
 {#if detailTarget}
   {@const s = detailTarget}
-  <div class="fixed inset-0 z-40 flex items-end justify-end" onclick={() => { detailTarget = null }}>
-    <div class="bg-surface-1 border-l border-border w-full max-w-md h-full overflow-y-auto p-6 flex flex-col gap-4 shadow-2xl"
-      onclick={(e) => e.stopPropagation()}>
+  <div
+    class="fixed inset-0 z-40 flex items-end justify-end"
+    role="button"
+    tabindex="0"
+    aria-label="Close depreciation detail drawer"
+    onclick={(e) => {
+      if (e.target === e.currentTarget) {
+        detailTarget = null;
+      }
+    }}
+    onkeydown={(e) => {
+      if (e.key === 'Enter' || e.key === ' ' || e.key === 'Escape') {
+        e.preventDefault();
+        detailTarget = null;
+      }
+    }}
+  >
+    <div class="bg-surface-1 border-l border-border w-full max-w-md h-full overflow-y-auto p-6 flex flex-col gap-4 shadow-2xl">
       <div class="flex items-center justify-between">
         <h2 class="text-lg font-semibold">{t('depreciation.schedule')}</h2>
         <button class="btn btn-xs" onclick={() => { detailTarget = null }}><X class="w-4 h-4" /></button>

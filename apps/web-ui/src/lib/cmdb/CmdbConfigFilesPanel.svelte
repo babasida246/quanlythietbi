@@ -43,9 +43,13 @@
 
   // ── Filters ───────────────────────────────────────────────────────────────
   let searchQ      = $state('')
-  let filterCiId   = $state(ciId ?? '')
+  let filterCiId   = $state('')
   let filterType   = $state('')
   let searchDebounce: ReturnType<typeof setTimeout>
+
+  $effect(() => {
+    filterCiId = ciId ?? ''
+  })
 
   // ── Modal state ───────────────────────────────────────────────────────────
   let createOpen   = $state(false)
@@ -607,12 +611,14 @@
       <!-- Line-numbered code viewer -->
       <div class="bg-slate-950 rounded-md border border-slate-800 overflow-auto max-h-80">
         <table class="w-full text-xs font-mono border-collapse">
-          {#each viewingFile.content.split('\n') as line, i}
-            <tr class="hover:bg-slate-800/40">
-              <td class="select-none text-right text-slate-600 px-3 py-0 w-10 border-r border-slate-800 sticky left-0 bg-slate-950">{i + 1}</td>
-              <td class="px-3 py-0 text-slate-200 whitespace-pre">{line || ' '}</td>
-            </tr>
-          {/each}
+          <tbody>
+            {#each viewingFile.content.split('\n') as line, i}
+              <tr class="hover:bg-slate-800/40">
+                <td class="select-none text-right text-slate-600 px-3 py-0 w-10 border-r border-slate-800 sticky left-0 bg-slate-950">{i + 1}</td>
+                <td class="px-3 py-0 text-slate-200 whitespace-pre">{line || ' '}</td>
+              </tr>
+            {/each}
+          </tbody>
         </table>
       </div>
     </div>
