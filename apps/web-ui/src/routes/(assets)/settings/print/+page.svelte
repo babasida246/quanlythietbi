@@ -15,6 +15,7 @@
     renderWordTemplate,
     type PrintWordTemplate
   } from '$lib/stores/printWordTemplateStore'
+  import type { DocumentTemplateVersion } from '$lib/api/printTemplates'
 
   const config = $derived($printTemplate)
   const wordTemplates = $derived($printWordTemplates.templates)
@@ -32,6 +33,15 @@
   let exportingPdf = $state(false)
   let exportError = $state('')
   let exportSuccess = $state('')
+  let designerName = $state('')
+  let designerHtml = $state('')
+  let designerError = $state('')
+  let designerSuccess = $state('')
+  let templateVersions = $state<DocumentTemplateVersion[]>([])
+  let selectedVersionId = $state('')
+  let versionsLoading = $state(false)
+  let versionsError = $state('')
+  let rollbackNote = $state('')
 
   type SampleRecord = {
     id: string
@@ -148,9 +158,9 @@
     ]
   }
 
-  onMount(() => {
+  onMount(async () => {
     printTemplate.init()
-    printWordTemplates.init()
+    await printWordTemplates.init()
   })
 
   $effect(() => {
@@ -158,6 +168,34 @@
       selectedTemplateId = wordTemplates[0].id
       initializedSelection = true
     }
+  })
+
+  $effect(() => {
+    if (!selectedTemplateId) {
+      templateVersions = []
+      selectedVersionId = ''
+      versionsError = ''
+      return
+    }
+
+    versionsLoading = true
+    versionsError = ''
+    void printWordTemplates
+      .getVersions(selectedTemplateId)
+      .then((versions) => {
+        templateVersions = versions
+        if (!versions.some((version) => version.id === selectedVersionId)) {
+          selectedVersionId = versions[0]?.id ?? ''
+        }
+      })
+      .catch((error) => {
+        versionsError = error instanceof Error ? error.message : String(error)
+        templateVersions = []
+        selectedVersionId = ''
+      })
+      .finally(() => {
+        versionsLoading = false
+      })
   })
 
   const selectedTemplate = $derived(
@@ -410,26 +448,133 @@
     }
   }
 
-  function removeTemplate(id: string): void {
+  async function removeTemplate(id: string): Promise<void> {
     const ok = window.confirm(
       $isLoading ? 'Delete this template?' : $_('printCustomizer.templates.deleteConfirm')
     )
     if (!ok) return
 
-    printWordTemplates.remove(id)
+    await printWordTemplates.remove(id)
     if (selectedTemplateId === id) {
       const next = wordTemplates.find((template) => template.id !== id)
       selectedTemplateId = next?.id ?? ''
     }
   }
 
-  function renameTemplate(template: PrintWordTemplate): void {
+  async function renameTemplate(template: PrintWordTemplate): Promise<void> {
     const nextName = window.prompt(
       $isLoading ? 'Template name' : $_('printCustomizer.templates.renamePrompt'),
       template.name
     )
     if (!nextName) return
-    printWordTemplates.rename(template.id, nextName)
+    await printWordTemplates.rename(template.id, nextName)
+  }
+
+  function clearDesignerMessage(): void {
+    designerError = ''
+    designerSuccess = ''
+  }
+
+  function resetDesigner(): void {
+    designerName = ''
+    designerHtml = ''
+    clearDesignerMessage()
+  }
+
+  function loadSelectedTemplateToDesigner(): void {
+    clearDesignerMessage()
+    if (!selectedTemplate) {
+      designerError = $isLoading ? 'Please select a template first.' : $_('printCustomizer.templates.selectFirst')
+      return
+    }
+    designerName = selectedTemplate.name
+    designerHtml = selectedTemplate.html
+    designerSuccess = $isLoading
+      ? `Loaded template: ${selectedTemplate.name}`
+      : `${$_('printCustomizer.templates.loadedPrefix')}: ${selectedTemplate.name}`
+  }
+
+  async function createTemplateFromDesigner(): Promise<void> {
+    clearDesignerMessage()
+    try {
+      const created = await printWordTemplates.createTemplate(designerName, designerHtml)
+      selectedTemplateId = created.id
+      designerName = created.name
+      designerHtml = created.html
+      designerSuccess = $isLoading
+        ? `Created template: ${created.name}`
+        : `${$_('printCustomizer.templates.createdPrefix')}: ${created.name}`
+    } catch (error) {
+      designerError = error instanceof Error ? error.message : String(error)
+    }
+  }
+
+  async function saveSelectedTemplateFromDesigner(): Promise<void> {
+    clearDesignerMessage()
+    if (!selectedTemplate) {
+      designerError = $isLoading ? 'Please select a template first.' : $_('printCustomizer.templates.selectFirst')
+      return
+    }
+    try {
+      await printWordTemplates.rename(selectedTemplate.id, designerName || selectedTemplate.name)
+      const updated = await printWordTemplates.updateTemplateHtml(selectedTemplate.id, designerHtml)
+      selectedTemplateId = updated.id
+      designerName = updated.name
+      designerHtml = updated.html
+      designerSuccess = $isLoading
+        ? `Updated template: ${updated.name}`
+        : `${$_('printCustomizer.templates.updatedPrefix')}: ${updated.name}`
+    } catch (error) {
+      designerError = error instanceof Error ? error.message : String(error)
+    }
+  }
+
+  async function seedDocumentTemplates(): Promise<void> {
+    clearDesignerMessage()
+    const seeded = await printWordTemplates.seedDefaults()
+    if (!selectedTemplateId && seeded.length > 0) {
+      selectedTemplateId = seeded[0].id
+    }
+    designerSuccess = $isLoading
+      ? 'Seeded default document templates.'
+      : $_('printCustomizer.templates.seededSuccess')
+  }
+
+  async function publishSelectedVersion(): Promise<void> {
+    clearDesignerMessage()
+    if (!selectedTemplateId || !selectedVersionId) {
+      designerError = $isLoading ? 'Please select a version first.' : $_('printCustomizer.templates.selectFirst')
+      return
+    }
+
+    try {
+      const updated = await printWordTemplates.publishVersion(selectedTemplateId, selectedVersionId)
+      selectedTemplateId = updated.id
+      designerName = updated.name
+      designerHtml = updated.html
+      designerSuccess = $isLoading ? 'Version published.' : $_('printCustomizer.templates.updatedPrefix')
+    } catch (error) {
+      designerError = error instanceof Error ? error.message : String(error)
+    }
+  }
+
+  async function rollbackToSelectedVersion(): Promise<void> {
+    clearDesignerMessage()
+    if (!selectedTemplateId || !selectedVersionId) {
+      designerError = $isLoading ? 'Please select a version first.' : $_('printCustomizer.templates.selectFirst')
+      return
+    }
+
+    try {
+      const updated = await printWordTemplates.rollback(selectedTemplateId, selectedVersionId, rollbackNote)
+      selectedTemplateId = updated.id
+      designerName = updated.name
+      designerHtml = updated.html
+      rollbackNote = ''
+      designerSuccess = $isLoading ? 'Rollback completed.' : $_('printCustomizer.templates.updatedPrefix')
+    } catch (error) {
+      designerError = error instanceof Error ? error.message : String(error)
+    }
   }
 
   const fontOptions: Array<{ value: PrintFontFamily; label: string }> = [
@@ -608,6 +753,104 @@
         {$isLoading ? 'Importing template...' : $_('printCustomizer.templates.importing')}
       </div>
     {/if}
+
+    <div class="border rounded-md p-3 space-y-3" style="border-color: var(--color-border)">
+      <div class="flex flex-wrap items-center justify-between gap-2">
+        <h3 class="text-sm font-semibold" style="color: var(--color-text)">
+          {$isLoading ? 'Document template designer' : $_('printCustomizer.templates.designerTitle')}
+        </h3>
+        <div class="flex flex-wrap items-center gap-2">
+          <Button variant="secondary" size="sm" onclick={seedDocumentTemplates}>
+            {$isLoading ? 'Seed default templates' : $_('printCustomizer.templates.seedDefaults')}
+          </Button>
+          <Button variant="secondary" size="sm" onclick={loadSelectedTemplateToDesigner}>
+            {$isLoading ? 'Load selected' : $_('printCustomizer.templates.loadSelected')}
+          </Button>
+          <Button variant="secondary" size="sm" onclick={resetDesigner}>
+            {$isLoading ? 'Reset form' : $_('printCustomizer.templates.resetDesigner')}
+          </Button>
+        </div>
+      </div>
+
+      <label class="space-y-1 text-sm block">
+        <span class="label-base">{$isLoading ? 'Template name' : $_('printCustomizer.templates.nameLabel')}</span>
+        <input
+          class="input-base"
+          value={designerName}
+          placeholder={$isLoading ? 'Example: Inventory minutes v1' : $_('printCustomizer.templates.designerNamePlaceholder')}
+          oninput={(e) => (designerName = (e.target as HTMLInputElement).value)}
+        />
+      </label>
+
+      <label class="space-y-1 text-sm block">
+        <span class="label-base">{$isLoading ? 'Template HTML (use {{field_name}} placeholders)' : $_('printCustomizer.templates.designerHtmlLabel')}</span>
+        <textarea
+          rows="12"
+          class="input-base font-mono text-xs"
+          value={designerHtml}
+          placeholder={$isLoading ? '<h1>BIEN BAN</h1><p>So: {{document.number}}</p>' : $_('printCustomizer.templates.designerHtmlPlaceholder')}
+          oninput={(e) => (designerHtml = (e.target as HTMLTextAreaElement).value)}
+        ></textarea>
+      </label>
+
+      <div class="flex flex-wrap items-center gap-2">
+        <Button size="sm" onclick={createTemplateFromDesigner}>
+          {$isLoading ? 'Create template' : $_('printCustomizer.templates.createFromDesigner')}
+        </Button>
+        <Button variant="secondary" size="sm" onclick={saveSelectedTemplateFromDesigner}>
+          {$isLoading ? 'Save to selected template' : $_('printCustomizer.templates.saveToSelected')}
+        </Button>
+      </div>
+
+      <div class="border rounded-md p-3 space-y-2" style="border-color: var(--color-border)">
+        <h4 class="text-sm font-semibold" style="color: var(--color-text)">Versioning</h4>
+        {#if versionsLoading}
+          <div class="text-xs" style="color: var(--color-text-muted)">Loading versions...</div>
+        {:else}
+          <label class="space-y-1 text-sm block">
+            <span class="label-base">Versions</span>
+            <select
+              class="select-base w-full"
+              value={selectedVersionId}
+              onchange={(e) => (selectedVersionId = (e.target as HTMLSelectElement).value)}
+            >
+              <option value="">Select version</option>
+              {#each templateVersions as version}
+                <option value={version.id}>
+                  v{version.versionNo} - {version.status} - {formatDate(version.createdAt)}
+                </option>
+              {/each}
+            </select>
+          </label>
+
+          <label class="space-y-1 text-sm block">
+            <span class="label-base">Rollback note</span>
+            <input
+              class="input-base"
+              value={rollbackNote}
+              placeholder="Optional note"
+              oninput={(e) => (rollbackNote = (e.target as HTMLInputElement).value)}
+            />
+          </label>
+
+          <div class="flex flex-wrap items-center gap-2">
+            <Button variant="secondary" size="sm" onclick={publishSelectedVersion}>Publish selected version</Button>
+            <Button variant="secondary" size="sm" onclick={rollbackToSelectedVersion}>Rollback to selected version</Button>
+          </div>
+
+          {#if versionsError}
+            <div class="alert alert-error text-sm">{versionsError}</div>
+          {/if}
+        {/if}
+      </div>
+
+      {#if designerError}
+        <div class="alert alert-error text-sm">{designerError}</div>
+      {/if}
+      {#if designerSuccess}
+        <div class="alert alert-success text-sm">{designerSuccess}</div>
+      {/if}
+    </div>
 
     {#if wordTemplates.length === 0}
       <div class="text-sm" style="color: var(--color-text-muted)">

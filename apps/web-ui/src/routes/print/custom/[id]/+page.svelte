@@ -20,11 +20,11 @@
   const printStyleVars = $derived(buildPrintCssVariables(config))
   const renderedHtml = $derived(template ? renderWordTemplate(template.html, fieldValues) : '')
 
-  onMount(() => {
+  onMount(async () => {
     printTemplate.init()
-    printWordTemplates.init()
+    await printWordTemplates.init()
 
-    const found = printWordTemplates.getById(templateId)
+    const found = await printWordTemplates.getById(templateId)
     if (!found) {
       error = `Template not found: ${templateId}`
       loading = false

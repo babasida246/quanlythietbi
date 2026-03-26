@@ -160,6 +160,80 @@ export interface LabelSetting {
     updatedAt: Date;
 }
 
+// ==================== Shared Document Templates ====================
+
+export type DocumentTemplateVersionStatus = 'draft' | 'published' | 'archived';
+
+export interface DocumentTemplate {
+    id: string;
+    templateCode: string;
+    name: string;
+    description?: string;
+    module: string;
+    organizationId?: string;
+    activeVersionId?: string;
+    isActive: boolean;
+    createdBy?: string;
+    updatedBy?: string;
+    createdAt: Date;
+    updatedAt: Date;
+}
+
+export interface DocumentTemplateVersion {
+    id: string;
+    templateId: string;
+    versionNo: number;
+    title?: string;
+    htmlContent: string;
+    fields: string[];
+    changeNote?: string;
+    status: DocumentTemplateVersionStatus;
+    createdBy?: string;
+    publishedBy?: string;
+    createdAt: Date;
+    publishedAt?: Date;
+}
+
+export interface DocumentTemplateSummary extends DocumentTemplate {
+    activeVersion?: DocumentTemplateVersion;
+    latestVersion?: DocumentTemplateVersion;
+}
+
+export interface CreateDocumentTemplateDto {
+    name: string;
+    description?: string;
+    module?: string;
+    htmlContent: string;
+    fields?: string[];
+    title?: string;
+    changeNote?: string;
+    organizationId?: string;
+}
+
+export interface UpdateDocumentTemplateDto {
+    name?: string;
+    description?: string;
+    module?: string;
+    isActive?: boolean;
+}
+
+export interface CreateDocumentTemplateVersionDto {
+    title?: string;
+    htmlContent: string;
+    fields?: string[];
+    changeNote?: string;
+}
+
+export interface DocumentTemplateListQuery {
+    module?: string;
+    organizationId?: string;
+    isActive?: boolean;
+    includeVersions?: boolean;
+    search?: string;
+    page?: number;
+    limit?: number;
+}
+
 // ==================== DTOs ====================
 
 // Create template DTO

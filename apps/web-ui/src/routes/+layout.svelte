@@ -103,7 +103,7 @@
     themePresets.init();
     themeCustomizer.init();
     printTemplate.init();
-    printWordTemplates.init();
+    void printWordTemplates.init();
 
     // Load per-user theme settings from server (sync across devices).
     // Falls back silently to localStorage state if unauthenticated or offline.

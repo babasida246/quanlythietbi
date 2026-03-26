@@ -21,6 +21,13 @@ import type {
     BatchValidationResult,
     FieldValidationResult,
     PaginatedResult,
+    DocumentTemplate,
+    DocumentTemplateSummary,
+    DocumentTemplateVersion,
+    CreateDocumentTemplateDto,
+    UpdateDocumentTemplateDto,
+    CreateDocumentTemplateVersionDto,
+    DocumentTemplateListQuery,
 } from '@qltb/contracts';
 
 // --- Repository interface (decoupled from infra) ---
@@ -48,6 +55,16 @@ export interface ILabelsRepository {
     findAllSettings(organizationId?: string): Promise<LabelSetting[]>;
     findSettingByKey(key: string, organizationId?: string): Promise<LabelSetting | null>;
     upsertSetting(key: string, value: string, updatedBy: string, organizationId?: string): Promise<LabelSetting>;
+    createDocumentTemplate(dto: CreateDocumentTemplateDto, actorId: string): Promise<DocumentTemplateSummary>;
+    findAllDocumentTemplates(query: DocumentTemplateListQuery): Promise<{ data: DocumentTemplateSummary[]; total: number }>;
+    findDocumentTemplateById(id: string): Promise<DocumentTemplateSummary | null>;
+    updateDocumentTemplate(id: string, dto: UpdateDocumentTemplateDto, actorId: string): Promise<DocumentTemplate | null>;
+    findDocumentTemplateVersions(templateId: string): Promise<DocumentTemplateVersion[]>;
+    createDocumentTemplateVersion(templateId: string, dto: CreateDocumentTemplateVersionDto, actorId: string): Promise<DocumentTemplateVersion>;
+    publishDocumentTemplateVersion(templateId: string, versionId: string, actorId: string): Promise<DocumentTemplateSummary | null>;
+    rollbackDocumentTemplateVersion(templateId: string, targetVersionId: string, actorId: string, changeNote?: string): Promise<DocumentTemplateSummary | null>;
+    findDocumentTemplateVersionById(templateId: string, versionId: string): Promise<DocumentTemplateVersion | null>;
+    findActiveDocumentTemplateVersion(templateId: string): Promise<DocumentTemplateVersion | null>;
 }
 
 export class LabelsService {
@@ -506,5 +523,95 @@ export class LabelsService {
             totalLabelsGenerated: totalLabels,
             recentJobs: recentJobsResult.data,
         };
+    }
+
+    // ==================== Shared Document Template Versioning ====================
+
+    async createDocumentTemplate(dto: CreateDocumentTemplateDto, actorId: string): Promise<DocumentTemplateSummary> {
+        if (!dto.name.trim()) {
+            throw new Error('Template name is required');
+        }
+        if (!dto.htmlContent.trim()) {
+            throw new Error('Template content is required');
+        }
+        return this.repository.createDocumentTemplate(dto, actorId);
+    }
+
+    async listDocumentTemplates(query: DocumentTemplateListQuery): Promise<PaginatedResult<DocumentTemplateSummary>> {
+        const { page = 1, limit = 20 } = query;
+        const offset = (page - 1) * limit;
+        const result = await this.repository.findAllDocumentTemplates(query);
+
+        return {
+            items: result.data,
+            total: result.total,
+            limit,
+            offset,
+            hasMore: offset + result.data.length < result.total,
+        };
+    }
+
+    async getDocumentTemplateById(id: string): Promise<DocumentTemplateSummary | null> {
+        return this.repository.findDocumentTemplateById(id);
+    }
+
+    async updateDocumentTemplate(id: string, dto: UpdateDocumentTemplateDto, actorId: string): Promise<DocumentTemplate> {
+        const updated = await this.repository.updateDocumentTemplate(id, dto, actorId);
+        if (!updated) {
+            throw new Error('Document template not found');
+        }
+        return updated;
+    }
+
+    async listDocumentTemplateVersions(templateId: string): Promise<DocumentTemplateVersion[]> {
+        const found = await this.repository.findDocumentTemplateById(templateId);
+        if (!found) {
+            throw new Error('Document template not found');
+        }
+        return this.repository.findDocumentTemplateVersions(templateId);
+    }
+
+    async createDocumentTemplateVersion(
+        templateId: string,
+        dto: CreateDocumentTemplateVersionDto,
+        actorId: string
+    ): Promise<DocumentTemplateVersion> {
+        if (!dto.htmlContent.trim()) {
+            throw new Error('Template content is required');
+        }
+        const found = await this.repository.findDocumentTemplateById(templateId);
+        if (!found) {
+            throw new Error('Document template not found');
+        }
+        return this.repository.createDocumentTemplateVersion(templateId, dto, actorId);
+    }
+
+    async publishDocumentTemplateVersion(
+        templateId: string,
+        versionId: string,
+        actorId: string
+    ): Promise<DocumentTemplateSummary> {
+        const published = await this.repository.publishDocumentTemplateVersion(templateId, versionId, actorId);
+        if (!published) {
+            throw new Error('Template or version not found');
+        }
+        return published;
+    }
+
+    async rollbackDocumentTemplateVersion(
+        templateId: string,
+        targetVersionId: string,
+        actorId: string,
+        changeNote?: string
+    ): Promise<DocumentTemplateSummary> {
+        const rolledBack = await this.repository.rollbackDocumentTemplateVersion(templateId, targetVersionId, actorId, changeNote);
+        if (!rolledBack) {
+            throw new Error('Template or version not found');
+        }
+        return rolledBack;
+    }
+
+    async getActiveDocumentTemplateVersion(templateId: string): Promise<DocumentTemplateVersion | null> {
+        return this.repository.findActiveDocumentTemplateVersion(templateId);
     }
 }

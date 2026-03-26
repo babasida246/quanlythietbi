@@ -21,6 +21,13 @@ import type {
     PrintJobListQuery,
     LabelLayout,
     LabelFieldId,
+    DocumentTemplate,
+    DocumentTemplateSummary,
+    DocumentTemplateVersion,
+    CreateDocumentTemplateDto,
+    UpdateDocumentTemplateDto,
+    CreateDocumentTemplateVersionDto,
+    DocumentTemplateListQuery,
 } from '@qltb/contracts';
 
 export class LabelsRepository {
@@ -579,6 +586,487 @@ export class LabelsRepository {
         return results;
     }
 
+    // ==================== Shared Document Template Versioning ====================
+
+    async createDocumentTemplate(dto: CreateDocumentTemplateDto, actorId: string): Promise<DocumentTemplateSummary> {
+        const module = dto.module?.trim() || 'general';
+        const codeBase = dto.name
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/(^-|-$)/g, '')
+            .slice(0, 40) || 'template';
+        const templateCode = `doc-${codeBase}-${Date.now().toString(36).slice(-6)}`;
+
+        const templateId = await this.withTransaction(async (client) => {
+            const templateResult = await client.query(
+                `INSERT INTO document_templates (
+                    template_code, name, description, module, organization_id, created_by, updated_by
+                ) VALUES ($1, $2, $3, $4, $5, $6, $6)
+                RETURNING id`,
+                [
+                    templateCode,
+                    dto.name.trim(),
+                    dto.description?.trim() || null,
+                    module,
+                    dto.organizationId ?? null,
+                    actorId,
+                ]
+            );
+
+            const id = templateResult.rows[0]?.id as string;
+            const fields = dto.fields && dto.fields.length > 0 ? dto.fields : this.extractFields(dto.htmlContent);
+
+            const versionResult = await client.query(
+                `INSERT INTO document_template_versions (
+                    template_id, version_no, title, html_content, fields, change_note, status, created_by
+                ) VALUES ($1, 1, $2, $3, $4::jsonb, $5, 'draft', $6)
+                RETURNING id`,
+                [
+                    id,
+                    dto.title?.trim() || null,
+                    dto.htmlContent,
+                    JSON.stringify(fields),
+                    dto.changeNote?.trim() || null,
+                    actorId,
+                ]
+            );
+
+            await client.query(
+                `UPDATE document_templates
+                 SET active_version_id = $2, updated_by = $3
+                 WHERE id = $1`,
+                [id, versionResult.rows[0]?.id as string, actorId]
+            );
+
+            return id;
+        });
+
+        const created = await this.findDocumentTemplateById(templateId);
+        if (!created) {
+            throw new Error('Failed to create document template');
+        }
+        return created;
+    }
+
+    async findAllDocumentTemplates(query: DocumentTemplateListQuery): Promise<{ data: DocumentTemplateSummary[]; total: number }> {
+        const { page = 1, limit = 20, module, organizationId, isActive, includeVersions = true, search } = query;
+        const offset = (page - 1) * limit;
+        const conditions: string[] = [];
+        const values: unknown[] = [];
+        let paramIndex = 1;
+
+        if (module) {
+            conditions.push(`dt.module = $${paramIndex++}`);
+            values.push(module);
+        }
+        if (organizationId) {
+            conditions.push(`(dt.organization_id = $${paramIndex} OR dt.organization_id IS NULL)`);
+            values.push(organizationId);
+            paramIndex++;
+        }
+        if (typeof isActive === 'boolean') {
+            conditions.push(`dt.is_active = $${paramIndex++}`);
+            values.push(isActive);
+        }
+        if (search?.trim()) {
+            conditions.push(`(dt.name ILIKE $${paramIndex} OR dt.template_code ILIKE $${paramIndex})`);
+            values.push(`%${search.trim()}%`);
+            paramIndex++;
+        }
+
+        const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+        const countResult = await this.db.query(
+            `SELECT COUNT(*) AS count FROM document_templates dt ${whereClause}`,
+            values
+        );
+        const total = parseInt((countResult.rows[0]?.count as string) || '0', 10);
+
+        values.push(limit, offset);
+        const result = await this.db.query(
+            `SELECT
+                dt.*,
+                av.id AS active_version_id_value,
+                av.template_id AS active_template_id,
+                av.version_no AS active_version_no,
+                av.title AS active_title,
+                av.html_content AS active_html_content,
+                av.fields AS active_fields,
+                av.change_note AS active_change_note,
+                av.status AS active_status,
+                av.created_by AS active_created_by,
+                av.published_by AS active_published_by,
+                av.created_at AS active_created_at,
+                av.published_at AS active_published_at,
+                lv.id AS latest_version_id,
+                lv.template_id AS latest_template_id,
+                lv.version_no AS latest_version_no,
+                lv.title AS latest_title,
+                lv.html_content AS latest_html_content,
+                lv.fields AS latest_fields,
+                lv.change_note AS latest_change_note,
+                lv.status AS latest_status,
+                lv.created_by AS latest_created_by,
+                lv.published_by AS latest_published_by,
+                lv.created_at AS latest_created_at,
+                lv.published_at AS latest_published_at
+            FROM document_templates dt
+            LEFT JOIN document_template_versions av ON av.id = dt.active_version_id
+            LEFT JOIN LATERAL (
+                SELECT *
+                FROM document_template_versions v
+                WHERE v.template_id = dt.id
+                ORDER BY v.version_no DESC
+                LIMIT 1
+            ) lv ON true
+            ${whereClause}
+            ORDER BY dt.updated_at DESC
+            LIMIT $${paramIndex++} OFFSET $${paramIndex}`,
+            values
+        );
+
+        return {
+            data: result.rows.map((row) => this.mapDocumentTemplateSummary(row, includeVersions)),
+            total,
+        };
+    }
+
+    async findDocumentTemplateById(id: string): Promise<DocumentTemplateSummary | null> {
+        const result = await this.db.query(
+            `SELECT
+                dt.*,
+                av.id AS active_version_id_value,
+                av.template_id AS active_template_id,
+                av.version_no AS active_version_no,
+                av.title AS active_title,
+                av.html_content AS active_html_content,
+                av.fields AS active_fields,
+                av.change_note AS active_change_note,
+                av.status AS active_status,
+                av.created_by AS active_created_by,
+                av.published_by AS active_published_by,
+                av.created_at AS active_created_at,
+                av.published_at AS active_published_at,
+                lv.id AS latest_version_id,
+                lv.template_id AS latest_template_id,
+                lv.version_no AS latest_version_no,
+                lv.title AS latest_title,
+                lv.html_content AS latest_html_content,
+                lv.fields AS latest_fields,
+                lv.change_note AS latest_change_note,
+                lv.status AS latest_status,
+                lv.created_by AS latest_created_by,
+                lv.published_by AS latest_published_by,
+                lv.created_at AS latest_created_at,
+                lv.published_at AS latest_published_at
+            FROM document_templates dt
+            LEFT JOIN document_template_versions av ON av.id = dt.active_version_id
+            LEFT JOIN LATERAL (
+                SELECT *
+                FROM document_template_versions v
+                WHERE v.template_id = dt.id
+                ORDER BY v.version_no DESC
+                LIMIT 1
+            ) lv ON true
+            WHERE dt.id = $1`,
+            [id]
+        );
+        return result.rows[0] ? this.mapDocumentTemplateSummary(result.rows[0], true) : null;
+    }
+
+    async updateDocumentTemplate(id: string, dto: UpdateDocumentTemplateDto, actorId: string): Promise<DocumentTemplate | null> {
+        const updates: string[] = [];
+        const values: unknown[] = [];
+        let paramIndex = 1;
+
+        if (dto.name !== undefined) {
+            updates.push(`name = $${paramIndex++}`);
+            values.push(dto.name.trim());
+        }
+        if (dto.description !== undefined) {
+            updates.push(`description = $${paramIndex++}`);
+            values.push(dto.description?.trim() || null);
+        }
+        if (dto.module !== undefined) {
+            updates.push(`module = $${paramIndex++}`);
+            values.push(dto.module.trim() || 'general');
+        }
+        if (dto.isActive !== undefined) {
+            updates.push(`is_active = $${paramIndex++}`);
+            values.push(dto.isActive);
+        }
+
+        updates.push(`updated_by = $${paramIndex++}`);
+        values.push(actorId);
+
+        values.push(id);
+        const result = await this.db.query(
+            `UPDATE document_templates
+             SET ${updates.join(', ')}
+             WHERE id = $${paramIndex}
+             RETURNING *`,
+            values
+        );
+
+        return result.rows[0] ? this.mapDocumentTemplate(result.rows[0]) : null;
+    }
+
+    async findDocumentTemplateVersions(templateId: string): Promise<DocumentTemplateVersion[]> {
+        const result = await this.db.query(
+            `SELECT *
+             FROM document_template_versions
+             WHERE template_id = $1
+             ORDER BY version_no DESC`,
+            [templateId]
+        );
+        return result.rows.map((row) => this.mapDocumentTemplateVersion(row));
+    }
+
+    async createDocumentTemplateVersion(
+        templateId: string,
+        dto: CreateDocumentTemplateVersionDto,
+        actorId: string
+    ): Promise<DocumentTemplateVersion> {
+        const result = await this.db.query(
+            `WITH next_version AS (
+                SELECT COALESCE(MAX(version_no), 0) + 1 AS version_no
+                FROM document_template_versions
+                WHERE template_id = $1
+            )
+            INSERT INTO document_template_versions (
+                template_id, version_no, title, html_content, fields, change_note, status, created_by
+            )
+            SELECT
+                $1,
+                nv.version_no,
+                $2,
+                $3,
+                $4::jsonb,
+                $5,
+                'draft',
+                $6
+            FROM next_version nv
+            RETURNING *`,
+            [
+                templateId,
+                dto.title?.trim() || null,
+                dto.htmlContent,
+                JSON.stringify(dto.fields && dto.fields.length > 0 ? dto.fields : this.extractFields(dto.htmlContent)),
+                dto.changeNote?.trim() || null,
+                actorId,
+            ]
+        );
+
+        return this.mapDocumentTemplateVersion(result.rows[0]);
+    }
+
+    async publishDocumentTemplateVersion(templateId: string, versionId: string, actorId: string): Promise<DocumentTemplateSummary | null> {
+        return this.withTransaction(async (client) => {
+            const targetVersionResult = await client.query(
+                `SELECT id
+                 FROM document_template_versions
+                 WHERE id = $1 AND template_id = $2`,
+                [versionId, templateId]
+            );
+            if (!targetVersionResult.rows[0]) {
+                return null;
+            }
+
+            await client.query(
+                `UPDATE document_template_versions
+                 SET status = 'archived'
+                 WHERE template_id = $1 AND status = 'published'`,
+                [templateId]
+            );
+
+            await client.query(
+                `UPDATE document_template_versions
+                 SET status = 'published', published_at = NOW(), published_by = $3
+                 WHERE id = $1 AND template_id = $2`,
+                [versionId, templateId, actorId]
+            );
+
+            await client.query(
+                `UPDATE document_templates
+                 SET active_version_id = $2, updated_by = $3
+                 WHERE id = $1`,
+                [templateId, versionId, actorId]
+            );
+
+            const summaryResult = await client.query(
+                `SELECT
+                    dt.*,
+                    av.id AS active_version_id_value,
+                    av.template_id AS active_template_id,
+                    av.version_no AS active_version_no,
+                    av.title AS active_title,
+                    av.html_content AS active_html_content,
+                    av.fields AS active_fields,
+                    av.change_note AS active_change_note,
+                    av.status AS active_status,
+                    av.created_by AS active_created_by,
+                    av.published_by AS active_published_by,
+                    av.created_at AS active_created_at,
+                    av.published_at AS active_published_at,
+                    lv.id AS latest_version_id,
+                    lv.template_id AS latest_template_id,
+                    lv.version_no AS latest_version_no,
+                    lv.title AS latest_title,
+                    lv.html_content AS latest_html_content,
+                    lv.fields AS latest_fields,
+                    lv.change_note AS latest_change_note,
+                    lv.status AS latest_status,
+                    lv.created_by AS latest_created_by,
+                    lv.published_by AS latest_published_by,
+                    lv.created_at AS latest_created_at,
+                    lv.published_at AS latest_published_at
+                FROM document_templates dt
+                LEFT JOIN document_template_versions av ON av.id = dt.active_version_id
+                LEFT JOIN LATERAL (
+                    SELECT *
+                    FROM document_template_versions v
+                    WHERE v.template_id = dt.id
+                    ORDER BY v.version_no DESC
+                    LIMIT 1
+                ) lv ON true
+                WHERE dt.id = $1`,
+                [templateId]
+            );
+
+            return summaryResult.rows[0] ? this.mapDocumentTemplateSummary(summaryResult.rows[0], true) : null;
+        });
+    }
+
+    async rollbackDocumentTemplateVersion(
+        templateId: string,
+        targetVersionId: string,
+        actorId: string,
+        changeNote?: string
+    ): Promise<DocumentTemplateSummary | null> {
+        return this.withTransaction(async (client) => {
+            const targetResult = await client.query(
+                `SELECT *
+                 FROM document_template_versions
+                 WHERE id = $1 AND template_id = $2`,
+                [targetVersionId, templateId]
+            );
+            const target = targetResult.rows[0];
+            if (!target) {
+                return null;
+            }
+
+            const newVersionResult = await client.query(
+                `WITH next_version AS (
+                    SELECT COALESCE(MAX(version_no), 0) + 1 AS version_no
+                    FROM document_template_versions
+                    WHERE template_id = $1
+                )
+                INSERT INTO document_template_versions (
+                    template_id, version_no, title, html_content, fields, change_note, status, created_by, published_by, published_at
+                )
+                SELECT
+                    $1,
+                    nv.version_no,
+                    COALESCE($2, $3),
+                    $4,
+                    $5::jsonb,
+                    $6,
+                    'published',
+                    $7,
+                    $7,
+                    NOW()
+                FROM next_version nv
+                RETURNING id`,
+                [
+                    templateId,
+                    `Rollback from v${target.version_no}`,
+                    target.title as string | null,
+                    target.html_content as string,
+                    JSON.stringify(target.fields as unknown[]),
+                    changeNote?.trim() || `Rollback to version ${target.version_no}`,
+                    actorId,
+                ]
+            );
+
+            await client.query(
+                `UPDATE document_template_versions
+                 SET status = 'archived'
+                 WHERE template_id = $1 AND status = 'published' AND id <> $2`,
+                [templateId, newVersionResult.rows[0]?.id as string]
+            );
+
+            await client.query(
+                `UPDATE document_templates
+                 SET active_version_id = $2, updated_by = $3
+                 WHERE id = $1`,
+                [templateId, newVersionResult.rows[0]?.id as string, actorId]
+            );
+
+            const summaryResult = await client.query(
+                `SELECT
+                    dt.*,
+                    av.id AS active_version_id_value,
+                    av.template_id AS active_template_id,
+                    av.version_no AS active_version_no,
+                    av.title AS active_title,
+                    av.html_content AS active_html_content,
+                    av.fields AS active_fields,
+                    av.change_note AS active_change_note,
+                    av.status AS active_status,
+                    av.created_by AS active_created_by,
+                    av.published_by AS active_published_by,
+                    av.created_at AS active_created_at,
+                    av.published_at AS active_published_at,
+                    lv.id AS latest_version_id,
+                    lv.template_id AS latest_template_id,
+                    lv.version_no AS latest_version_no,
+                    lv.title AS latest_title,
+                    lv.html_content AS latest_html_content,
+                    lv.fields AS latest_fields,
+                    lv.change_note AS latest_change_note,
+                    lv.status AS latest_status,
+                    lv.created_by AS latest_created_by,
+                    lv.published_by AS latest_published_by,
+                    lv.created_at AS latest_created_at,
+                    lv.published_at AS latest_published_at
+                FROM document_templates dt
+                LEFT JOIN document_template_versions av ON av.id = dt.active_version_id
+                LEFT JOIN LATERAL (
+                    SELECT *
+                    FROM document_template_versions v
+                    WHERE v.template_id = dt.id
+                    ORDER BY v.version_no DESC
+                    LIMIT 1
+                ) lv ON true
+                WHERE dt.id = $1`,
+                [templateId]
+            );
+
+            return summaryResult.rows[0] ? this.mapDocumentTemplateSummary(summaryResult.rows[0], true) : null;
+        });
+    }
+
+    async findDocumentTemplateVersionById(templateId: string, versionId: string): Promise<DocumentTemplateVersion | null> {
+        const result = await this.db.query(
+            `SELECT *
+             FROM document_template_versions
+             WHERE id = $1 AND template_id = $2`,
+            [versionId, templateId]
+        );
+        return result.rows[0] ? this.mapDocumentTemplateVersion(result.rows[0]) : null;
+    }
+
+    async findActiveDocumentTemplateVersion(templateId: string): Promise<DocumentTemplateVersion | null> {
+        const result = await this.db.query(
+            `SELECT dv.*
+             FROM document_templates dt
+             JOIN document_template_versions dv ON dv.id = dt.active_version_id
+             WHERE dt.id = $1
+             AND dv.status = 'published'`,
+            [templateId]
+        );
+        return result.rows[0] ? this.mapDocumentTemplateVersion(result.rows[0]) : null;
+    }
+
     // ==================== Transaction Helper ====================
 
     async withTransaction<T>(callback: (client: PoolClient) => Promise<T>): Promise<T> {
@@ -688,5 +1176,95 @@ export class LabelsRepository {
             updatedBy: row.updated_by as string | undefined,
             updatedAt: new Date(row.updated_at as string),
         };
+    }
+
+    private mapDocumentTemplate(row: Record<string, unknown>): DocumentTemplate {
+        return {
+            id: row.id as string,
+            templateCode: row.template_code as string,
+            name: row.name as string,
+            description: row.description as string | undefined,
+            module: row.module as string,
+            organizationId: row.organization_id as string | undefined,
+            activeVersionId: (row.active_version_id as string | undefined) ?? (row.active_version_id_value as string | undefined),
+            isActive: row.is_active as boolean,
+            createdBy: row.created_by as string | undefined,
+            updatedBy: row.updated_by as string | undefined,
+            createdAt: new Date(row.created_at as string),
+            updatedAt: new Date(row.updated_at as string),
+        };
+    }
+
+    private mapDocumentTemplateVersion(row: Record<string, unknown>): DocumentTemplateVersion {
+        return {
+            id: row.id as string,
+            templateId: row.template_id as string,
+            versionNo: Number(row.version_no),
+            title: row.title as string | undefined,
+            htmlContent: row.html_content as string,
+            fields: (row.fields as string[]) ?? [],
+            changeNote: row.change_note as string | undefined,
+            status: row.status as DocumentTemplateVersion['status'],
+            createdBy: row.created_by as string | undefined,
+            publishedBy: row.published_by as string | undefined,
+            createdAt: new Date(row.created_at as string),
+            publishedAt: row.published_at ? new Date(row.published_at as string) : undefined,
+        };
+    }
+
+    private mapDocumentTemplateSummary(row: Record<string, unknown>, includeVersions: boolean): DocumentTemplateSummary {
+        const base = this.mapDocumentTemplate(row);
+        if (!includeVersions) return base;
+
+        const activeVersion = row.active_version_id_value
+            ? this.mapDocumentTemplateVersion({
+                id: row.active_version_id_value,
+                template_id: row.active_template_id,
+                version_no: row.active_version_no,
+                title: row.active_title,
+                html_content: row.active_html_content,
+                fields: row.active_fields,
+                change_note: row.active_change_note,
+                status: row.active_status,
+                created_by: row.active_created_by,
+                published_by: row.active_published_by,
+                created_at: row.active_created_at,
+                published_at: row.active_published_at,
+            })
+            : undefined;
+
+        const latestVersion = row.latest_version_id
+            ? this.mapDocumentTemplateVersion({
+                id: row.latest_version_id,
+                template_id: row.latest_template_id,
+                version_no: row.latest_version_no,
+                title: row.latest_title,
+                html_content: row.latest_html_content,
+                fields: row.latest_fields,
+                change_note: row.latest_change_note,
+                status: row.latest_status,
+                created_by: row.latest_created_by,
+                published_by: row.latest_published_by,
+                created_at: row.latest_created_at,
+                published_at: row.latest_published_at,
+            })
+            : undefined;
+
+        return {
+            ...base,
+            activeVersion,
+            latestVersion,
+        };
+    }
+
+    private extractFields(htmlContent: string): string[] {
+        const regex = /\{\{\s*([a-zA-Z0-9_.-]+)\s*\}\}/g;
+        const set = new Set<string>();
+        let match = regex.exec(htmlContent);
+        while (match) {
+            set.add(match[1]);
+            match = regex.exec(htmlContent);
+        }
+        return [...set].sort((a, b) => a.localeCompare(b));
     }
 }

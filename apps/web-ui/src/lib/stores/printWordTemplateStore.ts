@@ -1,6 +1,17 @@
-import { browser } from '$app/environment'
 import { writable } from 'svelte/store'
 import mammoth from 'mammoth'
+import {
+    createDocumentTemplate,
+    createDocumentTemplateVersion,
+    getDocumentTemplateById,
+    listDocumentTemplateVersions,
+    listDocumentTemplates,
+    publishDocumentTemplateVersion,
+    rollbackDocumentTemplateVersion,
+    updateDocumentTemplate,
+    type DocumentTemplateSummary,
+    type DocumentTemplateVersion,
+} from '$lib/api/printTemplates'
 
 export type PrintWordTemplate = {
     id: string
@@ -14,12 +25,6 @@ export type PrintWordTemplate = {
 
 type PrintWordTemplateStoreState = {
     templates: PrintWordTemplate[]
-}
-
-const STORAGE_KEY = 'qltb_print_word_templates_v1'
-
-function createId(): string {
-    return `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
 }
 
 function uniqueSorted(values: string[]): string[] {
@@ -46,38 +51,48 @@ export function extractTemplateFields(html: string): string[] {
     return uniqueSorted([...htmlFields, ...textFields])
 }
 
-function loadState(): PrintWordTemplateStoreState {
-    if (!browser) return { templates: [] }
-
-    try {
-        const raw = localStorage.getItem(STORAGE_KEY)
-        if (!raw) return { templates: [] }
-        const parsed = JSON.parse(raw) as Partial<PrintWordTemplateStoreState>
-        const templates = (parsed.templates ?? []).filter((item) =>
-            Boolean(item?.id && item?.name && item?.html)
-        )
-        return { templates }
-    } catch {
-        return { templates: [] }
+function mapServerTemplate(template: DocumentTemplateSummary): PrintWordTemplate {
+    const version = template.latestVersion ?? template.activeVersion
+    return {
+        id: template.id,
+        name: template.name,
+        html: version?.htmlContent ?? '',
+        fields: version?.fields ?? [],
+        sourceFileName: 'server',
+        createdAt: template.createdAt,
+        updatedAt: template.updatedAt,
     }
 }
 
-function persistState(state: PrintWordTemplateStoreState): void {
-    if (!browser) return
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
-}
-
 function createPrintWordTemplateStore() {
-    const { subscribe, set, update } = writable<PrintWordTemplateStoreState>(loadState())
+    const { subscribe, set } = writable<PrintWordTemplateStoreState>({ templates: [] })
+
+    async function refreshFromServer(): Promise<PrintWordTemplate[]> {
+        const templates = await listDocumentTemplates({ includeVersions: true, limit: 200 })
+        const mapped = templates.map(mapServerTemplate)
+        set({ templates: mapped })
+        return mapped
+    }
 
     return {
         subscribe,
-        init() {
-            set(loadState())
+        async init() {
+            try {
+                await refreshFromServer()
+            } catch {
+                set({ templates: [] })
+            }
         },
-        getById(id: string): PrintWordTemplate | null {
-            const state = loadState()
-            return state.templates.find((template) => template.id === id) ?? null
+        async reload() {
+            await refreshFromServer()
+        },
+        async getById(id: string): Promise<PrintWordTemplate | null> {
+            try {
+                const template = await getDocumentTemplateById(id)
+                return mapServerTemplate(template)
+            } catch {
+                return null
+            }
         },
         async importDocx(file: File, name?: string): Promise<PrintWordTemplate> {
             const buffer = await file.arrayBuffer()
@@ -88,55 +103,88 @@ function createPrintWordTemplateStore() {
                 throw new Error('Cannot parse DOCX file to HTML template.')
             }
 
-            const now = new Date().toISOString()
-            const template: PrintWordTemplate = {
-                id: createId(),
+            const created = await createDocumentTemplate({
                 name: (name || file.name.replace(/\.docx$/i, '') || 'Word template').trim(),
-                html,
+                module: 'general',
+                htmlContent: html,
                 fields: extractTemplateFields(html),
-                sourceFileName: file.name,
-                createdAt: now,
-                updatedAt: now
+                title: 'Initial draft from DOCX import',
+                changeNote: `Imported from ${file.name}`,
+            })
+
+            await refreshFromServer()
+            const mapped = mapServerTemplate(created)
+            mapped.sourceFileName = file.name
+            return mapped
+        },
+        async createTemplate(name: string, html: string): Promise<PrintWordTemplate> {
+            const templateName = name.trim() || 'Custom template'
+            const templateHtml = html.trim()
+            if (!templateHtml) {
+                throw new Error('Template content is required.')
+            }
+            const created = await createDocumentTemplate({
+                name: templateName,
+                module: 'general',
+                htmlContent: templateHtml,
+                fields: extractTemplateFields(templateHtml),
+                title: 'Initial draft',
+            })
+            await refreshFromServer()
+            const mapped = mapServerTemplate(created)
+            mapped.sourceFileName = 'designer'
+            return mapped
+        },
+        async updateTemplateHtml(id: string, html: string): Promise<PrintWordTemplate> {
+            const templateHtml = html.trim()
+            if (!templateHtml) {
+                throw new Error('Template content is required.')
             }
 
-            update((current) => {
-                const next = {
-                    templates: [template, ...current.templates]
-                }
-                persistState(next)
-                return next
+            const current = await getDocumentTemplateById(id)
+            const draftVersion = await createDocumentTemplateVersion(id, {
+                title: current.activeVersion?.title || current.latestVersion?.title || 'Draft update',
+                htmlContent: templateHtml,
+                fields: extractTemplateFields(templateHtml),
+                changeNote: 'Update from print template designer',
             })
-
-            return template
+            await refreshFromServer()
+            return {
+                id,
+                name: current.name,
+                html: draftVersion.htmlContent,
+                fields: draftVersion.fields,
+                sourceFileName: 'designer',
+                createdAt: current.createdAt,
+                updatedAt: current.updatedAt,
+            }
         },
-        remove(id: string) {
-            update((current) => {
-                const next = {
-                    templates: current.templates.filter((template) => template.id !== id)
-                }
-                persistState(next)
-                return next
-            })
+        async publishVersion(id: string, versionId: string): Promise<PrintWordTemplate> {
+            const published = await publishDocumentTemplateVersion(id, versionId)
+            await refreshFromServer()
+            return mapServerTemplate(published)
         },
-        rename(id: string, name: string) {
-            update((current) => {
-                const trimmed = name.trim()
-                if (!trimmed) return current
-
-                const next = {
-                    templates: current.templates.map((template) =>
-                        template.id === id
-                            ? {
-                                ...template,
-                                name: trimmed,
-                                updatedAt: new Date().toISOString()
-                            }
-                            : template
-                    )
-                }
-                persistState(next)
-                return next
-            })
+        async rollback(id: string, versionId: string, changeNote?: string): Promise<PrintWordTemplate> {
+            const rolledBack = await rollbackDocumentTemplateVersion(id, versionId, changeNote)
+            await refreshFromServer()
+            return mapServerTemplate(rolledBack)
+        },
+        async getVersions(id: string): Promise<DocumentTemplateVersion[]> {
+            return listDocumentTemplateVersions(id)
+        },
+        async seedDefaults(): Promise<PrintWordTemplate[]> {
+            const templates = await refreshFromServer()
+            return templates
+        },
+        async remove(id: string) {
+            await updateDocumentTemplate(id, { isActive: false })
+            await refreshFromServer()
+        },
+        async rename(id: string, name: string) {
+            const trimmed = name.trim()
+            if (!trimmed) return
+            await updateDocumentTemplate(id, { name: trimmed })
+            await refreshFromServer()
         }
     }
 }

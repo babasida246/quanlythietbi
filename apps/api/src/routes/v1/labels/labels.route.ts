@@ -17,6 +17,12 @@ import {
     validateAssetsSchema,
     updateSettingSchema,
     settingKeyParamSchema,
+    createDocumentTemplateSchema,
+    updateDocumentTemplateSchema,
+    documentTemplateListQuerySchema,
+    createDocumentTemplateVersionSchema,
+    publishDocumentTemplateVersionSchema,
+    rollbackDocumentTemplateVersionSchema,
 } from './labels.schema.js';
 
 export async function labelsRoute(
@@ -148,6 +154,156 @@ export async function labelsRoute(
     });
 
     // ==================== Print Job Routes ====================
+
+    // ==================== Shared Document Template Routes ====================
+
+    fastify.get('/labels/document-templates', {
+        schema: { tags: ['Document Templates'], summary: 'List shared document templates' },
+        handler: async (request: FastifyRequest, reply: FastifyReply) => {
+            const query = documentTemplateListQuerySchema.parse(request.query);
+            const result = await labelsService.listDocumentTemplates(query);
+            return reply.send({ success: true, data: result.items, meta: { total: result.total, limit: result.limit, offset: result.offset, hasMore: result.hasMore } });
+        },
+    });
+
+    fastify.get('/labels/document-templates/:id', {
+        schema: { tags: ['Document Templates'], summary: 'Get shared document template by ID' },
+        handler: async (request: FastifyRequest, reply: FastifyReply) => {
+            const { id } = idParamSchema.parse(request.params);
+            const template = await labelsService.getDocumentTemplateById(id);
+            if (!template) {
+                return reply.status(404).send({ success: false, error: { code: 'NOT_FOUND', message: 'Document template not found' } });
+            }
+            return reply.send({ success: true, data: template });
+        },
+    });
+
+    fastify.get('/labels/document-templates/:id/versions', {
+        schema: { tags: ['Document Templates'], summary: 'List versions of a shared document template' },
+        handler: async (request: FastifyRequest, reply: FastifyReply) => {
+            const { id } = idParamSchema.parse(request.params);
+            try {
+                const versions = await labelsService.listDocumentTemplateVersions(id);
+                return reply.send({ success: true, data: versions });
+            } catch (error) {
+                return reply.status(404).send({ success: false, error: { code: 'NOT_FOUND', message: (error as Error).message } });
+            }
+        },
+    });
+
+    fastify.get('/labels/document-templates/:id/published', {
+        schema: { tags: ['Document Templates'], summary: 'Get active published version for rendering/printing' },
+        handler: async (request: FastifyRequest, reply: FastifyReply) => {
+            const { id } = idParamSchema.parse(request.params);
+            const version = await labelsService.getActiveDocumentTemplateVersion(id);
+            if (!version) {
+                return reply.status(404).send({ success: false, error: { code: 'NOT_FOUND', message: 'No published version found' } });
+            }
+            return reply.send({ success: true, data: version });
+        },
+    });
+
+    fastify.post('/labels/document-templates', {
+        schema: { tags: ['Document Templates'], summary: 'Create shared document template with initial draft version' },
+        handler: async (request: FastifyRequest, reply: FastifyReply) => {
+            const actorId = request.user?.id;
+            if (!actorId) {
+                return reply.status(401).send({ success: false, error: { code: 'UNAUTHORIZED', message: 'Unauthorized' } });
+            }
+
+            const dto = createDocumentTemplateSchema.parse(request.body);
+            try {
+                const created = await labelsService.createDocumentTemplate(dto, actorId);
+                return reply.status(201).send({ success: true, data: created });
+            } catch (error) {
+                return reply.status(400).send({ success: false, error: { code: 'VALIDATION_ERROR', message: (error as Error).message } });
+            }
+        },
+    });
+
+    fastify.put('/labels/document-templates/:id', {
+        schema: { tags: ['Document Templates'], summary: 'Update shared document template metadata' },
+        handler: async (request: FastifyRequest, reply: FastifyReply) => {
+            const actorId = request.user?.id;
+            if (!actorId) {
+                return reply.status(401).send({ success: false, error: { code: 'UNAUTHORIZED', message: 'Unauthorized' } });
+            }
+
+            const { id } = idParamSchema.parse(request.params);
+            const dto = updateDocumentTemplateSchema.parse(request.body);
+            try {
+                const updated = await labelsService.updateDocumentTemplate(id, dto, actorId);
+                return reply.send({ success: true, data: updated });
+            } catch (error) {
+                const message = (error as Error).message;
+                const status = message.includes('not found') ? 404 : 400;
+                return reply.status(status).send({ success: false, error: { code: status === 404 ? 'NOT_FOUND' : 'VALIDATION_ERROR', message } });
+            }
+        },
+    });
+
+    fastify.post('/labels/document-templates/:id/versions', {
+        schema: { tags: ['Document Templates'], summary: 'Create a new draft version' },
+        handler: async (request: FastifyRequest, reply: FastifyReply) => {
+            const actorId = request.user?.id;
+            if (!actorId) {
+                return reply.status(401).send({ success: false, error: { code: 'UNAUTHORIZED', message: 'Unauthorized' } });
+            }
+
+            const { id } = idParamSchema.parse(request.params);
+            const dto = createDocumentTemplateVersionSchema.parse(request.body);
+            try {
+                const version = await labelsService.createDocumentTemplateVersion(id, dto, actorId);
+                return reply.status(201).send({ success: true, data: version });
+            } catch (error) {
+                const message = (error as Error).message;
+                const status = message.includes('not found') ? 404 : 400;
+                return reply.status(status).send({ success: false, error: { code: status === 404 ? 'NOT_FOUND' : 'VALIDATION_ERROR', message } });
+            }
+        },
+    });
+
+    fastify.post('/labels/document-templates/:id/publish', {
+        schema: { tags: ['Document Templates'], summary: 'Publish a version (mark as active)' },
+        handler: async (request: FastifyRequest, reply: FastifyReply) => {
+            const actorId = request.user?.id;
+            if (!actorId) {
+                return reply.status(401).send({ success: false, error: { code: 'UNAUTHORIZED', message: 'Unauthorized' } });
+            }
+
+            const { id } = idParamSchema.parse(request.params);
+            const { versionId } = publishDocumentTemplateVersionSchema.parse(request.body);
+            try {
+                const published = await labelsService.publishDocumentTemplateVersion(id, versionId, actorId);
+                return reply.send({ success: true, data: published });
+            } catch (error) {
+                const message = (error as Error).message;
+                const status = message.includes('not found') ? 404 : 400;
+                return reply.status(status).send({ success: false, error: { code: status === 404 ? 'NOT_FOUND' : 'VALIDATION_ERROR', message } });
+            }
+        },
+    });
+
+    fastify.post('/labels/document-templates/:id/rollback', {
+        schema: { tags: ['Document Templates'], summary: 'Rollback by publishing a new version cloned from a previous version' },
+        handler: async (request: FastifyRequest, reply: FastifyReply) => {
+            const actorId = request.user?.id;
+            if (!actorId) {
+                return reply.status(401).send({ success: false, error: { code: 'UNAUTHORIZED', message: 'Unauthorized' } });
+            }
+
+            const { id } = idParamSchema.parse(request.params);
+            const { versionId, changeNote } = rollbackDocumentTemplateVersionSchema.parse(request.body);
+            try {
+                const rolledBack = await labelsService.rollbackDocumentTemplateVersion(id, versionId, actorId, changeNote);
+                return reply.send({ success: true, data: rolledBack });
+            } catch (error) {
+                const message = (error as Error).message;
+                const status = message.includes('not found') ? 404 : 400;
+                return reply.status(status).send({ success: false, error: { code: status === 404 ? 'NOT_FOUND' : 'VALIDATION_ERROR', message } });
+            }
+        },
+    });
 
     fastify.get('/labels/jobs', {
         schema: { tags: ['Print Jobs'], summary: 'List all print jobs' },
