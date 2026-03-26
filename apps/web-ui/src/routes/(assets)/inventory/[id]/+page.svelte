@@ -38,6 +38,7 @@
   let missingLoading = $state(false);
   let activeTab = $state<'scanned' | 'missing'>('scanned');
   let itemFilter = $state<'all' | 'found' | 'moved' | 'unknown'>('all');
+  let missingAutoLoadedKey = $state('');
 
   const sessionId = $derived(page.params.id ?? '');
   const locationMap = $derived(new Map(locations.map(l => [l.id, l.name])));
@@ -89,14 +90,15 @@
     missing: 'text-red-500 dark:text-red-400 bg-red-900/30'
   };
 
-  async function loadSession() {
+  async function loadSession(options?: { silent?: boolean }) {
+    const silent = options?.silent === true;
     if (!sessionId) {
       loading = false;
       error = $_('inventory.sessionNotFound');
       return;
     }
     try {
-      loading = true;
+      if (!silent) loading = true;
       error = '';
       const [detailResult, catResult] = await Promise.all([
         getInventorySessionDetail(sessionId),
@@ -108,7 +110,7 @@
     } catch (err) {
       error = err instanceof Error ? err.message : $_('inventory.loadFailed');
     } finally {
-      loading = false;
+      if (!silent) loading = false;
     }
   }
 
@@ -141,7 +143,12 @@
       });
       scanSuccess = `✓ ${$_('inventory.scanSuccess')}: ${scannedCode || scannedAssetId}`;
       scanNote = '';
-      await Promise.all([loadSession(), loadMissingAssets()]);
+      await Promise.all([
+        loadSession({ silent: true }),
+        (activeTab === 'missing' || (session?.status === 'in_progress' || session?.status === 'closed'))
+          ? loadMissingAssets()
+          : Promise.resolve()
+      ]);
       setTimeout(() => { scanSuccess = ''; }, 3000);
     } catch (err) {
       scanError = err instanceof Error ? err.message : $_('inventory.scanFailed');
@@ -218,9 +225,11 @@
   });
 
   $effect(() => {
-    if (session && (session.status === 'in_progress' || session.status === 'closed')) {
-      void loadMissingAssets();
-    }
+    const shouldAutoLoad = session && (session.status === 'in_progress' || session.status === 'closed');
+    const autoKey = shouldAutoLoad ? `${sessionId}:${session.status}` : '';
+    if (!autoKey || missingAutoLoadedKey === autoKey) return;
+    missingAutoLoadedKey = autoKey;
+    void loadMissingAssets();
   });
 </script>
 
