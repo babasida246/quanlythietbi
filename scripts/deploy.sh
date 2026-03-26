@@ -38,6 +38,38 @@ log_error() { echo -e "${RED}  ✗ $*${RESET}" >&2; }
 log_info()  { echo -e "${CYAN}  → $*${RESET}"; }
 hr()        { echo -e "${BLUE}══════════════════════════════════════════════════${RESET}"; }
 
+is_local_domain() {
+  local domain="$1"
+  local tld=""
+
+  if [[ -z "$domain" ]]; then
+    return 0
+  fi
+
+  # Common local-only host patterns.
+  if [[ "$domain" == "localhost" ]] ||
+     [[ "$domain" =~ \.localhost$ ]] ||
+     [[ "$domain" =~ \.local$ ]] ||
+     [[ "$domain" =~ \.localdomain$ ]] ||
+     [[ "$domain" =~ \.internal$ ]] ||
+     [[ "$domain" =~ \.test$ ]]; then
+    return 0
+  fi
+
+  # No dot => not a public FQDN.
+  if [[ "$domain" != *.* ]]; then
+    return 0
+  fi
+
+  tld="${domain##*.}"
+  # Public suffix labels are alphabetic; if not, treat as local/private.
+  if [[ ! "$tld" =~ ^[A-Za-z]{2,63}$ ]]; then
+    return 0
+  fi
+
+  return 1
+}
+
 # ── Tìm thư mục gốc repo ──────────────────────────────────────────────────────
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
@@ -341,15 +373,111 @@ if [[ "$OPT_SETUP_HTTPS" == "true" ]]; then
     exit 1
   fi
 
-  log_info "Cài nginx + certbot + plugin nginx"
-  $SUDO apt-get update -y
-  $SUDO apt-get install -y nginx certbot python3-certbot-nginx
-
   NGINX_SITE_AVAIL="/etc/nginx/sites-available/qltb.conf"
   NGINX_SITE_ENABLED="/etc/nginx/sites-enabled/qltb.conf"
 
-  log_info "Tạo/cập nhật nginx server block: ${NGINX_SITE_AVAIL}"
-  cat <<EOF | $SUDO tee "$NGINX_SITE_AVAIL" >/dev/null
+  if [[ ! -L "$NGINX_SITE_ENABLED" ]]; then
+    $SUDO ln -sf "$NGINX_SITE_AVAIL" "$NGINX_SITE_ENABLED"
+  fi
+
+  if [[ -e "/etc/nginx/sites-enabled/default" ]]; then
+    $SUDO rm -f /etc/nginx/sites-enabled/default
+  fi
+
+  if is_local_domain "$QLTB_DOMAIN"; then
+    LOCAL_CERT_DIR="/etc/ssl/qltb"
+    LOCAL_CERT_FILE="${LOCAL_CERT_DIR}/${QLTB_DOMAIN}.crt"
+    LOCAL_KEY_FILE="${LOCAL_CERT_DIR}/${QLTB_DOMAIN}.key"
+
+    log_warn "Domain '${QLTB_DOMAIN}' là local/private, không thể dùng Let's Encrypt."
+    log_info "Cài nginx + openssl để tạo self-signed certificate"
+    $SUDO apt-get update -y
+    $SUDO apt-get install -y nginx openssl
+    $SUDO mkdir -p "$LOCAL_CERT_DIR"
+
+    if [[ ! -f "$LOCAL_CERT_FILE" || ! -f "$LOCAL_KEY_FILE" ]]; then
+      log_info "Tạo self-signed certificate cho local SSL"
+      $SUDO openssl req -x509 -nodes -newkey rsa:2048 -sha256 -days 825 \
+        -keyout "$LOCAL_KEY_FILE" \
+        -out "$LOCAL_CERT_FILE" \
+        -subj "/CN=${QLTB_DOMAIN}" \
+        -addext "subjectAltName=DNS:${QLTB_DOMAIN},DNS:localhost,IP:127.0.0.1"
+      $SUDO chmod 600 "$LOCAL_KEY_FILE"
+      $SUDO chmod 644 "$LOCAL_CERT_FILE"
+    else
+      log_info "Self-signed certificate đã tồn tại, giữ nguyên"
+    fi
+
+    log_info "Tạo/cập nhật nginx server block local SSL: ${NGINX_SITE_AVAIL}"
+    cat <<EOF | $SUDO tee "$NGINX_SITE_AVAIL" >/dev/null
+server {
+    listen 80;
+    listen [::]:80;
+    server_name ${QLTB_DOMAIN};
+    return 301 https://\$host\$request_uri;
+}
+
+server {
+    listen 443 ssl http2;
+    listen [::]:443 ssl http2;
+    server_name ${QLTB_DOMAIN};
+
+    ssl_certificate ${LOCAL_CERT_FILE};
+    ssl_certificate_key ${LOCAL_KEY_FILE};
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_session_cache shared:SSL:10m;
+    ssl_session_timeout 1d;
+
+    location /api/ {
+        proxy_pass http://127.0.0.1:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto \$scheme;
+    }
+
+    location /docs {
+        proxy_pass http://127.0.0.1:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto \$scheme;
+    }
+
+    location /health {
+        proxy_pass http://127.0.0.1:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto \$scheme;
+    }
+
+    location / {
+        proxy_pass http://127.0.0.1:3001;
+        proxy_http_version 1.1;
+        proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto \$scheme;
+    }
+}
+EOF
+
+    log_info "Kiểm tra cấu hình nginx"
+    $SUDO nginx -t
+    $SUDO systemctl enable --now nginx
+    $SUDO systemctl reload nginx
+    log_ok "Local SSL đã sẵn sàng tại https://${QLTB_DOMAIN} (self-signed)"
+  else
+    log_info "Cài nginx + certbot + plugin nginx"
+    $SUDO apt-get update -y
+    $SUDO apt-get install -y nginx certbot python3-certbot-nginx
+
+    log_info "Tạo/cập nhật nginx server block: ${NGINX_SITE_AVAIL}"
+    cat <<EOF | $SUDO tee "$NGINX_SITE_AVAIL" >/dev/null
 server {
     listen 80;
     listen [::]:80;
@@ -393,41 +521,34 @@ server {
 }
 EOF
 
-  if [[ ! -L "$NGINX_SITE_ENABLED" ]]; then
-    $SUDO ln -sf "$NGINX_SITE_AVAIL" "$NGINX_SITE_ENABLED"
+    log_info "Kiểm tra cấu hình nginx"
+    $SUDO nginx -t
+    $SUDO systemctl enable --now nginx
+    $SUDO systemctl reload nginx
+
+    CERTBOT_ARGS=(
+      --nginx
+      -d "$QLTB_DOMAIN"
+      --agree-tos
+      --redirect
+      --non-interactive
+      -m "$LETSENCRYPT_EMAIL"
+      --keep-until-expiring
+    )
+
+    if [[ "$OPT_HTTPS_STAGING" == "true" ]]; then
+      CERTBOT_ARGS+=(--staging)
+      log_warn "Đang dùng Let's Encrypt staging"
+    fi
+
+    log_info "Chạy certbot --nginx"
+    $SUDO certbot "${CERTBOT_ARGS[@]}"
+
+    log_info "Bật auto renew qua systemd timer"
+    $SUDO systemctl enable --now certbot.timer
+    $SUDO systemctl reload nginx
+    log_ok "HTTPS đã được cấu hình cho ${QLTB_DOMAIN}"
   fi
-
-  if [[ -e "/etc/nginx/sites-enabled/default" ]]; then
-    $SUDO rm -f /etc/nginx/sites-enabled/default
-  fi
-
-  log_info "Kiểm tra cấu hình nginx"
-  $SUDO nginx -t
-  $SUDO systemctl enable --now nginx
-  $SUDO systemctl reload nginx
-
-  CERTBOT_ARGS=(
-    --nginx
-    -d "$QLTB_DOMAIN"
-    --agree-tos
-    --redirect
-    --non-interactive
-    -m "$LETSENCRYPT_EMAIL"
-    --keep-until-expiring
-  )
-
-  if [[ "$OPT_HTTPS_STAGING" == "true" ]]; then
-    CERTBOT_ARGS+=(--staging)
-    log_warn "Đang dùng Let's Encrypt staging"
-  fi
-
-  log_info "Chạy certbot --nginx"
-  $SUDO certbot "${CERTBOT_ARGS[@]}"
-
-  log_info "Bật auto renew qua systemd timer"
-  $SUDO systemctl enable --now certbot.timer
-  $SUDO systemctl reload nginx
-  log_ok "HTTPS đã được cấu hình cho ${QLTB_DOMAIN}"
 fi
 
 # ══════════════════════════════════════════════════════════════════════════════

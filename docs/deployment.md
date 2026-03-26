@@ -110,6 +110,12 @@ Khi bat `--setup-https`, script se:
 - chay `certbot --nginx --redirect`
 - bat auto-renew qua `certbot.timer`
 
+Luu y domain local:
+
+- Neu `QLTB_DOMAIN` la local/private (vi du `localhost`, `*.local`, TLD khong hop le/public nhu `qltb.local.bvqy121`), script se KHONG goi Let's Encrypt.
+- Thay vao do script tao self-signed certificate bang `openssl`, cau hinh nginx HTTPS + redirect 80 -> 443.
+- `certbot.timer` chi ap dung voi domain public hop le.
+
 ## Health Checks
 
 - API health route used by tooling: `/health`
