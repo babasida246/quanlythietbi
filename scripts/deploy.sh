@@ -15,6 +15,8 @@
 #   --skip-web    Chỉ build API, bỏ qua web-ui
 #   --no-install  Bỏ qua bước pnpm install
 #   --clean       Xóa toàn bộ dist/ trước khi build
+#   --setup-https Cài certbot + plugin nginx, tạo/cập nhật server block, cấp cert
+#   --https-staging Dùng Let's Encrypt staging cho --setup-https
 #   --restart     Restart systemd services (qltb-api, qltb-web) sau khi build xong
 #   -h, --help    Hiển thị help
 #
@@ -50,6 +52,8 @@ OPT_SKIP_WEB=false
 OPT_NO_INSTALL=false
 OPT_CLEAN=false
 OPT_RESTART=false
+OPT_SETUP_HTTPS=false
+OPT_HTTPS_STAGING=false
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -58,7 +62,12 @@ while [[ $# -gt 0 ]]; do
     --skip-web)   OPT_SKIP_WEB=true ;;
     --no-install) OPT_NO_INSTALL=true ;;
     --clean)      OPT_CLEAN=true ;;
+    --setup-https) OPT_SETUP_HTTPS=true ;;
+    --https-staging) OPT_HTTPS_STAGING=true; OPT_SETUP_HTTPS=true ;;
     --restart)    OPT_RESTART=true ;;
+    --docker-app|--docker-no-build)
+      log_error "Tùy chọn $1 không được hỗ trợ trong deploy native Ubuntu (non-Docker)."
+      exit 1 ;;
     -h|--help)
       sed -n '3,26p' "$0" | sed 's/^# \?//'
       exit 0 ;;
@@ -79,6 +88,8 @@ echo -e "    seed       = ${OPT_SEED}"
 echo -e "    skip-web   = ${OPT_SKIP_WEB}"
 echo -e "    no-install = ${OPT_NO_INSTALL}"
 echo -e "    clean      = ${OPT_CLEAN}"
+echo -e "    setup-https = ${OPT_SETUP_HTTPS}"
+echo -e "    https-staging = ${OPT_HTTPS_STAGING}"
 hr
 
 cd "$ROOT"
@@ -123,6 +134,23 @@ log_ok ".env tìm thấy"
 # Kiểm tra biến thiết yếu
 # shellcheck source=/dev/null
 set -a; source "$ROOT/.env"; set +a
+
+if [[ -z "${QLTB_DOMAIN:-}" ]]; then
+  QLTB_DOMAIN=""
+fi
+if [[ -z "${LETSENCRYPT_EMAIL:-}" ]]; then
+  LETSENCRYPT_EMAIL=""
+fi
+
+SUDO=""
+if [[ "${EUID}" -ne 0 ]]; then
+  if command -v sudo &>/dev/null; then
+    SUDO="sudo"
+  else
+    log_error "Cần quyền root (hoặc cài sudo) để setup HTTPS/nginx/certbot"
+    exit 1
+  fi
+fi
 
 # Build DATABASE_URL từ POSTGRES_* nếu chưa có
 if [[ -z "${DATABASE_URL:-}" ]]; then
@@ -294,6 +322,115 @@ if [[ "$OPT_RESTART" == "true" ]]; then
 fi
 
 # ══════════════════════════════════════════════════════════════════════════════
+# BƯỚC 10 — HTTPS setup (tuỳ chọn) với nginx + certbot (native Ubuntu)
+# ══════════════════════════════════════════════════════════════════════════════
+if [[ "$OPT_SETUP_HTTPS" == "true" ]]; then
+  log_step "Setup HTTPS (nginx + certbot)"
+
+  if [[ -z "${QLTB_DOMAIN}" ]]; then
+    log_error "Thiếu QLTB_DOMAIN trong .env (ví dụ: qltb.example.com)"
+    exit 1
+  fi
+  if [[ -z "${LETSENCRYPT_EMAIL}" ]]; then
+    log_error "Thiếu LETSENCRYPT_EMAIL trong .env"
+    exit 1
+  fi
+
+  if ! command -v apt-get &>/dev/null; then
+    log_error "Script này chỉ hỗ trợ tự động cài certbot trên Ubuntu/Debian (apt-get)."
+    exit 1
+  fi
+
+  log_info "Cài nginx + certbot + plugin nginx"
+  $SUDO apt-get update -y
+  $SUDO apt-get install -y nginx certbot python3-certbot-nginx
+
+  NGINX_SITE_AVAIL="/etc/nginx/sites-available/qltb.conf"
+  NGINX_SITE_ENABLED="/etc/nginx/sites-enabled/qltb.conf"
+
+  log_info "Tạo/cập nhật nginx server block: ${NGINX_SITE_AVAIL}"
+  cat <<EOF | $SUDO tee "$NGINX_SITE_AVAIL" >/dev/null
+server {
+    listen 80;
+    listen [::]:80;
+    server_name ${QLTB_DOMAIN};
+
+    location /api/ {
+        proxy_pass http://127.0.0.1:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto \$scheme;
+    }
+
+    location /docs {
+        proxy_pass http://127.0.0.1:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto \$scheme;
+    }
+
+    location /health {
+        proxy_pass http://127.0.0.1:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto \$scheme;
+    }
+
+    location / {
+        proxy_pass http://127.0.0.1:3001;
+        proxy_http_version 1.1;
+        proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto \$scheme;
+    }
+}
+EOF
+
+  if [[ ! -L "$NGINX_SITE_ENABLED" ]]; then
+    $SUDO ln -sf "$NGINX_SITE_AVAIL" "$NGINX_SITE_ENABLED"
+  fi
+
+  if [[ -e "/etc/nginx/sites-enabled/default" ]]; then
+    $SUDO rm -f /etc/nginx/sites-enabled/default
+  fi
+
+  log_info "Kiểm tra cấu hình nginx"
+  $SUDO nginx -t
+  $SUDO systemctl enable --now nginx
+  $SUDO systemctl reload nginx
+
+  CERTBOT_ARGS=(
+    --nginx
+    -d "$QLTB_DOMAIN"
+    --agree-tos
+    --redirect
+    --non-interactive
+    -m "$LETSENCRYPT_EMAIL"
+    --keep-until-expiring
+  )
+
+  if [[ "$OPT_HTTPS_STAGING" == "true" ]]; then
+    CERTBOT_ARGS+=(--staging)
+    log_warn "Đang dùng Let's Encrypt staging"
+  fi
+
+  log_info "Chạy certbot --nginx"
+  $SUDO certbot "${CERTBOT_ARGS[@]}"
+
+  log_info "Bật auto renew qua systemd timer"
+  $SUDO systemctl enable --now certbot.timer
+  $SUDO systemctl reload nginx
+  log_ok "HTTPS đã được cấu hình cho ${QLTB_DOMAIN}"
+fi
+
+# ══════════════════════════════════════════════════════════════════════════════
 # Tóm tắt
 # ══════════════════════════════════════════════════════════════════════════════
 END_TS=$(date +%s)
@@ -308,6 +445,13 @@ echo -e "  ${BOLD}Artifacts:${RESET}"
 echo -e "    API  → ${CYAN}apps/api/dist/main.js${RESET}"
 [[ "$OPT_SKIP_WEB" == "false" ]] && \
   echo -e "    Web  → ${CYAN}apps/web-ui/build/${RESET}"
+
+if [[ "$OPT_SETUP_HTTPS" == "true" ]]; then
+  echo -e ""
+  echo -e "  ${BOLD}HTTPS:${RESET}"
+  echo -e "    Domain: ${CYAN}${QLTB_DOMAIN}${RESET}"
+  echo -e "    Renew timer: ${CYAN}systemctl status certbot.timer${RESET}"
+fi
 
 echo ""
 echo -e "  ${BOLD}Khởi động API:${RESET}"

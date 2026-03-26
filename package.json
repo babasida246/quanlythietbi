@@ -23,8 +23,8 @@
         "deploy": "bash scripts/deploy.sh",
         "deploy:migrate": "bash scripts/deploy.sh --migrate",
         "deploy:update": "bash scripts/deploy.sh --migrate --restart",
-        "deploy:fresh": "bash scripts/deploy.sh --migrate --seed --clean",
-        "deploy:init": "bash scripts/deploy.sh --migrate --seed --clean && sudo bash scripts/setup-service.sh",
+        "deploy:fresh": "bash scripts/deploy.sh --migrate --seed --clean --setup-https",
+        "deploy:init": "bash scripts/deploy.sh --migrate --seed --clean --setup-https && sudo bash scripts/setup-service.sh",
         "deploy:docker": "docker-compose -f docker-compose.app.yml up -d --build",
         "service:setup": "sudo bash scripts/setup-service.sh",
         "service:restart": "sudo bash scripts/setup-service.sh --restart",
@@ -53,7 +53,7 @@
         "db:seed": "node scripts/db-seed.mjs",
         "db:reset": "pnpm db:empty && pnpm db:migrate && pnpm db:seed",
         "db:setup": "node scripts/db-setup.mjs",
-        "setup:status": "node -e \"fetch('http://localhost:3000/api/setup/status').then((r)=>r.text()).then(console.log).catch((e)=>{console.error(e);process.exit(1);})\""  ,
+        "setup:status": "node -e \"fetch('http://localhost:3000/api/setup/status').then((r)=>r.text()).then(console.log).catch((e)=>{console.error(e);process.exit(1);})\"",
         "smoke:warehouse:roles": "node scripts/smoke-warehouse-role-access.mjs"
     },
     "devDependencies": {

@@ -108,6 +108,21 @@ pnpm test:ui
 pnpm test:smoke
 ```
 
+## 8.1 Docker HTTPS nhanh (Nginx + Certbot)
+
+1. Copy `.env.production.example` thanh `.env` va dien:
+  - `QLTB_DOMAIN`
+  - `LETSENCRYPT_EMAIL`
+  - `LETSENCRYPT_STAGING=false`
+2. Dam bao DNS domain tro dung server va mo port `80/443`.
+3. Chay:
+
+```bash
+docker-compose -f docker-compose.app.yml up -d --build
+```
+
+Nginx se phuc vu HTTP challenge, certbot cap/renew cert, sau do HTTP tu dong redirect sang HTTPS.
+
 ## 9. Cau truc thu muc
 
 ```text
