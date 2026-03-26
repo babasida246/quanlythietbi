@@ -69,6 +69,7 @@ export type AssetEvent = {
 }
 
 export type AssetSearchParams = {
+    scope?: 'my_ou'
     query?: string
     status?: AssetStatus
     categoryId?: string
@@ -161,8 +162,9 @@ export async function listAssets(params: AssetSearchParams = {}): Promise<ApiRes
     })
 }
 
-export async function getAssetStatusCounts(): Promise<ApiResponse<AssetStatusCounts> | null> {
-    const response = await authorizedFetch(`${API_BASE}/v1/assets/status-counts`, {
+export async function getAssetStatusCounts(params: { scope?: 'my_ou' } = {}): Promise<ApiResponse<AssetStatusCounts> | null> {
+    const query = buildQuery(params)
+    const response = await authorizedFetch(`${API_BASE}/v1/assets/status-counts${query}`, {
         headers: getAssetHeaders()
     })
 

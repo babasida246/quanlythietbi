@@ -7,6 +7,7 @@ export const assetIdParamsSchema = z.object({
 
 export const assetSearchSchema = z.object({
     query: z.string().min(1).optional(),
+    scope: z.enum(['my_ou']).optional(),
     status: z.enum(AssetStatusValues).optional(),
     categoryId: z.string().uuid().optional(),
     modelId: z.string().uuid().optional(),

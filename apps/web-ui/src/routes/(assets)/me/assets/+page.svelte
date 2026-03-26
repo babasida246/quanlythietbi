@@ -84,6 +84,7 @@
       loading = true;
       error = '';
       const response = await listAssets({
+        scope: 'my_ou',
         query: query.trim() || undefined,
         status: activeTab !== 'all' ? (activeTab as AssetStatus) : undefined,
         sort: sortBy,
@@ -106,7 +107,7 @@
   async function loadStats() {
     try {
       statsLoading = true;
-      const result = await getAssetStatusCounts();
+      const result = await getAssetStatusCounts({ scope: 'my_ou' });
       if (result?.data) {
         const d = result.data;
         stats = {

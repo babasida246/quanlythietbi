@@ -355,6 +355,7 @@
     "clearFilters": "Clear filters",
     "assetName": "Asset name",
     "template": "Template",
+    "edit": "Edit",
     "editAsset": "Edit asset",
     "deleteConfirm": "Are you sure you want to delete asset {name}?",
     "subtitleCount": "{count} assets",
@@ -389,7 +390,30 @@
     "createAnother": "Create another",
     "backToList": "Back to list",
     "specHint": "Specifications are loaded from the model and can be customized per asset.",
-    "specLoadedFromModel": "Specs from model"
+    "specLoadedFromModel": "Specs from model",
+    "lifecycleDiff": {
+      "title": "Quick Change History",
+      "empty": "No detailed change payload available yet.",
+      "noPayload": "No before/after payload in this event."
+    },
+    "assignModal": {
+      "searchingUsers": "Searching users...",
+      "placeholders": {
+        "assigneeName": "e.g. John Doe",
+        "assigneeId": "Employee ID / Department ID",
+        "noLocation": "- No location -",
+        "noOrganization": "- No organization -",
+        "note": "Optional note"
+      },
+      "validation": {
+        "assigneeNameRequired": "Please enter the assignee name",
+        "assigneeIdRequired": "Please enter the assignee identifier",
+        "departmentOrganizationRequired": "Please select an organization for Department assignee type",
+        "departmentLocationRequired": "Please select a location for Department assignee type",
+        "personIdMinLength": "Employee ID must be at least 3 characters",
+        "systemIdInvalid": "System ID can only contain letters, numbers, and _ . : -"
+      }
+    }
   },
   "maintenance": {
     "title": "Maintenance",

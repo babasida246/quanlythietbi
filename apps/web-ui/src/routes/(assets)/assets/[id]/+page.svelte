@@ -25,6 +25,7 @@
     getAssetTimeline,
     openMaintenanceTicket,
     returnAsset,
+    updateAsset,
     type Asset,
     type AssetAssignment,
     type AssigneeType,
@@ -74,6 +75,39 @@
   let newSessionLocationId = $state('');
   let purchaseCost = $state('');
   let usefulLifeYears = $state('3');
+  let overviewEditMode = $state(false);
+  let specsEditMode = $state(false);
+  let overviewSaving = $state(false);
+  let specsSaving = $state(false);
+  let formError = $state('');
+  let overviewDraft = $state<{
+    serialNo: string;
+    macAddress: string;
+    mgmtIp: string;
+    hostname: string;
+    vlanId: string;
+    switchName: string;
+    switchPort: string;
+    locationId: string;
+    vendorId: string;
+    purchaseDate: string;
+    warrantyEnd: string;
+    notes: string;
+  }>({
+    serialNo: '',
+    macAddress: '',
+    mgmtIp: '',
+    hostname: '',
+    vlanId: '',
+    switchName: '',
+    switchPort: '',
+    locationId: '',
+    vendorId: '',
+    purchaseDate: '',
+    warrantyEnd: '',
+    notes: ''
+  });
+  let specDraft = $state<Record<string, unknown>>({});
 
   let assetComponents = $state<ComponentAssignmentWithDetails[]>([]);
   let specDefs = $state<CategorySpecDef[]>([]);
@@ -98,6 +132,41 @@
   let repairCreating = $state(false);
   let repairError = $state('');
 
+  type TimelineDiffRow = {
+    field: string;
+    before: string;
+    after: string;
+  };
+
+  function toComparableJson(value: unknown): string {
+    const normalize = (input: unknown): unknown => {
+      if (Array.isArray(input)) return input.map((item) => normalize(item));
+      if (input && typeof input === 'object') {
+        const entries = Object.entries(input as Record<string, unknown>)
+          .sort(([a], [b]) => a.localeCompare(b))
+          .map(([key, val]) => [key, normalize(val)]);
+        return Object.fromEntries(entries);
+      }
+      return input;
+    };
+    try {
+      return JSON.stringify(normalize(value));
+    } catch {
+      return String(value);
+    }
+  }
+
+  function formatDiffValue(value: unknown): string {
+    if (value === null || value === undefined) return '-';
+    if (typeof value === 'string') return value || '-';
+    if (typeof value === 'number' || typeof value === 'boolean') return String(value);
+    try {
+      return JSON.stringify(value);
+    } catch {
+      return String(value);
+    }
+  }
+
   function formatDate(value: string | null | undefined): string {
     if (!value) return '-';
     try {
@@ -121,6 +190,7 @@
 
   const assetId = $derived(page.params.id);
   const locations = $derived(catalogs?.locations ?? []);
+  const vendors = $derived(catalogs?.vendors ?? []);
 
   onMount(() => {
     if (typeof window === 'undefined') return;
@@ -166,6 +236,90 @@
       monthly: cost / years / 12
     };
   });
+  const overviewDirty = $derived.by(() => {
+    if (!asset || !overviewEditMode) return false;
+    return toComparableJson({
+      serialNo: asset.serialNo ?? '',
+      macAddress: asset.macAddress ?? '',
+      mgmtIp: asset.mgmtIp ?? '',
+      hostname: asset.hostname ?? '',
+      vlanId: asset.vlanId ? String(asset.vlanId) : '',
+      switchName: asset.switchName ?? '',
+      switchPort: asset.switchPort ?? '',
+      locationId: asset.locationId ?? '',
+      vendorId: asset.vendorId ?? '',
+      purchaseDate: asset.purchaseDate ?? '',
+      warrantyEnd: asset.warrantyEnd ?? '',
+      notes: asset.notes ?? ''
+    }) !== toComparableJson(overviewDraft);
+  });
+  const specsDirty = $derived.by(() => {
+    if (!asset || !specsEditMode) return false;
+    return toComparableJson(asset.spec ?? {}) !== toComparableJson(specDraft);
+  });
+  const hasPendingChanges = $derived.by(() => overviewDirty || specsDirty);
+  const lifecycleDiffEvents = $derived.by(() => {
+    const rows: Array<{ id: string; at: string; eventType: string; changes: TimelineDiffRow[] }> = [];
+    for (const event of timeline) {
+      const payload = (event.payload ?? {}) as Record<string, unknown>;
+      const changes: TimelineDiffRow[] = [];
+
+      const before = payload.before;
+      const after = payload.after;
+      if (before && after && typeof before === 'object' && typeof after === 'object') {
+        const keySet = new Set([...Object.keys(before as Record<string, unknown>), ...Object.keys(after as Record<string, unknown>)]);
+        for (const key of keySet) {
+          const prev = (before as Record<string, unknown>)[key];
+          const next = (after as Record<string, unknown>)[key];
+          if (toComparableJson(prev) !== toComparableJson(next)) {
+            changes.push({ field: key, before: formatDiffValue(prev), after: formatDiffValue(next) });
+          }
+        }
+      }
+
+      const patch = payload.patch;
+      if (changes.length === 0 && patch && typeof patch === 'object') {
+        for (const [key, next] of Object.entries(patch as Record<string, unknown>)) {
+          changes.push({ field: key, before: '-', after: formatDiffValue(next) });
+        }
+      }
+
+      const genericChanges = payload.changes;
+      if (changes.length === 0 && genericChanges && typeof genericChanges === 'object') {
+        for (const [key, item] of Object.entries(genericChanges as Record<string, unknown>)) {
+          if (item && typeof item === 'object' && 'before' in (item as Record<string, unknown>) && 'after' in (item as Record<string, unknown>)) {
+            const val = item as Record<string, unknown>;
+            changes.push({ field: key, before: formatDiffValue(val.before), after: formatDiffValue(val.after) });
+          } else {
+            changes.push({ field: key, before: '-', after: formatDiffValue(item) });
+          }
+        }
+      }
+
+      if (changes.length > 0 || /update|edit|patch/i.test(event.eventType)) {
+        rows.push({
+          id: event.id,
+          at: event.createdAt,
+          eventType: event.eventType,
+          changes
+        });
+      }
+    }
+    return rows.slice(0, 10);
+  });
+
+  function requestTabChange(nextTab: string) {
+    if (nextTab === activeTab) return;
+    if (hasPendingChanges) {
+      const ok = window.confirm('Bạn có thay đổi chưa lưu. Chuyển tab sẽ mất thay đổi. Tiếp tục?');
+      if (!ok) return;
+      overviewEditMode = false;
+      specsEditMode = false;
+      formError = '';
+      initDrafts();
+    }
+    activeTab = nextTab;
+  }
   async function loadDetail() {
     if (!assetId) return;
     try {
@@ -208,11 +362,167 @@
       void loadLicenses();
 
       void loadKnowledge();
+      initDrafts();
     } catch (err) {
       error = err instanceof Error ? err.message : $_('assets.errors.loadFailed');
     } finally {
       loading = false;
     }
+  }
+
+  function initDrafts() {
+    if (!asset) return;
+    overviewDraft = {
+      serialNo: asset.serialNo ?? '',
+      macAddress: asset.macAddress ?? '',
+      mgmtIp: asset.mgmtIp ?? '',
+      hostname: asset.hostname ?? '',
+      vlanId: asset.vlanId ? String(asset.vlanId) : '',
+      switchName: asset.switchName ?? '',
+      switchPort: asset.switchPort ?? '',
+      locationId: asset.locationId ?? '',
+      vendorId: asset.vendorId ?? '',
+      purchaseDate: asset.purchaseDate ?? '',
+      warrantyEnd: asset.warrantyEnd ?? '',
+      notes: asset.notes ?? ''
+    };
+    specDraft = { ...(asset.spec ?? {}) };
+  }
+
+  function validateOverviewDraft(): string {
+    if (overviewDraft.mgmtIp && !/^[0-9a-fA-F:.]+$/.test(overviewDraft.mgmtIp)) {
+      return 'Địa chỉ IP quản trị không hợp lệ';
+    }
+    if (overviewDraft.macAddress && !/^([0-9A-Fa-f]{2}[:\-]){5}[0-9A-Fa-f]{2}$/.test(overviewDraft.macAddress)) {
+      return 'Địa chỉ MAC không hợp lệ';
+    }
+    if (overviewDraft.vlanId) {
+      const vlan = Number(overviewDraft.vlanId);
+      if (!Number.isInteger(vlan) || vlan < 1 || vlan > 4094) {
+        return 'VLAN ID phải nằm trong khoảng 1-4094';
+      }
+    }
+    if (overviewDraft.purchaseDate && overviewDraft.warrantyEnd && overviewDraft.warrantyEnd < overviewDraft.purchaseDate) {
+      return 'Ngày hết bảo hành phải lớn hơn hoặc bằng ngày mua';
+    }
+    return '';
+  }
+
+  async function saveOverview(): Promise<void> {
+    if (!asset) return;
+    const invalid = validateOverviewDraft();
+    if (invalid) {
+      formError = invalid;
+      return;
+    }
+
+    formError = '';
+    overviewSaving = true;
+    try {
+      const payload = {
+        serialNo: overviewDraft.serialNo || undefined,
+        macAddress: overviewDraft.macAddress || undefined,
+        mgmtIp: overviewDraft.mgmtIp || undefined,
+        hostname: overviewDraft.hostname || undefined,
+        vlanId: overviewDraft.vlanId ? Number(overviewDraft.vlanId) : undefined,
+        switchName: overviewDraft.switchName || undefined,
+        switchPort: overviewDraft.switchPort || undefined,
+        locationId: overviewDraft.locationId || undefined,
+        vendorId: overviewDraft.vendorId || undefined,
+        purchaseDate: overviewDraft.purchaseDate || undefined,
+        warrantyEnd: overviewDraft.warrantyEnd || undefined,
+        notes: overviewDraft.notes || undefined
+      };
+      await updateAsset(asset.id, payload);
+      overviewEditMode = false;
+      await loadDetail();
+    } catch (err) {
+      formError = err instanceof Error ? err.message : 'Không thể lưu thông tin tổng quan';
+    } finally {
+      overviewSaving = false;
+    }
+  }
+
+  function startOverviewEdit() {
+    initDrafts();
+    formError = '';
+    overviewEditMode = true;
+  }
+
+  function cancelOverviewEdit() {
+    overviewEditMode = false;
+    formError = '';
+    initDrafts();
+  }
+
+  function startSpecsEdit() {
+    initDrafts();
+    formError = '';
+    specsEditMode = true;
+  }
+
+  function cancelSpecsEdit() {
+    specsEditMode = false;
+    formError = '';
+    initDrafts();
+  }
+
+  function parseSpecValue(raw: unknown, fieldType?: string): unknown {
+    const text = String(raw ?? '').trim();
+    if (!fieldType) return text;
+    if (fieldType === 'number') {
+      if (!text) return null;
+      const value = Number(text);
+      return Number.isFinite(value) ? value : null;
+    }
+    if (fieldType === 'boolean') {
+      return text === 'true';
+    }
+    if (fieldType === 'json') {
+      if (!text) return null;
+      try {
+        return JSON.parse(text);
+      } catch {
+        return text;
+      }
+    }
+    return text;
+  }
+
+  async function saveSpecs(): Promise<void> {
+    if (!asset) return;
+    specsSaving = true;
+    formError = '';
+    try {
+      const nextSpec: Record<string, unknown> = {};
+      const defs = specDefs.length > 0 ? specDefs : Object.keys(specDraft).map((key) => ({ key, fieldType: 'string', required: false } as CategorySpecDef));
+      for (const def of defs) {
+        const value = parseSpecValue(specDraft[def.key], def.fieldType);
+        if (def.required && (value === null || value === undefined || value === '')) {
+          formError = `Thiếu trường bắt buộc: ${def.label}`;
+          specsSaving = false;
+          return;
+        }
+        if (value !== null && value !== undefined && value !== '') {
+          nextSpec[def.key] = value;
+        }
+      }
+      await updateAsset(asset.id, { spec: nextSpec });
+      specsEditMode = false;
+      await loadDetail();
+    } catch (err) {
+      formError = err instanceof Error ? err.message : 'Không thể lưu thông số kỹ thuật';
+    } finally {
+      specsSaving = false;
+    }
+  }
+
+  function getSpecFieldType(key: string): string {
+    return specDefs.find((item) => item.key === key)?.fieldType ?? 'string';
+  }
+
+  function getSpecEnumValues(key: string): string[] {
+    return specDefs.find((item) => item.key === key)?.enumValues ?? [];
   }
 
   async function loadKnowledge() {
@@ -428,6 +738,17 @@
       void loadInventorySessionDetail(activeInventorySessionId);
     }
   });
+
+  $effect(() => {
+    if (typeof window === 'undefined') return;
+    const onBeforeUnload = (event: BeforeUnloadEvent) => {
+      if (!hasPendingChanges) return;
+      event.preventDefault();
+      event.returnValue = '';
+    };
+    window.addEventListener('beforeunload', onBeforeUnload);
+    return () => window.removeEventListener('beforeunload', onBeforeUnload);
+  });
 </script>
 <div class="page-shell page-content">
   <div class="mb-4 flex flex-wrap items-center gap-3">
@@ -479,26 +800,41 @@
   {:else if asset}
     <Tabs>
       <TabsList>
-        <TabsTrigger active={activeTab === 'overview'} onclick={() => activeTab = 'overview'}>{$isLoading ? 'Overview' : $_('assets.tabs.overview')}</TabsTrigger>
-        <TabsTrigger active={activeTab === 'specs'} onclick={() => activeTab = 'specs'}>{$isLoading ? 'Specs' : $_('assets.tabs.specs')}</TabsTrigger>
-        <TabsTrigger active={activeTab === 'lifecycle'} onclick={() => activeTab = 'lifecycle'}>{$isLoading ? 'Lifecycle' : $_('assets.tabs.lifecycle')}</TabsTrigger>
-        <TabsTrigger active={activeTab === 'repairs'} onclick={() => activeTab = 'repairs'}>{$isLoading ? 'Repairs' : $_('assets.tabs.repairs')}</TabsTrigger>
-        <TabsTrigger active={activeTab === 'maintenance'} onclick={() => activeTab = 'maintenance'}>{$isLoading ? 'Maintenance' : $_('assets.tabs.maintenance')}</TabsTrigger>
-        <TabsTrigger active={activeTab === 'software'} onclick={() => activeTab = 'software'}>{$isLoading ? 'Software' : $_('assets.tabs.software')}</TabsTrigger>
-        <TabsTrigger active={activeTab === 'components'} onclick={() => activeTab = 'components'}>{$isLoading ? 'Components' : $_('assets.tabs.components')}</TabsTrigger>
-        <TabsTrigger active={activeTab === 'warranty'} onclick={() => activeTab = 'warranty'}>{$isLoading ? 'Warranty' : $_('assets.tabs.warranty')}</TabsTrigger>
+        <TabsTrigger active={activeTab === 'overview'} onclick={() => requestTabChange('overview')}>{$isLoading ? 'Overview' : $_('assets.tabs.overview')}</TabsTrigger>
+        <TabsTrigger active={activeTab === 'specs'} onclick={() => requestTabChange('specs')}>{$isLoading ? 'Specs' : $_('assets.tabs.specs')}</TabsTrigger>
+        <TabsTrigger active={activeTab === 'lifecycle'} onclick={() => requestTabChange('lifecycle')}>{$isLoading ? 'Lifecycle' : $_('assets.tabs.lifecycle')}</TabsTrigger>
+        <TabsTrigger active={activeTab === 'repairs'} onclick={() => requestTabChange('repairs')}>{$isLoading ? 'Repairs' : $_('assets.tabs.repairs')}</TabsTrigger>
+        <TabsTrigger active={activeTab === 'maintenance'} onclick={() => requestTabChange('maintenance')}>{$isLoading ? 'Maintenance' : $_('assets.tabs.maintenance')}</TabsTrigger>
+        <TabsTrigger active={activeTab === 'software'} onclick={() => requestTabChange('software')}>{$isLoading ? 'Software' : $_('assets.tabs.software')}</TabsTrigger>
+        <TabsTrigger active={activeTab === 'components'} onclick={() => requestTabChange('components')}>{$isLoading ? 'Components' : $_('assets.tabs.components')}</TabsTrigger>
+        <TabsTrigger active={activeTab === 'warranty'} onclick={() => requestTabChange('warranty')}>{$isLoading ? 'Warranty' : $_('assets.tabs.warranty')}</TabsTrigger>
         {#if caps.canManageAssets}
-          <TabsTrigger active={activeTab === 'inventory'} onclick={() => activeTab = 'inventory'}>{$isLoading ? 'Inventory' : $_('assets.tabs.inventory')}</TabsTrigger>
+          <TabsTrigger active={activeTab === 'inventory'} onclick={() => requestTabChange('inventory')}>{$isLoading ? 'Inventory' : $_('assets.tabs.inventory')}</TabsTrigger>
         {/if}
-        <TabsTrigger active={activeTab === 'attachments'} onclick={() => activeTab = 'attachments'}>{$isLoading ? 'Attachments' : $_('assets.tabs.attachments')}</TabsTrigger>
-        <TabsTrigger active={activeTab === 'compliance'} onclick={() => activeTab = 'compliance'}>{$isLoading ? 'Compliance' : $_('assets.tabs.compliance')}</TabsTrigger>
+        <TabsTrigger active={activeTab === 'attachments'} onclick={() => requestTabChange('attachments')}>{$isLoading ? 'Attachments' : $_('assets.tabs.attachments')}</TabsTrigger>
+        <TabsTrigger active={activeTab === 'compliance'} onclick={() => requestTabChange('compliance')}>{$isLoading ? 'Compliance' : $_('assets.tabs.compliance')}</TabsTrigger>
       </TabsList>
     </Tabs>
 
     {#if activeTab === 'overview'}
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div class="card p-4 sm:p-5 lg:col-span-2">
-            <h2 class="text-base font-semibold mb-4 pb-3 border-b border-border">{$isLoading ? 'Overview' : $_('assets.overview')}</h2>
+            <div class="mb-4 pb-3 border-b border-border flex items-center justify-between gap-2">
+              <h2 class="text-base font-semibold">{$isLoading ? 'Overview' : $_('assets.overview')}</h2>
+              {#if caps.canManageAssets}
+                {#if !overviewEditMode}
+                  <Button size="sm" variant="secondary" onclick={startOverviewEdit}>{$_('assets.edit')}</Button>
+                {:else}
+                  <div class="flex items-center gap-2">
+                    <Button size="sm" variant="secondary" onclick={cancelOverviewEdit} disabled={overviewSaving}>{$_('common.cancel')}</Button>
+                    <Button size="sm" onclick={saveOverview} disabled={overviewSaving}>{overviewSaving ? $_('common.loading') : $_('common.save')}</Button>
+                  </div>
+                {/if}
+              {/if}
+            </div>
+            {#if formError && overviewEditMode}
+              <div class="alert alert-error mb-3">{formError}</div>
+            {/if}
             <div class="grid grid-cols-2 gap-y-5 gap-x-6 text-sm">
               <div>
                 <p class="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">{$isLoading ? 'Model' : $_('assets.model')}</p>
@@ -506,31 +842,101 @@
               </div>
               <div>
                 <p class="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">{$isLoading ? 'Vendor' : $_('assets.vendor')}</p>
-                <p class="font-medium">{asset.vendorName || '-'}</p>
+                {#if overviewEditMode}
+                  <select class="select-base" bind:value={overviewDraft.vendorId}>
+                    <option value="">{$_('assets.placeholders.selectVendor')}</option>
+                    {#each vendors as vendor}
+                      <option value={vendor.id}>{vendor.name}</option>
+                    {/each}
+                  </select>
+                {:else}
+                  <p class="font-medium">{asset.vendorName || '-'}</p>
+                {/if}
               </div>
               <div>
                 <p class="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">{$isLoading ? 'Location' : $_('assets.location')}</p>
-                <p class="font-medium">{asset.locationName || '-'}</p>
+                {#if overviewEditMode}
+                  <select class="select-base" bind:value={overviewDraft.locationId}>
+                    <option value="">{$_('assets.placeholders.selectLocation')}</option>
+                    {#each locations as location}
+                      <option value={location.id}>{location.name}</option>
+                    {/each}
+                  </select>
+                {:else}
+                  <p class="font-medium">{asset.locationName || '-'}</p>
+                {/if}
               </div>
               <div>
                 <p class="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">{$isLoading ? 'Serial' : $_('assets.serialNumber')}</p>
-                <p class="font-medium font-mono text-xs">{asset.serialNo || '-'}</p>
+                {#if overviewEditMode}
+                  <input class="input-base" bind:value={overviewDraft.serialNo} />
+                {:else}
+                  <p class="font-medium font-mono text-xs">{asset.serialNo || '-'}</p>
+                {/if}
               </div>
               <div>
                 <p class="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">{$isLoading ? 'Mgmt IP' : $_('assets.mgmtIp')}</p>
-                <p class="font-medium font-mono text-xs">{asset.mgmtIp || '-'}</p>
+                {#if overviewEditMode}
+                  <input class="input-base font-mono" bind:value={overviewDraft.mgmtIp} placeholder="10.10.10.10" />
+                {:else}
+                  <p class="font-medium font-mono text-xs">{asset.mgmtIp || '-'}</p>
+                {/if}
               </div>
               <div>
                 <p class="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">{$isLoading ? 'Hostname' : $_('assets.hostname')}</p>
-                <p class="font-medium">{asset.hostname || '-'}</p>
+                {#if overviewEditMode}
+                  <input class="input-base" bind:value={overviewDraft.hostname} />
+                {:else}
+                  <p class="font-medium">{asset.hostname || '-'}</p>
+                {/if}
               </div>
               <div>
                 <p class="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">{$isLoading ? 'Purchase date' : $_('assets.purchaseDate')}</p>
-                <p class="font-medium">{formatDate(asset.purchaseDate)}</p>
+                {#if overviewEditMode}
+                  <input type="date" class="input-base" bind:value={overviewDraft.purchaseDate} />
+                {:else}
+                  <p class="font-medium">{formatDate(asset.purchaseDate)}</p>
+                {/if}
               </div>
               <div>
                 <p class="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">{$isLoading ? 'Warranty End' : $_('assets.warrantyEnd')}</p>
-                <p class="font-medium">{formatDate(asset.warrantyEnd)}</p>
+                {#if overviewEditMode}
+                  <input type="date" class="input-base" bind:value={overviewDraft.warrantyEnd} />
+                {:else}
+                  <p class="font-medium">{formatDate(asset.warrantyEnd)}</p>
+                {/if}
+              </div>
+              <div>
+                <p class="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">MAC</p>
+                {#if overviewEditMode}
+                  <input class="input-base font-mono" bind:value={overviewDraft.macAddress} placeholder="AA:BB:CC:DD:EE:FF" />
+                {:else}
+                  <p class="font-medium font-mono text-xs">{asset.macAddress || '-'}</p>
+                {/if}
+              </div>
+              <div>
+                <p class="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">VLAN</p>
+                {#if overviewEditMode}
+                  <input class="input-base" bind:value={overviewDraft.vlanId} placeholder="10" />
+                {:else}
+                  <p class="font-medium">{asset.vlanId ?? '-'}</p>
+                {/if}
+              </div>
+              <div>
+                <p class="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">Switch</p>
+                {#if overviewEditMode}
+                  <input class="input-base" bind:value={overviewDraft.switchName} placeholder="SW-Core-01" />
+                {:else}
+                  <p class="font-medium">{asset.switchName || '-'}</p>
+                {/if}
+              </div>
+              <div>
+                <p class="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">Switch Port</p>
+                {#if overviewEditMode}
+                  <input class="input-base" bind:value={overviewDraft.switchPort} placeholder="Gi1/0/24" />
+                {:else}
+                  <p class="font-medium">{asset.switchPort || '-'}</p>
+                {/if}
               </div>
               {#if asset.warehouseName}
               <div>
@@ -540,7 +946,11 @@
               {/if}
               <div class={asset.warehouseName ? '' : 'col-span-2'}>
                 <p class="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">{$isLoading ? 'Notes' : $_('assets.notes')}</p>
-                <p class="font-medium">{asset.notes || '-'}</p>
+                {#if overviewEditMode}
+                  <textarea rows="3" class="input-base" bind:value={overviewDraft.notes}></textarea>
+                {:else}
+                  <p class="font-medium">{asset.notes || '-'}</p>
+                {/if}
               </div>
             </div>
           </div>
@@ -675,7 +1085,22 @@
     {:else if activeTab === 'specs'}
       <!-- ─── Specs tab ─── -->
       <div class="card p-4 sm:p-5">
-        <h2 class="text-base font-semibold mb-4 pb-3 border-b border-border">{$isLoading ? 'Technical Specifications' : $_('assets.specifications')}</h2>
+        <div class="mb-4 pb-3 border-b border-border flex items-center justify-between gap-2">
+          <h2 class="text-base font-semibold">{$isLoading ? 'Technical Specifications' : $_('assets.specifications')}</h2>
+          {#if caps.canManageAssets}
+            {#if !specsEditMode}
+              <Button size="sm" variant="secondary" onclick={startSpecsEdit}>{$_('assets.edit')}</Button>
+            {:else}
+              <div class="flex items-center gap-2">
+                <Button size="sm" variant="secondary" onclick={cancelSpecsEdit} disabled={specsSaving}>{$_('common.cancel')}</Button>
+                <Button size="sm" onclick={saveSpecs} disabled={specsSaving}>{specsSaving ? $_('common.loading') : $_('common.save')}</Button>
+              </div>
+            {/if}
+          {/if}
+        </div>
+        {#if formError && specsEditMode}
+          <div class="alert alert-error mb-3">{formError}</div>
+        {/if}
         {#if specDefsLoading}
           <div class="flex items-center justify-center py-10">
             <div class="h-6 w-6 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
@@ -687,7 +1112,27 @@
             {#each specDefs.length > 0 ? specDefs.filter(d => asset?.spec && d.key in asset.spec) : Object.keys(asset.spec).map(k => ({ key: k, label: k, unit: null })) as def}
               <div class="flex flex-col gap-0.5">
                 <span class="text-slate-500 capitalize">{def.label}{def.unit ? ` (${def.unit})` : ''}</span>
-                <span class="font-medium text-slate-100 break-all">{String(asset.spec[def.key] ?? '-')}</span>
+                {#if specsEditMode}
+                  {#if getSpecFieldType(def.key) === 'boolean'}
+                    <select class="select-base" bind:value={specDraft[def.key]}>
+                      <option value={true}>true</option>
+                      <option value={false}>false</option>
+                    </select>
+                  {:else if getSpecFieldType(def.key) === 'enum' && getSpecEnumValues(def.key).length}
+                    <select class="select-base" bind:value={specDraft[def.key]}>
+                      <option value="">-</option>
+                      {#each getSpecEnumValues(def.key) as option}
+                        <option value={option}>{option}</option>
+                      {/each}
+                    </select>
+                  {:else if getSpecFieldType(def.key) === 'number'}
+                    <input class="input-base" type="number" bind:value={specDraft[def.key]} />
+                  {:else}
+                    <input class="input-base" bind:value={specDraft[def.key]} />
+                  {/if}
+                {:else}
+                  <span class="font-medium text-slate-100 break-all">{String(asset.spec[def.key] ?? '-')}</span>
+                {/if}
               </div>
             {/each}
             {#if specDefs.length > 0}
@@ -741,6 +1186,35 @@
           <div class="card p-4 sm:p-5">
             <h2 class="text-base font-semibold mb-4">{$isLoading ? 'Timeline' : $_('assets.timeline')}</h2>
             <AssetTimeline events={timeline} />
+            <div class="mt-5 border-t border-border pt-4">
+              <h3 class="text-sm font-semibold mb-3">{$isLoading ? 'Quick Change History' : $_('assets.lifecycleDiff.title')}</h3>
+              {#if lifecycleDiffEvents.length === 0}
+                <p class="text-xs text-slate-500">{$isLoading ? 'No detailed change payload available yet.' : $_('assets.lifecycleDiff.empty')}</p>
+              {:else}
+                <div class="space-y-3">
+                  {#each lifecycleDiffEvents as event (event.id)}
+                    <div class="rounded-md border border-border p-2.5">
+                      <div class="flex items-center justify-between gap-2 mb-2">
+                        <span class="text-xs font-semibold uppercase text-slate-400">{event.eventType}</span>
+                        <span class="text-xs text-slate-500">{formatDateTime(event.at)}</span>
+                      </div>
+                      {#if event.changes.length === 0}
+                        <div class="text-xs text-slate-500">{$isLoading ? 'No before/after payload in this event.' : $_('assets.lifecycleDiff.noPayload')}</div>
+                      {:else}
+                        <div class="space-y-1.5">
+                          {#each event.changes.slice(0, 6) as item}
+                            <div class="text-xs grid grid-cols-1 gap-0.5">
+                              <span class="text-slate-400">{item.field}</span>
+                              <span class="text-slate-500">{item.before} → <span class="text-slate-200">{item.after}</span></span>
+                            </div>
+                          {/each}
+                        </div>
+                      {/if}
+                    </div>
+                  {/each}
+                </div>
+              {/if}
+            </div>
           </div>
         </div>
     {:else if activeTab === 'repairs'}

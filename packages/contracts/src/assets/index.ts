@@ -20,6 +20,7 @@ export interface AssetSearchFilters {
     vendorId?: string
     locationId?: string
     warehouseId?: string
+    organizationId?: string
     warrantyExpiringDays?: number
     page?: number
     limit?: number

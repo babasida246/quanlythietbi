@@ -355,6 +355,7 @@
     "clearFilters": "Xóa bộ lọc",
     "assetName": "Tên tài sản",
     "template": "Mẫu mã",
+    "edit": "Chỉnh sửa",
     "editAsset": "Sửa tài sản",
     "deleteConfirm": "Bạn có chắc muốn xóa tài sản {name}?",
     "subtitleCount": "{count} tài sản",
@@ -389,7 +390,30 @@
     "createAnother": "Tạo tài sản khác",
     "backToList": "Về danh sách",
     "specHint": "Thông số kỹ thuật được lấy từ mẫu mã, có thể tùy chỉnh cho từng tài sản.",
-    "specLoadedFromModel": "Thông số từ mẫu mã"
+    "specLoadedFromModel": "Thông số từ mẫu mã",
+    "lifecycleDiff": {
+      "title": "Lịch sử thay đổi nhanh",
+      "empty": "Chưa có dữ liệu thay đổi chi tiết.",
+      "noPayload": "Không có payload before/after chi tiết."
+    },
+    "assignModal": {
+      "searchingUsers": "Đang tìm người dùng...",
+      "placeholders": {
+        "assigneeName": "Ví dụ: Nguyễn Văn A",
+        "assigneeId": "Mã nhân sự / Mã phòng ban",
+        "noLocation": "— Không chọn vị trí —",
+        "noOrganization": "— Không chọn đơn vị —",
+        "note": "Ghi chú tùy chọn"
+      },
+      "validation": {
+        "assigneeNameRequired": "Vui lòng nhập tên người/đơn vị nhận",
+        "assigneeIdRequired": "Vui lòng nhập mã định danh người/đơn vị nhận",
+        "departmentOrganizationRequired": "Vui lòng chọn đơn vị tổ chức cho kiểu Department",
+        "departmentLocationRequired": "Vui lòng chọn vị trí sử dụng cho kiểu Department",
+        "personIdMinLength": "Mã nhân sự phải có ít nhất 3 ký tự",
+        "systemIdInvalid": "Mã hệ thống chỉ gồm chữ/số và ký tự _ . : -"
+      }
+    }
   },
   "maintenance": {
     "title": "Bảo trì",

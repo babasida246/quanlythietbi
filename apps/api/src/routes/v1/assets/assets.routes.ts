@@ -20,6 +20,42 @@ interface AssetRoutesOptions {
     pgClient?: PgClient
 }
 
+async function resolveUserOrganizationId(pgClient: PgClient | undefined, userId: string): Promise<string | null> {
+    if (!pgClient) return null
+
+    // Preferred path: explicit OU -> Organization mapping (supports inherited mapping from parent OUs).
+    try {
+        const res = await pgClient.query<{ organization_id: string | null }>(
+            `SELECT map.organization_id
+             FROM rbac_users ru
+             JOIN org_units user_ou ON user_ou.id = ru.ou_id
+             JOIN org_units ancestor_ou ON user_ou.path LIKE ancestor_ou.path || '%'
+             JOIN ou_organization_mappings map ON map.ou_id = ancestor_ou.id
+             WHERE ru.linked_user_id = $1
+             ORDER BY LENGTH(ancestor_ou.path) DESC
+             LIMIT 1`,
+            [userId]
+        )
+        return res.rows[0]?.organization_id ?? null
+    } catch {
+        // Fallback path for environments that have not run the mapping migration yet.
+        try {
+            const fallback = await pgClient.query<{ organization_id: string | null }>(
+                `SELECT o.id AS organization_id
+                 FROM rbac_users ru
+                 JOIN org_units ou ON ou.id = ru.ou_id
+                 JOIN organizations o ON LOWER(TRIM(o.name)) = LOWER(TRIM(ou.name))
+                 WHERE ru.linked_user_id = $1
+                 LIMIT 1`,
+                [userId]
+            )
+            return fallback.rows[0]?.organization_id ?? null
+        } catch {
+            return null
+        }
+    }
+}
+
 function csvEscape(value: string): string {
     if (value.includes('"') || value.includes(',') || value.includes('\n')) {
         return `"${value.replace(/"/g, '""')}`
@@ -56,9 +92,18 @@ export async function assetsRoutes(fastify: FastifyInstance, opts: AssetRoutesOp
     const pgClient = opts.pgClient
 
     fastify.get('/assets', async (request, reply) => {
-        getUserContext(request)
+        const ctx = getUserContext(request)
         const filters = assetSearchSchema.parse(request.query)
-        const { export: exportType, ...searchFilters } = filters
+        const { export: exportType, scope, ...searchFilters } = filters
+
+        if (scope === 'my_ou') {
+            const organizationId = await resolveUserOrganizationId(pgClient, ctx.userId)
+            if (!organizationId) {
+                return reply.send({ data: [], meta: { total: 0, page: searchFilters.page ?? 1, limit: searchFilters.limit ?? 20 } })
+            }
+            searchFilters.organizationId = organizationId
+        }
+
         const result = await assetService.searchAssets(searchFilters)
 
         if (exportType === 'csv') {
@@ -73,7 +118,8 @@ export async function assetsRoutes(fastify: FastifyInstance, opts: AssetRoutesOp
     })
 
     fastify.get('/assets/status-counts', async (request, reply) => {
-        getUserContext(request)
+        const ctx = getUserContext(request)
+        const query = assetSearchSchema.partial().parse(request.query)
 
         // Intentionally keep this endpoint simple and backward-compatible:
         // it returns counts per status to help the UI avoid fanning out many HTTP requests.
@@ -89,10 +135,38 @@ export async function assetsRoutes(fastify: FastifyInstance, opts: AssetRoutesOp
         } satisfies Record<(typeof statuses)[number], number>
 
         if (pgClient) {
+            const params: unknown[] = []
+            const where: string[] = []
+
+            if (query.scope === 'my_ou') {
+                const organizationId = await resolveUserOrganizationId(pgClient, ctx.userId)
+                if (!organizationId) {
+                    return reply.send({ data: counts })
+                }
+                params.push(organizationId)
+                const idx = params.length
+                where.push(`(
+                    EXISTS (
+                        SELECT 1 FROM locations l
+                        WHERE l.id = a.location_id
+                          AND l.organization_id = $${idx}
+                    )
+                    OR EXISTS (
+                        SELECT 1 FROM asset_assignments aa
+                        WHERE aa.asset_id = a.id
+                          AND aa.returned_at IS NULL
+                          AND aa.organization_id = $${idx}
+                    )
+                )`)
+            }
+
+            const whereSql = where.length ? `WHERE ${where.join(' AND ')}` : ''
             const result = (await pgClient.query(
-                `SELECT COALESCE(status, 'in_stock') AS status, COUNT(*) AS count
-                 FROM assets
-                 GROUP BY COALESCE(status, 'in_stock')`
+                `SELECT COALESCE(a.status, 'in_stock') AS status, COUNT(*) AS count
+                 FROM assets a
+                 ${whereSql}
+                 GROUP BY COALESCE(a.status, 'in_stock')`,
+                params
             )) as { rows: Array<{ status: string; count: string }> }
 
             for (const row of result.rows) {

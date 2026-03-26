@@ -130,6 +130,25 @@ export function buildSearchConditions(filters: AssetSearchFilters): { conditions
         params.push(filters.warehouseId)
         conditions.push(`a.warehouse_id = $${params.length}`)
     }
+    if (filters.organizationId) {
+        params.push(filters.organizationId)
+        const idx = params.length
+        conditions.push(`(
+            EXISTS (
+                SELECT 1
+                FROM locations l2
+                WHERE l2.id = a.location_id
+                  AND l2.organization_id = $${idx}
+            )
+            OR EXISTS (
+                SELECT 1
+                FROM asset_assignments aa
+                WHERE aa.asset_id = a.id
+                  AND aa.returned_at IS NULL
+                  AND aa.organization_id = $${idx}
+            )
+        )`)
+    }
     if (filters.warrantyExpiringDays !== undefined) {
         params.push(filters.warrantyExpiringDays)
         const idx = params.length
