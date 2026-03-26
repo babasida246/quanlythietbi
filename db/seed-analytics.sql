@@ -277,59 +277,65 @@ ON CONFLICT
 -- 11. SHARED DOCUMENT TEMPLATES + VERSIONS
 -- Server-side templates for settings/print shared across users
 -- ============================================================================
-INSERT INTO document_templates
-     (id, template_code, name, description, module, active_version_id, is_active, organization_id, created_by, updated_by)
-VALUES
-     ('dd100000-0000-0000-0000-000000000001', 'doc-bien-ban-kiem-ke', 'Bien ban kiem ke tai san', 'Mau bien ban kiem ke tai san', 'inventory', 'dd200000-0000-0000-0000-000000000001', true, 'd0000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000002', '00000000-0000-0000-0000-000000000002'),
-     ('dd100000-0000-0000-0000-000000000002', 'doc-phieu-nhap-kho', 'Phieu nhap kho', 'Mau phieu nhap kho chung', 'warehouse', 'dd200000-0000-0000-0000-000000000002', true, 'd0000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000002', '00000000-0000-0000-0000-000000000002'),
-     ('dd100000-0000-0000-0000-000000000003', 'doc-phieu-xuat-kho', 'Phieu xuat kho', 'Mau phieu xuat kho chung', 'warehouse', 'dd200000-0000-0000-0000-000000000003', true, 'd0000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000002', '00000000-0000-0000-0000-000000000002')
-ON CONFLICT
-(id) DO NOTHING;
+DO $$
+BEGIN
+     IF to_regclass('public.document_templates') IS NOT NULL
+        AND to_regclass('public.document_template_versions') IS NOT NULL THEN
 
-INSERT INTO document_template_versions
-     (id, template_id, version_no, title, html_content, fields, change_note, status, created_by, published_by, published_at)
-VALUES
-     (
-          'dd200000-0000-0000-0000-000000000001',
-          'dd100000-0000-0000-0000-000000000001',
-          1,
-          'Bien ban kiem ke - ban 1',
-          '<h1 style="text-align:center;">BIEN BAN KIEM KE TAI SAN</h1><p><strong>So bien ban:</strong> {{document.number}}</p><p><strong>Ngay kiem ke:</strong> {{document.date}}</p><p><strong>Don vi:</strong> {{organization.name}}</p><table border="1" cellspacing="0" cellpadding="6" style="width:100%; border-collapse:collapse;"><thead><tr><th>STT</th><th>Ma tai san</th><th>Ten tai san</th><th>Tinh trang</th></tr></thead><tbody><tr><td>1</td><td>{{asset.code}}</td><td>{{asset.name}}</td><td>{{asset.status}}</td></tr></tbody></table>',
-          '["document.number","document.date","organization.name","asset.code","asset.name","asset.status"]'::jsonb,
-          'Seed default template',
-          'published',
-          '00000000-0000-0000-0000-000000000002',
-          '00000000-0000-0000-0000-000000000002',
-          NOW()
-     ),
-     (
-          'dd200000-0000-0000-0000-000000000002',
-          'dd100000-0000-0000-0000-000000000002',
-          1,
-          'Phieu nhap kho - ban 1',
-          '<h1 style="text-align:center;">PHIEU NHAP KHO</h1><p><strong>So phieu:</strong> {{doc.code}}</p><p><strong>Ngay:</strong> {{doc.date}}</p><p><strong>Kho:</strong> {{doc.warehouseName}}</p><p><strong>Nha cung cap:</strong> {{doc.supplier}}</p><p><strong>Nguoi giao:</strong> {{doc.deliveredBy}}</p><p><strong>Nguoi nhan:</strong> {{doc.receivedBy}}</p>',
-          '["doc.code","doc.date","doc.warehouseName","doc.supplier","doc.deliveredBy","doc.receivedBy"]'::jsonb,
-          'Seed default template',
-          'published',
-          '00000000-0000-0000-0000-000000000002',
-          '00000000-0000-0000-0000-000000000002',
-          NOW()
-     ),
-     (
-          'dd200000-0000-0000-0000-000000000003',
-          'dd100000-0000-0000-0000-000000000003',
-          1,
-          'Phieu xuat kho - ban 1',
-          '<h1 style="text-align:center;">PHIEU XUAT KHO</h1><p><strong>So phieu:</strong> {{doc.code}}</p><p><strong>Ngay:</strong> {{doc.date}}</p><p><strong>Kho:</strong> {{doc.warehouseName}}</p><p><strong>Bo phan nhan:</strong> {{doc.department}}</p><p><strong>Nguoi nhan:</strong> {{doc.receiver}}</p><p><strong>Muc dich:</strong> {{doc.purpose}}</p>',
-          '["doc.code","doc.date","doc.warehouseName","doc.department","doc.receiver","doc.purpose"]'::jsonb,
-          'Seed default template',
-          'published',
-          '00000000-0000-0000-0000-000000000002',
-          '00000000-0000-0000-0000-000000000002',
-          NOW()
-     )
-ON CONFLICT
-(id) DO NOTHING;
+          INSERT INTO document_templates
+               (id, template_code, name, description, module, active_version_id, is_active, organization_id, created_by, updated_by)
+          VALUES
+               ('dd100000-0000-0000-0000-000000000001', 'doc-bien-ban-kiem-ke', 'Bien ban kiem ke tai san', 'Mau bien ban kiem ke tai san', 'inventory', 'dd200000-0000-0000-0000-000000000001', true, 'd0000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000002', '00000000-0000-0000-0000-000000000002'),
+               ('dd100000-0000-0000-0000-000000000002', 'doc-phieu-nhap-kho', 'Phieu nhap kho', 'Mau phieu nhap kho chung', 'warehouse', 'dd200000-0000-0000-0000-000000000002', true, 'd0000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000002', '00000000-0000-0000-0000-000000000002'),
+               ('dd100000-0000-0000-0000-000000000003', 'doc-phieu-xuat-kho', 'Phieu xuat kho', 'Mau phieu xuat kho chung', 'warehouse', 'dd200000-0000-0000-0000-000000000003', true, 'd0000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000002', '00000000-0000-0000-0000-000000000002')
+          ON CONFLICT (id) DO NOTHING;
+
+          INSERT INTO document_template_versions
+               (id, template_id, version_no, title, html_content, fields, change_note, status, created_by, published_by, published_at)
+          VALUES
+               (
+                    'dd200000-0000-0000-0000-000000000001',
+                    'dd100000-0000-0000-0000-000000000001',
+                    1,
+                    'Bien ban kiem ke - ban 1',
+                    '<h1 style="text-align:center;">BIEN BAN KIEM KE TAI SAN</h1><p><strong>So bien ban:</strong> {{document.number}}</p><p><strong>Ngay kiem ke:</strong> {{document.date}}</p><p><strong>Don vi:</strong> {{organization.name}}</p><table border="1" cellspacing="0" cellpadding="6" style="width:100%; border-collapse:collapse;"><thead><tr><th>STT</th><th>Ma tai san</th><th>Ten tai san</th><th>Tinh trang</th></tr></thead><tbody><tr><td>1</td><td>{{asset.code}}</td><td>{{asset.name}}</td><td>{{asset.status}}</td></tr></tbody></table>',
+                    '["document.number","document.date","organization.name","asset.code","asset.name","asset.status"]'::jsonb,
+                    'Seed default template',
+                    'published',
+                    '00000000-0000-0000-0000-000000000002',
+                    '00000000-0000-0000-0000-000000000002',
+                    NOW()
+               ),
+               (
+                    'dd200000-0000-0000-0000-000000000002',
+                    'dd100000-0000-0000-0000-000000000002',
+                    1,
+                    'Phieu nhap kho - ban 1',
+                    '<h1 style="text-align:center;">PHIEU NHAP KHO</h1><p><strong>So phieu:</strong> {{doc.code}}</p><p><strong>Ngay:</strong> {{doc.date}}</p><p><strong>Kho:</strong> {{doc.warehouseName}}</p><p><strong>Nha cung cap:</strong> {{doc.supplier}}</p><p><strong>Nguoi giao:</strong> {{doc.deliveredBy}}</p><p><strong>Nguoi nhan:</strong> {{doc.receivedBy}}</p>',
+                    '["doc.code","doc.date","doc.warehouseName","doc.supplier","doc.deliveredBy","doc.receivedBy"]'::jsonb,
+                    'Seed default template',
+                    'published',
+                    '00000000-0000-0000-0000-000000000002',
+                    '00000000-0000-0000-0000-000000000002',
+                    NOW()
+               ),
+               (
+                    'dd200000-0000-0000-0000-000000000003',
+                    'dd100000-0000-0000-0000-000000000003',
+                    1,
+                    'Phieu xuat kho - ban 1',
+                    '<h1 style="text-align:center;">PHIEU XUAT KHO</h1><p><strong>So phieu:</strong> {{doc.code}}</p><p><strong>Ngay:</strong> {{doc.date}}</p><p><strong>Kho:</strong> {{doc.warehouseName}}</p><p><strong>Bo phan nhan:</strong> {{doc.department}}</p><p><strong>Nguoi nhan:</strong> {{doc.receiver}}</p><p><strong>Muc dich:</strong> {{doc.purpose}}</p>',
+                    '["doc.code","doc.date","doc.warehouseName","doc.department","doc.receiver","doc.purpose"]'::jsonb,
+                    'Seed default template',
+                    'published',
+                    '00000000-0000-0000-0000-000000000002',
+                    '00000000-0000-0000-0000-000000000002',
+                    NOW()
+               )
+          ON CONFLICT (id) DO NOTHING;
+
+     END IF;
+END $$;
 
 -- ============================================================================
 -- 11. PRINT JOBS
