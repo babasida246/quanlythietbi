@@ -596,8 +596,11 @@
       "missing": "Missing"
     },
     "loadFailed": "Failed to load session",
-    "scanSuccess": "✓ Scanned: {code}",
-    "scanFailed": "Scan failed",
+    "scanSuccess": "✓ Counted: {code}",
+    "scanFailed": "Inventory scan failed",
+    "locationRequired": "Please select an inventory location before counting.",
+    "qrNotDetected": "Unable to read QR code. Please try again or enter the code manually.",
+    "duplicateWarning": "This asset is already counted in the current session. Re-scanning will overwrite the previous result.",
     "confirmStart": "Start inventory session? Status will change to \"In Progress\".",
     "startFailed": "Failed to start session",
     "closeFailed": "Failed to close session",
@@ -607,14 +610,15 @@
     "sessionList": "Session list",
     "startInventory": "Start Inventory",
     "kpi": {
-      "scanned": "Scanned",
+      "scanned": "Counted",
       "found": "Found",
       "moved": "Moved",
-      "unknown": "Unknown"
+      "unknown": "Unknown",
+      "missing": "Not Counted"
     },
     "scanDevice": "Scan Device",
     "deviceCode": "Device Code",
-    "scannedLocation": "Scanned Location",
+    "scannedLocation": "Inventory Location",
     "noSelection": "— No selection —",
     "noteOptional": "Note (optional)",
     "scan": "Scan",
@@ -624,7 +628,7 @@
       "deviceId": "Device ID",
       "status": "Status",
       "expectedLocation": "Expected Location",
-      "scannedLocation": "Scanned Location",
+      "scannedLocation": "Inventory Location",
       "scanTime": "Scan Time",
       "note": "Note"
     },

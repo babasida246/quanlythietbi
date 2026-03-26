@@ -596,8 +596,11 @@
       "missing": "Thiếu"
     },
     "loadFailed": "Không thể tải phiên",
-    "scanSuccess": "✓ Đã quét: {code}",
-    "scanFailed": "Quét thất bại",
+    "scanSuccess": "✓ Đã kiểm kê: {code}",
+    "scanFailed": "Kiểm kê thất bại",
+    "locationRequired": "Vui lòng chọn vị trí kiểm kê trước khi kiểm kê.",
+    "qrNotDetected": "Không đọc được mã QR. Vui lòng thử lại hoặc nhập mã thủ công.",
+    "duplicateWarning": "Tài sản này đã được kiểm kê trong phiên hiện tại. Kiểm kê lại sẽ ghi đè kết quả cũ.",
     "confirmStart": "Bắt đầu phiên kiểm kê? Trạng thái sẽ chuyển sang \"Đang kiểm kê\".",
     "startFailed": "Không thể bắt đầu phiên",
     "closeFailed": "Không thể đóng phiên",
@@ -607,14 +610,15 @@
     "sessionList": "Danh sách phiên",
     "startInventory": "Bắt đầu kiểm kê",
     "kpi": {
-      "scanned": "Đã quét",
+      "scanned": "Đã kiểm kê",
       "found": "Đúng vị trí",
       "moved": "Di chuyển",
-      "unknown": "Không xác định"
+      "unknown": "Không xác định",
+      "missing": "Chưa kiểm kê"
     },
     "scanDevice": "Quét thiết bị",
     "deviceCode": "Mã thiết bị",
-    "scannedLocation": "Vị trí quét được",
+    "scannedLocation": "Vị trí kiểm kê",
     "noSelection": "— Không chọn —",
     "noteOptional": "Ghi chú (tùy chọn)",
     "scan": "Quét",
@@ -624,7 +628,7 @@
       "deviceId": "ID thiết bị",
       "status": "Trạng thái",
       "expectedLocation": "Vị trí kỳ vọng",
-      "scannedLocation": "Vị trí quét",
+      "scannedLocation": "Vị trí kiểm kê",
       "scanTime": "Thời gian quét",
       "note": "Ghi chú"
     },

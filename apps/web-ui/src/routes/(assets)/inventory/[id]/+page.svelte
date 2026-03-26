@@ -34,6 +34,7 @@
   let scanning = $state(false);
   let scanError = $state('');
   let scanSuccess = $state('');
+  let scanWarning = $state('');
   let actionLoading = $state(false);
   let missingLoading = $state(false);
   let activeTab = $state<'scanned' | 'missing'>('scanned');
@@ -107,11 +108,27 @@
       session = detailResult.data.session;
       items = detailResult.data.items || [];
       locations = catResult.data.locations || [];
+      if (!scanLocationId && detailResult.data.session?.locationId) {
+        scanLocationId = detailResult.data.session.locationId;
+      }
     } catch (err) {
       error = err instanceof Error ? err.message : $_('inventory.loadFailed');
     } finally {
       if (!silent) loading = false;
     }
+  }
+
+  function isDuplicateInSession(scannedCode: string, scannedAssetId: string): boolean {
+    const normalizedCode = scannedCode.trim().toLowerCase();
+    const normalizedAssetId = scannedAssetId.trim().toLowerCase();
+    return items.some((item) => {
+      const itemCode = (item.assetCode ?? '').trim().toLowerCase();
+      const itemAssetId = (item.assetId ?? '').trim().toLowerCase();
+      return (
+        (normalizedCode && itemCode && itemCode === normalizedCode) ||
+        (normalizedAssetId && itemAssetId && itemAssetId === normalizedAssetId)
+      );
+    });
   }
 
   async function loadMissingAssets() {
@@ -130,15 +147,32 @@
   async function handleQrDetected(scan: ResolvedScanPayload) {
     const scannedCode = (scan.assetCode ?? scan.resolved ?? '').trim();
     const scannedAssetId = (scan.assetId ?? '').trim();
-    if ((!scannedCode && !scannedAssetId) || scanning || !canScan) return;
+    if (scanning || !canScan) return;
     try {
       scanning = true;
       scanError = '';
       scanSuccess = '';
+      scanWarning = '';
+
+      if (!scannedCode && !scannedAssetId) {
+        scanError = $_('inventory.qrNotDetected');
+        return;
+      }
+
+      const effectiveLocationId = (scanLocationId || session?.locationId || '').trim();
+      if (!effectiveLocationId) {
+        scanError = $_('inventory.locationRequired');
+        return;
+      }
+
+      if (isDuplicateInSession(scannedCode, scannedAssetId)) {
+        scanWarning = $_('inventory.duplicateWarning');
+      }
+
       await scanInventoryAsset(sessionId, {
         assetId: scannedAssetId || undefined,
         assetCode: scannedCode || undefined,
-        scannedLocationId: scanLocationId || undefined,
+        scannedLocationId: effectiveLocationId,
         note: scanNote.trim() || undefined
       });
       scanSuccess = `✓ ${$_('inventory.scanSuccess')}: ${scannedCode || scannedAssetId}`;
@@ -225,8 +259,9 @@
   });
 
   $effect(() => {
-    const shouldAutoLoad = session && (session.status === 'in_progress' || session.status === 'closed');
-    const autoKey = shouldAutoLoad ? `${sessionId}:${session.status}` : '';
+    const status = session?.status;
+    const shouldAutoLoad = status === 'in_progress' || status === 'closed';
+    const autoKey = shouldAutoLoad ? `${sessionId}:${status}` : '';
     if (!autoKey || missingAutoLoadedKey === autoKey) return;
     missingAutoLoadedKey = autoKey;
     void loadMissingAssets();
@@ -322,7 +357,7 @@
         onclick={() => { activeTab = 'missing'; void loadMissingAssets(); }}
       >
         <div class="text-2xl font-bold text-red-400">{kpi.missing}</div>
-        <div class="text-xs text-gray-500 mt-1 flex items-center justify-center gap-1"><AlertCircle class="w-3 h-3" />Chưa quét</div>
+        <div class="text-xs text-gray-500 mt-1 flex items-center justify-center gap-1"><AlertCircle class="w-3 h-3" />{$isLoading ? 'Missing' : $_('inventory.kpi.missing')}</div>
       </button>
     </div>
 
@@ -363,7 +398,13 @@
         {#if isDuplicate}
           <div class="mt-2 text-xs text-yellow-400 bg-yellow-900/20 rounded px-3 py-1.5 flex items-center gap-1.5">
             <AlertTriangle class="w-3.5 h-3.5 shrink-0" />
-            Mã này đã được quét trong phiên. Quét lại sẽ ghi đè kết quả cũ.
+            {$_('inventory.duplicateWarning')}
+          </div>
+        {/if}
+        {#if scanWarning}
+          <div class="mt-2 text-xs text-yellow-400 bg-yellow-900/20 rounded px-3 py-1.5 flex items-center gap-1.5">
+            <AlertTriangle class="w-3.5 h-3.5 shrink-0" />
+            {scanWarning}
           </div>
         {/if}
         {#if scanError}
@@ -383,7 +424,7 @@
           : 'border-transparent text-gray-500 hover:text-base-content'}"
         onclick={() => activeTab = 'scanned'}
       >
-        Đã quét ({items.length})
+        {$isLoading ? 'Counted' : $_('inventory.kpi.scanned')} ({items.length})
       </button>
       <button
         class="px-4 py-2 text-sm font-medium border-b-2 transition-colors {activeTab === 'missing'
@@ -391,7 +432,7 @@
           : 'border-transparent text-gray-500 hover:text-base-content'}"
         onclick={() => { activeTab = 'missing'; void loadMissingAssets(); }}
       >
-        Chưa quét
+        {$isLoading ? 'Missing' : $_('inventory.kpi.missing')}
         {#if missingLoading}
           <span class="inline-block w-3 h-3 ml-1 border border-current border-t-transparent rounded-full animate-spin"></span>
         {:else if missingAssets.length > 0}
@@ -487,7 +528,7 @@
         <div class="flex items-center justify-between mb-3">
           <h3 class="text-sm font-semibold text-red-400 flex items-center gap-2">
             <AlertCircle class="w-4 h-4" />
-            Tài sản chưa được quét
+            Tài sản chưa kiểm kê
             {#if missingAssets.length > 0}<span class="text-slate-400 font-normal">({missingAssets.length})</span>{/if}
           </h3>
           <button
@@ -505,12 +546,12 @@
         {:else if missingAssets.length === 0}
           <div class="text-center py-8 text-green-400">
             <CheckCircle2 class="w-8 h-8 mx-auto mb-2" />
-            <p class="text-sm">Tất cả tài sản trong phạm vi đã được quét!</p>
+            <p class="text-sm">Tất cả tài sản trong phạm vi đã được kiểm kê!</p>
           </div>
         {:else}
           {#if session.locationId}
             <p class="text-xs text-slate-500 mb-3">
-              Các tài sản tại "{locationMap.get(session.locationId) ?? 'khu vực đã chọn'}" chưa được quét:
+              Các tài sản tại "{locationMap.get(session.locationId) ?? 'khu vực đã chọn'}" chưa được kiểm kê:
             </p>
           {/if}
           <div class="overflow-x-auto">
