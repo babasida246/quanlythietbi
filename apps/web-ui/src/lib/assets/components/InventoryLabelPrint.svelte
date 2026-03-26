@@ -27,11 +27,11 @@
   }
 
   function buildQrPayload(asset: Asset): string {
-    const code = asset.assetCode ?? '';
     const id = asset.id ?? '';
-    if (!code) return id;
-    if (!id) return code;
-    return `https://qltb.local/assets/${encodeURIComponent(code)}?assetId=${encodeURIComponent(id)}`;
+    const code = asset.assetCode ?? '';
+    if (id) return `assets/${encodeURIComponent(id)}`;
+    if (code) return `assets/${encodeURIComponent(code)}`;
+    return '';
   }
 
   function qrUrl(asset: Asset): string {

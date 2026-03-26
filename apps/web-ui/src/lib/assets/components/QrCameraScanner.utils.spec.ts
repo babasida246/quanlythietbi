@@ -38,4 +38,32 @@ describe('QrCameraScanner utils', () => {
         expect(constraints[0]?.facingMode).toEqual({ exact: 'environment' })
         expect(constraints[1]?.facingMode).toEqual({ ideal: 'environment' })
     })
+
+    it('parses assetId from expected URL format', () => {
+        const payload = resolveScannedPayload('https://qltb.local/assets/a1000000-0000-0000-0000-000000000001')
+        expect(payload.assetCode).toBeUndefined()
+        expect(payload.assetId).toBe('a1000000-0000-0000-0000-000000000001')
+        expect(payload.resolved).toBe('a1000000-0000-0000-0000-000000000001')
+    })
+
+    it('prefers assetId from path over query parameter', () => {
+        const payload = resolveScannedPayload('https://qltb.local/assets/a1000000-0000-0000-0000-000000000001?assetId=11111111-1111-4111-8111-111111111111')
+        expect(payload.assetCode).toBeUndefined()
+        expect(payload.assetId).toBe('a1000000-0000-0000-0000-000000000001')
+        expect(payload.resolved).toBe('a1000000-0000-0000-0000-000000000001')
+    })
+
+    it('parses assetId from HTTP URL', () => {
+        const payload = resolveScannedPayload('http://qltb.local/assets/a1000000-0000-0000-0000-000000000001')
+        expect(payload.assetCode).toBeUndefined()
+        expect(payload.assetId).toBe('a1000000-0000-0000-0000-000000000001')
+        expect(payload.resolved).toBe('a1000000-0000-0000-0000-000000000001')
+    })
+
+    it('parses assetId from relative assets path', () => {
+        const payload = resolveScannedPayload('assets/a1000000-0000-0000-0000-000000000001')
+        expect(payload.assetCode).toBeUndefined()
+        expect(payload.assetId).toBe('a1000000-0000-0000-0000-000000000001')
+        expect(payload.resolved).toBe('a1000000-0000-0000-0000-000000000001')
+    })
 })

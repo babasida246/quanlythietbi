@@ -5,7 +5,7 @@ export type ResolvedScanPayload = {
     assetId?: string
 }
 
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
 function decodeSafe(value: string): string {
     try {
@@ -32,6 +32,37 @@ function parsePipePayload(raw: string): ResolvedScanPayload {
     }
 }
 
+function parseAssetPathPayload(raw: string): ResolvedScanPayload {
+    const normalized = raw.replace(/^\/+/, '').trim()
+    const parts = normalized.split('/').filter(Boolean)
+    const last = decodeSafe(parts[parts.length - 1] ?? '')
+    const asId = normalizeUuid(last)
+    return {
+        raw,
+        resolved: last || raw,
+        assetCode: asId ? undefined : (last || undefined),
+        assetId: asId
+    }
+}
+
+function parseUrlPayload(raw: string): ResolvedScanPayload {
+    try {
+        const url = new URL(raw)
+        const pathPayload = parseAssetPathPayload(url.pathname)
+        const queryId = normalizeUuid(url.searchParams.get('assetId') ?? url.searchParams.get('id'))
+        const assetId = pathPayload.assetId ?? queryId
+        const resolved = pathPayload.assetCode ?? assetId ?? pathPayload.resolved
+        return {
+            raw,
+            resolved,
+            assetCode: pathPayload.assetCode,
+            assetId
+        }
+    } catch {
+        return parsePipePayload(raw)
+    }
+}
+
 export function resolveScannedPayload(rawCode: string): ResolvedScanPayload {
     const raw = rawCode.trim()
     if (!raw) {
@@ -42,26 +73,24 @@ export function resolveScannedPayload(rawCode: string): ResolvedScanPayload {
         return parsePipePayload(raw)
     }
 
-    try {
-        const url = new URL(raw)
-        const parts = url.pathname.split('/').filter(Boolean)
-        const assetCode = parts.length > 0 ? decodeSafe(parts[parts.length - 1] ?? '') : ''
-        const assetId = normalizeUuid(url.searchParams.get('assetId') ?? url.searchParams.get('id'))
+    if (raw.startsWith('http://') || raw.startsWith('https://')) {
+        return parseUrlPayload(raw)
+    }
+
+    if (raw.startsWith('/assets/') || raw.startsWith('assets/')) {
+        return parseAssetPathPayload(raw)
+    }
+
+    const maybeId = normalizeUuid(raw)
+    if (maybeId) {
         return {
             raw,
-            resolved: assetCode || assetId || raw,
-            assetCode: assetCode || undefined,
-            assetId
-        }
-    } catch {
-        const maybeId = normalizeUuid(raw)
-        return {
-            raw,
-            resolved: raw,
-            assetCode: maybeId ? undefined : raw,
+            resolved: maybeId,
             assetId: maybeId
         }
     }
+
+    return parsePipePayload(raw)
 }
 
 export function resolveScannedCode(rawCode: string): string {

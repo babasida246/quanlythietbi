@@ -74,10 +74,6 @@
 
   async function startCamera() {
     cameraError = '';
-    if (!window.isSecureContext) {
-      cameraError = 'Camera chỉ hoạt động trên HTTPS hoặc localhost. Hãy chuyển sang kết nối an toàn.';
-      return;
-    }
 
     const loaded = await ensureScannerReady();
     if (!loaded) {
@@ -119,13 +115,15 @@
       if (name === 'NotFoundError' || name === 'DevicesNotFoundError') {
         cameraError = 'Không tìm thấy camera trên thiết bị này. Hãy nhập mã thủ công.';
       } else if (name === 'NotAllowedError' || name === 'PermissionDeniedError') {
-        cameraError = 'Quyền truy cập camera bị từ chối. Vui lòng cho phép camera trong cài đặt trình duyệt.';
+        cameraError = window.isSecureContext
+          ? 'Quyền truy cập camera bị từ chối. Vui lòng cho phép camera trong cài đặt trình duyệt.'
+          : 'Trình duyệt chặn camera trên HTTP. Hãy dùng HTTPS hoặc localhost, hoặc nhập mã thủ công.';
       } else if (name === 'NotReadableError' || name === 'TrackStartError') {
         cameraError = 'Camera đang được sử dụng bởi ứng dụng khác. Hãy đóng ứng dụng đó và thử lại.';
       } else if (name === 'OverconstrainedError') {
         cameraError = 'Camera không đáp ứng được yêu cầu. Hãy thử lại.';
       } else if (name === 'SecurityError') {
-        cameraError = 'Truy cập camera bị chặn bởi chính sách bảo mật. Cần HTTPS hoặc localhost.';
+        cameraError = 'Truy cập camera bị chặn bởi chính sách bảo mật. Trên HTTP đa số trình duyệt sẽ không cho phép.';
       } else {
         cameraError = `Không thể mở camera: ${err instanceof Error ? err.message : 'Lỗi không xác định'}`;
       }
