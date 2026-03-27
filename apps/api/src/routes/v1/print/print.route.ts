@@ -20,6 +20,118 @@ const exportFileSchema = z.object({
     options: z.record(z.any()).optional()
 })
 
+const EXT_BY_FORMAT: Record<'pdf' | 'excel' | 'csv' | 'word' | 'json', string> = {
+    pdf: 'pdf',
+    excel: 'xls',
+    csv: 'csv',
+    word: 'doc',
+    json: 'json'
+}
+
+const MIME_BY_FORMAT: Record<'pdf' | 'excel' | 'csv' | 'word' | 'json', string> = {
+    pdf: 'application/pdf',
+    excel: 'application/vnd.ms-excel; charset=utf-8',
+    csv: 'text/csv; charset=utf-8',
+    word: 'application/msword; charset=utf-8',
+    json: 'application/json; charset=utf-8'
+}
+
+export function stripHtml(html: string): string {
+    return html
+        .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+        .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+        .replace(/<br\s*\/?>/gi, '\n')
+        .replace(/<\/p>/gi, '\n\n')
+        .replace(/<[^>]+>/g, ' ')
+        .replace(/&nbsp;/g, ' ')
+        .replace(/&amp;/g, '&')
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .replace(/\r\n/g, '\n')
+        .replace(/\n{3,}/g, '\n\n')
+        .replace(/[ \t]{2,}/g, ' ')
+        .trim()
+}
+
+export function toCsv(fieldMappings: Record<string, unknown>): string {
+    const escape = (value: unknown) => {
+        const text = String(value ?? '')
+        return `"${text.replace(/"/g, '""')}"`
+    }
+
+    const rows = [['field', 'value']]
+    for (const [key, value] of Object.entries(fieldMappings)) {
+        rows.push([key, String(value ?? '')])
+    }
+    return rows.map((row) => row.map(escape).join(',')).join('\n')
+}
+
+export function toExcelXml(fieldMappings: Record<string, unknown>): string {
+    const esc = (input: string) => input
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&apos;')
+
+    const rows = Object.entries(fieldMappings)
+        .map(([key, value]) => `<Row><Cell><Data ss:Type="String">${esc(key)}</Data></Cell><Cell><Data ss:Type="String">${esc(String(value ?? ''))}</Data></Cell></Row>`)
+        .join('')
+
+    return `<?xml version="1.0"?>
+<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">
+  <Worksheet ss:Name="PrintData">
+    <Table>
+      <Row><Cell><Data ss:Type="String">Field</Data></Cell><Cell><Data ss:Type="String">Value</Data></Cell></Row>
+      ${rows}
+    </Table>
+  </Worksheet>
+</Workbook>`
+}
+
+export async function toPdfBuffer(html: string): Promise<Buffer> {
+    const moduleRef = await import('pdfkit')
+    const PDFDocument = (moduleRef.default ?? moduleRef) as any
+
+    return await new Promise<Buffer>((resolve, reject) => {
+        const chunks: Buffer[] = []
+        const doc = new PDFDocument({ size: 'A4', margin: 36 })
+
+        doc.on('data', (chunk: Buffer) => chunks.push(chunk))
+        doc.on('end', () => resolve(Buffer.concat(chunks)))
+        doc.on('error', reject)
+
+        doc.fontSize(11)
+        doc.text(stripHtml(html), {
+            width: 523,
+            lineGap: 2
+        })
+        doc.end()
+    })
+}
+
+export async function buildExportBuffer(
+    format: 'pdf' | 'excel' | 'csv' | 'word' | 'json',
+    html: string,
+    fieldMappings: Record<string, unknown>,
+    payloadMeta: Record<string, unknown>
+): Promise<Buffer> {
+    if (format === 'pdf') {
+        return await toPdfBuffer(html)
+    }
+    if (format === 'excel') {
+        return Buffer.from(toExcelXml(fieldMappings), 'utf-8')
+    }
+    if (format === 'csv') {
+        return Buffer.from(toCsv(fieldMappings), 'utf-8')
+    }
+    if (format === 'word') {
+        const docHtml = `<!DOCTYPE html><html><head><meta charset="utf-8"></head><body>${html}</body></html>`
+        return Buffer.from(docHtml, 'utf-8')
+    }
+    return Buffer.from(JSON.stringify({ ...payloadMeta, mappings: fieldMappings, renderedHtml: html }, null, 2), 'utf-8')
+}
+
 export async function printRoute(fastify: FastifyInstance, opts: { printService: PrintService }) {
     const { printService } = opts
 
@@ -94,8 +206,6 @@ export async function printRoute(fastify: FastifyInstance, opts: { printService:
     /**
      * POST /api/v1/print/export-file
      * Export rendered template to PDF, Excel, or other formats
-     * Phase 1: Returns HTML as base64 or file download ready
-     * Phase 2: Implement actual PDF/Excel generation
      */
     fastify.post(
         '/print/export-file',
@@ -106,25 +216,32 @@ export async function printRoute(fastify: FastifyInstance, opts: { printService:
             const body = request.body as {
                 htmlContent: string
                 fieldMappings: Record<string, unknown>
-                format: string
+                format: 'pdf' | 'excel' | 'csv' | 'word' | 'json'
+                options?: Record<string, unknown>
             }
-            const { htmlContent, fieldMappings, format } = body
+            const { htmlContent, fieldMappings, format, options } = body
 
             try {
-                // Render template first
                 const html = printService.renderTemplate(htmlContent, fieldMappings)
-
-                // Phase 2 TODO: Implement actual PDF/Excel/etc generation
-                // For now, return HTML as base64 data URI
-                const base64 = Buffer.from(html).toString('base64')
+                const safeName = String(options?.fileName ?? 'print').trim().replace(/[^a-zA-Z0-9-_]+/g, '_') || 'print'
+                const payloadMeta = {
+                    docType: options?.docType,
+                    templateId: options?.templateId,
+                    templateName: options?.templateName,
+                    recordId: options?.recordId,
+                    confidence: options?.confidence
+                }
+                const buffer = await buildExportBuffer(format, html, fieldMappings, payloadMeta)
+                const base64 = buffer.toString('base64')
 
                 return reply.send({
                     success: true,
                     data: {
                         format,
                         content: base64,
-                        mimeType: 'text/html; charset=utf-8',
-                        message: `Phase 1: HTML export ready. Full ${format.toUpperCase()} export coming in Phase 2.`
+                        mimeType: MIME_BY_FORMAT[format],
+                        fileName: `${safeName}.${EXT_BY_FORMAT[format]}`,
+                        message: `${format.toUpperCase()} export generated successfully.`
                     }
                 })
             } catch (error) {

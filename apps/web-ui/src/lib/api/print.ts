@@ -14,6 +14,7 @@ export interface ExportResponse {
     format: string
     content: string
     mimeType: string
+    fileName?: string
     message?: string
 }
 

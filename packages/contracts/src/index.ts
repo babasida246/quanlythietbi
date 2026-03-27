@@ -16,6 +16,9 @@ export * from './events/index.js'
 // NetOps
 export * from './netops/index.js'
 
+// Field Kit
+export * from './fieldKit/index.js'
+
 // Assets
 export * from './assets/index.js'
 

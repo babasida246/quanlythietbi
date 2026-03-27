@@ -12,7 +12,7 @@ import {
     statusSchema,
     timelineSchema
 } from './assets.schemas.js'
-import type { AssetRecord } from '@qltb/contracts'
+import type { AssetRecord, AssetSearchFilters } from '@qltb/contracts'
 import { getUserContext, requirePermission } from './assets.helpers.js'
 
 interface AssetRoutesOptions {
@@ -94,7 +94,8 @@ export async function assetsRoutes(fastify: FastifyInstance, opts: AssetRoutesOp
     fastify.get('/assets', async (request, reply) => {
         const ctx = getUserContext(request)
         const filters = assetSearchSchema.parse(request.query)
-        const { export: exportType, scope, ...searchFilters } = filters
+        const { export: exportType, scope, ...baseSearchFilters } = filters
+        const searchFilters: AssetSearchFilters = { ...baseSearchFilters }
 
         if (scope === 'my_ou') {
             const organizationId = await resolveUserOrganizationId(pgClient, ctx.userId)

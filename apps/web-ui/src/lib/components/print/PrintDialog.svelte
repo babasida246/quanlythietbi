@@ -7,7 +7,7 @@
     type DocumentTemplateSummary,
     type DocumentTemplateVersion
   } from '$lib/api/printTemplates'
-  import { autoMapFields, renderTemplate } from '$lib/api/print'
+  import { autoMapFields, renderTemplate, exportFile } from '$lib/api/print'
 
   type ExportFormat = 'pdf' | 'excel' | 'csv' | 'word' | 'json'
   type Step = 'select' | 'preview' | 'config'
@@ -112,44 +112,6 @@
     }
   }
 
-  function toCsv(mappings: Record<string, unknown>): string {
-    const rows = [['field', 'value']]
-    for (const [key, value] of Object.entries(mappings)) {
-      rows.push([key, String(value ?? '')])
-    }
-    return rows
-      .map((row) => row.map((item) => `"${String(item).replace(/"/g, '""')}"`).join(','))
-      .join('\n')
-  }
-
-  function toExcelXml(mappings: Record<string, unknown>): string {
-    const rows = Object.entries(mappings)
-      .map(
-        ([key, value]) =>
-          `<Row><Cell><Data ss:Type="String">${escapeXml(key)}</Data></Cell><Cell><Data ss:Type="String">${escapeXml(String(value ?? ''))}</Data></Cell></Row>`
-      )
-      .join('')
-
-    return `<?xml version="1.0"?>
-<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">
-  <Worksheet ss:Name="PrintData">
-    <Table>
-      <Row><Cell><Data ss:Type="String">Field</Data></Cell><Cell><Data ss:Type="String">Value</Data></Cell></Row>
-      ${rows}
-    </Table>
-  </Worksheet>
-</Workbook>`
-  }
-
-  function escapeXml(input: string): string {
-    return input
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&apos;')
-  }
-
   function saveBlob(blob: Blob, filename: string) {
     const url = URL.createObjectURL(blob)
     const anchor = document.createElement('a')
@@ -171,58 +133,25 @@
       const safeName = (selectedTemplate?.name ?? 'print').trim().replace(/[^a-zA-Z0-9-_]+/g, '_')
       const html = previewHtml || (await renderTemplate(templateVersion.htmlContent, fieldMappings)).data.html || ''
 
-      if (exportFormat === 'pdf') {
-        const html2pdfModule = await import('html2pdf.js')
-        const html2pdf = (html2pdfModule.default ?? html2pdfModule) as any
+      const exported = await exportFile(html, fieldMappings, exportFormat, {
+        fileName: safeName || 'print',
+        templateId: selectedTemplateId,
+        templateName: selectedTemplate?.name,
+        docType,
+        recordId,
+        confidence
+      })
 
-        const container = document.createElement('div')
-        container.style.position = 'fixed'
-        container.style.left = '-10000px'
-        container.style.top = '0'
-        container.style.width = '210mm'
-        container.innerHTML = `<article style="padding:12mm;background:#fff;color:#111;">${html}</article>`
-        document.body.appendChild(container)
-
-        const target = container.firstElementChild as HTMLElement | null
-        if (!target) throw new Error('Cannot build PDF content')
-
-        await html2pdf()
-          .set({
-            margin: [0, 0, 0, 0],
-            filename: `${safeName || 'print'}.pdf`,
-            image: { type: 'jpeg', quality: 0.98 },
-            html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff' },
-            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-            pagebreak: { mode: ['css', 'legacy'] }
-          })
-          .from(target)
-          .save()
-
-        container.remove()
-      } else if (exportFormat === 'excel') {
-        const xml = toExcelXml(fieldMappings)
-        saveBlob(
-          new Blob([xml], { type: 'application/vnd.ms-excel;charset=utf-8;' }),
-          `${safeName || 'print'}.xls`
-        )
-      } else if (exportFormat === 'csv') {
-        const csv = toCsv(fieldMappings)
-        saveBlob(new Blob([csv], { type: 'text/csv;charset=utf-8;' }), `${safeName || 'print'}.csv`)
-      } else if (exportFormat === 'word') {
-        const docHtml = `<!DOCTYPE html><html><head><meta charset="utf-8"></head><body>${html}</body></html>`
-        saveBlob(new Blob([docHtml], { type: 'application/msword;charset=utf-8;' }), `${safeName || 'print'}.doc`)
-      } else if (exportFormat === 'json') {
-        const payload = {
-          templateId: selectedTemplateId,
-          templateName: selectedTemplate?.name,
-          docType,
-          recordId,
-          confidence,
-          mappings: fieldMappings,
-          renderedHtml: html
-        }
-        saveBlob(new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json;charset=utf-8;' }), `${safeName || 'print'}.json`)
+      const content = exported.data.content ?? ''
+      const mimeType = exported.data.mimeType || 'application/octet-stream'
+      const fileName = exported.data.fileName || `${safeName || 'print'}.${exportFormat === 'excel' ? 'xls' : exportFormat === 'word' ? 'doc' : exportFormat}`
+      const binary = atob(content)
+      const bytes = new Uint8Array(binary.length)
+      for (let i = 0; i < binary.length; i += 1) {
+        bytes[i] = binary.charCodeAt(i)
       }
+
+      saveBlob(new Blob([bytes], { type: mimeType }), fileName)
 
       onExport?.(exportFormat, { html, mappings: fieldMappings })
       onClose()

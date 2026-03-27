@@ -15,7 +15,7 @@ export const exportFileSchema = z.object({
     htmlContent: z.string().describe('HTML template content'),
     fieldMappings: z.record(z.any()).describe('Field mappings for template rendering'),
     format: z.enum(['pdf', 'excel', 'csv', 'word', 'json']).describe('Export format'),
-    options: z.object({}).optional().describe('Format-specific options')
+    options: z.record(z.any()).optional().describe('Format-specific options')
 })
 
 export type AutoMapFieldsRequest = z.infer<typeof autoMapFieldsSchema>
