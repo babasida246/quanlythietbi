@@ -1,9 +1,31 @@
 const API_BASE_FALLBACK = typeof window === 'undefined'
     ? 'http://localhost:3000/api'
-    : `${window.location.protocol}//${window.location.hostname}:3000/api`
+    : '/api'
+
+function isLocalHost(hostname: string): boolean {
+    return hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '[::1]'
+}
+
+function shouldUseEnvApiBaseInBrowser(envApiBase: string): boolean {
+    if (typeof window === 'undefined') return true
+
+    const currentHost = window.location.hostname.toLowerCase()
+    const envLower = envApiBase.toLowerCase()
+    const envPointsToLocal = envLower.includes('localhost') || envLower.includes('127.0.0.1') || envLower.includes('[::1]')
+
+    // On non-local domains, ignore env values that point back to localhost.
+    if (!isLocalHost(currentHost) && envPointsToLocal) {
+        return false
+    }
+
+    return true
+}
 
 // API base URL - includes /api prefix for versioned endpoints.
-export const API_BASE = import.meta.env?.VITE_API_BASE || import.meta.env?.BACKEND_BASE_URL || API_BASE_FALLBACK
+const ENV_API_BASE = import.meta.env?.VITE_API_BASE || import.meta.env?.BACKEND_BASE_URL
+export const API_BASE = ENV_API_BASE && shouldUseEnvApiBaseInBrowser(ENV_API_BASE)
+    ? ENV_API_BASE
+    : API_BASE_FALLBACK
 
 export type StoredUser = {
     email?: string | null

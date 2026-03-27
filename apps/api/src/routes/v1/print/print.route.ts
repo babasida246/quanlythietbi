@@ -141,11 +141,8 @@ export async function printRoute(fastify: FastifyInstance, opts: { printService:
      */
     fastify.post(
         '/print/auto-map-fields',
-        {
-            schema: { body: autoMapFieldsSchema }
-        },
         async (request, reply) => {
-            const body = request.body as { docType: string; sourceData: Record<string, unknown>; templateFieldNames: string[] }
+            const body = autoMapFieldsSchema.parse(request.body)
             const { docType, sourceData, templateFieldNames } = body
 
             try {
@@ -177,11 +174,8 @@ export async function printRoute(fastify: FastifyInstance, opts: { printService:
      */
     fastify.post(
         '/print/render',
-        {
-            schema: { body: renderTemplateSchema }
-        },
         async (request, reply) => {
-            const body = request.body as { htmlContent: string; fieldMappings: Record<string, unknown> }
+            const body = renderTemplateSchema.parse(request.body)
             const { htmlContent, fieldMappings } = body
 
             try {
@@ -209,16 +203,8 @@ export async function printRoute(fastify: FastifyInstance, opts: { printService:
      */
     fastify.post(
         '/print/export-file',
-        {
-            schema: { body: exportFileSchema }
-        },
         async (request, reply) => {
-            const body = request.body as {
-                htmlContent: string
-                fieldMappings: Record<string, unknown>
-                format: 'pdf' | 'excel' | 'csv' | 'word' | 'json'
-                options?: Record<string, unknown>
-            }
+            const body = exportFileSchema.parse(request.body)
             const { htmlContent, fieldMappings, format, options } = body
 
             try {
