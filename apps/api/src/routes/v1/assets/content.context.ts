@@ -1,7 +1,7 @@
 import type { FastifyInstance } from 'fastify'
 import type { PgClient } from '@qltb/infra-postgres'
 import { DocumentRepo, FieldKitRepo, LabelsRepository, OrganizationRepo } from '@qltb/infra-postgres'
-import { DocumentService, FieldKitService, LabelsService, OrganizationService, PrintService } from '@qltb/application'
+import { DocumentService, DocxRenderService, FieldKitService, LabelsService, OrganizationService, PrintService } from '@qltb/application'
 import { documentsRoute } from '../documents/documents.route.js'
 import { fieldKitRoute } from '../field-kit/field-kit.route.js'
 import { labelsRoute } from '../labels/labels.route.js'
@@ -23,11 +23,12 @@ export async function registerContentContext(
     const labelsService = new LabelsService(labelsRepo)
     const organizationService = new OrganizationService(organizationRepo)
     const printService = new PrintService()
+    const docxRenderService = new DocxRenderService()
 
     await fastify.register(documentsRoute, { prefix: '/api/v1', documentService, pgClient })
     await fastify.register(fieldKitRoute, { prefix: '/api/v1', fieldKitService })
-    await fastify.register(labelsRoute, { prefix: '/api/v1', labelsService })
+    await fastify.register(labelsRoute, { prefix: '/api/v1', labelsService, labelsRepo })
     await fastify.register(organizationsRoute, { prefix: '/api/v1', organizationService })
     await fastify.register(userRoute, { prefix: '/api/v1', pgClient })
-    await fastify.register(printRoute, { prefix: '/api/v1', printService, labelsRepo })
+    await fastify.register(printRoute, { prefix: '/api/v1', printService, docxRenderService, labelsRepo })
 }

@@ -179,12 +179,16 @@ export interface DocumentTemplate {
     updatedAt: Date;
 }
 
+export type DocumentTemplateFormat = 'html' | 'docx';
+
 export interface DocumentTemplateVersion {
     id: string;
     templateId: string;
     versionNo: number;
     title?: string;
     htmlContent: string;
+    /** 'html' (default) or 'docx' (binary template rendered via docxtemplater) */
+    templateFormat: DocumentTemplateFormat;
     fields: string[];
     changeNote?: string;
     status: DocumentTemplateVersionStatus;
@@ -222,6 +226,15 @@ export interface CreateDocumentTemplateVersionDto {
     htmlContent: string;
     fields?: string[];
     changeNote?: string;
+}
+
+/** Used when uploading a .docx binary template (multipart form) */
+export interface CreateDocumentTemplateVersionDocxDto {
+    title?: string;
+    changeNote?: string;
+    /** Raw .docx file content (Buffer from multipart upload) */
+    binaryContent: Buffer;
+    createdBy?: string;
 }
 
 export interface DocumentTemplateListQuery {

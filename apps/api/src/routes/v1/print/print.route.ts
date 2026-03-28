@@ -1,7 +1,8 @@
 import type { FastifyInstance } from 'fastify'
-import type { PrintService } from '@qltb/application'
+import type { PrintService, DocxRenderService } from '@qltb/application'
 import type { LabelsRepository } from '@qltb/infra-postgres'
 import { z } from 'zod'
+import { BuiltinDocxService, BUILTIN_PRINT_TYPES } from '../../../templates/BuiltinDocxService.js'
 
 const autoMapFieldsSchema = z.object({
     docType: z.enum(['asset', 'warehouse_receipt', 'warehouse_issue', 'inventory', 'maintenance', 'repair_order']),
@@ -137,8 +138,15 @@ export async function buildExportBuffer(
     return Buffer.from(JSON.stringify({ ...payloadMeta, mappings: fieldMappings, renderedHtml: html }, null, 2), 'utf-8')
 }
 
-export async function printRoute(fastify: FastifyInstance, opts: { printService: PrintService; labelsRepo: LabelsRepository }) {
-    const { printService, labelsRepo } = opts
+const renderDocxSchema = z.object({
+    templateId: z.string().uuid(),
+    versionId: z.string().uuid(),
+    data: z.record(z.any()).describe('Data object to render into the .docx template'),
+    fileName: z.string().optional().describe('Suggested download filename (without extension)'),
+})
+
+export async function printRoute(fastify: FastifyInstance, opts: { printService: PrintService; docxRenderService: DocxRenderService; labelsRepo: LabelsRepository }) {
+    const { printService, docxRenderService, labelsRepo } = opts
 
     /**
      * GET /api/v1/print/suggest-template
@@ -287,4 +295,177 @@ export async function printRoute(fastify: FastifyInstance, opts: { printService:
             }
         }
     )
+
+    /**
+     * POST /api/v1/print/render-docx
+     *
+     * Render a .docx template (uploaded via document templates) with provided data.
+     * Returns base64-encoded .docx content ready for download.
+     *
+     * Template syntax (design in Microsoft Word):
+     *   {fieldName}           – simple substitution
+     *   {#lines}...{/lines}   – loop for table rows; repeat one row per element in data.lines
+     *   {^lines}Trống{/lines} – rendered only when data.lines is empty
+     *   {#flag}...{/flag}     – conditional block
+     *
+     * Example data for a warehouse receipt:
+     *   {
+     *     orgName: 'Công ty ABC',
+     *     code: 'NK-2026-001',
+     *     date: '01/01/2026',
+     *     warehouseName: 'Kho A',
+     *     lines: [
+     *       { i: 1, partCode: 'TB001', partName: 'Laptop Dell', qty: 2, unitCost: '15.000.000 đ', total: '30.000.000 đ' }
+     *     ]
+     *   }
+     */
+    fastify.post(
+        '/print/render-docx',
+        async (request, reply) => {
+            const body = renderDocxSchema.parse(request.body)
+            const { templateId, versionId, data, fileName } = body
+
+            try {
+                const content = await labelsRepo.getDocumentTemplateVersionBinary(templateId, versionId)
+                if (!content) {
+                    return reply.status(404).send({
+                        success: false,
+                        error: { code: 'TEMPLATE_NOT_FOUND', message: 'Template version not found' }
+                    })
+                }
+                if (content.format !== 'docx' || !content.binaryContent) {
+                    return reply.status(400).send({
+                        success: false,
+                        error: { code: 'NOT_DOCX_TEMPLATE', message: 'Template is not a DOCX template. Upload a .docx file first.' }
+                    })
+                }
+
+                const rendered = await docxRenderService.renderDocx(content.binaryContent, data)
+                const base64 = rendered.toString('base64')
+                const safeName = String(fileName ?? 'document').trim().replace(/[^a-zA-Z0-9-_]+/g, '_') || 'document'
+
+                return reply.send({
+                    success: true,
+                    data: {
+                        content: base64,
+                        mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                        fileName: `${safeName}.docx`,
+                    }
+                })
+            } catch (error) {
+                return reply.status(400).send({
+                    success: false,
+                    error: {
+                        code: 'DOCX_RENDER_FAILED',
+                        message: error instanceof Error ? error.message : 'DOCX rendering failed'
+                    }
+                })
+            }
+        }
+    )
+
+    /**
+     * POST /api/v1/print/extract-docx-placeholders
+     *
+     * Parse a .docx template and return all {placeholder} names found.
+     * Useful for building field-mapping UIs before rendering.
+     */
+    fastify.post(
+        '/print/extract-docx-placeholders',
+        async (request, reply) => {
+            const body = z.object({
+                templateId: z.string().uuid(),
+                versionId: z.string().uuid(),
+            }).parse(request.body)
+
+            try {
+                const content = await labelsRepo.getDocumentTemplateVersionBinary(body.templateId, body.versionId)
+                if (!content || content.format !== 'docx' || !content.binaryContent) {
+                    return reply.status(404).send({
+                        success: false,
+                        error: { code: 'TEMPLATE_NOT_FOUND', message: 'DOCX template version not found' }
+                    })
+                }
+
+                const placeholders = await docxRenderService.extractPlaceholders(content.binaryContent)
+                return reply.send({ success: true, data: { placeholders } })
+            } catch (error) {
+                return reply.status(400).send({
+                    success: false,
+                    error: {
+                        code: 'EXTRACT_FAILED',
+                        message: error instanceof Error ? error.message : 'Placeholder extraction failed'
+                    }
+                })
+            }
+        }
+    )
+
+    const builtinDocxService = new BuiltinDocxService()
+
+    /**
+     * POST /api/v1/print/render-builtin-docx
+     *
+     * Render một trong 11 mẫu in có sẵn (.docx) với dữ liệu.
+     * Template files nằm tại apps/api/src/templates/docx/*.docx.
+     * Tạo lại bằng: node scripts/generate-docx-templates.mjs
+     *
+     * Body:
+     *   printType  – một trong BUILTIN_PRINT_TYPES
+     *   data       – object dữ liệu (keys tương ứng {placeholder} trong template)
+     *                  Luôn bao gồm orgInfo: { orgName, orgAddress, orgPhone, orgTaxCode }
+     *   fileName   – tên file download (không có .docx, tùy chọn)
+     *
+     * Cấu trúc data ví dụ cho phieu-nhap-kho:
+     *   {
+     *     orgName, orgAddress, orgPhone, orgTaxCode,
+     *     code, date, warehouseName, supplier, reference, note,
+     *     lines: [{ i, partCode, partName, uom, qty, unitCost, total, serialNo, lineNote }],
+     *     totalQty, totalAmount,
+     *     preparedBy, receivedBy, approvedBy,
+     *     sigDate
+     *   }
+     */
+    fastify.post(
+        '/print/render-builtin-docx',
+        async (request, reply) => {
+            const body = z.object({
+                printType: z.enum(BUILTIN_PRINT_TYPES as [string, ...string[]]),
+                data:      z.record(z.any()),
+                fileName:  z.string().optional(),
+            }).parse(request.body)
+
+            try {
+                const rendered = await builtinDocxService.render(body.printType, body.data)
+                const base64   = rendered.toString('base64')
+                const safeName = String(body.fileName ?? body.printType)
+                    .trim().replace(/[^a-zA-Z0-9-_]+/g, '_') || body.printType
+
+                return reply.send({
+                    success: true,
+                    data: {
+                        content:  base64,
+                        mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                        fileName: `${safeName}.docx`,
+                    }
+                })
+            } catch (error) {
+                return reply.status(400).send({
+                    success: false,
+                    error: {
+                        code:    'BUILTIN_RENDER_FAILED',
+                        message: error instanceof Error ? error.message : 'Render failed',
+                    }
+                })
+            }
+        }
+    )
+
+    /**
+     * GET /api/v1/print/builtin-types
+     * Trả về danh sách các loại mẫu in có sẵn.
+     */
+    fastify.get('/print/builtin-types', async (_request, reply) => {
+        return reply.send({ success: true, data: BUILTIN_PRINT_TYPES })
+    })
 }

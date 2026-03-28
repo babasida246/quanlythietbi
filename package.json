@@ -54,12 +54,14 @@
         "db:reset": "pnpm db:empty && pnpm db:migrate && pnpm db:seed",
         "db:setup": "node scripts/db-setup.mjs",
         "setup:status": "node -e \"fetch('http://localhost:3000/api/setup/status').then((r)=>r.text()).then(console.log).catch((e)=>{console.error(e);process.exit(1);})\"",
-        "smoke:warehouse:roles": "node scripts/smoke-warehouse-role-access.mjs"
+        "smoke:warehouse:roles": "node scripts/smoke-warehouse-role-access.mjs",
+        "generate:docx-templates": "node scripts/generate-docx-templates.mjs"
     },
     "devDependencies": {
         "@faker-js/faker": "^10.3.0",
         "@playwright/test": "^1.58.2",
         "concurrently": "^9.0.0",
+        "docx": "^9.6.1",
         "dotenv": "^17.3.1",
         "kill-port": "^2.0.1",
         "playwright": "^1.58.2",

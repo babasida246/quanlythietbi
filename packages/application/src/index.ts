@@ -24,6 +24,8 @@ export { ReminderService } from './assets/ReminderService.js'
 
 // Print
 export { PrintService } from './print/PrintService.js'
+export { DocxRenderService } from './print/DocxRenderService.js'
+export type { DocxRenderOptions } from './print/DocxRenderService.js'
 
 // Field Kit
 export { FieldKitService } from './fieldKit/FieldKitService.js'

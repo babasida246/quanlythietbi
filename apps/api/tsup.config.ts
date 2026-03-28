@@ -48,5 +48,9 @@ export default defineConfig({
 
         copyRecursive(srcLocales, distLocales)
         console.log('✓ Locale files copied to dist')
+
+        // Copy built-in .docx templates: src/templates/docx/ → dist/templates/docx/
+        copyRecursive('src/templates/docx', 'dist/templates/docx')
+        console.log('✓ Docx template files copied to dist/templates/docx')
     }
 })

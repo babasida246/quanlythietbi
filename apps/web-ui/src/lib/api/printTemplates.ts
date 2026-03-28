@@ -8,6 +8,8 @@ export type DocumentTemplateVersion = {
     versionNo: number
     title?: string
     htmlContent: string
+    /** 'html' or 'docx' — added in migration 20260326_002 */
+    templateFormat?: 'html' | 'docx'
     fields: string[]
     changeNote?: string
     status: DocumentTemplateVersionStatus

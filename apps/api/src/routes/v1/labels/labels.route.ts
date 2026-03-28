@@ -5,6 +5,8 @@
 
 import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import type { LabelsService } from '@qltb/application';
+import type { LabelsRepository } from '@qltb/infra-postgres';
+import { z } from 'zod';
 import {
     createTemplateSchema,
     updateTemplateSchema,
@@ -27,9 +29,9 @@ import {
 
 export async function labelsRoute(
     fastify: FastifyInstance,
-    opts: { labelsService: LabelsService }
+    opts: { labelsService: LabelsService; labelsRepo?: LabelsRepository }
 ) {
-    const { labelsService } = opts;
+    const { labelsService, labelsRepo } = opts;
 
     // ==================== Template Routes ====================
 
@@ -301,6 +303,64 @@ export async function labelsRoute(
                 const message = (error as Error).message;
                 const status = message.includes('not found') ? 404 : 400;
                 return reply.status(status).send({ success: false, error: { code: status === 404 ? 'NOT_FOUND' : 'VALIDATION_ERROR', message } });
+            }
+        },
+    });
+
+    /**
+     * POST /api/v1/labels/document-templates/:id/versions/upload-docx
+     *
+     * Upload a .docx file as a new draft template version.
+     * Content-Type: multipart/form-data
+     * Fields:
+     *   file        (required) — the .docx file
+     *   title       (optional) — version title
+     *   changeNote  (optional) — description of changes
+     *
+     * Template syntax to use in Microsoft Word:
+     *   {fieldName}           simple substitution
+     *   {#items}...{/items}   loop — repeat table row / paragraph per item
+     *   {^items}...{/items}   empty-state block
+     *   {#flag}...{/flag}     conditional block
+     */
+    fastify.post('/labels/document-templates/:id/versions/upload-docx', {
+        schema: { tags: ['Document Templates'], summary: 'Upload a .docx binary template as a new draft version' },
+        handler: async (request: FastifyRequest, reply: FastifyReply) => {
+            if (!labelsRepo) {
+                return reply.status(503).send({ success: false, error: { code: 'NOT_CONFIGURED', message: 'labelsRepo not available' } });
+            }
+            const actorId = request.user?.id;
+            if (!actorId) {
+                return reply.status(401).send({ success: false, error: { code: 'UNAUTHORIZED', message: 'Unauthorized' } });
+            }
+
+            const { id } = z.object({ id: z.string().uuid() }).parse(request.params);
+
+            try {
+                const data = await request.file();
+                if (!data) {
+                    return reply.status(400).send({ success: false, error: { code: 'NO_FILE', message: 'No file uploaded' } });
+                }
+                if (!data.filename.endsWith('.docx') && data.mimetype !== 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
+                    return reply.status(400).send({ success: false, error: { code: 'INVALID_FORMAT', message: 'Only .docx files are accepted' } });
+                }
+
+                const binaryContent = await data.toBuffer();
+                const title = (data.fields as Record<string, { value: string }>)?.title?.value?.trim() || undefined;
+                const changeNote = (data.fields as Record<string, { value: string }>)?.changeNote?.value?.trim() || undefined;
+
+                const version = await labelsRepo.createDocumentTemplateVersionDocx(id, {
+                    title,
+                    changeNote,
+                    binaryContent,
+                    createdBy: actorId,
+                });
+
+                return reply.send({ success: true, data: version });
+            } catch (error) {
+                const message = (error as Error).message;
+                const status = message.includes('not found') ? 404 : 400;
+                return reply.status(status).send({ success: false, error: { code: 'UPLOAD_FAILED', message } });
             }
         },
     });

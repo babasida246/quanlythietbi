@@ -27,6 +27,7 @@ import type {
     CreateDocumentTemplateDto,
     UpdateDocumentTemplateDto,
     CreateDocumentTemplateVersionDto,
+    CreateDocumentTemplateVersionDocxDto,
     DocumentTemplateListQuery,
 } from '@qltb/contracts';
 
@@ -1067,6 +1068,74 @@ export class LabelsRepository {
         return result.rows[0] ? this.mapDocumentTemplateVersion(result.rows[0]) : null;
     }
 
+    /**
+     * Get the binary (.docx) content of a specific template version.
+     * Returns null if the version does not exist or has no binary content.
+     */
+    async getDocumentTemplateVersionBinary(
+        templateId: string,
+        versionId: string
+    ): Promise<{ format: 'html' | 'docx'; binaryContent: Buffer | null; htmlContent: string } | null> {
+        const result = await this.db.query<{
+            template_format: string;
+            binary_content: Buffer | null;
+            html_content: string;
+        }>(
+            `SELECT template_format, binary_content, html_content
+             FROM document_template_versions
+             WHERE id = $1 AND template_id = $2`,
+            [versionId, templateId]
+        );
+        if (!result.rows[0]) return null;
+        const row = result.rows[0];
+        return {
+            format: (row.template_format as 'html' | 'docx') ?? 'html',
+            binaryContent: row.binary_content ? Buffer.from(row.binary_content) : null,
+            htmlContent: row.html_content ?? '',
+        };
+    }
+
+    /**
+     * Create a new DOCX template version from a binary .docx upload.
+     */
+    async createDocumentTemplateVersionDocx(
+        templateId: string,
+        dto: CreateDocumentTemplateVersionDocxDto
+    ): Promise<DocumentTemplateVersion> {
+        const result = await this.db.query(
+            `WITH next_version AS (
+                SELECT COALESCE(MAX(version_no), 0) + 1 AS version_no
+                FROM document_template_versions
+                WHERE template_id = $1
+            )
+            INSERT INTO document_template_versions (
+                template_id, version_no, title, html_content, template_format,
+                binary_content, fields, change_note, status, created_by
+            )
+            SELECT
+                $1,
+                nv.version_no,
+                $2,
+                '',
+                'docx',
+                $3,
+                '[]'::jsonb,
+                $4,
+                'draft',
+                $5
+            FROM next_version nv
+            RETURNING *`,
+            [
+                templateId,
+                dto.title?.trim() || null,
+                dto.binaryContent,
+                dto.changeNote?.trim() || null,
+                dto.createdBy || null,
+            ]
+        );
+        return this.mapDocumentTemplateVersion(result.rows[0]);
+    }
+
     // ==================== Transaction Helper ====================
 
     async withTransaction<T>(callback: (client: PoolClient) => Promise<T>): Promise<T> {
@@ -1201,7 +1270,8 @@ export class LabelsRepository {
             templateId: row.template_id as string,
             versionNo: Number(row.version_no),
             title: row.title as string | undefined,
-            htmlContent: row.html_content as string,
+            htmlContent: (row.html_content as string) ?? '',
+            templateFormat: ((row.template_format as string) ?? 'html') as DocumentTemplateVersion['templateFormat'],
             fields: (row.fields as string[]) ?? [],
             changeNote: row.change_note as string | undefined,
             status: row.status as DocumentTemplateVersion['status'],
