@@ -285,9 +285,14 @@ BEGIN
           INSERT INTO document_templates
                (id, template_code, name, description, module, active_version_id, is_active, organization_id, created_by, updated_by)
           VALUES
-               ('dd100000-0000-0000-0000-000000000001', 'doc-bien-ban-kiem-ke', 'Bien ban kiem ke tai san', 'Mau bien ban kiem ke tai san', 'inventory', 'dd200000-0000-0000-0000-000000000001', true, 'd0000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000002', '00000000-0000-0000-0000-000000000002'),
-               ('dd100000-0000-0000-0000-000000000002', 'doc-phieu-nhap-kho', 'Phieu nhap kho', 'Mau phieu nhap kho chung', 'warehouse', 'dd200000-0000-0000-0000-000000000002', true, 'd0000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000002', '00000000-0000-0000-0000-000000000002'),
-               ('dd100000-0000-0000-0000-000000000003', 'doc-phieu-xuat-kho', 'Phieu xuat kho', 'Mau phieu xuat kho chung', 'warehouse', 'dd200000-0000-0000-0000-000000000003', true, 'd0000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000002', '00000000-0000-0000-0000-000000000002')
+               ('dd100000-0000-0000-0000-000000000001', 'doc-bien-ban-kiem-ke', 'Bien ban kiem ke tai san', 'Mau bien ban kiem ke tai san', 'inventory', NULL, true, 'd0000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000002', '00000000-0000-0000-0000-000000000002'),
+               ('dd100000-0000-0000-0000-000000000002', 'doc-phieu-nhap-kho', 'Phieu nhap kho', 'Mau phieu nhap kho chung', 'warehouse', NULL, true, 'd0000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000002', '00000000-0000-0000-0000-000000000002'),
+               ('dd100000-0000-0000-0000-000000000003', 'doc-phieu-xuat-kho', 'Phieu xuat kho', 'Mau phieu xuat kho chung', 'warehouse', NULL, true, 'd0000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000002', '00000000-0000-0000-0000-000000000002'),
+               ('dd100000-0000-0000-0000-000000000004', 'doc-ban-giao-tai-san', 'Bien ban ban giao tai san', 'Mau ban giao tai san cho nguoi dung', 'asset', NULL, true, 'd0000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000002', '00000000-0000-0000-0000-000000000002'),
+               ('dd100000-0000-0000-0000-000000000005', 'doc-phieu-bao-tri', 'Phieu bao tri', 'Mau phieu bao tri thiet bi', 'maintenance', NULL, true, 'd0000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000002', '00000000-0000-0000-0000-000000000002'),
+               ('dd100000-0000-0000-0000-000000000006', 'doc-lenh-sua-chua', 'Lenh sua chua', 'Mau lenh sua chua cho ticket ky thuat', 'repair_order', NULL, true, 'd0000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000002', '00000000-0000-0000-0000-000000000002'),
+               ('dd100000-0000-0000-0000-000000000007', 'doc-warehouse-receipt', 'Mau in phieu nhap kho (warehouse_receipt)', 'Mau in chuyen biet cho docType warehouse_receipt', 'warehouse_receipt', NULL, true, 'd0000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000002', '00000000-0000-0000-0000-000000000002'),
+               ('dd100000-0000-0000-0000-000000000008', 'doc-warehouse-issue', 'Mau in phieu xuat kho (warehouse_issue)', 'Mau in chuyen biet cho docType warehouse_issue', 'warehouse_issue', NULL, true, 'd0000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000002', '00000000-0000-0000-0000-000000000002')
           ON CONFLICT (id) DO NOTHING;
 
           INSERT INTO document_template_versions
@@ -331,8 +336,97 @@ BEGIN
                     '00000000-0000-0000-0000-000000000002',
                     '00000000-0000-0000-0000-000000000002',
                     NOW()
+               ),
+               (
+                    'dd200000-0000-0000-0000-000000000004',
+                    'dd100000-0000-0000-0000-000000000004',
+                    1,
+                    'Bien ban ban giao tai san - ban 1',
+                    '<h1 style="text-align:center;">BIEN BAN BAN GIAO TAI SAN</h1><p><strong>Ma bien ban:</strong> {{document.number}}</p><p><strong>Ngay ban giao:</strong> {{document.date}}</p><p><strong>Nguoi giao:</strong> {{handover.from}}</p><p><strong>Nguoi nhan:</strong> {{handover.to}}</p><table border="1" cellspacing="0" cellpadding="6" style="width:100%; border-collapse:collapse;"><thead><tr><th>Ma tai san</th><th>Ten tai san</th><th>Serial</th><th>Tinh trang</th></tr></thead><tbody><tr><td>{{asset.code}}</td><td>{{asset.name}}</td><td>{{asset.serial}}</td><td>{{asset.status}}</td></tr></tbody></table>',
+                    '["document.number","document.date","handover.from","handover.to","asset.code","asset.name","asset.serial","asset.status"]'::jsonb,
+                    'Seed default template',
+                    'published',
+                    '00000000-0000-0000-0000-000000000002',
+                    '00000000-0000-0000-0000-000000000002',
+                    NOW()
+               ),
+               (
+                    'dd200000-0000-0000-0000-000000000005',
+                    'dd100000-0000-0000-0000-000000000005',
+                    1,
+                    'Phieu bao tri - ban 1',
+                    '<h1 style="text-align:center;">PHIEU BAO TRI</h1><p><strong>Ma ticket:</strong> {{ticket.code}}</p><p><strong>Ngay mo:</strong> {{ticket.openedAt}}</p><p><strong>Tai san:</strong> {{asset.code}} - {{asset.name}}</p><p><strong>Muc do:</strong> {{ticket.severity}}</p><p><strong>Mo ta loi:</strong> {{ticket.issue}}</p><p><strong>Ky thuat vien:</strong> {{ticket.assignee}}</p>',
+                    '["ticket.code","ticket.openedAt","asset.code","asset.name","ticket.severity","ticket.issue","ticket.assignee"]'::jsonb,
+                    'Seed default template',
+                    'published',
+                    '00000000-0000-0000-0000-000000000002',
+                    '00000000-0000-0000-0000-000000000002',
+                    NOW()
+               ),
+               (
+                    'dd200000-0000-0000-0000-000000000006',
+                    'dd100000-0000-0000-0000-000000000006',
+                    1,
+                    'Lenh sua chua - ban 1',
+                    '<h1 style="text-align:center;">LENH SUA CHUA</h1><p><strong>So lenh:</strong> {{repair.number}}</p><p><strong>Ngay tao:</strong> {{repair.date}}</p><p><strong>Tai san:</strong> {{asset.code}} - {{asset.name}}</p><p><strong>Noi dung sua chua:</strong> {{repair.description}}</p><p><strong>Du kien hoan thanh:</strong> {{repair.eta}}</p><p><strong>Nguoi phu trach:</strong> {{repair.technician}}</p>',
+                    '["repair.number","repair.date","asset.code","asset.name","repair.description","repair.eta","repair.technician"]'::jsonb,
+                    'Seed default template',
+                    'published',
+                    '00000000-0000-0000-0000-000000000002',
+                    '00000000-0000-0000-0000-000000000002',
+                    NOW()
+               ),
+               (
+                    'dd200000-0000-0000-0000-000000000007',
+                    'dd100000-0000-0000-0000-000000000007',
+                    1,
+                    'Warehouse receipt print - v1',
+                    '<h1 style="text-align:center;">PHIEU NHAP KHO (WAREHOUSE RECEIPT)</h1><p><strong>Ma phieu:</strong> {{warehouse_receipt.code}}</p><p><strong>Ngay nhap:</strong> {{warehouse_receipt.date}}</p><p><strong>Kho nhan:</strong> {{warehouse_receipt.warehouseName}}</p><p><strong>Nguon cung cap:</strong> {{warehouse_receipt.supplier}}</p><p><strong>Nguoi giao:</strong> {{warehouse_receipt.deliveredBy}}</p><p><strong>Nguoi nhan:</strong> {{warehouse_receipt.receivedBy}}</p><table border="1" cellspacing="0" cellpadding="6" style="width:100%; border-collapse:collapse;"><thead><tr><th>STT</th><th>Ma hang</th><th>Ten hang</th><th>So luong</th></tr></thead><tbody><tr><td>1</td><td>{{warehouse_receipt.items.0.code}}</td><td>{{warehouse_receipt.items.0.name}}</td><td>{{warehouse_receipt.items.0.qty}}</td></tr></tbody></table>',
+                    '["warehouse_receipt.code","warehouse_receipt.date","warehouse_receipt.warehouseName","warehouse_receipt.supplier","warehouse_receipt.deliveredBy","warehouse_receipt.receivedBy","warehouse_receipt.items.0.code","warehouse_receipt.items.0.name","warehouse_receipt.items.0.qty"]'::jsonb,
+                    'Seed dedicated template for warehouse_receipt',
+                    'published',
+                    '00000000-0000-0000-0000-000000000002',
+                    '00000000-0000-0000-0000-000000000002',
+                    NOW()
+               ),
+               (
+                    'dd200000-0000-0000-0000-000000000008',
+                    'dd100000-0000-0000-0000-000000000008',
+                    1,
+                    'Warehouse issue print - v1',
+                    '<h1 style="text-align:center;">PHIEU XUAT KHO (WAREHOUSE ISSUE)</h1><p><strong>Ma phieu:</strong> {{warehouse_issue.code}}</p><p><strong>Ngay xuat:</strong> {{warehouse_issue.date}}</p><p><strong>Kho xuat:</strong> {{warehouse_issue.warehouseName}}</p><p><strong>Bo phan nhan:</strong> {{warehouse_issue.department}}</p><p><strong>Nguoi nhan:</strong> {{warehouse_issue.receiver}}</p><p><strong>Muc dich:</strong> {{warehouse_issue.purpose}}</p><table border="1" cellspacing="0" cellpadding="6" style="width:100%; border-collapse:collapse;"><thead><tr><th>STT</th><th>Ma hang</th><th>Ten hang</th><th>So luong</th></tr></thead><tbody><tr><td>1</td><td>{{warehouse_issue.items.0.code}}</td><td>{{warehouse_issue.items.0.name}}</td><td>{{warehouse_issue.items.0.qty}}</td></tr></tbody></table>',
+                    '["warehouse_issue.code","warehouse_issue.date","warehouse_issue.warehouseName","warehouse_issue.department","warehouse_issue.receiver","warehouse_issue.purpose","warehouse_issue.items.0.code","warehouse_issue.items.0.name","warehouse_issue.items.0.qty"]'::jsonb,
+                    'Seed dedicated template for warehouse_issue',
+                    'published',
+                    '00000000-0000-0000-0000-000000000002',
+                    '00000000-0000-0000-0000-000000000002',
+                    NOW()
                )
           ON CONFLICT (id) DO NOTHING;
+
+          UPDATE document_templates
+          SET active_version_id = CASE id
+               WHEN 'dd100000-0000-0000-0000-000000000001' THEN 'dd200000-0000-0000-0000-000000000001'::uuid
+               WHEN 'dd100000-0000-0000-0000-000000000002' THEN 'dd200000-0000-0000-0000-000000000002'::uuid
+               WHEN 'dd100000-0000-0000-0000-000000000003' THEN 'dd200000-0000-0000-0000-000000000003'::uuid
+               WHEN 'dd100000-0000-0000-0000-000000000004' THEN 'dd200000-0000-0000-0000-000000000004'::uuid
+               WHEN 'dd100000-0000-0000-0000-000000000005' THEN 'dd200000-0000-0000-0000-000000000005'::uuid
+               WHEN 'dd100000-0000-0000-0000-000000000006' THEN 'dd200000-0000-0000-0000-000000000006'::uuid
+               WHEN 'dd100000-0000-0000-0000-000000000007' THEN 'dd200000-0000-0000-0000-000000000007'::uuid
+               WHEN 'dd100000-0000-0000-0000-000000000008' THEN 'dd200000-0000-0000-0000-000000000008'::uuid
+               ELSE active_version_id
+          END,
+          updated_at = NOW()
+          WHERE id IN (
+               'dd100000-0000-0000-0000-000000000001',
+               'dd100000-0000-0000-0000-000000000002',
+               'dd100000-0000-0000-0000-000000000003',
+               'dd100000-0000-0000-0000-000000000004',
+               'dd100000-0000-0000-0000-000000000005',
+               'dd100000-0000-0000-0000-000000000006',
+               'dd100000-0000-0000-0000-000000000007',
+               'dd100000-0000-0000-0000-000000000008'
+          );
 
      END IF;
 END $$;

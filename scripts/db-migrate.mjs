@@ -90,6 +90,8 @@ const MIGRATIONS = [
     { label: '060_unified_policies.sql', path: join(DB_MIGRATIONS, '060_unified_policies.sql') },
     { label: '061_unify_permission_namespace.sql', path: join(DB_MIGRATIONS, '061_unify_permission_namespace.sql') },
     { label: '062_remove_site_visibility_permissions.sql', path: join(DB_MIGRATIONS, '062_remove_site_visibility_permissions.sql') },
+    { label: '063_document_template_versioning.sql', path: join(DB_MIGRATIONS, '063_document_template_versioning.sql') },
+    { label: '064_fieldkit_backend.sql', path: join(DB_MIGRATIONS, '064_fieldkit_backend.sql') },
     { label: '20260304_001_fix_wf_definitions_request_types.sql', path: join(DB_MIGRATIONS, '20260304_001_fix_wf_definitions_request_types.sql') },
     { label: '20260304_002_business_integrity_constraints.sql', path: join(DB_MIGRATIONS, '20260304_002_business_integrity_constraints.sql') },
     { label: '20260310_001_add_unit_cost_to_spare_parts.sql', path: join(DB_MIGRATIONS, '20260310_001_add_unit_cost_to_spare_parts.sql') },

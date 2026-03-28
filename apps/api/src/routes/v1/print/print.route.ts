@@ -1,11 +1,16 @@
 import type { FastifyInstance } from 'fastify'
 import type { PrintService } from '@qltb/application'
+import type { LabelsRepository } from '@qltb/infra-postgres'
 import { z } from 'zod'
 
 const autoMapFieldsSchema = z.object({
     docType: z.enum(['asset', 'warehouse_receipt', 'warehouse_issue', 'inventory', 'maintenance', 'repair_order']),
     sourceData: z.record(z.any()),
     templateFieldNames: z.array(z.string())
+})
+
+const suggestTemplateSchema = z.object({
+    docType: z.enum(['asset', 'warehouse_receipt', 'warehouse_issue', 'inventory', 'maintenance', 'repair_order'])
 })
 
 const renderTemplateSchema = z.object({
@@ -132,8 +137,49 @@ export async function buildExportBuffer(
     return Buffer.from(JSON.stringify({ ...payloadMeta, mappings: fieldMappings, renderedHtml: html }, null, 2), 'utf-8')
 }
 
-export async function printRoute(fastify: FastifyInstance, opts: { printService: PrintService }) {
-    const { printService } = opts
+export async function printRoute(fastify: FastifyInstance, opts: { printService: PrintService; labelsRepo: LabelsRepository }) {
+    const { printService, labelsRepo } = opts
+
+    /**
+     * GET /api/v1/print/suggest-template
+     * Find and suggest document templates by docType (module matching)
+     * Returns active templates first, sorted by most recently updated
+     */
+    fastify.get(
+        '/print/suggest-template',
+        async (request, reply) => {
+            const query = suggestTemplateSchema.parse(request.query)
+            const { docType } = query
+
+            try {
+                const result = await labelsRepo.findAllDocumentTemplates({
+                    module: docType,
+                    isActive: true,
+                    limit: 50,
+                    page: 1,
+                    includeVersions: true
+                })
+
+                return reply.send({
+                    success: true,
+                    data: result.data,
+                    meta: {
+                        total: result.total,
+                        module: docType,
+                        description: `Available templates for document type '${docType}'`
+                    }
+                })
+            } catch (error) {
+                return reply.status(400).send({
+                    success: false,
+                    error: {
+                        code: 'SUGGEST_TEMPLATE_FAILED',
+                        message: error instanceof Error ? error.message : 'Failed to suggest templates'
+                    }
+                })
+            }
+        }
+    )
 
     /**
      * POST /api/v1/print/auto-map-fields

@@ -29,5 +29,5 @@ export async function registerContentContext(
     await fastify.register(labelsRoute, { prefix: '/api/v1', labelsService })
     await fastify.register(organizationsRoute, { prefix: '/api/v1', organizationService })
     await fastify.register(userRoute, { prefix: '/api/v1', pgClient })
-    await fastify.register(printRoute, { prefix: '/api/v1', printService })
+    await fastify.register(printRoute, { prefix: '/api/v1', printService, labelsRepo })
 }
