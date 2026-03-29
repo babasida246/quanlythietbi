@@ -15,8 +15,6 @@
   import { themePresets } from '$lib/stores/themePresets';
   import type { ThemePresetId } from '$lib/stores/themePresets';
   import { getUserThemeSettings, putUserThemeSettings } from '$lib/api/userSettings';
-  import { printTemplate } from '$lib/stores/printTemplateStore';
-  import { printWordTemplates } from '$lib/stores/printWordTemplateStore';
   import { orgStore, orgLogoLetters } from '$lib/stores/orgStore';
   import {
     LogIn,
@@ -102,8 +100,6 @@
     void orgStore.fetchAndSync();
     themePresets.init();
     themeCustomizer.init();
-    printTemplate.init();
-    void printWordTemplates.init();
 
     // Load per-user theme settings from server (sync across devices).
     // Falls back silently to localStorage state if unauthenticated or offline.

@@ -626,95 +626,47 @@
       "desc": "Vàng ấm — năng động, phù hợp dashboard"
     }
   },
-  "printCustomizer": {
-    "title": "Tuy chinh mau in",
-    "subtitle": "Tuy chinh bo cuc, chu va nhan cho tat ca bieu mau in.",
-    "reset": "Dat lai mac dinh",
-    "openSample": "Mo mau in thu",
-    "tipTitle": "Meo:",
-    "tip": "Thay doi duoc luu tu dong va ap dung cho toan bo mau in.",
-    "header": {
-      "title": "Nhan tieu de",
-      "showLogo": "Hien o logo gia lap",
-      "logoText": "Noi dung logo",
-      "addressLabel": "Nhan dia chi",
-      "phoneLabel": "Nhan dien thoai",
-      "taxLabel": "Nhan MST",
-      "numberLabel": "Nhan so chung tu",
-      "codeLabel": "Nhan ma",
-      "dateLabel": "Nhan ngay"
+  "printTemplates": {
+    "title": "Mẫu in",
+    "subtitle": "Quản lý mẫu in tích hợp và mẫu in tùy chỉnh (.docx).",
+    "syntaxTitle": "Cú pháp template (.docx)",
+    "builtin": {
+      "title": "Mẫu in tích hợp",
+      "subtitle": "11 mẫu in được cài sẵn, tự động sử dụng khi tải xuống từ phiếu kho, biên bản, v.v.",
+      "colName": "Tên mẫu",
+      "colCode": "Mã phiếu",
+      "colModule": "Module",
+      "editHint": "Để chỉnh sửa nội dung mẫu tích hợp, sửa file .docx rồi chạy: pnpm generate:docx-templates"
     },
-    "typography": {
-      "title": "Kieu chu va khoang cach",
-      "fontFamily": "Kieu chu",
-      "fontSize": "Co chu co so (pt)",
-      "lineHeight": "Do gian dong",
-      "titleSize": "Co tieu de (pt)",
-      "tableFontSize": "Co chu bang (pt)"
-    },
-    "layout": {
-      "title": "Le trang (mm)"
-    },
-    "signature": {
-      "title": "Chu ky va chan trang",
-      "defaultTitleLine": "Dong chu ky mac dinh",
-      "datePrefix": "Tien to ngay",
-      "footerNote": "Ghi chu chan trang"
-    },
-    "templates": {
-      "title": "Mau in Word tuy chinh",
-      "subtitle": "Import file .docx co placeholder {{field_name}}, map du lieu va in/PDF.",
-      "nameLabel": "Ten mau in (tuy chon)",
-      "namePlaceholder": "Vi du: Bien ban ban giao v2",
-      "importLabel": "Import file .docx",
-      "selectedFile": "File da chon",
-      "importing": "Dang import mau in...",
-      "onlyDocx": "Chi ho tro file .docx",
-      "importedPrefix": "Da import mau in",
-      "createdPrefix": "Da tao mau in",
-      "updatedPrefix": "Da cap nhat mau in",
-      "loadedPrefix": "Da tai mau in",
-      "selectFirst": "Vui long chon mau in truoc.",
-      "seededSuccess": "Da nap cac mau chung tu mac dinh.",
-      "empty": "Chua co mau in tuy chinh nao.",
-      "designerTitle": "Trinh thiet ke mau chung tu",
-      "seedDefaults": "Nap mau mac dinh",
-      "loadSelected": "Tai mau da chon",
-      "resetDesigner": "Dat lai trinh thiet ke",
-      "designerNamePlaceholder": "Vi du: Bien ban kiem ke v1",
-      "designerHtmlLabel": "Noi dung HTML (dung placeholder {{field_name}})",
-      "designerHtmlPlaceholder": "<h1>BIEN BAN</h1><p>So: {{document.number}}</p>",
-      "createFromDesigner": "Tao mau tu trinh thiet ke",
-      "saveToSelected": "Luu vao mau da chon",
-      "table": {
-        "name": "Mau in",
-        "fields": "So truong",
-        "updatedAt": "Cap nhat",
-        "actions": "Thao tac"
-      },
-      "actions": {
-        "select": "Chon",
-        "rename": "Doi ten",
-        "delete": "Xoa"
-      },
-      "deleteConfirm": "Ban co chac chan muon xoa mau in nay?",
-      "renamePrompt": "Nhap ten moi cho mau in",
-      "mappingTitle": "Map du lieu",
-      "mappingSubtitle": "Nhap gia tri cho tung placeholder {{field_name}}.",
-      "fillSample": "Tu dien du lieu mau",
-      "sampleSource": "Nguon du lieu mau",
-      "sampleRecord": "Ban ghi mau",
-      "autoMapFromSource": "Tu map tu nguon",
-      "exportPdf": "Xuat PDF",
-      "exportingPdf": "Dang xuat PDF...",
-      "pdfExportSuccess": "Xuat PDF thanh cong.",
-      "openPreview": "Xem truoc / In",
-      "noFields": "Khong tim thay placeholder trong mau in nay.",
-      "sampleSources": {
-        "asset": "Mau tai san",
-        "warehouseDoc": "Mau chung tu kho",
-        "user": "Mau nguoi dung"
-      }
+    "custom": {
+      "title": "Mẫu in tùy chỉnh",
+      "subtitle": "Tải lên file .docx với cú pháp {placeholder} để tạo mẫu in riêng cho tổ chức.",
+      "createBtn": "Tạo mẫu mới",
+      "createTitle": "Tạo mẫu in mới",
+      "fieldName": "Tên mẫu *",
+      "fieldModule": "Module",
+      "fieldDesc": "Mô tả",
+      "fieldFile": "File .docx (tùy chọn)",
+      "fileHint": "Dùng cú pháp {placeholder} và {#items}...{/items} cho bảng lặp.",
+      "creating": "Đang tạo...",
+      "createSubmit": "Tạo mẫu",
+      "empty": "Chưa có mẫu in tùy chỉnh nào.",
+      "colName": "Tên mẫu",
+      "colModule": "Module",
+      "colVersion": "Phiên bản",
+      "colStatus": "Trạng thái",
+      "colUpdated": "Cập nhật",
+      "manageVersions": "Phiên bản",
+      "download": "Tải .docx",
+      "deactivate": "Vô hiệu",
+      "versionsTitle": "Lịch sử phiên bản",
+      "noVersions": "Chưa có phiên bản nào.",
+      "publish": "Publish",
+      "uploadTitle": "Tải lên phiên bản mới",
+      "uploadFile": "File .docx",
+      "uploadNote": "Ghi chú thay đổi",
+      "uploading": "Đang tải lên...",
+      "uploadSubmit": "Tải lên"
     }
   }
 }

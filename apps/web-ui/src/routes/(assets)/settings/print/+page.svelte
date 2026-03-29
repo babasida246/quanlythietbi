@@ -1,1003 +1,645 @@
 <script lang="ts">
+  import { onMount } from 'svelte'
   import PageHeader from '$lib/components/PageHeader.svelte'
   import { Button } from '$lib/components/ui'
   import { _, isLoading } from '$lib/i18n'
-  import { onMount } from 'svelte'
   import {
-    printTemplate,
-    DEFAULT_PRINT_TEMPLATE_CONFIG,
-    buildPrintCssVariables,
-    type PrintFontFamily
-  } from '$lib/stores/printTemplateStore'
+    listDocumentTemplates,
+    createDocumentTemplate,
+    updateDocumentTemplate,
+    listDocumentTemplateVersions,
+    publishDocumentTemplateVersion,
+    type DocumentTemplateSummary,
+    type DocumentTemplateVersion,
+  } from '$lib/api/printTemplates'
   import {
-    printWordTemplates,
-    encodeTemplateData,
-    renderWordTemplate,
-    type PrintWordTemplate
-  } from '$lib/stores/printWordTemplateStore'
-  import type { DocumentTemplateVersion } from '$lib/api/printTemplates'
+    uploadDocxTemplateVersion,
+    renderDocx,
+    downloadDocxFromBase64,
+    type BuiltinPrintType,
+  } from '$lib/api/print'
 
-  const config = $derived($printTemplate)
-  const wordTemplates = $derived($printWordTemplates.templates)
+  // ── Built-in templates ─────────────────────────────────────────────────────
+  const BUILTIN_TYPES: Array<{ type: BuiltinPrintType; name: string; module: string }> = [
+    { type: 'phieu-nhap-kho',      name: 'Phiếu nhập kho',        module: 'Kho hàng' },
+    { type: 'phieu-xuat-kho',      name: 'Phiếu xuất kho',        module: 'Kho hàng' },
+    { type: 'bien-ban-ban-giao',   name: 'Biên bản bàn giao',     module: 'Tài sản' },
+    { type: 'bien-ban-luan-chuyen',name: 'Biên bản luân chuyển',  module: 'Tài sản' },
+    { type: 'bien-ban-thu-hoi',    name: 'Biên bản thu hồi',      module: 'Tài sản' },
+    { type: 'lenh-sua-chua',       name: 'Lệnh sửa chữa',         module: 'Bảo trì' },
+    { type: 'bien-ban-kiem-ke',    name: 'Biên bản kiểm kê',      module: 'Kiểm kê' },
+    { type: 'phieu-muon',          name: 'Phiếu mượn',            module: 'Tài sản' },
+    { type: 'bien-ban-thanh-ly',   name: 'Biên bản thanh lý',     module: 'Tài sản' },
+    { type: 'yeu-cau-mua-sam',     name: 'Yêu cầu mua sắm',       module: 'Mua sắm' },
+    { type: 'bao-cao-tai-san',     name: 'Báo cáo tài sản',       module: 'Báo cáo' },
+  ]
 
-  let selectedTemplateId = $state('')
-  let fieldValues = $state<Record<string, string>>({})
-  let importName = $state('')
-  let importError = $state('')
-  let importSuccess = $state('')
-  let importing = $state(false)
-  let selectedFileName = $state('')
-  let initializedSelection = $state(false)
-  let sampleSourceId = $state<'asset' | 'warehouseDoc' | 'user'>('asset')
-  let sampleRecordId = $state('')
-  let exportingPdf = $state(false)
-  let exportError = $state('')
-  let exportSuccess = $state('')
-  let designerName = $state('')
-  let designerHtml = $state('')
-  let designerError = $state('')
-  let designerSuccess = $state('')
-  let templateVersions = $state<DocumentTemplateVersion[]>([])
-  let selectedVersionId = $state('')
+  const MODULE_OPTIONS = [
+    { value: 'warehouse', label: 'Kho hàng' },
+    { value: 'assets',    label: 'Tài sản' },
+    { value: 'maintenance', label: 'Bảo trì' },
+    { value: 'inventory', label: 'Kiểm kê' },
+    { value: 'reports',   label: 'Báo cáo' },
+    { value: 'requests',  label: 'Yêu cầu' },
+    { value: 'other',     label: 'Khác' },
+  ]
+
+  // ── Custom templates state ─────────────────────────────────────────────────
+  let templates = $state<DocumentTemplateSummary[]>([])
+  let templatesLoading = $state(true)
+  let templatesError = $state('')
+
+  // Create form
+  let showCreate = $state(false)
+  let createName = $state('')
+  let createDesc = $state('')
+  let createModule = $state('warehouse')
+  let createFile = $state<File | null>(null)
+  let creating = $state(false)
+  let createError = $state('')
+
+  // Expanded version panel
+  let expandedId = $state('')
+  let versions = $state<DocumentTemplateVersion[]>([])
   let versionsLoading = $state(false)
   let versionsError = $state('')
-  let rollbackNote = $state('')
 
-  type SampleRecord = {
-    id: string
-    label: string
-    data: Record<string, unknown>
-  }
+  // Upload new version
+  let uploadFile = $state<File | null>(null)
+  let uploadNote = $state('')
+  let uploading = $state(false)
+  let uploadError = $state('')
+  let uploadSuccess = $state('')
 
-  const sampleSources = [
-    { id: 'asset', labelKey: 'printCustomizer.templates.sampleSources.asset' },
-    { id: 'warehouseDoc', labelKey: 'printCustomizer.templates.sampleSources.warehouseDoc' },
-    { id: 'user', labelKey: 'printCustomizer.templates.sampleSources.user' }
-  ] as const
-
-  const sampleDataRecords: Record<'asset' | 'warehouseDoc' | 'user', SampleRecord[]> = {
-    asset: [
-      {
-        id: 'asset-laptop',
-        label: 'Laptop Dell Latitude 7420',
-        data: {
-          asset: {
-            code: 'AST-0007420',
-            name: 'Laptop Dell Latitude 7420',
-            serialNo: 'DL7420SN001',
-            model: 'Latitude 7420',
-            brand: 'Dell',
-            category: 'Laptop',
-            location: 'Tang 3 - Phong IT',
-            purchaseDate: '2025-06-12',
-            warrantyEnd: '2028-06-12'
-          },
-          assignedTo: 'Nguyen Van A',
-          department: 'Phong CNTT',
-          note: 'Tai san cap cho nhan vien moi'
-        }
-      },
-      {
-        id: 'asset-printer',
-        label: 'May in HP LaserJet Pro',
-        data: {
-          asset: {
-            code: 'AST-PRN-0021',
-            name: 'May in HP LaserJet Pro M404dn',
-            serialNo: 'HPM404DN-21',
-            model: 'LaserJet Pro M404dn',
-            brand: 'HP',
-            category: 'Printer',
-            location: 'Tang 2 - Hanh chinh'
-          },
-          condition: 'Hoat dong tot',
-          note: 'Da thay muc in thang 02/2026'
-        }
-      }
-    ],
-    warehouseDoc: [
-      {
-        id: 'wh-receipt',
-        label: 'Phieu nhap kho PKN-2026-031',
-        data: {
-          doc: {
-            code: 'PKN-2026-031',
-            date: '2026-03-10',
-            warehouseName: 'Kho trung tam',
-            supplier: 'Cong ty Thiet Bi So 1',
-            recipient: 'Le Thi B',
-            department: 'Phong Kho',
-            note: 'Nhap bo sung linh kien quy 1'
-          }
-        }
-      },
-      {
-        id: 'wh-issue',
-        label: 'Phieu xuat kho PXK-2026-014',
-        data: {
-          doc: {
-            code: 'PXK-2026-014',
-            date: '2026-03-11',
-            warehouseName: 'Kho trung tam',
-            recipient: 'Tran Van C',
-            department: 'Phong Kham',
-            purpose: 'Cap phat may tinh ban tiep don'
-          }
-        }
-      }
-    ],
-    user: [
-      {
-        id: 'user-admin',
-        label: 'Admin system',
-        data: {
-          user: {
-            fullName: 'Tran Thi Admin',
-            email: 'admin@example.com',
-            phone: '0909123456',
-            role: 'admin',
-            department: 'Phong CNTT',
-            title: 'Quan tri he thong'
-          }
-        }
-      },
-      {
-        id: 'user-manager',
-        label: 'IT Manager',
-        data: {
-          user: {
-            fullName: 'Pham Van Manager',
-            email: 'it_manager@example.com',
-            phone: '0911222333',
-            role: 'it_asset_manager',
-            department: 'Phong CNTT',
-            title: 'Quan ly tai san CNTT'
-          }
-        }
-      }
-    ]
-  }
+  // Row-level feedback
+  let actionError = $state('')
+  let actionSuccess = $state('')
+  let downloadingId = $state('')
+  let publishingId = $state('')
+  let deactivatingId = $state('')
 
   onMount(async () => {
-    printTemplate.init()
-    await printWordTemplates.init()
+    await loadTemplates()
   })
 
-  $effect(() => {
-    if (!initializedSelection && wordTemplates.length > 0) {
-      selectedTemplateId = wordTemplates[0].id
-      initializedSelection = true
+  async function loadTemplates() {
+    templatesLoading = true
+    templatesError = ''
+    try {
+      templates = await listDocumentTemplates({ includeVersions: true, limit: 100 })
+    } catch (e) {
+      templatesError = String(e)
+    } finally {
+      templatesLoading = false
     }
-  })
+  }
 
-  $effect(() => {
-    if (!selectedTemplateId) {
-      templateVersions = []
-      selectedVersionId = ''
-      versionsError = ''
+  async function handleCreate() {
+    if (!createName.trim()) return
+    creating = true
+    createError = ''
+    try {
+      const tpl = await createDocumentTemplate({
+        name: createName.trim(),
+        description: createDesc.trim() || undefined,
+        module: createModule,
+        htmlContent: '',
+      })
+      if (createFile) {
+        await uploadDocxTemplateVersion(tpl.id, createFile, {
+          title: 'v1',
+          changeNote: 'Initial upload',
+        })
+      }
+      showCreate = false
+      createName = ''
+      createDesc = ''
+      createFile = null
+      await loadTemplates()
+    } catch (e) {
+      createError = String(e)
+    } finally {
+      creating = false
+    }
+  }
+
+  function cancelCreate() {
+    showCreate = false
+    createName = ''
+    createDesc = ''
+    createFile = null
+    createError = ''
+  }
+
+  async function toggleExpand(tpl: DocumentTemplateSummary) {
+    actionError = ''
+    actionSuccess = ''
+    if (expandedId === tpl.id) {
+      expandedId = ''
+      versions = []
       return
     }
+    expandedId = tpl.id
+    uploadFile = null
+    uploadNote = ''
+    uploadError = ''
+    uploadSuccess = ''
+    await loadVersions(tpl.id)
+  }
 
+  async function loadVersions(templateId: string) {
     versionsLoading = true
     versionsError = ''
-    void printWordTemplates
-      .getVersions(selectedTemplateId)
-      .then((versions) => {
-        templateVersions = versions
-        if (!versions.some((version) => version.id === selectedVersionId)) {
-          selectedVersionId = versions[0]?.id ?? ''
-        }
-      })
-      .catch((error) => {
-        versionsError = error instanceof Error ? error.message : String(error)
-        templateVersions = []
-        selectedVersionId = ''
-      })
-      .finally(() => {
-        versionsLoading = false
-      })
-  })
-
-  const selectedTemplate = $derived(
-    wordTemplates.find((template) => template.id === selectedTemplateId) ?? null
-  )
-
-  let previousTemplateId = ''
-  $effect(() => {
-    if (!selectedTemplate) {
-      previousTemplateId = ''
-      fieldValues = {}
-      return
-    }
-
-    if (selectedTemplate.id !== previousTemplateId) {
-      previousTemplateId = selectedTemplate.id
-      fieldValues = selectedTemplate.fields.reduce<Record<string, string>>((acc, field) => {
-        acc[field] = ''
-        return acc
-      }, {})
-    }
-  })
-
-  const previewHref = $derived(
-    selectedTemplate
-      ? `/print/custom/${selectedTemplate.id}?data=${encodeURIComponent(encodeTemplateData(fieldValues))}`
-      : ''
-  )
-
-  const sampleRecords = $derived(sampleDataRecords[sampleSourceId])
-  const selectedSampleRecord = $derived(
-    sampleRecords.find((record) => record.id === sampleRecordId) ?? null
-  )
-
-  $effect(() => {
-    if (!sampleRecords.length) {
-      sampleRecordId = ''
-      return
-    }
-
-    if (!sampleRecords.some((record) => record.id === sampleRecordId)) {
-      sampleRecordId = sampleRecords[0].id
-    }
-  })
-
-  function toNumber(value: string): number {
-    const n = Number.parseFloat(value)
-    return Number.isNaN(n) ? 0 : n
-  }
-
-  function formatDate(value: string): string {
-    const date = new Date(value)
-    return Number.isNaN(date.getTime()) ? value : date.toLocaleString()
-  }
-
-  async function handleImport(event: Event): Promise<void> {
-    const input = event.target as HTMLInputElement
-    const file = input.files?.[0]
-    importError = ''
-    importSuccess = ''
-
-    if (!file) return
-    if (!file.name.toLowerCase().endsWith('.docx')) {
-      importError = $isLoading ? 'Only .docx files are supported.' : $_('printCustomizer.templates.onlyDocx')
-      input.value = ''
-      return
-    }
-
-    selectedFileName = file.name
-    importing = true
     try {
-      const imported = await printWordTemplates.importDocx(file, importName)
-      selectedTemplateId = imported.id
-      importName = ''
-      importSuccess = $isLoading
-        ? `Imported template: ${imported.name}`
-        : `${$_('printCustomizer.templates.importedPrefix')}: ${imported.name}`
-    } catch (error) {
-      importError = error instanceof Error ? error.message : String(error)
+      versions = await listDocumentTemplateVersions(templateId)
+    } catch (e) {
+      versionsError = String(e)
     } finally {
-      importing = false
-      input.value = ''
+      versionsLoading = false
     }
   }
 
-  function fillSampleValues(template: PrintWordTemplate): void {
-    const seeded: Record<string, string> = {}
-    template.fields.forEach((field, index) => {
-      seeded[field] = `${field.toUpperCase()}_${index + 1}`
-    })
-    fieldValues = seeded
-  }
-
-  function scalarToString(value: unknown): string {
-    if (value == null) return ''
-    if (value instanceof Date) return value.toISOString()
-    if (typeof value === 'string') return value
-    if (typeof value === 'number' || typeof value === 'boolean') return String(value)
-    return ''
-  }
-
-  function flattenSampleData(value: unknown, prefix = ''): Record<string, string> {
-    const result: Record<string, string> = {}
-
-    if (value == null) return result
-
-    if (Array.isArray(value)) {
-      const arrayValue = value
-        .map((item) => (typeof item === 'object' ? JSON.stringify(item) : scalarToString(item)))
-        .filter(Boolean)
-        .join(', ')
-      if (prefix && arrayValue) result[prefix] = arrayValue
-      return result
-    }
-
-    if (typeof value === 'object') {
-      for (const [key, child] of Object.entries(value as Record<string, unknown>)) {
-        const nextPrefix = prefix ? `${prefix}.${key}` : key
-        const scalar = scalarToString(child)
-        if (scalar) {
-          result[nextPrefix] = scalar
-          result[key] = scalar
-          continue
-        }
-        Object.assign(result, flattenSampleData(child, nextPrefix))
-      }
-      return result
-    }
-
-    const scalar = scalarToString(value)
-    if (prefix && scalar) result[prefix] = scalar
-    return result
-  }
-
-  function normalizeFieldKey(value: string): string {
-    return value.toLowerCase().replace(/[^a-z0-9]/g, '')
-  }
-
-  function buildAliasCandidates(field: string): string[] {
-    const base = field.split('.').at(-1) ?? field
-    const aliases = [
-      base,
-      `asset.${base}`,
-      `doc.${base}`,
-      `user.${base}`
-    ]
-
-    if (base === 'name') aliases.push('fullName')
-    if (base === 'code') aliases.push('assetCode')
-    if (base === 'assetCode') aliases.push('code')
-    if (base === 'phoneNumber') aliases.push('phone')
-
-    return aliases
-  }
-
-  function applySampleDataMapping(): void {
-    if (!selectedTemplate || !selectedSampleRecord) return
-
-    const flatData = flattenSampleData(selectedSampleRecord.data)
-    const normalizedData = new Map<string, string>()
-    Object.entries(flatData).forEach(([key, value]) => {
-      normalizedData.set(normalizeFieldKey(key), value)
-    })
-
-    const nextValues = { ...fieldValues }
-    selectedTemplate.fields.forEach((field) => {
-      if (flatData[field]) {
-        nextValues[field] = flatData[field]
-        return
-      }
-
-      const normalizedField = normalizeFieldKey(field)
-      let mapped = normalizedData.get(normalizedField)
-
-      if (!mapped) {
-        const aliases = buildAliasCandidates(field)
-        for (const alias of aliases) {
-          mapped = normalizedData.get(normalizeFieldKey(alias))
-          if (mapped) break
-        }
-      }
-
-      if (mapped) nextValues[field] = mapped
-    })
-
-    fieldValues = nextValues
-  }
-
-  async function exportPdfClientSide(): Promise<void> {
-    if (!selectedTemplate) return
-
-    exportingPdf = true
-    exportError = ''
-    exportSuccess = ''
-
-    let container: HTMLDivElement | null = null
-
+  async function handleUploadVersion() {
+    if (!uploadFile || !expandedId) return
+    uploading = true
+    uploadError = ''
+    uploadSuccess = ''
     try {
-      const html2pdfModule = await import('html2pdf.js')
-      const html2pdf = (html2pdfModule.default ?? html2pdfModule) as any
-      const renderedHtml = renderWordTemplate(selectedTemplate.html, fieldValues)
-      const styleVars = buildPrintCssVariables(config)
-
-      container = document.createElement('div')
-      container.style.position = 'fixed'
-      container.style.left = '-10000px'
-      container.style.top = '0'
-      container.style.width = '210mm'
-      container.style.background = '#ffffff'
-      container.style.zIndex = '-1'
-
-      container.innerHTML = `
-        <div style="${styleVars}">
-          <article class="print-page custom-print-page" style="margin:0; box-shadow:none;">
-            <div class="custom-print-content">${renderedHtml}</div>
-          </article>
-          ${config.footer.note.trim() ? `<div class="print-footer-note">${config.footer.note}</div>` : ''}
-        </div>
-      `
-
-      document.body.appendChild(container)
-      const target = container.querySelector('.print-page') as HTMLElement | null
-      if (!target) throw new Error('Cannot render template for PDF export.')
-
-      const safeFileName = selectedTemplate.name
-        .trim()
-        .replace(/[^a-zA-Z0-9-_]+/g, '_')
-      const fileName = `${safeFileName || 'print_template'}.pdf`
-
-      await html2pdf()
-        .set({
-          margin: [0, 0, 0, 0],
-          filename: fileName,
-          image: { type: 'jpeg', quality: 0.98 },
-          html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff' },
-          jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-          pagebreak: { mode: ['css', 'legacy'] }
-        })
-        .from(target)
-        .save()
-
-      exportSuccess = $isLoading
-        ? 'PDF exported successfully.'
-        : $_('printCustomizer.templates.pdfExportSuccess')
-    } catch (error) {
-      exportError = error instanceof Error ? error.message : String(error)
+      await uploadDocxTemplateVersion(expandedId, uploadFile, {
+        changeNote: uploadNote.trim() || undefined,
+      })
+      uploadFile = null
+      uploadNote = ''
+      uploadSuccess = 'Đã tải lên phiên bản mới.'
+      await loadVersions(expandedId)
+      await loadTemplates()
+    } catch (e) {
+      uploadError = String(e)
     } finally {
-      container?.remove()
-      exportingPdf = false
+      uploading = false
     }
   }
 
-  async function removeTemplate(id: string): Promise<void> {
-    const ok = window.confirm(
-      $isLoading ? 'Delete this template?' : $_('printCustomizer.templates.deleteConfirm')
-    )
+  async function handlePublishVersion(templateId: string, versionId: string) {
+    publishingId = versionId
+    actionError = ''
+    actionSuccess = ''
+    try {
+      await publishDocumentTemplateVersion(templateId, versionId)
+      actionSuccess = 'Đã publish phiên bản.'
+      await loadVersions(templateId)
+      await loadTemplates()
+    } catch (e) {
+      actionError = String(e)
+    } finally {
+      publishingId = ''
+    }
+  }
+
+  async function handleDownload(tpl: DocumentTemplateSummary) {
+    const versionId = tpl.activeVersionId ?? tpl.latestVersion?.id
+    if (!versionId) {
+      actionError = 'Chưa có phiên bản nào để tải xuống.'
+      return
+    }
+    downloadingId = tpl.id
+    actionError = ''
+    actionSuccess = ''
+    try {
+      const res = await renderDocx(tpl.id, versionId, {}, tpl.name)
+      downloadDocxFromBase64(res.data.content, res.data.fileName || `${tpl.name}.docx`)
+    } catch (e) {
+      actionError = String(e)
+    } finally {
+      downloadingId = ''
+    }
+  }
+
+  async function handleDeactivate(tpl: DocumentTemplateSummary) {
+    const ok = window.confirm(`Vô hiệu hóa mẫu "${tpl.name}"?`)
     if (!ok) return
-
-    await printWordTemplates.remove(id)
-    if (selectedTemplateId === id) {
-      const next = wordTemplates.find((template) => template.id !== id)
-      selectedTemplateId = next?.id ?? ''
-    }
-  }
-
-  async function renameTemplate(template: PrintWordTemplate): Promise<void> {
-    const nextName = window.prompt(
-      $isLoading ? 'Template name' : $_('printCustomizer.templates.renamePrompt'),
-      template.name
-    )
-    if (!nextName) return
-    await printWordTemplates.rename(template.id, nextName)
-  }
-
-  function clearDesignerMessage(): void {
-    designerError = ''
-    designerSuccess = ''
-  }
-
-  function resetDesigner(): void {
-    designerName = ''
-    designerHtml = ''
-    clearDesignerMessage()
-  }
-
-  function loadSelectedTemplateToDesigner(): void {
-    clearDesignerMessage()
-    if (!selectedTemplate) {
-      designerError = $isLoading ? 'Please select a template first.' : $_('printCustomizer.templates.selectFirst')
-      return
-    }
-    designerName = selectedTemplate.name
-    designerHtml = selectedTemplate.html
-    designerSuccess = $isLoading
-      ? `Loaded template: ${selectedTemplate.name}`
-      : `${$_('printCustomizer.templates.loadedPrefix')}: ${selectedTemplate.name}`
-  }
-
-  async function createTemplateFromDesigner(): Promise<void> {
-    clearDesignerMessage()
+    deactivatingId = tpl.id
+    actionError = ''
     try {
-      const created = await printWordTemplates.createTemplate(designerName, designerHtml)
-      selectedTemplateId = created.id
-      designerName = created.name
-      designerHtml = created.html
-      designerSuccess = $isLoading
-        ? `Created template: ${created.name}`
-        : `${$_('printCustomizer.templates.createdPrefix')}: ${created.name}`
-    } catch (error) {
-      designerError = error instanceof Error ? error.message : String(error)
+      await updateDocumentTemplate(tpl.id, { isActive: false })
+      await loadTemplates()
+    } catch (e) {
+      actionError = String(e)
+    } finally {
+      deactivatingId = ''
     }
   }
 
-  async function saveSelectedTemplateFromDesigner(): Promise<void> {
-    clearDesignerMessage()
-    if (!selectedTemplate) {
-      designerError = $isLoading ? 'Please select a template first.' : $_('printCustomizer.templates.selectFirst')
-      return
-    }
-    try {
-      await printWordTemplates.rename(selectedTemplate.id, designerName || selectedTemplate.name)
-      const updated = await printWordTemplates.updateTemplateHtml(selectedTemplate.id, designerHtml)
-      selectedTemplateId = updated.id
-      designerName = updated.name
-      designerHtml = updated.html
-      designerSuccess = $isLoading
-        ? `Updated template: ${updated.name}`
-        : `${$_('printCustomizer.templates.updatedPrefix')}: ${updated.name}`
-    } catch (error) {
-      designerError = error instanceof Error ? error.message : String(error)
-    }
+  function formatDate(iso: string) {
+    return new Date(iso).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' })
   }
 
-  async function seedDocumentTemplates(): Promise<void> {
-    clearDesignerMessage()
-    const seeded = await printWordTemplates.seedDefaults()
-    if (!selectedTemplateId && seeded.length > 0) {
-      selectedTemplateId = seeded[0].id
-    }
-    designerSuccess = $isLoading
-      ? 'Seeded default document templates.'
-      : $_('printCustomizer.templates.seededSuccess')
+  function moduleLabel(mod: string) {
+    return MODULE_OPTIONS.find((o) => o.value === mod)?.label ?? mod
   }
 
-  async function publishSelectedVersion(): Promise<void> {
-    clearDesignerMessage()
-    if (!selectedTemplateId || !selectedVersionId) {
-      designerError = $isLoading ? 'Please select a version first.' : $_('printCustomizer.templates.selectFirst')
-      return
-    }
-
-    try {
-      const updated = await printWordTemplates.publishVersion(selectedTemplateId, selectedVersionId)
-      selectedTemplateId = updated.id
-      designerName = updated.name
-      designerHtml = updated.html
-      designerSuccess = $isLoading ? 'Version published.' : $_('printCustomizer.templates.updatedPrefix')
-    } catch (error) {
-      designerError = error instanceof Error ? error.message : String(error)
-    }
+  function versionBadgeClass(status: string) {
+    if (status === 'published') return 'badge-success'
+    if (status === 'archived') return 'badge-secondary'
+    return 'badge-warning'
   }
-
-  async function rollbackToSelectedVersion(): Promise<void> {
-    clearDesignerMessage()
-    if (!selectedTemplateId || !selectedVersionId) {
-      designerError = $isLoading ? 'Please select a version first.' : $_('printCustomizer.templates.selectFirst')
-      return
-    }
-
-    try {
-      const updated = await printWordTemplates.rollback(selectedTemplateId, selectedVersionId, rollbackNote)
-      selectedTemplateId = updated.id
-      designerName = updated.name
-      designerHtml = updated.html
-      rollbackNote = ''
-      designerSuccess = $isLoading ? 'Rollback completed.' : $_('printCustomizer.templates.updatedPrefix')
-    } catch (error) {
-      designerError = error instanceof Error ? error.message : String(error)
-    }
-  }
-
-  const fontOptions: Array<{ value: PrintFontFamily; label: string }> = [
-    { value: 'times', label: 'Times New Roman' },
-    { value: 'arial', label: 'Arial' },
-    { value: 'inter', label: 'Inter' }
-  ]
 </script>
 
 <div class="page-shell page-content">
   <PageHeader
-    title={$isLoading ? 'Print Template Customization' : $_('printCustomizer.title')}
-    subtitle={$isLoading ? 'Customize print layout, typography and labels directly from UI.' : $_('printCustomizer.subtitle')}
+    title={$isLoading ? 'Mẫu in' : $_('printTemplates.title')}
+    subtitle={$isLoading ? 'Quản lý mẫu in tích hợp và mẫu in tùy chỉnh (.docx)' : $_('printTemplates.subtitle')}
   />
 
-  <div class="card p-4 space-y-4">
-    <h2 class="text-sm font-semibold" style="color: var(--color-text)">{$isLoading ? 'Header labels' : $_('printCustomizer.header.title')}</h2>
-
-    <label class="inline-flex items-center gap-2 text-sm" style="color: var(--color-text)">
-      <input
-        type="checkbox"
-        checked={config.header.showLogoPlaceholder}
-        onchange={(e) => printTemplate.updateHeader('showLogoPlaceholder', (e.target as HTMLInputElement).checked)}
-      />
-      {$isLoading ? 'Show logo placeholder' : $_('printCustomizer.header.showLogo')}
-    </label>
-
-    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
-      <label class="space-y-1 text-sm">
-        <span class="label-base">{$isLoading ? 'Logo text' : $_('printCustomizer.header.logoText')}</span>
-        <input class="input-base" value={config.header.logoText} oninput={(e) => printTemplate.updateHeader('logoText', (e.target as HTMLInputElement).value)} />
-      </label>
-      <label class="space-y-1 text-sm">
-        <span class="label-base">{$isLoading ? 'Address label' : $_('printCustomizer.header.addressLabel')}</span>
-        <input class="input-base" value={config.header.addressLabel} oninput={(e) => printTemplate.updateHeader('addressLabel', (e.target as HTMLInputElement).value)} />
-      </label>
-      <label class="space-y-1 text-sm">
-        <span class="label-base">{$isLoading ? 'Phone label' : $_('printCustomizer.header.phoneLabel')}</span>
-        <input class="input-base" value={config.header.phoneLabel} oninput={(e) => printTemplate.updateHeader('phoneLabel', (e.target as HTMLInputElement).value)} />
-      </label>
-      <label class="space-y-1 text-sm">
-        <span class="label-base">{$isLoading ? 'Tax label' : $_('printCustomizer.header.taxLabel')}</span>
-        <input class="input-base" value={config.header.taxLabel} oninput={(e) => printTemplate.updateHeader('taxLabel', (e.target as HTMLInputElement).value)} />
-      </label>
-      <label class="space-y-1 text-sm">
-        <span class="label-base">{$isLoading ? 'Document number label' : $_('printCustomizer.header.numberLabel')}</span>
-        <input class="input-base" value={config.header.numberLabel} oninput={(e) => printTemplate.updateHeader('numberLabel', (e.target as HTMLInputElement).value)} />
-      </label>
-      <label class="space-y-1 text-sm">
-        <span class="label-base">{$isLoading ? 'Code label' : $_('printCustomizer.header.codeLabel')}</span>
-        <input class="input-base" value={config.header.codeLabel} oninput={(e) => printTemplate.updateHeader('codeLabel', (e.target as HTMLInputElement).value)} />
-      </label>
-      <label class="space-y-1 text-sm">
-        <span class="label-base">{$isLoading ? 'Date label' : $_('printCustomizer.header.dateLabel')}</span>
-        <input class="input-base" value={config.header.dateLabel} oninput={(e) => printTemplate.updateHeader('dateLabel', (e.target as HTMLInputElement).value)} />
-      </label>
-    </div>
-  </div>
-
-  <div class="card p-4 space-y-4">
-    <h2 class="text-sm font-semibold" style="color: var(--color-text)">{$isLoading ? 'Typography and spacing' : $_('printCustomizer.typography.title')}</h2>
-
-    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-3">
-      <label class="space-y-1 text-sm">
-        <span class="label-base">{$isLoading ? 'Font family' : $_('printCustomizer.typography.fontFamily')}</span>
-        <select class="select-base" value={config.typography.fontFamily} onchange={(e) => printTemplate.updateTypography('fontFamily', (e.target as HTMLSelectElement).value as PrintFontFamily)}>
-          {#each fontOptions as option}
-            <option value={option.value}>{option.label}</option>
-          {/each}
-        </select>
-      </label>
-      <label class="space-y-1 text-sm">
-        <span class="label-base">{$isLoading ? 'Base font size (pt)' : $_('printCustomizer.typography.fontSize')}</span>
-        <input type="number" min="10" max="14" step="0.5" class="input-base" value={config.typography.fontSizePt} oninput={(e) => printTemplate.updateTypography('fontSizePt', toNumber((e.target as HTMLInputElement).value))} />
-      </label>
-      <label class="space-y-1 text-sm">
-        <span class="label-base">{$isLoading ? 'Line height' : $_('printCustomizer.typography.lineHeight')}</span>
-        <input type="number" min="1.2" max="1.9" step="0.05" class="input-base" value={config.typography.lineHeight} oninput={(e) => printTemplate.updateTypography('lineHeight', toNumber((e.target as HTMLInputElement).value))} />
-      </label>
-      <label class="space-y-1 text-sm">
-        <span class="label-base">{$isLoading ? 'Title size (pt)' : $_('printCustomizer.typography.titleSize')}</span>
-        <input type="number" min="13" max="20" step="0.5" class="input-base" value={config.typography.titleSizePt} oninput={(e) => printTemplate.updateTypography('titleSizePt', toNumber((e.target as HTMLInputElement).value))} />
-      </label>
-      <label class="space-y-1 text-sm">
-        <span class="label-base">{$isLoading ? 'Table font size (pt)' : $_('printCustomizer.typography.tableFontSize')}</span>
-        <input type="number" min="8" max="12" step="0.5" class="input-base" value={config.typography.tableFontSizePt} oninput={(e) => printTemplate.updateTypography('tableFontSizePt', toNumber((e.target as HTMLInputElement).value))} />
-      </label>
-    </div>
-
-    <h3 class="text-xs font-semibold pt-2" style="color: var(--color-text-muted)">{$isLoading ? 'Page padding (mm)' : $_('printCustomizer.layout.title')}</h3>
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-      <label class="space-y-1 text-sm"><span class="label-base">Top</span><input type="number" min="8" max="25" step="1" class="input-base" value={config.layout.pagePaddingTopMm} oninput={(e) => printTemplate.updateLayout('pagePaddingTopMm', toNumber((e.target as HTMLInputElement).value))} /></label>
-      <label class="space-y-1 text-sm"><span class="label-base">Right</span><input type="number" min="8" max="25" step="1" class="input-base" value={config.layout.pagePaddingRightMm} oninput={(e) => printTemplate.updateLayout('pagePaddingRightMm', toNumber((e.target as HTMLInputElement).value))} /></label>
-      <label class="space-y-1 text-sm"><span class="label-base">Bottom</span><input type="number" min="8" max="25" step="1" class="input-base" value={config.layout.pagePaddingBottomMm} oninput={(e) => printTemplate.updateLayout('pagePaddingBottomMm', toNumber((e.target as HTMLInputElement).value))} /></label>
-      <label class="space-y-1 text-sm"><span class="label-base">Left</span><input type="number" min="8" max="25" step="1" class="input-base" value={config.layout.pagePaddingLeftMm} oninput={(e) => printTemplate.updateLayout('pagePaddingLeftMm', toNumber((e.target as HTMLInputElement).value))} /></label>
-    </div>
-  </div>
-
-  <div class="card p-4 space-y-4">
-    <h2 class="text-sm font-semibold" style="color: var(--color-text)">{$isLoading ? 'Signature and footer' : $_('printCustomizer.signature.title')}</h2>
-
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-      <label class="space-y-1 text-sm">
-        <span class="label-base">{$isLoading ? 'Default signature note' : $_('printCustomizer.signature.defaultTitleLine')}</span>
-        <input class="input-base" value={config.signatures.defaultTitleLine} oninput={(e) => printTemplate.updateSignatures('defaultTitleLine', (e.target as HTMLInputElement).value)} />
-      </label>
-      <label class="space-y-1 text-sm">
-        <span class="label-base">{$isLoading ? 'Date prefix' : $_('printCustomizer.signature.datePrefix')}</span>
-        <input class="input-base" value={config.signatures.datePrefix} oninput={(e) => printTemplate.updateSignatures('datePrefix', (e.target as HTMLInputElement).value)} />
-      </label>
-    </div>
-
-    <label class="space-y-1 text-sm block">
-      <span class="label-base">{$isLoading ? 'Footer note on print pages' : $_('printCustomizer.signature.footerNote')}</span>
-      <textarea rows="2" class="input-base" value={config.footer.note} oninput={(e) => printTemplate.updateFooter('note', (e.target as HTMLTextAreaElement).value)}></textarea>
-    </label>
-
-    <div class="flex flex-wrap items-center gap-2">
-      <Button variant="secondary" size="sm" onclick={() => printTemplate.reset()}>
-        {$isLoading ? 'Reset to defaults' : $_('printCustomizer.reset')}
-      </Button>
-      <a href="/print/bao-cao-tai-san/preview?data=eyJkYXRlIjoiMjAyNi0wMy0xMyIsInJlcG9ydFBlcmlvZCI6IlRoxrDhu51uZyAzLzIwMjYiLCJwcmVwYXJlZEJ5IjoiQWRtaW4iLCJzdW1tYXJ5Ijp7InRvdGFsQXNzZXRzIjoxMjAsInRvdGFsVmFsdWUiOjE1MDAwMDAwMDAsImluVXNlIjo4OCwiaW5TdG9jayI6MjAsImluUmVwYWlyIjo4LCJyZXRpcmVkIjo0fSwiYnlDYXRlZ29yeSI6W3siY2F0ZWdvcnlOYW1lIjoiTGFwdG9wIiwiY291bnQiOjQwLCJpblVzZSI6MzIsImluU3RvY2siOjYsInZhbHVlIjo2MDAwMDAwMDB9LHsiY2F0ZWdvcnlOYW1lIjoiRGVza3RvcCIsImNvdW50Ijo1MCwiaW5Vc2UiOjM4LCJpblN0b2NrIjo5LCJ2YWx1ZSI6NTAwMDAwMDAwfV19" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-primary">
-        {$isLoading ? 'Open sample print' : $_('printCustomizer.openSample')}
-      </a>
-    </div>
-  </div>
-
-  <div class="card p-4 text-xs" style="color: var(--color-text-muted)">
-    <strong>{$isLoading ? 'Tip:' : $_('printCustomizer.tipTitle')}</strong>
-    <span class="ml-1">{$isLoading ? 'Changes are saved automatically and apply to all print templates.' : $_('printCustomizer.tip')}</span>
-  </div>
-
-  <div class="card p-4 space-y-4">
+  <!-- ── Built-in templates ─────────────────────────────────────────────── -->
+  <div class="card p-4 space-y-3">
     <div>
       <h2 class="text-sm font-semibold" style="color: var(--color-text)">
-        {$isLoading ? 'Word print templates' : $_('printCustomizer.templates.title')}
+        {$isLoading ? 'Mẫu in tích hợp' : $_('printTemplates.builtin.title')}
       </h2>
       <p class="text-xs mt-1" style="color: var(--color-text-muted)">
         {$isLoading
-          ? 'Import a .docx file, use {{field_name}} placeholders, then map values and print/PDF.'
-          : $_('printCustomizer.templates.subtitle')}
+          ? '11 mẫu in được cài sẵn, tự động sử dụng khi tải xuống từ phiếu kho, biên bản, v.v.'
+          : $_('printTemplates.builtin.subtitle')}
       </p>
     </div>
 
-    <div class="grid grid-cols-1 xl:grid-cols-3 gap-4">
-      <label class="space-y-1 text-sm">
-        <span class="label-base">{$isLoading ? 'Template name (optional)' : $_('printCustomizer.templates.nameLabel')}</span>
-        <input
-          class="input-base"
-          value={importName}
-          placeholder={$isLoading ? 'Example: Asset handover v2' : $_('printCustomizer.templates.namePlaceholder')}
-          oninput={(e) => (importName = (e.target as HTMLInputElement).value)}
-        />
-      </label>
-      <label class="space-y-1 text-sm xl:col-span-2">
-        <span class="label-base">{$isLoading ? 'Import .docx file' : $_('printCustomizer.templates.importLabel')}</span>
-        <input class="input-base" type="file" accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document" onchange={handleImport} disabled={importing} />
-      </label>
+    <div class="overflow-x-auto">
+      <table class="data-table w-full text-sm">
+        <thead>
+          <tr>
+            <th class="w-8">#</th>
+            <th>{$isLoading ? 'Tên mẫu' : $_('printTemplates.builtin.colName')}</th>
+            <th>{$isLoading ? 'Mã phiếu' : $_('printTemplates.builtin.colCode')}</th>
+            <th>{$isLoading ? 'Module' : $_('printTemplates.builtin.colModule')}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {#each BUILTIN_TYPES as item, i}
+            <tr>
+              <td class="text-center" style="color: var(--color-text-muted)">{i + 1}</td>
+              <td class="font-medium" style="color: var(--color-text)">{item.name}</td>
+              <td>
+                <code class="text-xs px-1.5 py-0.5 rounded" style="background: var(--color-surface-2); color: var(--color-text-muted)">{item.type}</code>
+              </td>
+              <td style="color: var(--color-text-muted)">{item.module}</td>
+            </tr>
+          {/each}
+        </tbody>
+      </table>
     </div>
 
-    {#if selectedFileName}
-      <div class="text-xs" style="color: var(--color-text-muted)">
-        {$isLoading ? 'Selected file' : $_('printCustomizer.templates.selectedFile')}: <strong>{selectedFileName}</strong>
+    <p class="text-xs" style="color: var(--color-text-muted)">
+      {$isLoading
+        ? 'Để chỉnh sửa nội dung mẫu in tích hợp, hãy chỉnh sửa file .docx và chạy: pnpm generate:docx-templates'
+        : $_('printTemplates.builtin.editHint')}
+    </p>
+  </div>
+
+  <!-- ── Custom DOCX templates ───────────────────────────────────────────── -->
+  <div class="card p-4 space-y-4">
+    <div class="flex flex-wrap items-start justify-between gap-3">
+      <div>
+        <h2 class="text-sm font-semibold" style="color: var(--color-text)">
+          {$isLoading ? 'Mẫu in tùy chỉnh' : $_('printTemplates.custom.title')}
+        </h2>
+        <p class="text-xs mt-1" style="color: var(--color-text-muted)">
+          {$isLoading
+            ? 'Tải lên file .docx với cú pháp {placeholder} để tạo mẫu in riêng cho tổ chức.'
+            : $_('printTemplates.custom.subtitle')}
+        </p>
       </div>
-    {/if}
+      {#if !showCreate}
+        <Button size="sm" onclick={() => (showCreate = true)}>
+          + {$isLoading ? 'Tạo mẫu mới' : $_('printTemplates.custom.createBtn')}
+        </Button>
+      {/if}
+    </div>
 
-    {#if importError}
-      <div class="alert alert-error text-sm">{importError}</div>
-    {/if}
-    {#if importSuccess}
-      <div class="alert alert-success text-sm">{importSuccess}</div>
-    {/if}
-
-    {#if importing}
-      <div class="text-sm" style="color: var(--color-text-muted)">
-        {$isLoading ? 'Importing template...' : $_('printCustomizer.templates.importing')}
-      </div>
-    {/if}
-
-    <div class="border rounded-md p-3 space-y-3" style="border-color: var(--color-border)">
-      <div class="flex flex-wrap items-center justify-between gap-2">
+    <!-- Create form -->
+    {#if showCreate}
+      <div class="border rounded-md p-4 space-y-3" style="border-color: var(--color-border)">
         <h3 class="text-sm font-semibold" style="color: var(--color-text)">
-          {$isLoading ? 'Document template designer' : $_('printCustomizer.templates.designerTitle')}
+          {$isLoading ? 'Tạo mẫu in mới' : $_('printTemplates.custom.createTitle')}
         </h3>
-        <div class="flex flex-wrap items-center gap-2">
-          <Button variant="secondary" size="sm" onclick={seedDocumentTemplates}>
-            {$isLoading ? 'Seed default templates' : $_('printCustomizer.templates.seedDefaults')}
-          </Button>
-          <Button variant="secondary" size="sm" onclick={loadSelectedTemplateToDesigner}>
-            {$isLoading ? 'Load selected' : $_('printCustomizer.templates.loadSelected')}
-          </Button>
-          <Button variant="secondary" size="sm" onclick={resetDesigner}>
-            {$isLoading ? 'Reset form' : $_('printCustomizer.templates.resetDesigner')}
-          </Button>
-        </div>
-      </div>
 
-      <label class="space-y-1 text-sm block">
-        <span class="label-base">{$isLoading ? 'Template name' : $_('printCustomizer.templates.nameLabel')}</span>
-        <input
-          class="input-base"
-          value={designerName}
-          placeholder={$isLoading ? 'Example: Inventory minutes v1' : $_('printCustomizer.templates.designerNamePlaceholder')}
-          oninput={(e) => (designerName = (e.target as HTMLInputElement).value)}
-        />
-      </label>
-
-      <label class="space-y-1 text-sm block">
-        <span class="label-base">{$isLoading ? 'Template HTML (use {{field_name}} placeholders)' : $_('printCustomizer.templates.designerHtmlLabel')}</span>
-        <textarea
-          rows="12"
-          class="input-base font-mono text-xs"
-          value={designerHtml}
-          placeholder={$isLoading ? '<h1>BIEN BAN</h1><p>So: {{document.number}}</p>' : $_('printCustomizer.templates.designerHtmlPlaceholder')}
-          oninput={(e) => (designerHtml = (e.target as HTMLTextAreaElement).value)}
-        ></textarea>
-      </label>
-
-      <div class="flex flex-wrap items-center gap-2">
-        <Button size="sm" onclick={createTemplateFromDesigner}>
-          {$isLoading ? 'Create template' : $_('printCustomizer.templates.createFromDesigner')}
-        </Button>
-        <Button variant="secondary" size="sm" onclick={saveSelectedTemplateFromDesigner}>
-          {$isLoading ? 'Save to selected template' : $_('printCustomizer.templates.saveToSelected')}
-        </Button>
-      </div>
-
-      <div class="border rounded-md p-3 space-y-2" style="border-color: var(--color-border)">
-        <h4 class="text-sm font-semibold" style="color: var(--color-text)">Versioning</h4>
-        {#if versionsLoading}
-          <div class="text-xs" style="color: var(--color-text-muted)">Loading versions...</div>
-        {:else}
-          <label class="space-y-1 text-sm block">
-            <span class="label-base">Versions</span>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <label class="space-y-1 text-sm">
+            <span class="label-base">{$isLoading ? 'Tên mẫu *' : $_('printTemplates.custom.fieldName')}</span>
+            <input
+              class="input-base"
+              placeholder="Ví dụ: Biên bản bàn giao v2"
+              value={createName}
+              oninput={(e) => (createName = (e.target as HTMLInputElement).value)}
+            />
+          </label>
+          <label class="space-y-1 text-sm">
+            <span class="label-base">{$isLoading ? 'Module' : $_('printTemplates.custom.fieldModule')}</span>
             <select
-              class="select-base w-full"
-              value={selectedVersionId}
-              onchange={(e) => (selectedVersionId = (e.target as HTMLSelectElement).value)}
+              class="select-base"
+              value={createModule}
+              onchange={(e) => (createModule = (e.target as HTMLSelectElement).value)}
             >
-              <option value="">Select version</option>
-              {#each templateVersions as version}
-                <option value={version.id}>
-                  v{version.versionNo} - {version.status} - {formatDate(version.createdAt)}
-                </option>
+              {#each MODULE_OPTIONS as opt}
+                <option value={opt.value}>{opt.label}</option>
               {/each}
             </select>
           </label>
+        </div>
 
-          <label class="space-y-1 text-sm block">
-            <span class="label-base">Rollback note</span>
-            <input
-              class="input-base"
-              value={rollbackNote}
-              placeholder="Optional note"
-              oninput={(e) => (rollbackNote = (e.target as HTMLInputElement).value)}
-            />
-          </label>
+        <label class="space-y-1 text-sm block">
+          <span class="label-base">{$isLoading ? 'Mô tả' : $_('printTemplates.custom.fieldDesc')}</span>
+          <input
+            class="input-base"
+            placeholder="Mô tả ngắn về mẫu in này"
+            value={createDesc}
+            oninput={(e) => (createDesc = (e.target as HTMLInputElement).value)}
+          />
+        </label>
 
-          <div class="flex flex-wrap items-center gap-2">
-            <Button variant="secondary" size="sm" onclick={publishSelectedVersion}>Publish selected version</Button>
-            <Button variant="secondary" size="sm" onclick={rollbackToSelectedVersion}>Rollback to selected version</Button>
-          </div>
+        <label class="space-y-1 text-sm block">
+          <span class="label-base">{$isLoading ? 'File .docx (tùy chọn)' : $_('printTemplates.custom.fieldFile')}</span>
+          <input
+            class="input-base"
+            type="file"
+            accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+            onchange={(e) => {
+              createFile = (e.target as HTMLInputElement).files?.[0] ?? null
+            }}
+          />
+          <span class="text-xs" style="color: var(--color-text-muted)">
+            {$isLoading
+              ? 'Dùng cú pháp {placeholder} và {#items}...{/items} cho bảng lặp.'
+              : $_('printTemplates.custom.fileHint')}
+          </span>
+        </label>
 
-          {#if versionsError}
-            <div class="alert alert-error text-sm">{versionsError}</div>
-          {/if}
+        {#if createError}
+          <div class="alert alert-error text-sm">{createError}</div>
         {/if}
+
+        <div class="flex gap-2">
+          <Button size="sm" onclick={handleCreate} disabled={creating || !createName.trim()}>
+            {creating
+              ? ($isLoading ? 'Đang tạo...' : $_('printTemplates.custom.creating'))
+              : ($isLoading ? 'Tạo mẫu' : $_('printTemplates.custom.createSubmit'))}
+          </Button>
+          <Button variant="secondary" size="sm" onclick={cancelCreate} disabled={creating}>
+            {$isLoading ? 'Hủy' : $_('common.cancel')}
+          </Button>
+        </div>
       </div>
+    {/if}
 
-      {#if designerError}
-        <div class="alert alert-error text-sm">{designerError}</div>
-      {/if}
-      {#if designerSuccess}
-        <div class="alert alert-success text-sm">{designerSuccess}</div>
-      {/if}
-    </div>
+    <!-- Global action feedback -->
+    {#if actionError}
+      <div class="alert alert-error text-sm">{actionError}</div>
+    {/if}
+    {#if actionSuccess}
+      <div class="alert alert-success text-sm">{actionSuccess}</div>
+    {/if}
 
-    {#if wordTemplates.length === 0}
+    <!-- Templates table -->
+    {#if templatesLoading}
+      <div class="skeleton-row"></div>
+      <div class="skeleton-row"></div>
+    {:else if templatesError}
+      <div class="alert alert-error text-sm">{templatesError}</div>
+    {:else if templates.length === 0}
       <div class="text-sm" style="color: var(--color-text-muted)">
-        {$isLoading ? 'No custom templates yet.' : $_('printCustomizer.templates.empty')}
+        {$isLoading ? 'Chưa có mẫu in tùy chỉnh nào.' : $_('printTemplates.custom.empty')}
       </div>
     {:else}
       <div class="overflow-x-auto">
         <table class="data-table w-full text-sm">
           <thead>
             <tr>
-              <th>{$isLoading ? 'Template' : $_('printCustomizer.templates.table.name')}</th>
-              <th>{$isLoading ? 'Fields' : $_('printCustomizer.templates.table.fields')}</th>
-              <th>{$isLoading ? 'Updated' : $_('printCustomizer.templates.table.updatedAt')}</th>
-              <th>{$isLoading ? 'Actions' : $_('printCustomizer.templates.table.actions')}</th>
+              <th>{$isLoading ? 'Tên mẫu' : $_('printTemplates.custom.colName')}</th>
+              <th>{$isLoading ? 'Module' : $_('printTemplates.custom.colModule')}</th>
+              <th>{$isLoading ? 'Phiên bản' : $_('printTemplates.custom.colVersion')}</th>
+              <th>{$isLoading ? 'Trạng thái' : $_('printTemplates.custom.colStatus')}</th>
+              <th>{$isLoading ? 'Cập nhật' : $_('printTemplates.custom.colUpdated')}</th>
+              <th>{$isLoading ? 'Thao tác' : $_('common.actions')}</th>
             </tr>
           </thead>
           <tbody>
-            {#each wordTemplates as template}
-              <tr class:selected-row={template.id === selectedTemplateId}>
+            {#each templates as tpl}
+              {@const isExpanded = expandedId === tpl.id}
+              {@const activeVer = tpl.activeVersion ?? tpl.latestVersion}
+              <tr class:expanded-row={isExpanded}>
                 <td>
-                  <div class="font-medium" style="color: var(--color-text)">{template.name}</div>
-                  {#if template.sourceFileName}
-                    <div class="text-xs" style="color: var(--color-text-muted)">{template.sourceFileName}</div>
+                  <div class="font-medium" style="color: var(--color-text)">{tpl.name}</div>
+                  {#if tpl.description}
+                    <div class="text-xs" style="color: var(--color-text-muted)">{tpl.description}</div>
                   {/if}
                 </td>
-                <td>{template.fields.length}</td>
-                <td>{formatDate(template.updatedAt)}</td>
+                <td style="color: var(--color-text-muted)">{moduleLabel(tpl.module)}</td>
                 <td>
-                  <div class="flex flex-wrap items-center gap-2">
-                    <Button variant="secondary" size="sm" onclick={() => (selectedTemplateId = template.id)}>
-                      {$isLoading ? 'Select' : $_('printCustomizer.templates.actions.select')}
+                  {#if activeVer}
+                    <span class="text-xs">v{activeVer.versionNo}</span>
+                    {#if activeVer.templateFormat === 'docx'}
+                      <span class="badge badge-info ml-1">DOCX</span>
+                    {/if}
+                  {:else}
+                    <span class="text-xs" style="color: var(--color-text-muted)">—</span>
+                  {/if}
+                </td>
+                <td>
+                  {#if !tpl.isActive}
+                    <span class="badge badge-secondary">Vô hiệu</span>
+                  {:else if activeVer}
+                    <span class="badge {versionBadgeClass(activeVer.status)}">
+                      {activeVer.status === 'published' ? 'Đang dùng' : activeVer.status === 'draft' ? 'Nháp' : 'Lưu trữ'}
+                    </span>
+                  {:else}
+                    <span class="badge badge-warning">Chưa có version</span>
+                  {/if}
+                </td>
+                <td style="color: var(--color-text-muted)">{formatDate(tpl.updatedAt)}</td>
+                <td>
+                  <div class="flex flex-wrap items-center gap-1.5">
+                    <Button variant="secondary" size="sm" onclick={() => toggleExpand(tpl)}>
+                      {isExpanded
+                        ? ($isLoading ? 'Đóng' : $_('common.close'))
+                        : ($isLoading ? 'Phiên bản' : $_('printTemplates.custom.manageVersions'))}
                     </Button>
-                    <Button variant="secondary" size="sm" onclick={() => renameTemplate(template)}>
-                      {$isLoading ? 'Rename' : $_('printCustomizer.templates.actions.rename')}
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onclick={() => handleDownload(tpl)}
+                      disabled={downloadingId === tpl.id || !activeVer}
+                    >
+                      {downloadingId === tpl.id
+                        ? ($isLoading ? 'Đang tải...' : $_('common.downloading'))
+                        : ($isLoading ? 'Tải .docx' : $_('printTemplates.custom.download'))}
                     </Button>
-                    <Button variant="danger" size="sm" onclick={() => removeTemplate(template.id)}>
-                      {$isLoading ? 'Delete' : $_('printCustomizer.templates.actions.delete')}
-                    </Button>
+                    {#if tpl.isActive}
+                      <Button
+                        variant="danger"
+                        size="sm"
+                        onclick={() => handleDeactivate(tpl)}
+                        disabled={deactivatingId === tpl.id}
+                      >
+                        {$isLoading ? 'Vô hiệu' : $_('printTemplates.custom.deactivate')}
+                      </Button>
+                    {/if}
                   </div>
                 </td>
               </tr>
+
+              <!-- ── Version panel (expanded) ────────────────────────────── -->
+              {#if isExpanded}
+                <tr>
+                  <td colspan="6" class="p-0">
+                    <div class="version-panel space-y-4">
+
+                      <!-- Version list -->
+                      <div class="space-y-2">
+                        <h4 class="text-xs font-semibold uppercase tracking-wide" style="color: var(--color-text-muted)">
+                          {$isLoading ? 'Lịch sử phiên bản' : $_('printTemplates.custom.versionsTitle')}
+                        </h4>
+
+                        {#if versionsLoading}
+                          <div class="skeleton-row"></div>
+                        {:else if versionsError}
+                          <div class="alert alert-error text-sm">{versionsError}</div>
+                        {:else if versions.length === 0}
+                          <p class="text-sm" style="color: var(--color-text-muted)">
+                            {$isLoading ? 'Chưa có phiên bản nào.' : $_('printTemplates.custom.noVersions')}
+                          </p>
+                        {:else}
+                          <table class="data-table w-full text-xs">
+                            <thead>
+                              <tr>
+                                <th>Ver</th>
+                                <th>Định dạng</th>
+                                <th>Trạng thái</th>
+                                <th>Ghi chú</th>
+                                <th>Ngày tạo</th>
+                                <th></th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {#each versions as ver}
+                                <tr>
+                                  <td class="font-medium">v{ver.versionNo}</td>
+                                  <td>
+                                    <span class="badge {ver.templateFormat === 'docx' ? 'badge-info' : 'badge-secondary'}">
+                                      {ver.templateFormat?.toUpperCase() ?? 'HTML'}
+                                    </span>
+                                  </td>
+                                  <td>
+                                    <span class="badge {versionBadgeClass(ver.status)}">
+                                      {ver.status === 'published' ? 'Đang dùng' : ver.status === 'draft' ? 'Nháp' : 'Lưu trữ'}
+                                    </span>
+                                  </td>
+                                  <td style="color: var(--color-text-muted)">{ver.changeNote ?? '—'}</td>
+                                  <td style="color: var(--color-text-muted)">{formatDate(ver.createdAt)}</td>
+                                  <td>
+                                    {#if ver.status !== 'published'}
+                                      <Button
+                                        variant="secondary"
+                                        size="sm"
+                                        onclick={() => handlePublishVersion(tpl.id, ver.id)}
+                                        disabled={publishingId === ver.id}
+                                      >
+                                        {publishingId === ver.id
+                                          ? 'Đang...'
+                                          : ($isLoading ? 'Publish' : $_('printTemplates.custom.publish'))}
+                                      </Button>
+                                    {/if}
+                                  </td>
+                                </tr>
+                              {/each}
+                            </tbody>
+                          </table>
+                        {/if}
+                      </div>
+
+                      <!-- Upload new version -->
+                      <div class="space-y-2 pt-2 border-t" style="border-color: var(--color-border)">
+                        <h4 class="text-xs font-semibold uppercase tracking-wide" style="color: var(--color-text-muted)">
+                          {$isLoading ? 'Tải lên phiên bản mới' : $_('printTemplates.custom.uploadTitle')}
+                        </h4>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          <label class="space-y-1 text-sm">
+                            <span class="label-base">{$isLoading ? 'File .docx' : $_('printTemplates.custom.uploadFile')}</span>
+                            <input
+                              class="input-base"
+                              type="file"
+                              accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                              onchange={(e) => {
+                                uploadFile = (e.target as HTMLInputElement).files?.[0] ?? null
+                              }}
+                            />
+                          </label>
+                          <label class="space-y-1 text-sm">
+                            <span class="label-base">{$isLoading ? 'Ghi chú thay đổi' : $_('printTemplates.custom.uploadNote')}</span>
+                            <input
+                              class="input-base"
+                              placeholder="Ví dụ: Cập nhật bố cục, thêm cột số lượng"
+                              value={uploadNote}
+                              oninput={(e) => (uploadNote = (e.target as HTMLInputElement).value)}
+                            />
+                          </label>
+                        </div>
+
+                        {#if uploadError}
+                          <div class="alert alert-error text-sm">{uploadError}</div>
+                        {/if}
+                        {#if uploadSuccess}
+                          <div class="alert alert-success text-sm">{uploadSuccess}</div>
+                        {/if}
+
+                        <Button
+                          size="sm"
+                          onclick={handleUploadVersion}
+                          disabled={!uploadFile || uploading}
+                        >
+                          {uploading
+                            ? ($isLoading ? 'Đang tải lên...' : $_('printTemplates.custom.uploading'))
+                            : ($isLoading ? 'Tải lên' : $_('printTemplates.custom.uploadSubmit'))}
+                        </Button>
+                      </div>
+
+                    </div>
+                  </td>
+                </tr>
+              {/if}
             {/each}
           </tbody>
         </table>
       </div>
-
-      {#if selectedTemplate}
-        <div class="border rounded-md p-3 space-y-3" style="border-color: var(--color-border)">
-          <div class="flex flex-wrap items-center justify-between gap-2">
-            <div>
-              <h3 class="text-sm font-semibold" style="color: var(--color-text)">
-                {$isLoading ? 'Field mapping' : $_('printCustomizer.templates.mappingTitle')}: {selectedTemplate.name}
-              </h3>
-              <p class="text-xs" style="color: var(--color-text-muted)">
-                {$isLoading ? 'Fill values for each {{field_name}} placeholder.' : $_('printCustomizer.templates.mappingSubtitle')}
-              </p>
-            </div>
-            <div class="flex gap-2">
-              <Button variant="secondary" size="sm" onclick={() => fillSampleValues(selectedTemplate)}>
-                {$isLoading ? 'Auto-fill sample' : $_('printCustomizer.templates.fillSample')}
-              </Button>
-              <Button variant="secondary" size="sm" onclick={exportPdfClientSide} disabled={exportingPdf}>
-                {#if exportingPdf}
-                  {$isLoading ? 'Exporting...' : $_('printCustomizer.templates.exportingPdf')}
-                {:else}
-                  {$isLoading ? 'Export PDF' : $_('printCustomizer.templates.exportPdf')}
-                {/if}
-              </Button>
-              <a class="btn btn-sm btn-primary" href={previewHref} target="_blank" rel="noopener noreferrer">
-                {$isLoading ? 'Preview / Print' : $_('printCustomizer.templates.openPreview')}
-              </a>
-            </div>
-          </div>
-
-          <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
-            <label class="space-y-1 text-sm">
-              <span class="label-base">
-                {$isLoading ? 'Sample data source' : $_('printCustomizer.templates.sampleSource')}
-              </span>
-              <select
-                class="select-base"
-                value={sampleSourceId}
-                onchange={(e) => (sampleSourceId = (e.target as HTMLSelectElement).value as 'asset' | 'warehouseDoc' | 'user')}
-              >
-                {#each sampleSources as source}
-                  <option value={source.id}>
-                    {$isLoading ? source.id : $_(source.labelKey)}
-                  </option>
-                {/each}
-              </select>
-            </label>
-
-            <label class="space-y-1 text-sm">
-              <span class="label-base">
-                {$isLoading ? 'Sample record' : $_('printCustomizer.templates.sampleRecord')}
-              </span>
-              <select class="select-base" value={sampleRecordId} onchange={(e) => (sampleRecordId = (e.target as HTMLSelectElement).value)}>
-                {#each sampleRecords as record}
-                  <option value={record.id}>{record.label}</option>
-                {/each}
-              </select>
-            </label>
-
-            <div class="flex items-end">
-              <Button variant="secondary" size="sm" onclick={applySampleDataMapping} class="w-full">
-                {$isLoading ? 'Auto map from source' : $_('printCustomizer.templates.autoMapFromSource')}
-              </Button>
-            </div>
-          </div>
-
-          {#if exportError}
-            <div class="alert alert-error text-sm">{exportError}</div>
-          {/if}
-          {#if exportSuccess}
-            <div class="alert alert-success text-sm">{exportSuccess}</div>
-          {/if}
-
-          {#if selectedTemplate.fields.length === 0}
-            <div class="text-sm" style="color: var(--color-text-muted)">
-              {$isLoading ? 'No placeholders found in this template.' : $_('printCustomizer.templates.noFields')}
-            </div>
-          {:else}
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {#each selectedTemplate.fields as field}
-                <label class="space-y-1 text-sm">
-                  <span class="label-base">{`{{${field}}}`}</span>
-                  <textarea
-                    rows="2"
-                    class="input-base"
-                    value={fieldValues[field] ?? ''}
-                    oninput={(e) => {
-                      const value = (e.target as HTMLTextAreaElement).value
-                      fieldValues = { ...fieldValues, [field]: value }
-                    }}
-                  ></textarea>
-                </label>
-              {/each}
-            </div>
-          {/if}
-        </div>
-      {/if}
     {/if}
+  </div>
+
+  <!-- Docxtemplater syntax hint -->
+  <div class="card p-4 text-xs space-y-1" style="color: var(--color-text-muted)">
+    <strong style="color: var(--color-text)">
+      {$isLoading ? 'Cú pháp template (.docx)' : $_('printTemplates.syntaxTitle')}
+    </strong>
+    <ul class="list-disc list-inside space-y-0.5 mt-1">
+      <li><code>{'{field}'}</code> — thay thế giá trị đơn</li>
+      <li><code>{'{#items}'}</code> ... <code>{'{/items}'}</code> — lặp theo mảng (dùng cho hàng bảng)</li>
+      <li><code>{'{^items}'}</code> ... <code>{'{/items}'}</code> — hiển thị khi mảng rỗng</li>
+    </ul>
+    <p class="mt-1">
+      Khi render từ phiếu kho/biên bản, dữ liệu được truyền vào tự động.
+      Tải mẫu về để xem các trường (<code>orgName</code>, <code>sigDate</code>, <code>lines[].i</code>, v.v.).
+    </p>
   </div>
 </div>
 
 <style>
-  .selected-row {
-    background: color-mix(in srgb, var(--color-primary) 12%, transparent);
+  .expanded-row {
+    background: color-mix(in srgb, var(--color-primary) 6%, transparent);
+  }
+
+  .version-panel {
+    padding: 1rem 1.25rem;
+    background: color-mix(in srgb, var(--color-surface-1) 60%, transparent);
+    border-top: 1px solid var(--color-border);
+    border-bottom: 1px solid var(--color-border);
   }
 </style>

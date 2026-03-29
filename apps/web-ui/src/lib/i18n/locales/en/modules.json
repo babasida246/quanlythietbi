@@ -626,95 +626,47 @@
       "desc": "Warm amber — dynamic, great for dashboards"
     }
   },
-  "printCustomizer": {
-    "title": "Print Template Customization",
-    "subtitle": "Customize layout, typography and labels for all print templates.",
-    "reset": "Reset to defaults",
-    "openSample": "Open sample print",
-    "tipTitle": "Tip:",
-    "tip": "Changes are saved automatically and applied to all print templates.",
-    "header": {
-      "title": "Header labels",
-      "showLogo": "Show logo placeholder",
-      "logoText": "Logo text",
-      "addressLabel": "Address label",
-      "phoneLabel": "Phone label",
-      "taxLabel": "Tax label",
-      "numberLabel": "Document number label",
-      "codeLabel": "Code label",
-      "dateLabel": "Date label"
+  "printTemplates": {
+    "title": "Print Templates",
+    "subtitle": "Manage built-in and custom .docx print templates.",
+    "syntaxTitle": "Template syntax (.docx)",
+    "builtin": {
+      "title": "Built-in templates",
+      "subtitle": "11 pre-installed templates, used automatically when downloading from stock documents, minutes, etc.",
+      "colName": "Template name",
+      "colCode": "Type code",
+      "colModule": "Module",
+      "editHint": "To edit built-in template content, modify the .docx file and run: pnpm generate:docx-templates"
     },
-    "typography": {
-      "title": "Typography and spacing",
-      "fontFamily": "Font family",
-      "fontSize": "Base font size (pt)",
-      "lineHeight": "Line height",
-      "titleSize": "Title size (pt)",
-      "tableFontSize": "Table font size (pt)"
-    },
-    "layout": {
-      "title": "Page padding (mm)"
-    },
-    "signature": {
-      "title": "Signature and footer",
-      "defaultTitleLine": "Default signature note",
-      "datePrefix": "Date prefix",
-      "footerNote": "Footer note"
-    },
-    "templates": {
-      "title": "Custom Word templates",
-      "subtitle": "Import .docx templates with {{field_name}} placeholders, map values, then print/PDF.",
-      "nameLabel": "Template name (optional)",
-      "namePlaceholder": "Example: Asset handover v2",
-      "importLabel": "Import .docx file",
-      "selectedFile": "Selected file",
-      "importing": "Importing template...",
-      "onlyDocx": "Only .docx files are supported.",
-      "importedPrefix": "Template imported",
-      "createdPrefix": "Template created",
-      "updatedPrefix": "Template updated",
-      "loadedPrefix": "Template loaded",
-      "selectFirst": "Please select a template first.",
-      "seededSuccess": "Default document templates seeded.",
+    "custom": {
+      "title": "Custom templates",
+      "subtitle": "Upload .docx files with {placeholder} syntax to create organization-specific print templates.",
+      "createBtn": "New template",
+      "createTitle": "Create new template",
+      "fieldName": "Template name *",
+      "fieldModule": "Module",
+      "fieldDesc": "Description",
+      "fieldFile": ".docx file (optional)",
+      "fileHint": "Use {placeholder} and {#items}...{/items} syntax for repeating table rows.",
+      "creating": "Creating...",
+      "createSubmit": "Create",
       "empty": "No custom templates yet.",
-      "designerTitle": "Document template designer",
-      "seedDefaults": "Seed default templates",
-      "loadSelected": "Load selected template",
-      "resetDesigner": "Reset designer",
-      "designerNamePlaceholder": "Example: Inventory minutes v1",
-      "designerHtmlLabel": "Template HTML (use {{field_name}} placeholders)",
-      "designerHtmlPlaceholder": "<h1>MINUTES</h1><p>No: {{document.number}}</p>",
-      "createFromDesigner": "Create template from designer",
-      "saveToSelected": "Save to selected template",
-      "table": {
-        "name": "Template",
-        "fields": "Fields",
-        "updatedAt": "Updated",
-        "actions": "Actions"
-      },
-      "actions": {
-        "select": "Select",
-        "rename": "Rename",
-        "delete": "Delete"
-      },
-      "deleteConfirm": "Are you sure you want to delete this template?",
-      "renamePrompt": "Enter a new template name",
-      "mappingTitle": "Field mapping",
-      "mappingSubtitle": "Fill values for each {{field_name}} placeholder.",
-      "fillSample": "Auto-fill sample",
-      "sampleSource": "Sample data source",
-      "sampleRecord": "Sample record",
-      "autoMapFromSource": "Auto-map from source",
-      "exportPdf": "Export PDF",
-      "exportingPdf": "Exporting PDF...",
-      "pdfExportSuccess": "PDF exported successfully.",
-      "openPreview": "Preview / Print",
-      "noFields": "No placeholders were found in this template.",
-      "sampleSources": {
-        "asset": "Asset sample",
-        "warehouseDoc": "Warehouse document sample",
-        "user": "User sample"
-      }
+      "colName": "Template name",
+      "colModule": "Module",
+      "colVersion": "Version",
+      "colStatus": "Status",
+      "colUpdated": "Updated",
+      "manageVersions": "Versions",
+      "download": "Download .docx",
+      "deactivate": "Deactivate",
+      "versionsTitle": "Version history",
+      "noVersions": "No versions yet.",
+      "publish": "Publish",
+      "uploadTitle": "Upload new version",
+      "uploadFile": ".docx file",
+      "uploadNote": "Change note",
+      "uploading": "Uploading...",
+      "uploadSubmit": "Upload"
     }
   }
 }
