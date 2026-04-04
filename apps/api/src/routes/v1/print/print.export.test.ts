@@ -97,17 +97,14 @@ describe('Print Export Helpers', () => {
             expect(content).toContain('<Workbook')
         })
 
-        it('should return Word HTML buffer for word format', async () => {
+        it('should reject generic docx export without docx template', async () => {
             const html = '<p>Test Content</p>'
             const mappings = {}
             const meta = {}
 
-            const buffer = await buildExportBuffer('word', html, mappings, meta)
-            const content = buffer.toString('utf-8')
-
-            expect(content).toContain('<!DOCTYPE html>')
-            expect(content).toContain('<body>')
-            expect(content).toContain('Test Content')
+            await expect(buildExportBuffer('docx', html, mappings, meta)).rejects.toThrow(
+                'DOCX export requires a DOCX template.'
+            )
         })
 
         it('should return PDF buffer for pdf format', async () => {

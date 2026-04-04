@@ -3,7 +3,7 @@ import { effectivePermsStore } from '$lib/stores/effectivePermsStore'
 
 export interface AuthResponse {
     accessToken: string
-    refreshToken: string
+    refreshToken?: string
     expiresIn: number
     user: {
         id: string
@@ -17,10 +17,12 @@ export async function login(email: string, password: string): Promise<AuthRespon
     const result = await apiJsonData<AuthResponse>(`${API_BASE}/v1/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        cache: 'no-store',
         body: JSON.stringify({ email, password })
     })
 
-    setStoredTokens(result.accessToken, result.refreshToken)
+    setStoredTokens(result.accessToken)
     setStoredUser({
         email: result.user.email,
         role: result.user.role,
@@ -39,7 +41,9 @@ export async function refresh(): Promise<AuthResponse> {
     const response = await authorizedFetch(`${API_BASE}/v1/auth/refresh`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ refreshToken: localStorage.getItem('refreshToken') })
+        credentials: 'include',
+        cache: 'no-store',
+        body: JSON.stringify({})
     })
 
     if (!response.ok) {
@@ -49,16 +53,17 @@ export async function refresh(): Promise<AuthResponse> {
 
     const payload = await response.json()
     const data = unwrapApiData<AuthResponse>(payload as AuthResponse | { data: AuthResponse })
-    setStoredTokens(data.accessToken, data.refreshToken)
+    setStoredTokens(data.accessToken)
     return data
 }
 
 export async function logout(): Promise<void> {
-    const refreshToken = localStorage.getItem('refreshToken')
     await authorizedFetch(`${API_BASE}/v1/auth/logout`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ refreshToken })
+        credentials: 'include',
+        cache: 'no-store',
+        body: JSON.stringify({})
     })
     clearStoredSession()
     effectivePermsStore.clear()

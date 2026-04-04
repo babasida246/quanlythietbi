@@ -178,6 +178,52 @@
     "drilldownTitle": "Chi tiết: {dimension} = {value}",
     "totalResults": "{total} kết quả",
     "showingPartial": "Hiển thị {shown} / {total} — Export CSV để lấy tất cả",
-    "unknownError": "Lỗi không xác định"
+    "unknownError": "Lỗi không xác định",
+    "warehouseHub": {
+      "title": "Kho báo cáo kho hàng",
+      "subtitle": "Gộp báo cáo inventory và warehouse trong cùng một cụm điều hướng",
+      "reportCount": "báo cáo"
+    },
+    "printFeatures": {
+      "title": "Danh sách tính năng cần mẫu in",
+      "subtitle": "Backlog tính năng cần có biểu mẫu in chuẩn hóa",
+      "ownerWarehouse": "Kho hàng",
+      "ownerAssets": "Tài sản",
+      "ownerMaintenance": "Bảo trì",
+      "ownerInventory": "Kiểm kê",
+      "ownerRequests": "Yêu cầu",
+      "items": {
+        "stockReceipt": {
+          "feature": "Phiếu nhập kho"
+        },
+        "stockIssue": {
+          "feature": "Phiếu xuất kho"
+        },
+        "assetHandover": {
+          "feature": "Biên bản bàn giao tài sản"
+        },
+        "maintenanceTicket": {
+          "feature": "Phiếu bảo trì"
+        },
+        "repairOrder": {
+          "feature": "Lệnh sửa chữa"
+        },
+        "inventoryAudit": {
+          "feature": "Biên bản kiểm kê"
+        },
+        "assetRecall": {
+          "feature": "Biên bản thu hồi tài sản"
+        },
+        "assetTransfer": {
+          "feature": "Biên bản luân chuyển tài sản"
+        },
+        "purchaseRequest": {
+          "feature": "Phiếu yêu cầu mua sắm"
+        },
+        "assetDisposal": {
+          "feature": "Biên bản thanh lý tài sản"
+        }
+      }
+    }
   }
 }

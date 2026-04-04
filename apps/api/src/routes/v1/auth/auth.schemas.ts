@@ -16,6 +16,7 @@ export const LoginRequestSchema = Type.Object({
     }),
     password: Type.String({
         minLength: 1,
+        writeOnly: true,
         description: 'User password'
     })
 }, {
@@ -27,9 +28,10 @@ export const LoginRequestSchema = Type.Object({
  * Refresh Token Request Schema
  */
 export const RefreshTokenRequestSchema = Type.Object({
-    refreshToken: Type.String({
+    refreshToken: Type.Optional(Type.String({
+        writeOnly: true,
         description: 'Refresh token for getting new access token'
-    })
+    }))
 }, {
     title: 'Refresh Token Request',
     description: 'Request to refresh authentication tokens'
@@ -40,6 +42,7 @@ export const RefreshTokenRequestSchema = Type.Object({
  */
 export const LogoutRequestSchema = Type.Object({
     refreshToken: Type.Optional(Type.String({
+        writeOnly: true,
         description: 'Refresh token to invalidate'
     }))
 }, {
@@ -85,9 +88,9 @@ export const AuthResponseSchema = Type.Object({
     accessToken: Type.String({
         description: 'JWT access token'
     }),
-    refreshToken: Type.String({
-        description: 'JWT refresh token'
-    }),
+    refreshToken: Type.Optional(Type.String({
+        description: 'JWT refresh token (legacy field, migrated to HttpOnly cookie)'
+    })),
     expiresIn: Type.Number({
         description: 'Token expiration time in seconds'
     }),

@@ -57,6 +57,12 @@ const envSchema = z.object({
 
     // Auth
     DISABLE_AUTH: z.enum(['true', 'false']).default('false'),
+    REFRESH_COOKIE_SAMESITE: z.enum(['lax', 'none']).default('lax'),
+
+    // CORS
+    CORS_ALLOWED_ORIGINS: z.string().optional(),
+    CORS_ALLOW_CREDENTIALS: z.enum(['true', 'false']).default('true'),
+    CORS_ALLOW_LOCALHOST_DEV: z.enum(['true', 'false']).default('true'),
 
     // Rate Limiting
     ENABLE_RATE_LIMIT: z.enum(['true', 'false']).default('false'),
@@ -70,13 +76,25 @@ const envSchema = z.object({
 })
 
 export type Env = z.infer<typeof envSchema> & { DATABASE_URL: string }
+export type RefreshCookieRuntimeConfig = {
+    name: string
+    path: string
+    maxAgeSeconds: number
+    httpOnly: boolean
+    sameSite: 'Lax' | 'None'
+    secure: boolean
+}
+
+export const REFRESH_TOKEN_COOKIE_NAME = 'qltb_refresh_token'
+export const REFRESH_TOKEN_COOKIE_PATH = '/api/v1/auth'
+export const REFRESH_TOKEN_COOKIE_MAX_AGE_SECONDS = 7 * 24 * 60 * 60
 
 function buildDatabaseUrl(raw: z.infer<typeof envSchema>): string {
     if (raw.DATABASE_URL) return raw.DATABASE_URL
 
     const host = raw.POSTGRES_HOST ?? 'localhost'
     const port = raw.POSTGRES_PORT ?? 5432
-    const db   = raw.POSTGRES_DB   ?? 'qltb'
+    const db = raw.POSTGRES_DB ?? 'qltb'
     const user = raw.POSTGRES_USER ?? 'postgres'
     const pass = raw.POSTGRES_PASSWORD ?? 'postgres'
 
@@ -105,6 +123,59 @@ function validateEnv(): Env {
 }
 
 export const env = validateEnv()
+
+function normalizeOrigin(value: string): string | null {
+    const raw = value.trim()
+    if (!raw) return null
+    try {
+        return new URL(raw).origin.toLowerCase()
+    } catch {
+        return null
+    }
+}
+
+export function resolveCorsOriginAllowlist(source: Env): string[] {
+    const fromEnv = (source.CORS_ALLOWED_ORIGINS ?? '')
+        .split(',')
+        .map((item) => normalizeOrigin(item))
+        .filter((item): item is string => item !== null)
+
+    if (fromEnv.length > 0) {
+        return [...new Set(fromEnv)]
+    }
+
+    if (source.NODE_ENV === 'production') {
+        // Production-safe preset: no cross-origin access unless explicitly configured.
+        return []
+    }
+
+    if (source.CORS_ALLOW_LOCALHOST_DEV !== 'true') {
+        return []
+    }
+
+    return [
+        'http://localhost:5173',
+        'http://127.0.0.1:5173',
+        'http://localhost:4011',
+        'http://127.0.0.1:4011',
+        'http://localhost:3001',
+        'http://127.0.0.1:3001'
+    ]
+}
+
+export function resolveRefreshCookieRuntimeConfig(source: Env): RefreshCookieRuntimeConfig {
+    const sameSite = source.REFRESH_COOKIE_SAMESITE === 'none' ? 'None' : 'Lax'
+    const secure = source.NODE_ENV === 'production' || sameSite === 'None'
+
+    return {
+        name: REFRESH_TOKEN_COOKIE_NAME,
+        path: REFRESH_TOKEN_COOKIE_PATH,
+        maxAgeSeconds: REFRESH_TOKEN_COOKIE_MAX_AGE_SECONDS,
+        httpOnly: true,
+        sameSite,
+        secure
+    }
+}
 
 export const isDev = env.NODE_ENV === 'development'
 export const isTest = env.NODE_ENV === 'test'

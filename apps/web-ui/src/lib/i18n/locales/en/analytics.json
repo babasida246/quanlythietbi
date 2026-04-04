@@ -182,6 +182,52 @@
     },
     "drilldownTitle": "Drilldown: {dimension} = {value}",
     "totalResults": "{total} results",
-    "showingPartial": "Showing {shown} / {total} — Export CSV for all"
+    "showingPartial": "Showing {shown} / {total} — Export CSV for all",
+    "warehouseHub": {
+      "title": "Warehouse Reporting Hub",
+      "subtitle": "Integrated inventory and warehouse reporting in one navigator",
+      "reportCount": "reports"
+    },
+    "printFeatures": {
+      "title": "Features Requiring Print Templates",
+      "subtitle": "Backlog of features that should have standardized printable templates",
+      "ownerWarehouse": "Warehouse",
+      "ownerAssets": "Assets",
+      "ownerMaintenance": "Maintenance",
+      "ownerInventory": "Inventory Audit",
+      "ownerRequests": "Requests",
+      "items": {
+        "stockReceipt": {
+          "feature": "Stock receipt form"
+        },
+        "stockIssue": {
+          "feature": "Stock issue form"
+        },
+        "assetHandover": {
+          "feature": "Asset handover record"
+        },
+        "maintenanceTicket": {
+          "feature": "Maintenance ticket"
+        },
+        "repairOrder": {
+          "feature": "Repair order"
+        },
+        "inventoryAudit": {
+          "feature": "Inventory audit minutes"
+        },
+        "assetRecall": {
+          "feature": "Asset recall record"
+        },
+        "assetTransfer": {
+          "feature": "Asset transfer record"
+        },
+        "purchaseRequest": {
+          "feature": "Purchase request form"
+        },
+        "assetDisposal": {
+          "feature": "Asset disposal record"
+        }
+      }
+    }
   }
 }

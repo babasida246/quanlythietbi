@@ -313,7 +313,7 @@
 
         {#if exportDone}
           <p class="dl-success">
-            ✓ File đã được tải xuống. Mở bằng Microsoft Word để in hoặc chỉnh sửa.
+            ✓ File DOCX đã được tải xuống. Mở bằng Microsoft Word hoặc ứng dụng hỗ trợ DOCX để in/chỉnh sửa.
           </p>
         {/if}
 
@@ -322,8 +322,8 @@
         {/if}
 
         <p class="dl-hint">
-          Mẫu Word sử dụng font Times New Roman, bố cục A4.
-          Chỉnh sửa nội dung trong Word sau khi tải xuống.
+          Mẫu DOCX sử dụng font Times New Roman, bố cục A4.
+          Bạn có thể chỉnh sửa nội dung trước khi in.
         </p>
       </div>
     {/if}

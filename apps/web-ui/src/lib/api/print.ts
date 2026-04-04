@@ -66,7 +66,7 @@ export async function renderTemplate(
 export async function exportFile(
     htmlContent: string,
     fieldMappings: Record<string, unknown>,
-    format: 'pdf' | 'excel' | 'csv' | 'word' | 'json',
+    format: 'pdf' | 'excel' | 'csv' | 'docx' | 'json',
     options?: Record<string, unknown>
 ) {
     const response = await fetch(`${API_BASE}/v1/print/export-file`, {
@@ -94,17 +94,17 @@ export async function downloadFile(blob: Blob, filename: string) {
 }
 
 export type BuiltinPrintType =
-  | 'phieu-nhap-kho'
-  | 'phieu-xuat-kho'
-  | 'bien-ban-ban-giao'
-  | 'bien-ban-luan-chuyen'
-  | 'bien-ban-thu-hoi'
-  | 'lenh-sua-chua'
-  | 'bien-ban-kiem-ke'
-  | 'phieu-muon'
-  | 'bien-ban-thanh-ly'
-  | 'yeu-cau-mua-sam'
-  | 'bao-cao-tai-san'
+    | 'phieu-nhap-kho'
+    | 'phieu-xuat-kho'
+    | 'bien-ban-ban-giao'
+    | 'bien-ban-luan-chuyen'
+    | 'bien-ban-thu-hoi'
+    | 'lenh-sua-chua'
+    | 'bien-ban-kiem-ke'
+    | 'phieu-muon'
+    | 'bien-ban-thanh-ly'
+    | 'yeu-cau-mua-sam'
+    | 'bao-cao-tai-san'
 
 export interface RenderDocxResponse {
     content: string   // base64-encoded .docx
@@ -154,20 +154,20 @@ export async function renderDocx(
  *   data.sigDate  – ngày hiển thị ở cuối phiếu, vd: "Ngày 26 tháng 03 năm 2026"
  */
 export async function renderBuiltinDocx(
-  printType: BuiltinPrintType,
-  data: Record<string, unknown>,
-  fileName?: string
+    printType: BuiltinPrintType,
+    data: Record<string, unknown>,
+    fileName?: string
 ): Promise<{ success: boolean; data: RenderDocxResponse }> {
-  const response = await fetch(`${API_BASE}/v1/print/render-builtin-docx`, {
-    method: 'POST',
-    headers: getHeaders(),
-    body: JSON.stringify({ printType, data, fileName })
-  })
-  if (!response.ok) {
-    const err = await response.json().catch(() => ({ error: { message: 'Render failed' } }))
-    throw new Error(err?.error?.message ?? 'Render built-in DOCX failed')
-  }
-  return response.json()
+    const response = await fetch(`${API_BASE}/v1/print/render-builtin-docx`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify({ printType, data, fileName })
+    })
+    if (!response.ok) {
+        const err = await response.json().catch(() => ({ error: { message: 'Render failed' } }))
+        throw new Error(err?.error?.message ?? 'Render built-in DOCX failed')
+    }
+    return response.json()
 }
 
 export function downloadDocxFromBase64(base64: string, fileName: string) {

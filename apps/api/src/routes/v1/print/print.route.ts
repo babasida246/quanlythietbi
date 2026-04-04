@@ -22,23 +22,23 @@ const renderTemplateSchema = z.object({
 const exportFileSchema = z.object({
     htmlContent: z.string(),
     fieldMappings: z.record(z.any()),
-    format: z.enum(['pdf', 'excel', 'csv', 'word', 'json']),
+    format: z.enum(['pdf', 'excel', 'csv', 'docx', 'json']),
     options: z.record(z.any()).optional()
 })
 
-const EXT_BY_FORMAT: Record<'pdf' | 'excel' | 'csv' | 'word' | 'json', string> = {
+const EXT_BY_FORMAT: Record<'pdf' | 'excel' | 'csv' | 'docx' | 'json', string> = {
     pdf: 'pdf',
     excel: 'xls',
     csv: 'csv',
-    word: 'doc',
+    docx: 'docx',
     json: 'json'
 }
 
-const MIME_BY_FORMAT: Record<'pdf' | 'excel' | 'csv' | 'word' | 'json', string> = {
+const MIME_BY_FORMAT: Record<'pdf' | 'excel' | 'csv' | 'docx' | 'json', string> = {
     pdf: 'application/pdf',
     excel: 'application/vnd.ms-excel; charset=utf-8',
     csv: 'text/csv; charset=utf-8',
-    word: 'application/msword; charset=utf-8',
+    docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
     json: 'application/json; charset=utf-8'
 }
 
@@ -117,7 +117,7 @@ export async function toPdfBuffer(html: string): Promise<Buffer> {
 }
 
 export async function buildExportBuffer(
-    format: 'pdf' | 'excel' | 'csv' | 'word' | 'json',
+    format: 'pdf' | 'excel' | 'csv' | 'docx' | 'json',
     html: string,
     fieldMappings: Record<string, unknown>,
     payloadMeta: Record<string, unknown>
@@ -131,9 +131,8 @@ export async function buildExportBuffer(
     if (format === 'csv') {
         return Buffer.from(toCsv(fieldMappings), 'utf-8')
     }
-    if (format === 'word') {
-        const docHtml = `<!DOCTYPE html><html><head><meta charset="utf-8"></head><body>${html}</body></html>`
-        return Buffer.from(docHtml, 'utf-8')
+    if (format === 'docx') {
+        throw new Error('DOCX export requires a DOCX template. Use /api/v1/print/render-docx.')
     }
     return Buffer.from(JSON.stringify({ ...payloadMeta, mappings: fieldMappings, renderedHtml: html }, null, 2), 'utf-8')
 }
@@ -431,20 +430,20 @@ export async function printRoute(fastify: FastifyInstance, opts: { printService:
         async (request, reply) => {
             const body = z.object({
                 printType: z.enum(BUILTIN_PRINT_TYPES as [string, ...string[]]),
-                data:      z.record(z.any()),
-                fileName:  z.string().optional(),
+                data: z.record(z.any()),
+                fileName: z.string().optional(),
             }).parse(request.body)
 
             try {
                 const rendered = await builtinDocxService.render(body.printType, body.data)
-                const base64   = rendered.toString('base64')
+                const base64 = rendered.toString('base64')
                 const safeName = String(body.fileName ?? body.printType)
                     .trim().replace(/[^a-zA-Z0-9-_]+/g, '_') || body.printType
 
                 return reply.send({
                     success: true,
                     data: {
-                        content:  base64,
+                        content: base64,
                         mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
                         fileName: `${safeName}.docx`,
                     }
@@ -453,7 +452,7 @@ export async function printRoute(fastify: FastifyInstance, opts: { printService:
                 return reply.status(400).send({
                     success: false,
                     error: {
-                        code:    'BUILTIN_RENDER_FAILED',
+                        code: 'BUILTIN_RENDER_FAILED',
                         message: error instanceof Error ? error.message : 'Render failed',
                     }
                 })

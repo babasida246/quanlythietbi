@@ -65,6 +65,6 @@ export async function verifyPassword(password: string, passwordHash: string): Pr
         }
     }
 
-    // Legacy fallback for historical plain-hash test data.
-    return password === passwordHash
+    // Reject non-bcrypt values to avoid accidental plaintext password storage/use.
+    return false
 }

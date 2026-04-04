@@ -10,8 +10,18 @@ function shouldUseEnvApiBaseInBrowser(envApiBase: string): boolean {
     if (typeof window === 'undefined') return true
 
     const currentHost = window.location.hostname.toLowerCase()
+    const currentProtocol = window.location.protocol.toLowerCase()
     const envLower = envApiBase.toLowerCase()
     const envPointsToLocal = envLower.includes('localhost') || envLower.includes('127.0.0.1') || envLower.includes('[::1]')
+
+    try {
+        const parsed = new URL(envApiBase, window.location.origin)
+        if (currentProtocol === 'https:' && parsed.protocol === 'http:') {
+            return false
+        }
+    } catch {
+        return false
+    }
 
     // On non-local domains, ignore env values that point back to localhost.
     if (!isLocalHost(currentHost) && envPointsToLocal) {
@@ -37,14 +47,15 @@ export function getStoredTokens(): { accessToken: string | null; refreshToken: s
     if (typeof window === 'undefined') return { accessToken: null, refreshToken: null }
     return {
         accessToken: localStorage.getItem('authToken'),
-        refreshToken: localStorage.getItem('refreshToken')
+        refreshToken: null
     }
 }
 
-export function setStoredTokens(accessToken: string, refreshToken: string): void {
+export function setStoredTokens(accessToken: string, _refreshToken?: string): void {
     if (typeof window === 'undefined') return
     localStorage.setItem('authToken', accessToken)
-    localStorage.setItem('refreshToken', refreshToken)
+    // Refresh token is stored as HttpOnly cookie by the API.
+    localStorage.removeItem('refreshToken')
 }
 
 export function setStoredUser(user: StoredUser): void {
@@ -109,15 +120,15 @@ function redirectToLoginOnUnauthorized(): void {
 
 export async function refreshAccessToken(fetchImpl: typeof fetch = fetch): Promise<string | null> {
     if (typeof window === 'undefined') return null
-    const { refreshToken } = getStoredTokens()
-    if (!refreshToken) return null
 
     if (!refreshingPromise) {
         refreshingPromise = (async () => {
             const response = await fetchImpl(`${API_BASE}/v1/auth/refresh`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ refreshToken })
+                credentials: 'include',
+                cache: 'no-store',
+                body: JSON.stringify({})
             })
 
             if (!response.ok) {
@@ -126,9 +137,9 @@ export async function refreshAccessToken(fetchImpl: typeof fetch = fetch): Promi
             }
 
             const data = await response.json()
-            // API returns {success: true, data: {accessToken, refreshToken}, meta: {...}}
+            // API returns {success: true, data: {accessToken}, meta: {...}}
             const tokens = data.data || data
-            setStoredTokens(tokens.accessToken, tokens.refreshToken)
+            setStoredTokens(tokens.accessToken)
             return tokens.accessToken as string
         })()
 
@@ -145,11 +156,11 @@ export async function authorizedFetch(input: RequestInfo, init: RequestInit = {}
     const { accessToken } = getStoredTokens()
     const isRefreshCall = typeof input === 'string' && input.includes('/auth/refresh')
 
-    if (accessToken && !headers.has('Authorization') && !init.credentials) {
+    if (accessToken && !headers.has('Authorization')) {
         headers.set('Authorization', `Bearer ${accessToken}`)
     }
 
-    const doFetch = () => fetch(input, { ...init, headers })
+    const doFetch = () => fetch(input, { ...init, headers, credentials: init.credentials ?? 'include' })
     let response = await doFetch()
 
     if (response.status !== 401 || isRefreshCall) {

@@ -8,8 +8,9 @@ import rateLimit from '@fastify/rate-limit'
 
 export interface SecurityConfig {
     cors: {
-        origin: string[] | boolean
+        originAllowlist: string[]
         credentials: boolean
+        allowNoOrigin: boolean
     }
     rateLimit: {
         enabled: boolean
@@ -25,9 +26,26 @@ export async function registerSecurity(
     fastify: FastifyInstance,
     config: SecurityConfig
 ): Promise<void> {
+    const normalizedAllowlist = new Set(config.cors.originAllowlist.map((item) => item.toLowerCase()))
+
     // CORS
     await fastify.register(cors, {
-        origin: config.cors.origin,
+        origin: (origin, cb) => {
+            if (!origin) {
+                cb(null, config.cors.allowNoOrigin)
+                return
+            }
+
+            let normalizedOrigin: string
+            try {
+                normalizedOrigin = new URL(origin).origin.toLowerCase()
+            } catch {
+                cb(new Error('Invalid CORS origin'), false)
+                return
+            }
+
+            cb(null, normalizedAllowlist.has(normalizedOrigin))
+        },
         credentials: config.cors.credentials,
         methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS']
     })

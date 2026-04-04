@@ -7,7 +7,7 @@ import { randomUUID } from 'crypto'
 import multipart from '@fastify/multipart'
 import type { PgClient } from '@qltb/infra-postgres'
 
-import { env } from '../config/env.js'
+import { env, resolveCorsOriginAllowlist, resolveRefreshCookieRuntimeConfig } from '../config/env.js'
 
 // Middleware
 import { errorHandler } from './middleware/error.handler.js'
@@ -40,7 +40,26 @@ export async function createApp(deps: AppDependencies): Promise<FastifyInstance>
             level: env.LOG_LEVEL,
             transport: env.NODE_ENV === 'development'
                 ? { target: 'pino-pretty', options: { colorize: true } }
-                : undefined
+                : undefined,
+            redact: {
+                paths: [
+                    'req.headers.authorization',
+                    'request.headers.authorization',
+                    'headers.authorization',
+                    'req.body.password',
+                    'request.body.password',
+                    'body.password',
+                    'req.body.refreshToken',
+                    'request.body.refreshToken',
+                    'body.refreshToken',
+                    'req.headers.cookie',
+                    'request.headers.cookie',
+                    'headers.cookie',
+                    'res.body.accessToken',
+                    'res.body.refreshToken'
+                ],
+                censor: '[REDACTED]'
+            }
         },
         requestIdHeader: 'x-request-id',
         genReqId: () => randomUUID(),
@@ -49,9 +68,19 @@ export async function createApp(deps: AppDependencies): Promise<FastifyInstance>
 
     fastify.decorate('pgClient', deps.pgClient)
 
+    const corsAllowlist = resolveCorsOriginAllowlist(env)
+    const refreshCookieConfig = resolveRefreshCookieRuntimeConfig(env)
+    if (env.NODE_ENV === 'production' && corsAllowlist.length === 0) {
+        fastify.log.warn('CORS_ALLOWED_ORIGINS is empty in production: cross-origin browser access is disabled')
+    }
+
     // ==================== Plugins ====================
     await registerSecurity(fastify, {
-        cors: { origin: true, credentials: true },
+        cors: {
+            originAllowlist: corsAllowlist,
+            credentials: env.CORS_ALLOW_CREDENTIALS === 'true',
+            allowNoOrigin: true
+        },
         rateLimit: {
             enabled: env.ENABLE_RATE_LIMIT === 'true',
             max: env.RATE_LIMIT_MAX,
@@ -113,6 +142,23 @@ export async function createApp(deps: AppDependencies): Promise<FastifyInstance>
             return { status: 'not_ready', db: 'error', timestamp: new Date().toISOString() }
         }
     })
+
+    fastify.get('/health/security-config', {
+        schema: { tags: ['Health'] }
+    }, async () => ({
+        status: 'ok',
+        timestamp: new Date().toISOString(),
+        environment: env.NODE_ENV,
+        cors: {
+            allowCredentials: env.CORS_ALLOW_CREDENTIALS === 'true',
+            allowNoOrigin: true,
+            allowedOrigins: corsAllowlist,
+            allowedOriginCount: corsAllowlist.length
+        },
+        auth: {
+            refreshTokenCookie: refreshCookieConfig
+        }
+    }))
 
     // ==================== Setup Module ====================
     try {

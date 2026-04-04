@@ -75,6 +75,73 @@
 
   const moduleReports = $derived.by(() => REPORT_REGISTRY.filter((r) => r.module === selectedModule))
 
+  const warehouseUnifiedReports = $derived.by(() =>
+    REPORT_REGISTRY.filter((r) => r.module === 'inventory' || r.module === 'warehouse')
+  )
+
+  const printTemplateFeatureList = $derived.by(() => [
+    {
+      feature: $_('reports.printFeatures.items.stockReceipt.feature'),
+      templateCode: 'doc-warehouse-receipt',
+      owner: $_('reports.printFeatures.ownerWarehouse'),
+      priority: 'P1'
+    },
+    {
+      feature: $_('reports.printFeatures.items.stockIssue.feature'),
+      templateCode: 'doc-warehouse-issue',
+      owner: $_('reports.printFeatures.ownerWarehouse'),
+      priority: 'P1'
+    },
+    {
+      feature: $_('reports.printFeatures.items.assetHandover.feature'),
+      templateCode: 'doc-ban-giao-tai-san',
+      owner: $_('reports.printFeatures.ownerAssets'),
+      priority: 'P1'
+    },
+    {
+      feature: $_('reports.printFeatures.items.maintenanceTicket.feature'),
+      templateCode: 'doc-phieu-bao-tri',
+      owner: $_('reports.printFeatures.ownerMaintenance'),
+      priority: 'P1'
+    },
+    {
+      feature: $_('reports.printFeatures.items.repairOrder.feature'),
+      templateCode: 'doc-lenh-sua-chua',
+      owner: $_('reports.printFeatures.ownerMaintenance'),
+      priority: 'P1'
+    },
+    {
+      feature: $_('reports.printFeatures.items.inventoryAudit.feature'),
+      templateCode: 'doc-bien-ban-kiem-ke',
+      owner: $_('reports.printFeatures.ownerInventory'),
+      priority: 'P1'
+    },
+    {
+      feature: $_('reports.printFeatures.items.assetRecall.feature'),
+      templateCode: 'doc-bien-ban-thu-hoi',
+      owner: $_('reports.printFeatures.ownerAssets'),
+      priority: 'P2'
+    },
+    {
+      feature: $_('reports.printFeatures.items.assetTransfer.feature'),
+      templateCode: 'doc-bien-ban-luan-chuyen',
+      owner: $_('reports.printFeatures.ownerAssets'),
+      priority: 'P2'
+    },
+    {
+      feature: $_('reports.printFeatures.items.purchaseRequest.feature'),
+      templateCode: 'doc-yeu-cau-mua-sam',
+      owner: $_('reports.printFeatures.ownerRequests'),
+      priority: 'P2'
+    },
+    {
+      feature: $_('reports.printFeatures.items.assetDisposal.feature'),
+      templateCode: 'doc-bien-ban-thanh-ly',
+      owner: $_('reports.printFeatures.ownerAssets'),
+      priority: 'P3'
+    }
+  ])
+
   const TABLE_COLUMNS: Partial<Record<ReportKey, Column[]>> = $derived({
     'assets-overview': [
       { key: 'code', label: $_('reports.col.assetCode'), sortable: true },
@@ -642,6 +709,60 @@
     </div>
   </section>
 
+  <section class="grid grid-cols-1 gap-4 xl:grid-cols-[1.4fr_1fr]">
+    <div class="card p-4 space-y-3 report-hub-card">
+      <div class="flex items-center justify-between gap-2">
+        <div>
+          <h3 class="text-sm font-semibold" style="color: var(--color-text)">
+            {$isLoading ? 'Warehouse Report Hub' : $_('reports.warehouseHub.title')}
+          </h3>
+          <p class="text-xs mt-1" style="color: var(--color-text-muted)">
+            {$isLoading ? 'Integrated inventory + warehouse analytics in one place' : $_('reports.warehouseHub.subtitle')}
+          </p>
+        </div>
+        <span class="rounded-full px-2 py-1 text-[11px] font-semibold report-pill">
+          {warehouseUnifiedReports.length} {$isLoading ? 'reports' : $_('reports.warehouseHub.reportCount')}
+        </span>
+      </div>
+
+      <div class="flex flex-wrap gap-2">
+        {#each warehouseUnifiedReports as rep}
+          <button
+            class="report-quick-item"
+            onclick={() => setReport(rep.key)}
+            title={rep.description}
+          >
+            <span class="text-sm">{rep.icon}</span>
+            <span>{rep.title}</span>
+          </button>
+        {/each}
+      </div>
+    </div>
+
+    <div class="card p-4 space-y-3 report-print-card">
+      <div>
+        <h3 class="text-sm font-semibold" style="color: var(--color-text)">
+          {$isLoading ? 'Print Template Backlog' : $_('reports.printFeatures.title')}
+        </h3>
+        <p class="text-xs mt-1" style="color: var(--color-text-muted)">
+          {$isLoading ? 'Feature checklist that should have printable templates' : $_('reports.printFeatures.subtitle')}
+        </p>
+      </div>
+
+      <div class="space-y-2 max-h-64 overflow-y-auto pr-1">
+        {#each printTemplateFeatureList as item}
+          <div class="report-print-item">
+            <div class="min-w-0">
+              <p class="text-xs font-semibold truncate" style="color: var(--color-text)">{item.feature}</p>
+              <p class="text-[11px] truncate" style="color: var(--color-text-muted)">{item.templateCode} · {item.owner}</p>
+            </div>
+            <span class="report-priority">{item.priority}</span>
+          </div>
+        {/each}
+      </div>
+    </div>
+  </section>
+
   {#if activeReport}
     <ReportFilterBar
       reportDef={activeReport}
@@ -808,6 +929,54 @@
   }
   .report-retry-btn:hover {
     text-decoration: underline;
+  }
+  .report-hub-card {
+    border: 1px solid var(--color-border);
+    background: linear-gradient(155deg, rgb(var(--color-surface) / 1), rgb(var(--color-surface-2) / 0.35));
+  }
+  .report-pill {
+    background: var(--color-primary-muted);
+    color: var(--color-primary);
+  }
+  .report-quick-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    border: 1px solid var(--color-border);
+    border-radius: 999px;
+    padding: 0.35rem 0.7rem;
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+    background: rgb(var(--color-surface-2) / 0.3);
+    transition: all 150ms ease;
+  }
+  .report-quick-item:hover {
+    color: var(--color-text);
+    border-color: var(--color-primary);
+    background: var(--color-primary-muted);
+  }
+  .report-print-card {
+    border: 1px solid var(--color-border);
+    background: linear-gradient(180deg, rgb(var(--color-surface) / 1), rgb(var(--color-surface-3) / 0.25));
+  }
+  .report-print-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    border: 1px solid var(--color-border);
+    border-radius: 0.5rem;
+    padding: 0.45rem 0.6rem;
+    background: rgb(var(--color-surface-2) / 0.35);
+  }
+  .report-priority {
+    border-radius: 999px;
+    background: rgb(var(--color-warning) / 0.15);
+    color: var(--color-warning);
+    font-size: 0.6875rem;
+    font-weight: 700;
+    padding: 0.125rem 0.45rem;
+    white-space: nowrap;
   }
 </style>
 

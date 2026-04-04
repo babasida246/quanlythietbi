@@ -82,7 +82,16 @@ const MOCK_USERS: AuthUserRecord[] = [
     }
 ]
 
-const JWT_ACCESS_SECRET = process.env.JWT_ACCESS_SECRET || 'dev-access-secret-key'
+function resolveJwtAccessSecret(): string {
+    const fallback = 'dev-access-secret-key'
+    const value = process.env.JWT_ACCESS_SECRET || fallback
+    if (process.env.NODE_ENV === 'production' && value === fallback) {
+        throw new Error('JWT_ACCESS_SECRET must be explicitly configured in production')
+    }
+    return value
+}
+
+const JWT_ACCESS_SECRET = resolveJwtAccessSecret()
 const USERS_TABLE_EXISTS_TTL_MS = 60_000
 const usersTableExistsCache = new WeakMap<PgClient, { value: boolean; expiresAt: number }>()
 
