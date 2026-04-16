@@ -9,6 +9,7 @@ FROM base AS deps
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 # Copy npmrc for workspace resolution
 COPY .npmrc ./.npmrc
+COPY patches/ patches/
 # Copy package manifests for optimal caching
 COPY apps/web-ui/package.json apps/web-ui/package.json
 COPY packages/ packages/

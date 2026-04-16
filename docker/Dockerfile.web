@@ -1,6 +1,24 @@
-FROM node:20-alpine
+FROM node:20-alpine AS base
 WORKDIR /app
+RUN corepack enable
+
+FROM base AS deps
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
+COPY patches/ patches/
+COPY apps/web-ui/package.json apps/web-ui/package.json
+COPY packages/contracts/package.json packages/contracts/package.json
+COPY packages/domain/package.json packages/domain/package.json
+RUN pnpm install --config.allowUnusedPatches=true --frozen-lockfile || pnpm install --config.allowUnusedPatches=true --no-frozen-lockfile
+
+FROM node:20-alpine AS runtime
+WORKDIR /app
+RUN corepack enable
 COPY apps/web-ui/build ./build
+COPY apps/web-ui/package.json ./package.json
+COPY packages/contracts ./packages/contracts
+COPY packages/domain ./packages/domain
+COPY --from=deps /app/node_modules ./node_modules
+COPY --from=deps /app/apps/web-ui/node_modules ./apps/web-ui/node_modules
 ENV NODE_ENV=production
 ENV PORT=3000
 ENV BACKEND_BASE_URL=${BACKEND_BASE_URL:-http://qltb_assets_api:3000}

@@ -181,6 +181,7 @@
     error = '';
     try {
       if (cy) { cy.destroy(); cy = null; }
+      if (container) container.innerHTML = '';
 
       const [graphRes, relRes, typeRes] = await Promise.all([
         getCmdbGraph({ depth: filters.depth || depth, direction }),
@@ -227,11 +228,19 @@
 
   function buildCytoscape() {
     if (!rawGraph || !container) return;
+
+    // Replace the mount point with a fresh element so any stale DOM event
+    // listeners from the previous cy instance are removed with the old node.
+    container.innerHTML = '';
+    const mount = document.createElement('div');
+    mount.style.cssText = 'width:100%;height:100%';
+    container.appendChild(mount);
+
     const { nodes, edges } = filterGraph(rawGraph.nodes, rawGraph.edges, filters);
     const elements = toCytoscapeElements(nodes, edges);
 
     cy = cytoscape({
-      container, elements,
+      container: mount, elements,
       style: buildStyle(showLabels, performanceMode) as any,
       layout: getLayout(layoutMode),
       minZoom: 0.15, maxZoom: 4, wheelSensitivity: 0.18,

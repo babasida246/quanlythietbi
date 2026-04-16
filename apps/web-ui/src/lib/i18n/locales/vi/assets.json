@@ -67,7 +67,8 @@
       "lost": "Mất",
       "warranty30": "Hết hạn trong 30 ngày",
       "warranty60": "Hết hạn trong 60 ngày",
-      "warranty90": "Hết hạn trong 90 ngày"
+      "warranty90": "Hết hạn trong 90 ngày",
+      "allGroups": "Tất cả nhóm"
     },
     "tabs": {
       "overview": "Tổng quan",
@@ -80,7 +81,7 @@
       "inventory": "Kiểm kê",
       "workflow": "Workflow",
       "attachments": "Tài liệu",
-      "compliance": "Tuân thủ",
+      "compliance": "Chứng từ",
       "components": "Linh kiện"
     },
     "bulk": {
@@ -160,9 +161,9 @@
       "empty": "Chưa có yêu cầu workflow."
     },
     "compliance": {
-      "title": "Gói bằng chứng",
-      "subtitle": "Tải bằng chứng kiểm toán cho tài sản.",
-      "download": "Tải gói bằng chứng",
+      "title": "Hồ sơ tài sản",
+      "subtitle": "Tải hồ sơ kiểm toán cho tài sản.",
+      "download": "Tải hồ sơ tài sản",
       "attachments": "Tài liệu",
       "timeline": "Dòng thời gian",
       "maintenance": "Phiếu bảo trì"
@@ -776,7 +777,8 @@
       "vendors": "Nhà cung cấp",
       "models": "Mẫu mã",
       "locations": "Vị trí",
-      "statuses": "Trạng thái"
+      "statuses": "Trạng thái",
+      "equipmentGroups": "Nhóm vật tư"
     },
     "validation": {
       "categoryNameRequired": "Tên danh mục là bắt buộc",
@@ -785,7 +787,12 @@
       "categoryRequired": "Danh mục là bắt buộc",
       "locationNameRequired": "Tên vị trí là bắt buộc",
       "statusNameRequired": "Tên trạng thái là bắt buộc",
-      "codeRequired": "Code là bắt buộc"
+      "codeRequired": "Code là bắt buộc",
+      "groupNameRequired": "Tên nhóm vật tư là bắt buộc",
+      "fieldKeyRequired": "Key trường thông tin là bắt buộc",
+      "fieldLabelRequired": "Nhãn trường thông tin là bắt buộc",
+      "fieldTypeRequired": "Kiểu dữ liệu là bắt buộc",
+      "enumValuesRequired": "Trường kiểu enum phải có ít nhất một giá trị"
     },
     "createTitle": "Tạo mới {entity}",
     "editTitle": "Chỉnh sửa {entity}",
@@ -811,7 +818,53 @@
       "noParentCategory": "Không có danh mục cha",
       "selectCategory": "Chọn danh mục",
       "selectVendor": "Chọn nhà cung cấp",
-      "noParentLocation": "Không có vị trí cha"
+      "noParentLocation": "Không có vị trí cha",
+      "selectGroup": "Chọn nhóm vật tư",
+      "noParentGroup": "Không có nhóm cha"
+    },
+    "equipmentGroup": {
+      "title": "Nhóm vật tư trang bị",
+      "description": "Phân loại bắt buộc áp dụng cho tất cả vật tư, thiết bị trong hệ thống",
+      "addGroup": "Thêm nhóm",
+      "addSubGroup": "Thêm nhóm con",
+      "editGroup": "Chỉnh sửa nhóm",
+      "deleteGroup": "Xóa nhóm",
+      "addField": "Thêm trường thông tin",
+      "editField": "Chỉnh sửa trường",
+      "deleteField": "Xóa trường",
+      "fieldsOf": "Trường thông tin của: {name}",
+      "effectiveFields": "Trường hiệu lực (bao gồm kế thừa)",
+      "ownFields": "Trường của nhóm này",
+      "inheritedFrom": "Kế thừa từ: {name}",
+      "noFields": "Chưa có trường thông tin nào",
+      "noGroups": "Chưa có nhóm vật tư nào",
+      "field": {
+        "name": "Tên nhóm",
+        "code": "Mã nhóm",
+        "description": "Mô tả",
+        "parentGroup": "Nhóm cha",
+        "inheritParentFields": "Kế thừa trường từ nhóm cha",
+        "isActive": "Hoạt động",
+        "sortOrder": "Thứ tự",
+        "fieldKey": "Key",
+        "fieldLabel": "Nhãn hiển thị",
+        "fieldType": "Kiểu dữ liệu",
+        "required": "Bắt buộc nhập",
+        "enumValues": "Danh sách giá trị",
+        "defaultValue": "Giá trị mặc định",
+        "helpText": "Hướng dẫn",
+        "fieldCount": "Số trường"
+      },
+      "fieldType": {
+        "string": "Văn bản",
+        "number": "Số",
+        "boolean": "Có/Không",
+        "enum": "Danh sách chọn",
+        "date": "Ngày tháng"
+      },
+      "confirmDelete": "Bạn có chắc muốn xóa nhóm \"{name}\"?",
+      "confirmDeleteField": "Bạn có chắc muốn xóa trường \"{label}\"?",
+      "deleteWarning": "Nhóm có nhóm con không thể xóa. Xóa nhóm con trước."
     }
   },
   "specField": {

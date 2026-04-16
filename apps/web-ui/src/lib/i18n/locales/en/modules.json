@@ -487,6 +487,40 @@
       "subtitle": "Create a new purchase plan.",
       "empty": "Form coming soon."
     },
+    "purchasePlan": {
+      "form": {
+        "createTitle": "Create Purchase Plan",
+        "basicInfo": "General Information",
+        "fiscalYear": "Fiscal Year",
+        "requiredByDate": "Required By Date",
+        "purpose": "Plan Title",
+        "lineItems": "Item List"
+      },
+      "dashboard": {
+        "title": "Purchase Plans",
+        "createNew": "Create Plan",
+        "filters": "Suggestion Filters",
+        "priority": "Priority",
+        "category": "Category",
+        "noSuggestions": "All parts have sufficient stock.",
+        "recentPlans": "Recent Plans",
+        "loadingPlans": "Loading plans..."
+      },
+      "suggestedQuantity": "Suggested Quantity",
+      "addToPlan": "Add to Plan"
+    },
+    "priority": {
+      "critical": "Critical",
+      "high": "High",
+      "medium": "Medium",
+      "low": "Low"
+    },
+    "inventory": {
+      "currentStock": "Current Stock",
+      "minStock": "Min Stock",
+      "avgDaily": "Avg Daily Usage",
+      "daysUntilStockout": "Days Until Stockout"
+    },
     "assetIncreasesNew": {
       "title": "New Asset Increase",
       "subtitle": "Register a new asset increase.",
@@ -507,17 +541,21 @@
     },
     "common": {
       "docDate": "Document Date",
-      "orgUnit": "Organization Unit",
+      "orgUnit": "Department / Unit",
       "note": "Note",
       "addLine": "+ Add Line",
+      "lineNo": "No.",
       "assetName": "Asset Name",
+      "modelName": "Item / Equipment Name",
       "serialNumber": "Serial Number",
-      "quantity": "Quantity",
-      "unit": "Unit",
+      "quantity": "Qty",
+      "unit": "UoM",
+      "estimatedCost": "Unit Price (Est.)",
       "originalCost": "Original Cost",
       "location": "Location",
       "custodian": "Custodian",
       "total": "Total",
+      "all": "All",
       "saveDraft": "Save Draft",
       "saveAndSubmit": "Save & Submit"
     },

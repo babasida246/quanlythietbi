@@ -311,9 +311,8 @@ export function getCapabilities(
 }
 
 export function defaultLandingPath(caps: Capabilities): string {
-  if (caps.isAdmin) return '/admin'
+  if (caps.canViewAssets || caps.isAdmin) return '/me/assets'
   if (caps.canManageAssets) return '/assets'
-  if (caps.canViewAssets) return '/me/assets'
   if (caps.requests.read) return '/me/requests'
   return '/login'
 }

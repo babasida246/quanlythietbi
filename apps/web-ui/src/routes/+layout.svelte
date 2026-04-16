@@ -33,6 +33,14 @@
   let userRole = $state('');
   // Theme API sync — prevent saves before server settings are loaded
   let themeApiSyncReady = $state(false);
+
+  // Synchronous auth gate — evaluated before first render to prevent shell flash.
+  // If there's no token and we're not on a public path, suppress the shell until
+  // the $effect fires and redirects to /login.
+  const _shelllessPaths = ['/login', '/setup', '/logout', '/print'];
+  const _hasTokenSync = typeof window !== 'undefined' ? !!localStorage.getItem('authToken') : true;
+  const _isPublicSync = _shelllessPaths.some(p => page.url.pathname.startsWith(p));
+  let authGatePassed = $state(_hasTokenSync || _isPublicSync);
   let themeSaveTimer: ReturnType<typeof setTimeout> | undefined;
   const shelllessPaths = ['/login', '/setup', '/logout', '/print'];
   const legacyRedirectPrefixes = [
@@ -208,6 +216,7 @@
       localStorage.setItem('userRole', 'admin');
       userEmail = 'dev@local';
       userRole = 'admin';
+      authGatePassed = true;
       return;
     }
 
@@ -215,6 +224,9 @@
       redirectToLogin(pathname + page.url.search);
       return;
     }
+
+    // Auth is valid (token present, or on a public path) — allow shell to render
+    authGatePassed = true;
 
     if (!token || isPublicPath) return;
 
@@ -258,6 +270,8 @@
 
 {#if isShelllessRoute}
   {@render children()}
+{:else if !authGatePassed}
+  <!-- blank screen while redirect to /login is in progress -->
 {:else}
   <div class="min-h-screen bg-surface-1 text-slate-100">
     <!-- WCAG 2.4.1 – Skip to main content -->

@@ -49,11 +49,11 @@ export const ListPurchasePlansQuerySchema = z.object({
 })
 
 export const SubmitPurchasePlanSchema = z.object({
-    approvers: z.array(z.string().uuid()).min(1).max(5)
+    approvers: z.array(z.string().uuid()).max(5).default([])
 })
 
 export const ApproveRejectSchema = z.object({
-    approvalId: z.string().uuid(),
+    approvalId: z.string().uuid().optional(),
     note: z.string().optional()
 })
 

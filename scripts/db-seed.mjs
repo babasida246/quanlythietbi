@@ -24,7 +24,9 @@ if (existsSync(ENV_LOCAL_PATH)) config({ path: ENV_LOCAL_PATH, override: true })
 
 const SEED_FILES = [
     'seed-data.sql',            // 1. Foundation: users, locations, vendors
-    'seed-assets-management.sql', // 2. Asset catalog: models, warehouses
+    'seed-rbac-classic.sql',    // 2. Classic RBAC: roles, permissions, role_permissions matrix
+    'seed-rbac-policies.sql',   // 3. Policy Library: policies + policy_permissions per role
+    'seed-assets-management.sql', // 4. Asset catalog: models, warehouses
     'seed-assets.sql',          // 3. Assets (50 units) + transactions
     'seed-accessories.sql',     // 4. Accessories, consumables, components, licenses
     'seed-warehouse.sql',       // 5. Warehouse stock, purchase plans
@@ -38,6 +40,8 @@ const SEED_FILES = [
     'seed-depreciation-2026.sql', // 12. Depreciation schedules + 2026 runs/entries
     'seed-new-features.sql',     // 13. Organizations hierarchy, spare part stock, stock documents, notifications
     'seed-cmdb-config-files.sql', // 14. CMDB config files & version history
+    'seed-my-pages.sql',          // 15. My Assets + My Requests: OU→org mappings, assignment org_id, wf_requests for admin
+    'seed-pc001.sql',             // 16. PC-001 complete data: repair orders, components, documents
 ]
 
 const client = new pg.Client(pgConfig())

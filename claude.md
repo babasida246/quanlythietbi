@@ -186,29 +186,21 @@ tokens.css → :root (dark defaults) + html:not(.dark) { ... } (light overrides)
 pnpm db:reset = pnpm db:empty → pnpm db:migrate → pnpm db:seed
 
 db:migrate chạy theo thứ tự:
-  1. packages/infra-postgres/src/schema.sql         (base schema)
-  2. packages/infra-postgres/src/migrations/020–042 (11 package migrations)
-  3. db/migrations/007–057 (31 app migrations)
-  4. db/migrations/20260319_001 → 004 (dated patches hiện tại)
-  5. db/migrations/2026xxxx_*.sql (dated patches mới, theo thứ tự tên file)
+  1. packages/infra-postgres/src/schema.sql   ← SQUASHED BASELINE (2026-04-07)
+     Chứa toàn bộ schema từ migrations 007–20260326 (61 migrations gốc)
+  2. db/migrations/065_xxx.sql trở đi         ← migrations mới sau squash
 ```
+
+> Migration cũ (007–20260326) đã được archive tại `db/migrations/archive/` và `packages/infra-postgres/src/migrations/archive/`.
 
 ### 5.2 Quy tắc migration
 
 - **Chỉ DDL** — Không bao giờ đặt INSERT/seed trong migration
-- **Đánh số tiếp** — File app migration mới: `db/migrations/058_xxx.sql`
-- **Patch tức thời** — Dùng tên dated: `db/migrations/20260319_005_desc.sql` (tăng số thứ tự trong ngày)
+- **Đánh số tiếp** — File migration mới: `db/migrations/065_xxx.sql`
+- **Patch tức thời** — Dùng tên dated: `db/migrations/20260407_001_desc.sql`
 - **Idempotent** — Dùng `IF NOT EXISTS` / `IF EXISTS` / `DO $$ IF ... $$`
 - **Không xóa migration cũ** — Chỉ thêm migration mới để sửa
-
-### 5.3 Các dated patches hiện tại (20260319)
-
-| File | Nội dung |
-| --- | --- |
-| `20260319_001_organizations_hierarchy.sql` | Bảng organizations (OU tree), org_path |
-| `20260319_002_assignments_location_org.sql` | Thêm organization_id vào asset_assignments |
-| `20260319_003_locations_organization_link.sql` | FK locations → organizations |
-| `20260319_004_stock_doc_asset_lines.sql` | line_type + asset columns trong stock_document_lines; location_id trong stock_documents; source_doc_line_id trong assets; sequence asset_code_seq |
+- **Đăng ký trong db-migrate.mjs** — Thêm entry vào mảng `MIGRATIONS` sau `schema.sql`
 
 ### 5.4 Seed UUIDs chuẩn
 

@@ -56,6 +56,7 @@ export function setStoredTokens(accessToken: string, _refreshToken?: string): vo
     localStorage.setItem('authToken', accessToken)
     // Refresh token is stored as HttpOnly cookie by the API.
     localStorage.removeItem('refreshToken')
+    scheduleTokenRefresh(accessToken)
 }
 
 export function setStoredUser(user: StoredUser): void {
@@ -67,6 +68,7 @@ export function setStoredUser(user: StoredUser): void {
 
 export function clearStoredSession(): void {
     if (typeof window === 'undefined') return
+    cancelProactiveRefresh()
     localStorage.removeItem('authToken')
     localStorage.removeItem('refreshToken')
     localStorage.removeItem('userId')
@@ -86,6 +88,46 @@ export function requireAccessToken(): string {
 }
 
 let refreshingPromise: Promise<string | null> | null = null
+let proactiveRefreshTimer: ReturnType<typeof setTimeout> | null = null
+
+function parseJwtExp(token: string): number | null {
+    try {
+        const payload = token.split('.')[1]
+        if (!payload) return null
+        const decoded = JSON.parse(atob(payload.replace(/-/g, '+').replace(/_/g, '/')))
+        return typeof decoded.exp === 'number' ? decoded.exp : null
+    } catch {
+        return null
+    }
+}
+
+function cancelProactiveRefresh(): void {
+    if (proactiveRefreshTimer !== null) {
+        clearTimeout(proactiveRefreshTimer)
+        proactiveRefreshTimer = null
+    }
+}
+
+function scheduleTokenRefresh(token: string): void {
+    cancelProactiveRefresh()
+    const exp = parseJwtExp(token)
+    if (!exp) return
+
+    const expMs = exp * 1000
+    // Refresh 90 seconds before expiry
+    const refreshIn = Math.max(0, expMs - Date.now() - 90_000)
+
+    proactiveRefreshTimer = setTimeout(() => {
+        proactiveRefreshTimer = null
+        void refreshAccessToken().then(newToken => {
+            if (newToken) {
+                scheduleTokenRefresh(newToken)
+            } else {
+                redirectToLoginOnUnauthorized()
+            }
+        })
+    }, refreshIn)
+}
 
 function normalizePath(value: string): string {
     return value.endsWith('/') && value.length > 1 ? value.slice(0, -1) : value
@@ -173,7 +215,7 @@ export async function authorizedFetch(input: RequestInfo, init: RequestInit = {}
         response = await doFetch()
     }
 
-    if (response.status === 401 && accessToken && !isRefreshCall) {
+    if (response.status === 401 && !isRefreshCall) {
         clearStoredSession()
         redirectToLoginOnUnauthorized()
     }
@@ -336,4 +378,33 @@ export async function apiJsonDataCached<T>(
 ): Promise<T> {
     const payload = await apiJsonCached<ApiEnvelope<T> | T>(input, init, options)
     return unwrapApiData(payload)
+}
+
+// ─── Proactive refresh initialization ────────────────────────────────────────
+// Runs once when the module is first imported (i.e. on every page load).
+if (typeof window !== 'undefined') {
+    // Resume the refresh schedule for an already-logged-in session.
+    const existingToken = localStorage.getItem('authToken')
+    if (existingToken) {
+        scheduleTokenRefresh(existingToken)
+    }
+
+    // When the user returns to the tab after it was hidden (sleep, alt-tab),
+    // check if the token is nearly expired and refresh immediately if needed.
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState !== 'visible') return
+        const token = localStorage.getItem('authToken')
+        if (!token) return
+        const exp = parseJwtExp(token)
+        if (!exp) return
+        const secsLeft = exp - Date.now() / 1000
+        if (secsLeft < 120) {
+            // Under 2 minutes left — refresh now, don't wait for the timer
+            cancelProactiveRefresh()
+            void refreshAccessToken().then(newToken => {
+                if (newToken) scheduleTokenRefresh(newToken)
+                else redirectToLoginOnUnauthorized()
+            })
+        }
+    })
 }

@@ -5,7 +5,7 @@
     "stats": "Thống kê",
     "models": "Mô hình AI",
     "tools": "Công cụ",
-    "cmdb": "Quản lý cấu hình",
+    "cmdb": "Thông tin hạ tầng CNTT",
     "assets": "Tài sản",
     "catalogs": "Danh mục",
     "maintenance": "Bảo trì",
@@ -41,7 +41,8 @@
     "groupMy": "CỦA TÔI",
     "groupAssets": "QUẢN LÝ TÀI SẢN",
     "groupSupport": "HỖ TRỢ",
-    "depreciation": "Khấu hao"
+    "depreciation": "Khấu hao",
+    "purchasePlans": "Kế hoạch mua sắm"
   },
   "common": {
     "success": "Thành công",
@@ -128,7 +129,7 @@
     "chooseOption": "Chọn tùy chọn...",
     "plus": "Cộng",
     "minus": "Trừ",
-    "brand": "NetOpsAI",
+    "brand": "Hãng sản xuất",
     "description": "Mô tả",
     "id": "ID",
     "noResults": "Không có kết quả",

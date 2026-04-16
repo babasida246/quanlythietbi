@@ -10,6 +10,7 @@ import {
     CatalogRepo,
     CategorySpecRepo,
     CategorySpecVersionRepo,
+    EquipmentGroupRepo,
     InventoryRepo,
     MaintenanceRepo,
     OpsEventRepo,
@@ -21,6 +22,7 @@ import {
     AttachmentService,
     CatalogService,
     CategorySpecService,
+    EquipmentGroupService,
     InventoryService,
     MaintenanceService,
     ReminderService
@@ -33,6 +35,7 @@ import { categorySpecRoutes } from './category-specs.routes.js'
 import { maintenanceRoutes } from '../maintenance/maintenance.routes.js'
 import { inventoryRoutes } from '../inventory/inventory.routes.js'
 import { reminderRoutes } from '../reports/reminders.routes.js'
+import { equipmentGroupRoutes } from './equipment-groups.routes.js'
 import { qltsRoutes } from '../../../modules/qlts/routes/index.js'
 
 export async function registerAssetsContext(
@@ -54,6 +57,9 @@ export async function registerAssetsContext(
     const assetIncreaseRepo = new AssetIncreaseRepo(pgClient)
     const approvalRepo = new ApprovalRepo(pgClient)
 
+    const equipmentGroupRepo = new EquipmentGroupRepo(pgClient)
+    const equipmentGroupService = new EquipmentGroupService(equipmentGroupRepo)
+
     const assetService = new AssetService(assetRepo, assignmentRepo, assetEventRepo, maintenanceRepo)
     const maintenanceService = new MaintenanceService(assetRepo, assignmentRepo, maintenanceRepo, assetEventRepo)
     const catalogService = new CatalogService(catalogRepo, categorySpecRepo, categorySpecVersionRepo, undefined, opsEventRepo)
@@ -70,6 +76,7 @@ export async function registerAssetsContext(
     await fastify.register(attachmentRoutes, { prefix: '/api/v1', attachmentService })
     await fastify.register(inventoryRoutes, { prefix: '/api/v1', inventoryService, pgClient })
     await fastify.register(reminderRoutes, { prefix: '/api/v1', reminderService })
+    await fastify.register(equipmentGroupRoutes, { prefix: '/api/v1', equipmentGroupService })
 
     await fastify.register(async (qltsApp) => {
         qltsApp.decorate('diContainer', {

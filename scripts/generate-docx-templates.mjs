@@ -714,6 +714,56 @@ function tplPhieuYeuCauMuaSam() {
   ])
 }
 
+// ─── KẾ HOẠCH MUA SẮM THIẾT BỊ ──────────────────────────────────────────────
+function tplKeHoachMuaSam() {
+  const itemsTable = new Table({
+    width: { size: 100, type: WidthType.PERCENTAGE },
+    rows: [
+      new TableRow({ tableHeader: true, children: [
+        hc('STT', 4), hc('Tên hàng hóa / Thiết bị', 26), hc('Thông số kỹ thuật', 18),
+        hc('SL', 5), hc('ĐVT', 7), hc('Đơn giá dự toán', 13), hc('Thành tiền', 12), hc('Ưu tiên', 8), hc('Ghi chú', 7),
+      ]}),
+      new TableRow({ children: [
+        dc('{#lines}{lineNo}',  4,  AlignmentType.CENTER),
+        dc('{itemDescription}', 26),
+        dc('{specs}',           18),
+        dc('{quantity}',         5, AlignmentType.CENTER),
+        dc('{unit}',             7, AlignmentType.CENTER),
+        dc('{estimatedUnitCost}', 13, AlignmentType.RIGHT),
+        dc('{estimatedTotalCost}', 12, AlignmentType.RIGHT),
+        dc('{priority}',         8, AlignmentType.CENTER),
+        dc('{lineNote}{/lines}', 7),
+      ]}),
+      new TableRow({ children: [
+        tc(p([r('Tổng dự toán', { bold: true, size: SZ })], { align: AlignmentType.RIGHT }), { w: 73, colSpan: 6 }),
+        tc(p([r('{totalEstimatedCost}', { bold: true, size: SZ })], { align: AlignmentType.RIGHT }), { w: 12 }),
+        tc(p(''), { w: 15, colSpan: 2 }),
+      ]}),
+    ],
+  })
+
+  return makeDoc([
+    ...orgHeader(),
+    ...formTitle('KẾ HOẠCH MUA SẮM THIẾT BỊ'),
+    infoRow('Số chứng từ', 'docNo'),
+    infoRow('Ngày lập', 'docDate'),
+    infoRow('Năm tài chính', 'fiscalYear'),
+    infoRowOptional('Phòng ban / Đơn vị', 'orgUnitName'),
+    infoRowOptional('Ngày cần hàng', 'requiredByDate'),
+    infoRow('Tiêu đề kế hoạch', 'title'),
+    infoRowOptional('Ghi chú', 'note'),
+    p('', { after: 60 }),
+    itemsTable,
+    dateNoteLine(),
+    sigTable([
+      { label: 'Người đề nghị',      field: 'createdBy' },
+      { label: 'Trưởng phòng',       field: '' },
+      { label: 'Phòng kế toán',      field: '' },
+      { label: 'Lãnh đạo phê duyệt', field: 'approvedBy' },
+    ]),
+  ])
+}
+
 // ─── BÁO CÁO TỔNG HỢP TÀI SẢN ───────────────────────────────────────────────
 function tplBaoCaoTaiSan() {
   const summaryTable = new Table({
@@ -786,6 +836,7 @@ const TEMPLATES = {
   'phieu-muon':           tplPhieuMuon,
   'bien-ban-thanh-ly':    tplBienBanThanhLy,
   'yeu-cau-mua-sam':      tplPhieuYeuCauMuaSam,
+  'ke-hoach-mua-sam':     tplKeHoachMuaSam,
   'bao-cao-tai-san':      tplBaoCaoTaiSan,
 }
 

@@ -20,7 +20,8 @@
     HelpCircle,
     GitBranch,
     Palette,
-    TrendingDown
+    TrendingDown,
+    ShoppingCart
   } from 'lucide-svelte';
 
   type NavItem = {
@@ -72,6 +73,7 @@
       match: (path) => path === '/requests' || path.startsWith('/requests?')
     },
     { href: '/depreciation', labelKey: 'nav.depreciation', icon: TrendingDown, testId: 'nav-depreciation', requires: (caps) => caps.depreciation.read },
+    { href: '/assets/purchase-plans', labelKey: 'nav.purchasePlans', icon: ShoppingCart, testId: 'nav-purchase-plans', requires: (caps) => caps.warehouse.read },
     { href: '/warehouse/reports', labelKey: 'nav.warehouseReports', icon: BarChart3, testId: 'nav-warehouse-reports', requires: (caps) => caps.warehouse.read },
     { href: '/reports', labelKey: 'nav.reports', icon: BarChart3, testId: 'nav-reports', requires: (caps) => caps.reports.read, match: (path) => path.startsWith('/reports') && !path.startsWith('/reports/assets') },
     { href: '/analytics', labelKey: 'nav.analytics', icon: TrendingUp, testId: 'nav-analytics', requires: (caps) => caps.analytics.read },

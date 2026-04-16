@@ -21,6 +21,7 @@ export { AttachmentService } from './assets/AttachmentService.js'
 export { InventoryService } from './assets/InventoryService.js'
 export { WorkflowService } from './assets/WorkflowService.js'
 export { ReminderService } from './assets/ReminderService.js'
+export { EquipmentGroupService } from './assets/EquipmentGroupService.js'
 
 // Print
 export { PrintService } from './print/PrintService.js'

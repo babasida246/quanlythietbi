@@ -81,6 +81,9 @@ export { LicenseRepo } from './repositories/LicenseRepo.js'
 // Organizations (OU)
 export { OrganizationRepo } from './repositories/OrganizationRepo.js'
 
+// Equipment Groups (Nhóm vật tư trang bị)
+export { EquipmentGroupRepo } from './repositories/EquipmentGroupRepo.js'
+
 // Workflow
 export { WfRepo } from './repositories/WfRepo.js'
 export { WfApproverResolverRepo } from './repositories/WfApproverResolverRepo.js'

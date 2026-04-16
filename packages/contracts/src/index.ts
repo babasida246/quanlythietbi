@@ -69,3 +69,6 @@ export * from './wf/index.js'
 
 // Organizations (OU)
 export * from './organizations/index.js'
+
+// Equipment Groups (Nhóm vật tư trang bị)
+export * from './equipmentGroups/index.js'

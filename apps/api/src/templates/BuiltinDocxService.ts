@@ -34,6 +34,7 @@ export type PrintType =
   | 'phieu-muon'
   | 'bien-ban-thanh-ly'
   | 'yeu-cau-mua-sam'
+  | 'ke-hoach-mua-sam'
   | 'bao-cao-tai-san'
 
 export const BUILTIN_PRINT_TYPES: PrintType[] = [
@@ -47,6 +48,7 @@ export const BUILTIN_PRINT_TYPES: PrintType[] = [
   'phieu-muon',
   'bien-ban-thanh-ly',
   'yeu-cau-mua-sam',
+  'ke-hoach-mua-sam',
   'bao-cao-tai-san',
 ]
 

@@ -5,7 +5,7 @@
     "stats": "Stats",
     "models": "Models",
     "tools": "Tools",
-    "cmdb": "CMDB",
+    "cmdb": "IT Infrastructure",
     "assets": "Assets",
     "catalogs": "Catalogs",
     "maintenance": "Maintenance",
@@ -41,7 +41,8 @@
     "groupMy": "MY",
     "groupAssets": "ASSET MANAGEMENT",
     "groupSupport": "SUPPORT",
-    "depreciation": "Depreciation"
+    "depreciation": "Depreciation",
+    "purchasePlans": "Purchase Plans"
   },
   "common": {
     "success": "Success",
@@ -128,7 +129,7 @@
     "chooseOption": "Choose option...",
     "plus": "Plus",
     "minus": "Minus",
-    "brand": "NetOpsAI",
+    "brand": "Manufacturer",
     "description": "description",
     "id": "id",
     "noResults": "no Results",

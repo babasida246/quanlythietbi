@@ -357,7 +357,7 @@
 </script>
 
 <div class="page-shell page-content">
-  <PageHeader title="CMDB" subtitle={isCrudTab ? $_('cmdb.recordCount', { values: { count: currentTabTotal } }) : tabLabels[activeTab]}>
+  <PageHeader title="Thông tin hạ tầng CNTT" subtitle={isCrudTab ? $_('cmdb.recordCount', { values: { count: currentTabTotal } }) : tabLabels[activeTab]}>
     {#snippet actions()}
       <Button variant="secondary" size="sm" onclick={() => goto('/cmdb/changes')}>{$isLoading ? 'CI Changes' : $_('cmdb.changes.title')}</Button>
       <Button variant="secondary" size="sm" onclick={() => goto('/cmdb/reports')}>{$isLoading ? 'Report' : $_('cmdb.report.pageTitle')}</Button>

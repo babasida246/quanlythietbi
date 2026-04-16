@@ -154,63 +154,41 @@ SET name = EXCLUDED.name, parent_id = EXCLUDED.parent_id,
 -- =============================================================================
 -- 5. RBAC USERS — link tất cả 8 tài khoản hệ thống vào OU
 --
--- 5 users từ migration 051 (20000000-...) → UPDATE để gán OU đúng + linked_user_id
--- 3 users mới (32000000-...) → INSERT (warehouse, accountant, requester)
+-- 8 users (UPSERT) — idempotent, không phụ thuộc migration 051 seed data
 -- =============================================================================
 
--- UPDATE 5 users từ migration 051
-UPDATE rbac_users SET
-    username = 'admin', display_name = 'Admin Hệ thống',
-    email = 'admin@example.com',
-    ou_id = '30000000-0000-0000-0000-000000000002',
-    linked_user_id = '00000000-0000-0000-0000-000000000001',
-    status = 'active'
-WHERE id = '20000000-0000-0000-0000-000000000001';
-
-UPDATE rbac_users SET
-    username = 'it_manager', display_name = 'Nguyễn Văn Quản',
-    email = 'it.manager@example.com',
-    ou_id = '30000000-0000-0000-0000-000000000002',
-    linked_user_id = '00000000-0000-0000-0000-000000000002',
-    status = 'active'
-WHERE id = '20000000-0000-0000-0000-000000000002';
-
-UPDATE rbac_users SET
-    username = 'helpdesk', display_name = 'Lê Minh Hỗ trợ',
-    email = 'helpdesk@example.com',
-    ou_id = '30000000-0000-0000-0000-000000000003',
-    linked_user_id = '00000000-0000-0000-0000-000000000004',
-    status = 'active'
-WHERE id = '20000000-0000-0000-0000-000000000003';
-
-UPDATE rbac_users SET
-    username = 'technician', display_name = 'Phạm Đức Minh',
-    email = 'technician@example.com',
-    ou_id = '30000000-0000-0000-0000-000000000004',
-    linked_user_id = '00000000-0000-0000-0000-000000000006',
-    status = 'active'
-WHERE id = '20000000-0000-0000-0000-000000000004';
-
-UPDATE rbac_users SET
-    username = 'viewer', display_name = 'Đặng Quốc Việt',
-    email = 'viewer@example.com',
-    ou_id = '30000000-0000-0000-0000-000000000007',
-    linked_user_id = '00000000-0000-0000-0000-000000000008',
-    status = 'active'
-WHERE id = '20000000-0000-0000-0000-000000000005';
-
--- INSERT 3 users mới
+-- UPSERT tất cả 8 rbac_users (5 hệ thống + 3 mới)
 INSERT INTO rbac_users (id, username, display_name, email, ou_id, linked_user_id, status)
 VALUES
-    ('32000000-0000-0000-0000-000000000001', 'warehouse', 'Trần Thị Kho',
+    ('20000000-0000-0000-0000-000000000001', 'admin',       'Admin Hệ thống',
+     'admin@example.com',
+     '30000000-0000-0000-0000-000000000002',
+     '00000000-0000-0000-0000-000000000001', 'active'),
+    ('20000000-0000-0000-0000-000000000002', 'it_manager',  'Nguyễn Văn Quản',
+     'it.manager@example.com',
+     '30000000-0000-0000-0000-000000000002',
+     '00000000-0000-0000-0000-000000000002', 'active'),
+    ('20000000-0000-0000-0000-000000000003', 'helpdesk',    'Lê Minh Hỗ trợ',
+     'helpdesk@example.com',
+     '30000000-0000-0000-0000-000000000003',
+     '00000000-0000-0000-0000-000000000004', 'active'),
+    ('20000000-0000-0000-0000-000000000004', 'technician',  'Phạm Đức Minh',
+     'technician@example.com',
+     '30000000-0000-0000-0000-000000000004',
+     '00000000-0000-0000-0000-000000000006', 'active'),
+    ('20000000-0000-0000-0000-000000000005', 'viewer',      'Đặng Quốc Việt',
+     'viewer@example.com',
+     '30000000-0000-0000-0000-000000000007',
+     '00000000-0000-0000-0000-000000000008', 'active'),
+    ('32000000-0000-0000-0000-000000000001', 'warehouse',   'Trần Thị Kho',
      'warehouse@example.com',
      '30000000-0000-0000-0000-000000000008',
      '00000000-0000-0000-0000-000000000003', 'active'),
-    ('32000000-0000-0000-0000-000000000002', 'accountant', 'Phạm Thu Kế toán',
+    ('32000000-0000-0000-0000-000000000002', 'accountant',  'Phạm Thu Kế toán',
      'accountant@example.com',
      '30000000-0000-0000-0000-000000000006',
      '00000000-0000-0000-0000-000000000005', 'active'),
-    ('32000000-0000-0000-0000-000000000003', 'requester', 'Hoàng Thị Yến',
+    ('32000000-0000-0000-0000-000000000003', 'requester',   'Hoàng Thị Yến',
      'requester@example.com',
      '30000000-0000-0000-0000-000000000009',
      '00000000-0000-0000-0000-000000000007', 'active')

@@ -128,7 +128,8 @@
       "lost": "Lost",
       "warranty30": "Expiring in 30 days",
       "warranty60": "Expiring in 60 days",
-      "warranty90": "Expiring in 90 days"
+      "warranty90": "Expiring in 90 days",
+      "allGroups": "All groups"
     },
     "tabs": {
       "overview": "Overview",
@@ -141,7 +142,7 @@
       "inventory": "Inventory",
       "workflow": "Workflow",
       "attachments": "Attachments",
-      "compliance": "Compliance",
+      "compliance": "Documents",
       "components": "Components"
     },
     "bulk": {
@@ -221,9 +222,9 @@
       "empty": "No workflow requests yet."
     },
     "compliance": {
-      "title": "Evidence pack",
-      "subtitle": "Download audit evidence for this asset.",
-      "download": "Download evidence pack",
+      "title": "Asset dossier",
+      "subtitle": "Download audit documents for this asset.",
+      "download": "Download asset dossier",
       "attachments": "Attachments",
       "timeline": "Timeline events",
       "maintenance": "Maintenance tickets"
@@ -776,7 +777,8 @@
       "vendors": "Vendors",
       "models": "Models",
       "locations": "Locations",
-      "statuses": "Statuses"
+      "statuses": "Statuses",
+      "equipmentGroups": "Equipment Groups"
     },
     "validation": {
       "categoryNameRequired": "Category name is required",
@@ -785,7 +787,12 @@
       "categoryRequired": "Category is required",
       "locationNameRequired": "Location name is required",
       "statusNameRequired": "Status name is required",
-      "codeRequired": "Code is required"
+      "codeRequired": "Code is required",
+      "groupNameRequired": "Group name is required",
+      "fieldKeyRequired": "Field key is required",
+      "fieldLabelRequired": "Field label is required",
+      "fieldTypeRequired": "Field type is required",
+      "enumValuesRequired": "Enum field must have at least one value"
     },
     "createTitle": "Create {entity}",
     "editTitle": "Edit {entity}",
@@ -811,7 +818,53 @@
       "noParentCategory": "No parent category",
       "selectCategory": "Select category",
       "selectVendor": "Select vendor",
-      "noParentLocation": "No parent location"
+      "noParentLocation": "No parent location",
+      "selectGroup": "Select equipment group",
+      "noParentGroup": "No parent group"
+    },
+    "equipmentGroup": {
+      "title": "Equipment Groups",
+      "description": "Mandatory classification applied to all assets and items in the system",
+      "addGroup": "Add group",
+      "addSubGroup": "Add subgroup",
+      "editGroup": "Edit group",
+      "deleteGroup": "Delete group",
+      "addField": "Add field",
+      "editField": "Edit field",
+      "deleteField": "Delete field",
+      "fieldsOf": "Fields of: {name}",
+      "effectiveFields": "Effective fields (including inherited)",
+      "ownFields": "This group's fields",
+      "inheritedFrom": "Inherited from: {name}",
+      "noFields": "No fields defined yet",
+      "noGroups": "No equipment groups yet",
+      "field": {
+        "name": "Group name",
+        "code": "Code",
+        "description": "Description",
+        "parentGroup": "Parent group",
+        "inheritParentFields": "Inherit fields from parent group",
+        "isActive": "Active",
+        "sortOrder": "Sort order",
+        "fieldKey": "Key",
+        "fieldLabel": "Display label",
+        "fieldType": "Data type",
+        "required": "Required",
+        "enumValues": "Values list",
+        "defaultValue": "Default value",
+        "helpText": "Help text",
+        "fieldCount": "Field count"
+      },
+      "fieldType": {
+        "string": "Text",
+        "number": "Number",
+        "boolean": "Yes/No",
+        "enum": "Select list",
+        "date": "Date"
+      },
+      "confirmDelete": "Are you sure you want to delete group \"{name}\"?",
+      "confirmDeleteField": "Are you sure you want to delete field \"{label}\"?",
+      "deleteWarning": "Groups with subgroups cannot be deleted. Delete subgroups first."
     }
   },
   "specField": {

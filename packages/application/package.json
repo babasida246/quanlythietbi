@@ -20,7 +20,10 @@
         "@qltb/contracts": "workspace:*",
         "@qltb/domain": "workspace:*",
         "bull": "^4.16.5",
+        "docxtemplater": "^3.68.3",
         "nodemailer": "^6.10.1",
+        "pg": "^8.20.0",
+        "pizzip": "^3.2.0",
         "redis": "^4.7.1"
     },
     "devDependencies": {

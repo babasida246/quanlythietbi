@@ -487,6 +487,40 @@
       "subtitle": "Tạo kế hoạch mua sắm mới.",
       "empty": "Biểu mẫu sẽ được bổ sung."
     },
+    "purchasePlan": {
+      "form": {
+        "createTitle": "Tạo kế hoạch mua sắm",
+        "basicInfo": "Thông tin chung",
+        "fiscalYear": "Năm tài chính",
+        "requiredByDate": "Ngày cần hàng",
+        "purpose": "Tiêu đề kế hoạch",
+        "lineItems": "Danh sách hàng hóa / vật tư"
+      },
+      "dashboard": {
+        "title": "Kế hoạch mua sắm",
+        "createNew": "Tạo kế hoạch",
+        "filters": "Bộ lọc gợi ý",
+        "priority": "Mức ưu tiên",
+        "category": "Danh mục",
+        "noSuggestions": "Tất cả linh kiện đã đủ tồn kho.",
+        "recentPlans": "Kế hoạch gần đây",
+        "loadingPlans": "Đang tải kế hoạch..."
+      },
+      "suggestedQuantity": "Số lượng đề xuất",
+      "addToPlan": "Thêm vào kế hoạch"
+    },
+    "priority": {
+      "critical": "Khẩn cấp",
+      "high": "Cao",
+      "medium": "Trung bình",
+      "low": "Thấp"
+    },
+    "inventory": {
+      "currentStock": "Tồn kho hiện tại",
+      "minStock": "Tồn kho tối thiểu",
+      "avgDaily": "Tiêu thụ TB/ngày",
+      "daysUntilStockout": "Ngày còn hàng"
+    },
     "assetIncreasesNew": {
       "title": "Ghi tăng tài sản mới",
       "subtitle": "Đăng ký ghi tăng tài sản.",
@@ -507,17 +541,21 @@
     },
     "common": {
       "docDate": "Ngày chứng từ",
-      "orgUnit": "Đơn vị",
+      "orgUnit": "Phòng ban / Đơn vị",
       "note": "Ghi chú",
       "addLine": "+ Thêm dòng",
+      "lineNo": "STT",
       "assetName": "Tên tài sản",
+      "modelName": "Tên hàng hóa / Thiết bị",
       "serialNumber": "Số seri",
       "quantity": "Số lượng",
-      "unit": "Đơn vị",
+      "unit": "ĐVT",
+      "estimatedCost": "Đơn giá dự toán",
       "originalCost": "Nguyên giá",
       "location": "Vị trí",
       "custodian": "Người phụ trách",
       "total": "Tổng cộng",
+      "all": "Tất cả",
       "saveDraft": "Lưu nháp",
       "saveAndSubmit": "Lưu & Gửi duyệt"
     },

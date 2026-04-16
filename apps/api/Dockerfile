@@ -8,6 +8,7 @@ RUN corepack enable
 # The full source COPY happens in the build stage.
 FROM base AS deps
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
+COPY patches/ patches/
 COPY apps/api/package.json                     apps/api/package.json
 COPY packages/domain/package.json              packages/domain/package.json
 COPY packages/contracts/package.json           packages/contracts/package.json
@@ -24,10 +25,10 @@ COPY . .
 # Build workspace packages in dependency order so tsup can resolve imports.
 # tsc produces dist/ for each package; tsup reads those as input.
 RUN pnpm --filter @qltb/domain build \
- && pnpm --filter @qltb/contracts build \
- && pnpm --filter @qltb/infra-postgres build \
- && pnpm --filter @qltb/application build \
- && pnpm --filter @qltb/api build
+    && pnpm --filter @qltb/contracts build \
+    && pnpm --filter @qltb/infra-postgres build \
+    && pnpm --filter @qltb/application build \
+    && pnpm --filter @qltb/api build
 
 # Generate a stripped package.json for the runtime image:
 # removes workspace:* deps (already bundled by tsup) and devDependencies.

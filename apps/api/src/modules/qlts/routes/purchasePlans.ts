@@ -128,7 +128,7 @@ export const purchasePlanRoutes: FastifyPluginAsync = async (fastify) => {
         const { id } = request.params as { id: string }
         const doc = await purchasePlanRepo.getById(id)
         if (!doc) {
-            return reply.code(404).send({ error: 'Purchase plan not found' })
+            return reply.code(404).send({ success: false, error: { code: 'NOT_FOUND', message: 'Không tìm thấy kế hoạch mua sắm' } })
         }
         return { data: doc }
     })
@@ -138,10 +138,10 @@ export const purchasePlanRoutes: FastifyPluginAsync = async (fastify) => {
         const { id } = request.params as { id: string }
         const existing = await purchasePlanRepo.getById(id)
         if (!existing) {
-            return reply.code(404).send({ error: 'Purchase plan not found' })
+            return reply.code(404).send({ success: false, error: { code: 'NOT_FOUND', message: 'Không tìm thấy kế hoạch mua sắm' } })
         }
         if (existing.status !== 'draft') {
-            return reply.code(400).send({ error: 'Can only edit draft documents' })
+            return reply.code(400).send({ success: false, error: { code: 'INVALID_STATUS', message: 'Chỉ có thể sửa kế hoạch ở trạng thái nháp' } })
         }
         const validated = UpdatePurchasePlanSchema.parse(request.body)
         const input: PurchasePlanUpdateInput = {
@@ -164,12 +164,12 @@ export const purchasePlanRoutes: FastifyPluginAsync = async (fastify) => {
 
         const doc = await purchasePlanRepo.getById(id)
         if (!doc) {
-            return reply.code(404).send({ error: 'Purchase plan not found' })
+            return reply.code(404).send({ success: false, error: { code: 'NOT_FOUND', message: 'Không tìm thấy kế hoạch mua sắm' } })
         }
 
         const transition = await workflowService.canTransition('purchase_plan', id, doc.status, 'submitted', userId)
         if (!transition.allowed) {
-            return reply.code(400).send({ error: transition.reason })
+            return reply.code(400).send({ success: false, error: { code: 'INVALID_TRANSITION', message: transition.reason } })
         }
 
         await purchasePlanRepo.updateStatus(id, 'submitted', userId)
@@ -181,19 +181,18 @@ export const purchasePlanRoutes: FastifyPluginAsync = async (fastify) => {
     // POST /api/v1/assets/purchase-plans/:id/approve
     fastify.post('/:id/approve', async (request, reply) => {
         const { id } = request.params as { id: string }
-        const { approvalId, note } = ApproveRejectSchema.parse(request.body)
         const userId = requireAuthenticatedUserId(request)
 
-        await workflowService.approve(approvalId, userId, note)
-
-        const approvals = await workflowService.getApprovalHistory('purchase_plan', id)
-        const allApproved = approvals.every(a => a.decision === 'approved')
-
-        if (allApproved) {
-            await purchasePlanRepo.updateStatus(id, 'approved', userId)
+        const doc = await purchasePlanRepo.getById(id)
+        if (!doc) {
+            return reply.code(404).send({ success: false, error: { code: 'NOT_FOUND', message: 'Không tìm thấy kế hoạch mua sắm' } })
+        }
+        if (doc.status !== 'submitted') {
+            return reply.code(400).send({ success: false, error: { code: 'INVALID_STATUS', message: 'Chỉ có thể phê duyệt kế hoạch đang chờ duyệt' } })
         }
 
-        return { data: { approved: true, allApproved } }
+        await purchasePlanRepo.updateStatus(id, 'approved', userId)
+        return { data: { approved: true } }
     })
 
     // POST /api/v1/assets/purchase-plans/:id/reject
@@ -219,12 +218,12 @@ export const purchasePlanRoutes: FastifyPluginAsync = async (fastify) => {
 
         const doc = await purchasePlanRepo.getById(id)
         if (!doc) {
-            return reply.code(404).send({ error: 'Purchase plan not found' })
+            return reply.code(404).send({ success: false, error: { code: 'NOT_FOUND', message: 'Không tìm thấy kế hoạch mua sắm' } })
         }
 
         const transition = await workflowService.canTransition('purchase_plan', id, doc.status, 'posted', userId)
         if (!transition.allowed) {
-            return reply.code(400).send({ error: transition.reason })
+            return reply.code(400).send({ success: false, error: { code: 'INVALID_TRANSITION', message: transition.reason } })
         }
 
         await purchasePlanRepo.updateStatus(id, 'posted', userId)
@@ -238,11 +237,11 @@ export const purchasePlanRoutes: FastifyPluginAsync = async (fastify) => {
 
         const doc = await purchasePlanRepo.getById(id)
         if (!doc) {
-            return reply.code(404).send({ error: 'Purchase plan not found' })
+            return reply.code(404).send({ success: false, error: { code: 'NOT_FOUND', message: 'Không tìm thấy kế hoạch mua sắm' } })
         }
 
         if (!['draft', 'submitted'].includes(doc.status)) {
-            return reply.code(400).send({ error: 'Can only cancel draft or submitted documents' })
+            return reply.code(400).send({ success: false, error: { code: 'INVALID_STATUS', message: 'Chỉ có thể hủy kế hoạch ở trạng thái nháp hoặc chờ duyệt' } })
         }
 
         await purchasePlanRepo.updateStatus(id, 'cancelled', userId)

@@ -30,6 +30,8 @@ export type Asset = {
     vendorName?: string | null
     locationName?: string | null
     warehouseName?: string | null
+    groupId?: string | null
+    groupName?: string | null
     createdAt: string
     updatedAt: string
 }
@@ -77,6 +79,7 @@ export type AssetSearchParams = {
     vendorId?: string
     locationId?: string
     warehouseId?: string
+    groupId?: string
     warrantyExpiringDays?: number
     page?: number
     limit?: number

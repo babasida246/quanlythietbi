@@ -4,6 +4,7 @@
   import { Plus, RefreshCw, Edit, Trash2, Settings } from 'lucide-svelte';
   import CategorySpecPanel from '$lib/assets/components/catalogs/CategorySpecPanel.svelte';
   import ModelCatalog from '$lib/assets/components/catalogs/ModelCatalog.svelte';
+  import EquipmentGroupsTab from '$lib/assets/components/catalogs/EquipmentGroupsTab.svelte';
   import { z } from 'zod';
   import {
     createCategory,
@@ -53,14 +54,15 @@
     TabsTrigger
   } from '$lib/components/ui';
 
-  type CatalogTab = 'categories' | 'vendors' | 'models' | 'locations' | 'statuses';
+  type CatalogTab = 'categories' | 'vendors' | 'models' | 'locations' | 'statuses' | 'equipmentGroups';
 
   const tabLabels: Record<CatalogTab, string> = $derived({
     categories: $_('catalogs.tab.categories'),
     vendors: $_('catalogs.tab.vendors'),
     models: $_('catalogs.tab.models'),
     locations: $_('catalogs.tab.locations'),
-    statuses: $_('catalogs.tab.statuses')
+    statuses: $_('catalogs.tab.statuses'),
+    equipmentGroups: $_('catalogs.tab.equipmentGroups')
   });
 
   const categorySchema = $derived(z.object({
@@ -126,6 +128,7 @@
     if (activeTab === 'vendors') return vendors;
     if (activeTab === 'models') return models;
     if (activeTab === 'locations') return locations;
+    if (activeTab === 'equipmentGroups') return [];
     return statuses;
   });
 
@@ -134,6 +137,7 @@
     if (activeTab === 'vendors') return vendorSchema;
     if (activeTab === 'models') return modelSchema;
     if (activeTab === 'locations') return locationSchema;
+    if (activeTab === 'equipmentGroups') return statusSchema; // placeholder, không dùng
     return statusSchema;
   });
 
@@ -339,7 +343,7 @@
 <div class="page-shell page-content">
   <PageHeader title={$isLoading ? 'Asset Catalogs' : $_('catalogs.pageTitle')} subtitle={`${currentRows.length} ${$isLoading ? 'records' : $_('common.records')}`}>
     {#snippet actions()}
-      {#if activeTab !== 'models'}
+      {#if activeTab !== 'models' && activeTab !== 'equipmentGroups'}
       <Button variant="primary" size="sm" data-testid="btn-create" onclick={() => (createOpen = true)}>
         {#snippet leftIcon()}
           <Plus class="h-3.5 w-3.5" />
@@ -378,7 +382,9 @@
     <div class="alert alert-error">{error}</div>
   {/if}
 
-  {#if activeTab === 'models'}
+  {#if activeTab === 'equipmentGroups'}
+    <EquipmentGroupsTab />
+  {:else if activeTab === 'models'}
     {#if loading}
       <Skeleton rows={5} />
     {:else}

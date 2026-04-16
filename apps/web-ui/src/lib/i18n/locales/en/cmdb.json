@@ -34,7 +34,7 @@
         "high": "High",
         "critical": "Critical"
       },
-      "primaryCi": "Primary configuration item",
+      "primaryCi": "Primary infrastructure",
       "apply": "Apply",
       "clearFilters": "Clear filters",
       "all": "All",
@@ -80,7 +80,7 @@
         "title": "Title",
         "description": "Description",
         "risk": "Risk level",
-        "primaryCi": "Primary configuration item",
+        "primaryCi": "Primary infrastructure",
         "optional": "(Optional)",
         "plannedStart": "Start time",
         "plannedEnd": "End time",
@@ -89,9 +89,9 @@
         "metadataJson": "Metadata JSON"
       }
     },
-    "title": "Configuration Management Database",
-    "pageTitle": "CMDB",
-    "subtitle": "Manage configuration items, schema types, and service mappings.",
+    "title": "IT Infrastructure",
+    "pageTitle": "IT Infrastructure",
+    "subtitle": "Manage IT infrastructure, schema types, and service mappings.",
     "types": "CI Types",
     "newType": "New Type",
     "cis": "Configuration Items",
@@ -129,8 +129,8 @@
       "types": "Types",
       "services": "Services",
       "relationships": "Relationships",
-      "ciTypes": "CI Types",
-      "ci": "CIs",
+      "ciTypes": "Infrastructure Types",
+      "ci": "Infrastructure",
       "rel": "Relationships",
       "svc": "Services",
       "topology": "Topology"
@@ -278,14 +278,14 @@
     "updateSuccess": "Updated successfully",
     "deleteSuccess": "Deleted successfully",
     "report": {
-      "pageTitle": "Configuration Management Reports",
-      "subtitle": "Configuration item overview & data quality",
+      "pageTitle": "IT Infrastructure Reports",
+      "subtitle": "IT infrastructure overview & data quality",
       "updated": "Updated",
       "exportCsv": "Export CSV",
       "load": "Load report",
       "loading": "Loading report...",
       "noData": "No data",
-      "noDataHint": "Try changing filters or check configuration management data.",
+      "noDataHint": "Try changing filters or check IT infrastructure data.",
       "notLoaded": "Report not loaded",
       "notLoadedHint": "Click \"Load report\" to view data."
     },
@@ -300,7 +300,7 @@
     "test": "Test",
     "impactLoadFailed": "Failed to load impact data",
     "changesLoadFailed": "Failed to load change history",
-    "backToCmdb": "Back to CMDB",
+    "backToCmdb": "Back to IT Infrastructure",
     "changeCi": "Change this CI",
     "importRelationship": "Import Relationship",
     "tab": {
@@ -336,7 +336,7 @@
       "createFirst": "Create First Relationship",
       "direction": "Direction",
       "type": "Type",
-      "relatedCi": "Related Configuration Item",
+      "relatedCi": "Related Infrastructure",
       "note": "Note",
       "created": "Created",
       "actions": "Actions",
@@ -378,9 +378,9 @@
       "importRelationship": "Import Relationship"
     },
     "import": {
-      "title": "Configuration Item Relationship Import",
+      "title": "Infrastructure Relationship Import",
       "addRow": "Add row",
-      "backToCmdb": "Back to Configuration Management",
+      "backToCmdb": "Back to IT Infrastructure",
       "applyRelType": "Apply Relationship Type to all rows",
       "applyFromCi": "Apply From CI to all rows",
       "allowCycles": "Allow cycles",
@@ -408,7 +408,7 @@
       "to": "To",
       "selectRelType": "Select relationship type...",
       "selectCi": "Select CI...",
-      "loadFailed": "Failed to load CMDB data",
+      "loadFailed": "Failed to load IT infrastructure data",
       "selectRelTypeRequired": "Please select Relationship Type",
       "sameFromTo": "From CI and To CI must not be the same",
       "noValidRows": "No valid rows to import",
@@ -433,7 +433,7 @@
       "cancel": "Cancel",
       "saving": "Saving...",
       "create": "Create",
-      "ci": "Configuration Item",
+      "ci": "Infrastructure",
       "status": "Status",
       "statusPlaceholder": "active",
       "owner": "Owner",
@@ -447,7 +447,7 @@
       "dependencyPlaceholder": "primary / dependency"
     },
     "typeSchema": {
-      "selectHint": "Select a CI type to manage its schema."
+      "selectHint": "Select an infrastructure type to manage its schema."
     },
     "relTypePanel": {
       "codePlaceholder": "depends_on",
@@ -503,7 +503,7 @@
       "navigateToCi": "Go to a CI to add config files",
       "importFile": "Import from file",
       "fields": {
-        "ci": "Configuration Item (CI) *",
+        "ci": "Infrastructure (CI) *",
         "selectCi": "— Select a CI —",
         "name": "File name",
         "namePlaceholder": "nginx.conf",

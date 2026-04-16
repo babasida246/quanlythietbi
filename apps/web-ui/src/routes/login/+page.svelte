@@ -169,7 +169,8 @@
           {$i18nLoading ? 'Sign in' : $_('auth.signIn', { default: 'Đăng nhập' })}
         </button>
       </form>
-
+      <!-- Setup hint -->
+       <!--
       {#if !systemInitialized}
         <div class="login-footer">
           {$i18nLoading ? 'First time? Visit' : $_('auth.setupHint', { default: 'Lần đầu sử dụng? Truy cập' })}
@@ -177,6 +178,7 @@
           {$i18nLoading ? 'to initialize.' : $_('auth.setupHintSuffix', { default: 'để khởi tạo.' })}
         </div>
       {/if}
+      -->
     </div>
   </div>
 </div>

@@ -39,6 +39,7 @@
         "test:smoke": "playwright test --grep @smoke",
         "test:headed": "playwright test --headed",
         "test:debug": "playwright test --debug",
+        "test:video:guide": "playwright test --config playwright.video.config.ts --project=video-guide --headed --workers=1",
         "test:report": "playwright show-report",
         "test:all": "pnpm test:lint && pnpm test:typecheck && pnpm test && pnpm test:build && pnpm test:up && pnpm test:e2e && pnpm test:down",
         "test:up": "docker compose up -d postgres api web-ui pgadmin",
@@ -55,12 +56,17 @@
         "db:setup": "node scripts/db-setup.mjs",
         "setup:status": "node -e \"fetch('http://localhost:3000/api/setup/status').then((r)=>r.text()).then(console.log).catch((e)=>{console.error(e);process.exit(1);})\"",
         "smoke:warehouse:roles": "node scripts/smoke-warehouse-role-access.mjs",
-        "generate:docx-templates": "node scripts/generate-docx-templates.mjs"
+        "generate:docx-templates": "node scripts/generate-docx-templates.mjs",
+        "deps:check": "depcruise apps/api/src apps/web-ui/src packages --config .dependency-cruiser.cjs --output-type err-long",
+        "deps:json": "depcruise apps/api/src apps/web-ui/src packages --config .dependency-cruiser.cjs --output-type json --output-to artifacts/dependency-cruiser/report.json",
+        "deps:html": "depcruise apps/api/src apps/web-ui/src packages --config .dependency-cruiser.cjs --output-type err-html --output-to artifacts/dependency-cruiser/report.html",
+        "deps:graph": "depcruise apps/api/src apps/web-ui/src packages --config .dependency-cruiser.cjs --output-type dot --output-to artifacts/dependency-cruiser/graph.dot"
     },
     "devDependencies": {
         "@faker-js/faker": "^10.3.0",
         "@playwright/test": "^1.58.2",
         "concurrently": "^9.0.0",
+        "dependency-cruiser": "^17.3.10",
         "docx": "^9.6.1",
         "dotenv": "^17.3.1",
         "kill-port": "^2.0.1",

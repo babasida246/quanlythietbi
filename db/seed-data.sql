@@ -149,7 +149,27 @@ ON CONFLICT
     name = EXCLUDED.name, reverse_name = EXCLUDED.reverse_name;
 
     -- ============================================================================
-    -- 8. ORGANIZATIONS
+    -- 8. EQUIPMENT GROUPS (Nhóm vật tư trang bị)
+    -- UUID pattern: e0000000-0000-0000-0000-00000000000X
+    -- ============================================================================
+    INSERT INTO equipment_groups
+        (id, code, name, description, parent_id, inherit_parent_fields, is_active, sort_order, created_at, updated_at)
+    VALUES
+        ('e0000000-0000-0000-0000-000000000001', 'UNCATEGORIZED', 'Chưa phân loại',     'Nhóm mặc định cho vật tư chưa được phân loại', NULL, true, true, 999, NOW(), NOW()),
+        ('e0000000-0000-0000-0000-000000000002', 'MILITARY',      'Quân sự',             'Trang bị, thiết bị phục vụ mục đích quân sự',  NULL, true, true, 1,   NOW(), NOW()),
+        ('e0000000-0000-0000-0000-000000000003', 'CIVILIAN',      'Dân dụng',            'Trang bị, thiết bị phục vụ mục đích dân sự',   NULL, true, true, 2,   NOW(), NOW()),
+        ('e0000000-0000-0000-0000-000000000004', 'IT',            'Công nghệ thông tin', 'Thiết bị CNTT, máy tính, mạng, máy chủ',       'e0000000-0000-0000-0000-000000000003', true, true, 1, NOW(), NOW()),
+        ('e0000000-0000-0000-0000-000000000005', 'OFFICE',        'Văn phòng',           'Trang thiết bị văn phòng, nội thất',            'e0000000-0000-0000-0000-000000000003', true, true, 2, NOW(), NOW())
+    ON CONFLICT (id) DO UPDATE SET
+        code                  = EXCLUDED.code,
+        name                  = EXCLUDED.name,
+        description           = EXCLUDED.description,
+        parent_id             = EXCLUDED.parent_id,
+        inherit_parent_fields = EXCLUDED.inherit_parent_fields,
+        sort_order            = EXCLUDED.sort_order;
+
+    -- ============================================================================
+    -- 9. ORGANIZATIONS
     -- ============================================================================
     INSERT INTO organizations
         (id, name, created_at)

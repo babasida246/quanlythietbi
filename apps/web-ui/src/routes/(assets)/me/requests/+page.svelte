@@ -2,47 +2,28 @@
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
   import { Button, Table, TableHeader, TableHeaderCell, TableRow, TableCell } from '$lib/components/ui';
-  import Modal from '$lib/components/Modal.svelte';
-  import { Plus, RefreshCw, Send, X, RotateCcw } from 'lucide-svelte';
+  import { Plus, RefreshCw } from 'lucide-svelte';
   import {
     listMyWfRequests,
-    getMyWfRequest,
-    submitWfRequest,
-    cancelWfRequest,
-    withdrawWfRequest,
     WF_STATUS_LABELS,
     WF_PRIORITY_LABELS,
     WF_TYPE_LABELS,
     wfStatusBadgeClass,
     wfPriorityBadgeClass,
     type WfRequest,
-    type WfRequestDetail,
     type WfRequestType,
-    type WfPriority,
     type WfRequestStatus,
   } from '$lib/api/wf';
-  import WfRequestLineEditor from '$lib/assets/components/WfRequestLineEditor.svelte';
-  import { toast } from '$lib/components/toast';
   import { _, isLoading } from '$lib/i18n';
 
-  // ---- State ----
-  let requests    = $state<WfRequest[]>([]);
-  let loading     = $state(true);
-  let error       = $state('');
-  let statusFilter     = $state<WfRequestStatus | ''>('');
-  let typeFilter       = $state<WfRequestType | ''>('');
-  let meta        = $state({ total: 0, page: 1, limit: 20 });
+  let requests     = $state<WfRequest[]>([]);
+  let loading      = $state(true);
+  let error        = $state('');
+  let statusFilter = $state<WfRequestStatus | ''>('');
+  let typeFilter   = $state<WfRequestType | ''>('');
+  let meta         = $state({ total: 0, page: 1, limit: 20 });
 
-  // ---- Detail / cancel modal ----
-  let detailOpen    = $state(false);
-  let detailLoading = $state(false);
-  let selectedReq   = $state<WfRequest | null>(null);
-  let selectedDetail = $state<WfRequestDetail | null>(null);
-  let cancelReason  = $state('');
-  let withdrawReason = $state('');
-  let actionBusy    = $state(false);
-
-  onMount(() => { void load(1); })
+  onMount(() => { void load(1); });
 
   async function load(page = 1) {
     try {
@@ -60,66 +41,6 @@
       error = e instanceof Error ? e.message : $_('requests.loadFailed');
     } finally {
       loading = false;
-    }
-  }
-
-  async function handleSubmit(req: WfRequest) {
-    actionBusy = true;
-    try {
-      await submitWfRequest(req.id);
-      toast.success($_('requests.toast.submitSuccess'));
-      detailOpen = false;
-      await load(meta.page);
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : $_('common.unknownError'));
-    } finally {
-      actionBusy = false;
-    }
-  }
-
-  async function handleCancel(req: WfRequest) {
-    actionBusy = true;
-    try {
-      await cancelWfRequest(req.id, cancelReason || undefined);
-      toast.success($_('requests.toast.cancelSuccess'));
-      detailOpen = false;
-      cancelReason = '';
-      await load(meta.page);
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : $_('common.unknownError'));
-    } finally {
-      actionBusy = false;
-    }
-  }
-
-  async function handleWithdraw(req: WfRequest) {
-    actionBusy = true;
-    try {
-      await withdrawWfRequest(req.id, withdrawReason || undefined);
-      toast.success($_('requests.toast.withdrawSuccess'));
-      detailOpen = false;
-      withdrawReason = '';
-      await load(meta.page);
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : $_('common.unknownError'));
-    } finally {
-      actionBusy = false;
-    }
-  }
-
-  async function openDetail(req: WfRequest) {
-    selectedReq    = req;
-    selectedDetail = null;
-    cancelReason   = '';
-    detailOpen     = true;
-    detailLoading  = true;
-    try {
-      const res = await getMyWfRequest(req.id);
-      selectedDetail = res.data;
-    } catch {
-      // silently fall back to list data
-    } finally {
-      detailLoading = false;
     }
   }
 </script>
@@ -206,7 +127,7 @@
               </TableCell>
               <TableCell>{new Date(item.createdAt).toLocaleDateString()}</TableCell>
               <TableCell>
-                <Button size="sm" variant="ghost" onclick={() => openDetail(item)}>{$isLoading ? 'Detail' : $_('common.detail')}</Button>
+                <Button size="sm" variant="ghost" onclick={() => goto(`/me/requests/${item.id}`)}>{$isLoading ? 'Detail' : $_('common.detail')}</Button>
               </TableCell>
             </TableRow>
           {/each}
@@ -229,128 +150,3 @@
   {/if}
 </div>
 
-<!-- ============ Detail / Action Modal ============ -->
-{#if detailOpen && selectedReq}
-  <Modal title={$isLoading ? `Detail: ${selectedReq.code}` : `${$_('requests.detail.title')}: ${selectedReq.code}`} bind:open={detailOpen}>
-    <div class="space-y-4 p-4">
-      <div class="grid grid-cols-2 gap-3 text-sm">
-        <div>
-          <div class="text-slate-400">{$isLoading ? 'Title' : $_('requests.field.title')}</div>
-          <div class="font-medium text-slate-100">{selectedReq.title}</div>
-        </div>
-        <div>
-          <div class="text-slate-400">{$isLoading ? 'Status' : $_('requests.detail.status')}</div>
-          <span class={wfStatusBadgeClass(selectedReq.status)}>
-            {WF_STATUS_LABELS[selectedReq.status] ?? selectedReq.status}
-          </span>
-        </div>
-        <div>
-          <div class="text-slate-400">{$isLoading ? 'Request Type' : $_('requests.detail.type')}</div>
-          <div>{WF_TYPE_LABELS[selectedReq.requestType] ?? selectedReq.requestType}</div>
-        </div>
-        <div>
-          <div class="text-slate-400">{$isLoading ? 'Priority' : $_('requests.field.priority')}</div>
-          <span class={wfPriorityBadgeClass(selectedReq.priority)}>
-            {WF_PRIORITY_LABELS[selectedReq.priority] ?? selectedReq.priority}
-          </span>
-        </div>
-        <div>
-          <div class="text-slate-400">{$isLoading ? 'Created Date' : $_('requests.detail.createdAt')}</div>
-          <div>{new Date(selectedReq.createdAt).toLocaleString()}</div>
-        </div>
-        {#if selectedReq.submittedAt}
-          <div>
-            <div class="text-slate-400">{$isLoading ? 'Submitted at' : $_('requests.detail.submittedAt')}</div>
-            <div>{new Date(selectedReq.submittedAt).toLocaleString()}</div>
-          </div>
-        {/if}
-        {#if selectedReq.currentStepNo}
-          <div>
-            <div class="text-slate-400">{$isLoading ? 'Current step' : $_('requests.detail.currentStep')}</div>
-            <div class="font-bold">{selectedReq.currentStepNo}</div>
-          </div>
-        {/if}
-      </div>
-
-      {#if Object.keys(selectedReq.payload).length > 0}
-        <div>
-          <div class="text-xs text-slate-400 mb-1">{$isLoading ? 'Request Info' : $_('requests.detail.requestInfo')}</div>
-          <div class="rounded-lg bg-slate-800 p-3 text-xs font-mono text-slate-300 space-y-1">
-            {#each Object.entries(selectedReq.payload) as [k, v]}
-              <div><span class="text-slate-500">{k}:</span> {String(v)}</div>
-            {/each}
-          </div>
-        </div>
-      {/if}
-
-      <!-- Lines (loaded via detail API) -->
-      {#if detailLoading}
-        <div class="flex items-center gap-2 text-xs text-slate-500">
-          <div class="h-3 w-3 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
-          {$isLoading ? 'Loading details...' : $_('requests.detail.loading')}
-        </div>
-      {:else if selectedDetail?.lines && selectedDetail.lines.length > 0}
-        <div>
-          <div class="text-xs font-semibold text-slate-400 mb-2 uppercase tracking-wide">{$isLoading ? 'Request Lines' : $_('requests.detail.lines')} ({selectedDetail.lines.length})</div>
-          <WfRequestLineEditor
-            lines={selectedDetail.lines.map(l => ({
-              itemType:     l.itemType,
-              partId:       l.partId ?? undefined,
-              assetId:      l.assetId ?? undefined,
-              requestedQty: l.requestedQty,
-              note:         l.note ?? undefined,
-            }))}
-            parts={[]}
-            assets={[]}
-            readonly={true}
-          />
-          <!-- Fulfillment summary -->
-          <div class="mt-2 flex flex-wrap gap-3 text-xs">
-            {#each selectedDetail.lines as ln}
-              <div class="flex items-center gap-1.5 rounded-lg border border-slate-700 bg-slate-800/60 px-2 py-1">
-                <span class="text-slate-400">{$isLoading ? 'Line' : $_('requests.detail.lineNo')} {ln.lineNo}:</span>
-                <span class="tabular-nums text-slate-200">{ln.fulfilledQty}/{ln.requestedQty}</span>
-                <span class="badge {ln.status === 'fulfilled' ? 'badge-green' : ln.status === 'partial' ? 'badge-yellow' : ln.status === 'cancelled' ? 'badge-gray' : 'badge-blue'} text-xs">
-                  {ln.status === 'fulfilled' ? ($isLoading ? 'Fulfilled' : $_('requests.lineStatus.fulfilled')) : ln.status === 'partial' ? ($isLoading ? 'Partial' : $_('requests.lineStatus.partial')) : ln.status === 'cancelled' ? ($isLoading ? 'Cancelled' : $_('requests.lineStatus.cancelled')) : ($isLoading ? 'Pending' : $_('requests.lineStatus.pending'))}
-                </span>
-              </div>
-            {/each}
-          </div>
-        </div>
-      {/if}
-
-      <!-- Actions -->
-      {#if selectedReq.status === 'draft'}
-        <div class="border-t border-slate-700 pt-4 space-y-3">
-          <div class="text-sm text-slate-400">{$isLoading ? 'Submit request' : $_('requests.submitHint')}</div>
-          <Button variant="primary" onclick={() => handleSubmit(selectedReq!)} disabled={actionBusy}>
-            {#snippet leftIcon()}<Send class="h-4 w-4" />{/snippet}
-            {actionBusy ? ($isLoading ? 'Submitting...' : $_('requests.actionBusy.submitting')) : ($isLoading ? 'Submit' : $_('requests.submit'))}
-          </Button>
-        </div>
-      {/if}
-
-      {#if selectedReq.status === 'submitted' || selectedReq.status === 'in_review'}
-        <div class="border-t border-slate-700 pt-4 space-y-2">
-          <div class="text-sm text-slate-400">{$isLoading ? 'Withdraw request? Enter reason:' : $_('requests.withdrawHint')}</div>
-          <input class="input-base" type="text" bind:value={withdrawReason} placeholder={$isLoading ? 'Enter withdrawal reason...' : $_('requests.withdrawReasonPlaceholder')} />
-          <Button variant="secondary" size="sm" onclick={() => handleWithdraw(selectedReq!)} disabled={actionBusy}>
-            {#snippet leftIcon()}<RotateCcw class="h-4 w-4" />{/snippet}
-            {actionBusy ? ($isLoading ? 'Withdrawing...' : $_('requests.actionBusy.withdrawing')) : ($isLoading ? 'Withdraw' : $_('requests.withdraw'))}
-          </Button>
-        </div>
-      {/if}
-
-      {#if selectedReq.status === 'draft' || selectedReq.status === 'submitted' || selectedReq.status === 'in_review'}
-        <div class="border-t border-slate-700 pt-4 space-y-2">
-          <div class="text-sm text-slate-400">{$isLoading ? 'Cancel request? Enter reason:' : $_('requests.cancelHint')}</div>
-          <input class="input-base" type="text" bind:value={cancelReason} placeholder={$isLoading ? 'Enter cancellation reason...' : $_('requests.cancelReasonPlaceholder')} />
-          <Button variant="danger" size="sm" onclick={() => handleCancel(selectedReq!)} disabled={actionBusy}>
-            {#snippet leftIcon()}<X class="h-4 w-4" />{/snippet}
-            {actionBusy ? ($isLoading ? 'Canceling...' : $_('requests.actionBusy.canceling')) : ($isLoading ? 'Cancel Request' : $_('requests.cancelRequest'))}
-          </Button>
-        </div>
-      {/if}
-    </div>
-  </Modal>
-{/if}

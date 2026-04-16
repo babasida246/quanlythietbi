@@ -16,6 +16,9 @@ import { BadRequestError, ConflictError, ForbiddenError, NotFoundError } from '.
 import { createSuccessResponse } from '../../../shared/utils/response.utils.js'
 import { getUserContext, requirePermission } from '../assets/assets.helpers.js'
 
+// Legacy rbac:* permissions → map to canonical admin:roles permission
+const ADMIN_ROLES_PERM = 'admin:roles'
+
 // ─── Plugin Options ──────────────────────────────────────────────────────────
 
 interface RbacAdRoutesOptions {
@@ -174,14 +177,14 @@ export const rbacAdRoutes: FastifyPluginAsync<RbacAdRoutesOptions> = async (fast
 
     // GET /org-units/tree
     fastify.get('/org-units/tree', async (request, reply) => {
-        requirePermission(request, 'rbac:admin')
+        requirePermission(request, ADMIN_ROLES_PERM)
         const tree = await adminService.getOuTree()
         return reply.send(createSuccessResponse(tree, String(request.id)))
     })
 
     // POST /org-units
     fastify.post('/org-units', async (request, reply) => {
-        const ctx = requirePermission(request, 'rbac:ou:manage')
+        const ctx = requirePermission(request, ADMIN_ROLES_PERM)
         const body = ouCreateSchema.parse(request.body)
         try {
             const ou = await adminService.createOu(body, { actorUserId: ctx.userId, correlationId: ctx.correlationId })
@@ -199,7 +202,7 @@ export const rbacAdRoutes: FastifyPluginAsync<RbacAdRoutesOptions> = async (fast
 
     // PATCH /org-units/:id
     fastify.patch('/org-units/:id', async (request, reply) => {
-        const ctx = requirePermission(request, 'rbac:ou:manage')
+        const ctx = requirePermission(request, ADMIN_ROLES_PERM)
         const { id } = uuidParam.parse(request.params)
         const body = ouUpdateSchema.parse(request.body)
         try {
@@ -213,7 +216,7 @@ export const rbacAdRoutes: FastifyPluginAsync<RbacAdRoutesOptions> = async (fast
 
     // DELETE /org-units/:id
     fastify.delete('/org-units/:id', async (request, reply) => {
-        const ctx = requirePermission(request, 'rbac:ou:manage')
+        const ctx = requirePermission(request, ADMIN_ROLES_PERM)
         const { id } = uuidParam.parse(request.params)
         try {
             await adminService.deleteOu(id, { actorUserId: ctx.userId, correlationId: ctx.correlationId })
@@ -231,7 +234,7 @@ export const rbacAdRoutes: FastifyPluginAsync<RbacAdRoutesOptions> = async (fast
 
     // GET /users
     fastify.get('/users', async (request, reply) => {
-        requirePermission(request, 'rbac:user:manage')
+        requirePermission(request, ADMIN_ROLES_PERM)
         const query = userListQuery.parse(request.query)
         const users = await adminService.listUsers(query)
         return reply.send(createSuccessResponse(users, String(request.id)))
@@ -239,7 +242,7 @@ export const rbacAdRoutes: FastifyPluginAsync<RbacAdRoutesOptions> = async (fast
 
     // POST /users
     fastify.post('/users', async (request, reply) => {
-        const ctx = requirePermission(request, 'rbac:user:manage')
+        const ctx = requirePermission(request, ADMIN_ROLES_PERM)
         const body = userCreateSchema.parse(request.body)
         try {
             // Auto-link: nếu không truyền linkedUserId nhưng có email,
@@ -270,7 +273,7 @@ export const rbacAdRoutes: FastifyPluginAsync<RbacAdRoutesOptions> = async (fast
 
     // PATCH /users/:id
     fastify.patch('/users/:id', async (request, reply) => {
-        const ctx = requirePermission(request, 'rbac:user:manage')
+        const ctx = requirePermission(request, ADMIN_ROLES_PERM)
         const { id } = uuidParam.parse(request.params)
         const body = userUpdateSchema.parse(request.body)
         try {
@@ -284,7 +287,7 @@ export const rbacAdRoutes: FastifyPluginAsync<RbacAdRoutesOptions> = async (fast
 
     // DELETE /users/:id
     fastify.delete('/users/:id', async (request, reply) => {
-        const ctx = requirePermission(request, 'rbac:user:manage')
+        const ctx = requirePermission(request, ADMIN_ROLES_PERM)
         const { id } = uuidParam.parse(request.params)
         try {
             await adminService.deleteUser(id, { actorUserId: ctx.userId, correlationId: ctx.correlationId })
@@ -297,7 +300,7 @@ export const rbacAdRoutes: FastifyPluginAsync<RbacAdRoutesOptions> = async (fast
 
     // POST /users/:id/move
     fastify.post('/users/:id/move', async (request, reply) => {
-        const ctx = requirePermission(request, 'rbac:user:manage')
+        const ctx = requirePermission(request, ADMIN_ROLES_PERM)
         const { id } = uuidParam.parse(request.params)
         const body = moveToOuSchema.parse(request.body)
         try {
@@ -315,7 +318,7 @@ export const rbacAdRoutes: FastifyPluginAsync<RbacAdRoutesOptions> = async (fast
 
     // GET /groups
     fastify.get('/groups', async (request, reply) => {
-        requirePermission(request, 'rbac:group:manage')
+        requirePermission(request, ADMIN_ROLES_PERM)
         const query = groupListQuery.parse(request.query)
         const groups = await adminService.listGroups(query)
         return reply.send(createSuccessResponse(groups, String(request.id)))
@@ -323,7 +326,7 @@ export const rbacAdRoutes: FastifyPluginAsync<RbacAdRoutesOptions> = async (fast
 
     // POST /groups
     fastify.post('/groups', async (request, reply) => {
-        const ctx = requirePermission(request, 'rbac:group:manage')
+        const ctx = requirePermission(request, ADMIN_ROLES_PERM)
         const body = groupCreateSchema.parse(request.body)
         try {
             const group = await adminService.createGroup(body, { actorUserId: ctx.userId, correlationId: ctx.correlationId })
@@ -340,7 +343,7 @@ export const rbacAdRoutes: FastifyPluginAsync<RbacAdRoutesOptions> = async (fast
 
     // PATCH /groups/:id
     fastify.patch('/groups/:id', async (request, reply) => {
-        const ctx = requirePermission(request, 'rbac:group:manage')
+        const ctx = requirePermission(request, ADMIN_ROLES_PERM)
         const { id } = uuidParam.parse(request.params)
         const body = groupUpdateSchema.parse(request.body)
         try {
@@ -354,7 +357,7 @@ export const rbacAdRoutes: FastifyPluginAsync<RbacAdRoutesOptions> = async (fast
 
     // DELETE /groups/:id
     fastify.delete('/groups/:id', async (request, reply) => {
-        const ctx = requirePermission(request, 'rbac:group:manage')
+        const ctx = requirePermission(request, ADMIN_ROLES_PERM)
         const { id } = uuidParam.parse(request.params)
         try {
             await adminService.deleteGroup(id, { actorUserId: ctx.userId, correlationId: ctx.correlationId })
@@ -371,7 +374,7 @@ export const rbacAdRoutes: FastifyPluginAsync<RbacAdRoutesOptions> = async (fast
 
     // GET /groups/:groupId/members
     fastify.get('/groups/:groupId/members', async (request, reply) => {
-        requirePermission(request, 'rbac:group:manage')
+        requirePermission(request, ADMIN_ROLES_PERM)
         const { groupId } = groupIdParam.parse(request.params)
         const members = await adminService.listGroupMembers(groupId)
         return reply.send(createSuccessResponse(members, String(request.id)))
@@ -379,7 +382,7 @@ export const rbacAdRoutes: FastifyPluginAsync<RbacAdRoutesOptions> = async (fast
 
     // POST /groups/:groupId/members
     fastify.post('/groups/:groupId/members', async (request, reply) => {
-        const ctx = requirePermission(request, 'rbac:group:manage')
+        const ctx = requirePermission(request, ADMIN_ROLES_PERM)
         const { groupId } = groupIdParam.parse(request.params)
         const body = memberAddSchema.parse(request.body)
         try {
@@ -394,7 +397,7 @@ export const rbacAdRoutes: FastifyPluginAsync<RbacAdRoutesOptions> = async (fast
 
     // DELETE /groups/:groupId/members
     fastify.delete('/groups/:groupId/members', async (request, reply) => {
-        const ctx = requirePermission(request, 'rbac:group:manage')
+        const ctx = requirePermission(request, ADMIN_ROLES_PERM)
         const { groupId } = groupIdParam.parse(request.params)
         const { memberType, memberId } = memberRemoveQuery.parse(request.query)
         const result = await adminService.removeMember(groupId, memberType, memberId, { actorUserId: ctx.userId, correlationId: ctx.correlationId })
@@ -407,7 +410,7 @@ export const rbacAdRoutes: FastifyPluginAsync<RbacAdRoutesOptions> = async (fast
 
     // GET /acl
     fastify.get('/acl', async (request, reply) => {
-        requirePermission(request, 'rbac:admin')
+        requirePermission(request, ADMIN_ROLES_PERM)
         const query = aclListQuery.parse(request.query)
         const entries = await adminService.listAcl(query)
         return reply.send(createSuccessResponse(entries, String(request.id)))
@@ -415,7 +418,7 @@ export const rbacAdRoutes: FastifyPluginAsync<RbacAdRoutesOptions> = async (fast
 
     // POST /acl
     fastify.post('/acl', async (request, reply) => {
-        const ctx = requirePermission(request, 'rbac:admin')
+        const ctx = requirePermission(request, ADMIN_ROLES_PERM)
         const body = aclAssignSchema.parse(request.body)
         try {
             const entry = await adminService.assignAcl(body, { actorUserId: ctx.userId, correlationId: ctx.correlationId })
@@ -432,7 +435,7 @@ export const rbacAdRoutes: FastifyPluginAsync<RbacAdRoutesOptions> = async (fast
 
     // DELETE /acl/:id
     fastify.delete('/acl/:id', async (request, reply) => {
-        const ctx = requirePermission(request, 'rbac:admin')
+        const ctx = requirePermission(request, ADMIN_ROLES_PERM)
         const { id } = uuidParam.parse(request.params)
         try {
             await adminService.revokeAcl(id, { actorUserId: ctx.userId, correlationId: ctx.correlationId })
@@ -449,21 +452,21 @@ export const rbacAdRoutes: FastifyPluginAsync<RbacAdRoutesOptions> = async (fast
 
     // GET /roles
     fastify.get('/roles', async (request, reply) => {
-        requirePermission(request, 'rbac:admin')
+        requirePermission(request, ADMIN_ROLES_PERM)
         const roles = await adminService.listRoles()
         return reply.send(createSuccessResponse(roles, String(request.id)))
     })
 
     // GET /permissions
     fastify.get('/permissions', async (request, reply) => {
-        requirePermission(request, 'rbac:admin')
+        requirePermission(request, ADMIN_ROLES_PERM)
         const perms = await adminService.listPermissions()
         return reply.send(createSuccessResponse(perms, String(request.id)))
     })
 
     // GET /roles/:id/permissions
     fastify.get('/roles/:id/permissions', async (request, reply) => {
-        requirePermission(request, 'rbac:admin')
+        requirePermission(request, ADMIN_ROLES_PERM)
         const { id } = uuidParam.parse(request.params)
         const perms = await adminService.getRolePermissions(id)
         return reply.send(createSuccessResponse(perms, String(request.id)))
@@ -471,7 +474,7 @@ export const rbacAdRoutes: FastifyPluginAsync<RbacAdRoutesOptions> = async (fast
 
     // PUT /roles/:id/permissions
     fastify.put('/roles/:id/permissions', async (request, reply) => {
-        const ctx = requirePermission(request, 'rbac:admin')
+        const ctx = requirePermission(request, ADMIN_ROLES_PERM)
         const { id } = uuidParam.parse(request.params)
         const body = setRolePermsSchema.parse(request.body)
         await adminService.setRolePermissions(id, body.permissionIds, { actorUserId: ctx.userId, correlationId: ctx.correlationId })
@@ -510,7 +513,7 @@ export const rbacAdRoutes: FastifyPluginAsync<RbacAdRoutesOptions> = async (fast
 
     // GET /users/:id/effective-permissions — admin view
     fastify.get('/users/:id/effective-permissions', async (request, reply) => {
-        requirePermission(request, 'rbac:admin')
+        requirePermission(request, ADMIN_ROLES_PERM)
         const { id } = uuidParam.parse(request.params)
         try {
             const result = await authzService.listEffective(id)

@@ -1,168 +1,247 @@
 <script lang="ts">
-  import { _ } from 'svelte-i18n'
+  import { onMount } from 'svelte'
+  import { goto } from '$app/navigation'
+  import { _, isLoading } from '$lib/i18n'
   import { API_BASE, apiJson } from '$lib/api/httpClient'
-  import type { PurchaseSuggestion } from '$lib/types/qlts.js'
+  import { Plus, RefreshCw, FileText, Lightbulb, Eye, ChevronRight } from 'lucide-svelte'
 
-  let suggestions = $state<PurchaseSuggestion[]>([])
-  let loading = $state(true)
-  let selectedPriority = $state<string>('all')
-  let selectedCategory = $state<string>('all')
+  // ── Types ──────────────────────────────────────────────────────────────────
 
-  async function loadSuggestions() {
-    loading = true
+  interface PurchasePlanDoc {
+    id: string
+    docNo: string
+    docDate: string
+    fiscalYear: number
+    orgUnitName: string | null
+    title: string
+    description: string | null
+    totalEstimatedCost: number | null
+    currency: string
+    status: string
+    createdBy: string
+    createdAt: string
+    submittedAt: string | null
+    approvedAt: string | null
+    postedAt: string | null
+  }
+
+  // ── State ──────────────────────────────────────────────────────────────────
+
+  let activeTab = $state<'list' | 'suggestions'>('list')
+  let docs = $state<PurchasePlanDoc[]>([])
+  let total = $state(0)
+  let loadingDocs = $state(true)
+  let filterStatus = $state('')
+  let filterYear = $state(new Date().getFullYear())
+
+  // ── Load ───────────────────────────────────────────────────────────────────
+
+  async function loadDocs() {
+    loadingDocs = true
     try {
-      const params = new URLSearchParams()
-      if (selectedPriority !== 'all') params.append('minPriority', selectedPriority)
-      if (selectedCategory !== 'all') params.append('categoryId', selectedCategory)
-
-      const data = await apiJson<{ suggestions?: PurchaseSuggestion[] }>(
-        `${API_BASE}/v1/assets/purchase-plans/suggestions?${params.toString()}`
+      const params = new URLSearchParams({ limit: '50', page: '1' })
+      if (filterStatus) params.set('status', filterStatus)
+      if (filterYear) params.set('fiscalYear', String(filterYear))
+      const res = await apiJson<{ data: PurchasePlanDoc[]; pagination?: { total: number } }>(
+        `${API_BASE}/v1/assets/purchase-plans?${params}`
       )
-      suggestions = data.suggestions || []
-    } catch (error) {
-      console.error('Failed to load suggestions:', error)
+      docs = res.data ?? []
+      total = res.pagination?.total ?? docs.length
+    } catch (e) {
+      console.error('Failed to load purchase plans', e)
+      docs = []
     } finally {
-      loading = false
+      loadingDocs = false
     }
   }
 
-  $effect(() => {
-    void loadSuggestions();
-  })
+  onMount(() => { void loadDocs() })
 
-  function getPriorityClass(priority: string) {
-    switch (priority) {
-      case 'critical': return 'bg-red-100 text-red-800 border-red-300'
-      case 'high': return 'bg-orange-100 text-orange-800 border-orange-300'
-      case 'medium': return 'bg-yellow-100 text-yellow-800 border-yellow-300'
-      case 'low': return 'bg-blue-100 text-blue-800 border-blue-300'
-      default: return 'bg-gray-100 text-gray-800 border-gray-300'
-    }
+  // ── Helpers ────────────────────────────────────────────────────────────────
+
+  const STATUS_COLORS: Record<string, string> = {
+    draft:     'badge-secondary',
+    submitted: 'badge-warning',
+    approved:  'badge-success',
+    rejected:  'badge-error',
+    posted:    'badge-info',
+    cancelled: 'badge-secondary',
   }
 
-  function getPriorityIcon(priority: string) {
-    switch (priority) {
-      case 'critical': return '🔴'
-      case 'high': return '🟠'
-      case 'medium': return '🟡'
-      case 'low': return '🔵'
-      default: return '⚪'
-    }
+  const STATUS_LABELS: Record<string, string> = {
+    draft:     'Nháp',
+    submitted: 'Chờ duyệt',
+    approved:  'Đã duyệt',
+    rejected:  'Từ chối',
+    posted:    'Hoàn thành',
+    cancelled: 'Đã hủy',
+  }
+
+  function fmt(n: number | null) {
+    if (n == null) return '—'
+    return new Intl.NumberFormat('vi-VN').format(n)
+  }
+
+  function fmtDate(d: string | null) {
+    if (!d) return '—'
+    return new Date(d).toLocaleDateString('vi-VN')
   }
 </script>
 
-<div class="p-6">
-  <div class="flex justify-between items-center mb-6">
-    <h1 class="text-2xl font-bold">{$_('qlts.purchasePlan.dashboard.title')}</h1>
+<div class="page-shell page-content space-y-4">
+
+  <!-- Header -->
+  <div class="flex items-center justify-between">
+    <div>
+      <h1 class="text-xl font-bold">
+        {$isLoading ? 'Kế hoạch mua sắm' : $_('nav.purchasePlans')}
+      </h1>
+      <p class="text-sm text-slate-500 mt-0.5">
+        {$isLoading ? 'Quản lý và theo dõi kế hoạch mua sắm thiết bị' : 'Quản lý và theo dõi kế hoạch mua sắm thiết bị'}
+      </p>
+    </div>
     <a
       href="/assets/purchase-plans/new"
-      class="rounded-lg bg-blue-600 px-4 py-2 font-medium text-white transition-colors hover:bg-blue-700"
+      class="btn btn-primary flex items-center gap-2"
     >
-      {$_('qlts.purchasePlan.dashboard.createNew')}
+      <Plus class="h-4 w-4" />
+      Tạo kế hoạch
     </a>
   </div>
 
-  <div class="mb-6 rounded-lg bg-surface-1 shadow">
-    <div class="p-4">
-      <h2 class="text-lg font-semibold mb-4">{$_('qlts.purchasePlan.dashboard.filters')}</h2>
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div>
-          <label for="selectedPriority" class="block text-sm font-medium mb-1">
-            {$_('qlts.purchasePlan.dashboard.priority')}
-          </label>
-          <select
-            id="selectedPriority"
-            bind:value={selectedPriority} 
-            onchange={() => loadSuggestions()}
-            class="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-          >
-            <option value="all">{$_('qlts.common.all')}</option>
-            <option value="critical">{$_('qlts.priority.critical')}</option>
-            <option value="high">{$_('qlts.priority.high')}</option>
-            <option value="medium">{$_('qlts.priority.medium')}</option>
-            <option value="low">{$_('qlts.priority.low')}</option>
-          </select>
-        </div>
-        <div class="md:col-span-2">
-          <label for="selectedCategory" class="block text-sm font-medium mb-1">
-            {$_('qlts.purchasePlan.dashboard.category')}
-          </label>
-          <select
-            id="selectedCategory"
-            bind:value={selectedCategory}
-            onchange={() => loadSuggestions()}
-            class="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-          >
-            <option value="all">{$_('qlts.common.all')}</option>
-          </select>
-        </div>
-      </div>
-    </div>
+  <!-- Tabs -->
+  <div class="flex border-b border-slate-700">
+    <button
+      class="tabs-trigger {activeTab === 'list' ? 'tabs-trigger-active' : ''}"
+      onclick={() => { activeTab = 'list'; void loadDocs() }}
+    >
+      <FileText class="h-4 w-4 mr-1.5" />
+      Danh sách kế hoạch
+      {#if total > 0}
+        <span class="ml-1.5 rounded-full bg-primary/20 px-1.5 py-0.5 text-xs font-medium text-primary">{total}</span>
+      {/if}
+    </button>
+    <button
+      class="tabs-trigger {activeTab === 'suggestions' ? 'tabs-trigger-active' : ''}"
+      onclick={() => activeTab = 'suggestions'}
+    >
+      <Lightbulb class="h-4 w-4 mr-1.5" />
+      Gợi ý mua sắm
+    </button>
   </div>
 
-  {#if loading}
-    <div class="flex justify-center items-center h-64">
-      <div class="inline-block h-12 w-12 rounded-full border-4 border-gray-200 border-t-blue-600 animate-spin"></div>
+  <!-- ── TAB: Danh sách ─────────────────────────────────────────────────── -->
+  {#if activeTab === 'list'}
+
+    <!-- Filters -->
+    <div class="card p-3 flex flex-wrap gap-3 items-end">
+      <div class="flex flex-col gap-1">
+        <label class="text-xs text-slate-400">Trạng thái</label>
+        <select
+          class="select-base text-sm h-8 py-0 px-2"
+          bind:value={filterStatus}
+          onchange={() => loadDocs()}
+        >
+          <option value="">Tất cả</option>
+          <option value="draft">Nháp</option>
+          <option value="submitted">Chờ duyệt</option>
+          <option value="approved">Đã duyệt</option>
+          <option value="posted">Hoàn thành</option>
+          <option value="rejected">Từ chối</option>
+          <option value="cancelled">Đã hủy</option>
+        </select>
+      </div>
+      <div class="flex flex-col gap-1">
+        <label class="text-xs text-slate-400">Năm tài chính</label>
+        <input
+          type="number"
+          class="input-base text-sm h-8 py-0 px-2 w-24"
+          bind:value={filterYear}
+          min="2020" max="2100"
+          onchange={() => loadDocs()}
+        />
+      </div>
+      <button
+        class="btn btn-secondary flex items-center gap-1.5 h-8 text-sm"
+        onclick={() => loadDocs()}
+      >
+        <RefreshCw class="h-3.5 w-3.5" />
+        Làm mới
+      </button>
     </div>
-  {:else if suggestions.length === 0}
-    <div class="rounded-lg border border-blue-200 bg-blue-50 p-4 text-blue-800">
-      {$_('qlts.purchasePlan.dashboard.noSuggestions')}
-    </div>
+
+    <!-- Table -->
+    {#if loadingDocs}
+      <div class="flex justify-center py-12">
+        <div class="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
+      </div>
+    {:else if docs.length === 0}
+      <div class="card flex flex-col items-center justify-center py-16 text-center gap-3">
+        <FileText class="h-12 w-12 text-slate-500" />
+        <p class="text-slate-400 text-sm">Chưa có kế hoạch mua sắm nào</p>
+        <a href="/assets/purchase-plans/new" class="btn btn-primary flex items-center gap-2">
+          <Plus class="h-4 w-4" />
+          Tạo kế hoạch đầu tiên
+        </a>
+      </div>
+    {:else}
+      <div class="overflow-x-auto rounded-xl border border-slate-700">
+        <table class="data-table min-w-full text-sm">
+          <thead>
+            <tr>
+              <th class="text-left">Số chứng từ</th>
+              <th class="text-left">Tiêu đề</th>
+              <th class="text-left">Phòng ban</th>
+              <th class="text-center">Năm TC</th>
+              <th class="text-left">Ngày lập</th>
+              <th class="text-right">Tổng dự toán</th>
+              <th class="text-center">Trạng thái</th>
+              <th class="text-center w-12"></th>
+            </tr>
+          </thead>
+          <tbody>
+            {#each docs as doc}
+              <tr
+                class="cursor-pointer hover:bg-slate-800/50"
+                onclick={() => goto(`/assets/purchase-plans/${doc.id}`)}
+              >
+                <td class="font-mono text-xs font-medium text-primary">{doc.docNo}</td>
+                <td class="max-w-xs truncate" title={doc.title}>{doc.title}</td>
+                <td class="text-slate-400">{doc.orgUnitName ?? '—'}</td>
+                <td class="text-center">{doc.fiscalYear}</td>
+                <td>{fmtDate(doc.docDate)}</td>
+                <td class="text-right font-medium">
+                  {fmt(doc.totalEstimatedCost)}
+                  <span class="text-xs text-slate-500 ml-0.5">{doc.currency}</span>
+                </td>
+                <td class="text-center">
+                  <span class="badge {STATUS_COLORS[doc.status] ?? 'badge-secondary'} text-xs">
+                    {STATUS_LABELS[doc.status] ?? doc.status}
+                  </span>
+                </td>
+                <td class="text-center">
+                  <ChevronRight class="h-4 w-4 text-slate-500 mx-auto" />
+                </td>
+              </tr>
+            {/each}
+          </tbody>
+        </table>
+      </div>
+      {#if total > docs.length}
+        <p class="text-xs text-slate-500 text-right">Hiển thị {docs.length} / {total} kế hoạch</p>
+      {/if}
+    {/if}
+
+  <!-- ── TAB: Gợi ý ──────────────────────────────────────────────────────── -->
   {:else}
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-      {#each suggestions as suggestion}
-        <div class={`rounded-lg border-2 shadow ${getPriorityClass(suggestion.priority)}`}>
-          <div class="p-4">
-            <div class="flex items-start justify-between mb-2">
-              <h3 class="font-semibold text-lg">{suggestion.modelName}</h3>
-              <span class="text-2xl">{getPriorityIcon(suggestion.priority)}</span>
-            </div>
-            
-            <p class="text-sm text-gray-600 mb-3">{suggestion.categoryName}</p>
-            
-            <div class="space-y-2">
-              <div class="flex justify-between text-sm">
-                <span class="font-medium">{$_('qlts.inventory.currentStock')}:</span>
-                <span class="font-bold">{suggestion.currentStock}</span>
-              </div>
-              <div class="flex justify-between text-sm">
-                <span class="font-medium">{$_('qlts.inventory.minStock')}:</span>
-                <span>{suggestion.minStockQty}</span>
-              </div>
-              <div class="flex justify-between text-sm">
-                <span class="font-medium">{$_('qlts.inventory.avgDaily')}:</span>
-                <span>{suggestion.avgDailyConsumption.toFixed(2)}</span>
-              </div>
-              <div class="flex justify-between text-sm">
-                <span class="font-medium">{$_('qlts.inventory.daysUntilStockout')}:</span>
-                <span class="font-bold text-red-600">{suggestion.daysUntilStockout}</span>
-              </div>
-            </div>
-
-            <div class="my-2 border-t border-gray-300"></div>
-
-            <div class="bg-surface-1/50 p-2 rounded">
-              <p class="text-sm font-medium mb-1">{$_('qlts.purchasePlan.suggestedQuantity')}:</p>
-              <p class="text-2xl font-bold text-center">{suggestion.suggestedQuantity}</p>
-            </div>
-
-            <p class="text-xs mt-2 italic">{suggestion.reason}</p>
-
-            <button class="mt-3 w-full rounded-lg bg-blue-600 px-3 py-1 text-sm font-medium text-white transition-colors hover:bg-blue-700">
-              {$_('qlts.purchasePlan.addToPlan')}
-            </button>
-          </div>
-        </div>
-      {/each}
+    <div class="card p-6 text-center text-slate-400 space-y-2">
+      <Lightbulb class="h-10 w-10 mx-auto text-yellow-400" />
+      <p class="text-sm">Công cụ phân tích tồn kho và gợi ý mua sắm</p>
+      <a href="/warehouse/purchase-plans" class="btn btn-secondary inline-flex items-center gap-2 mt-2">
+        <Eye class="h-4 w-4" />
+        Mở công cụ gợi ý mua sắm
+      </a>
     </div>
   {/if}
 
-  <div class="mt-8">
-    <h2 class="text-xl font-semibold mb-4">{$_('qlts.purchasePlan.dashboard.recentPlans')}</h2>
-    <div class="rounded-lg bg-surface-1 shadow">
-      <div class="p-4">
-        <p class="text-gray-500">{$_('qlts.purchasePlan.dashboard.loadingPlans')}</p>
-      </div>
-    </div>
-  </div>
 </div>

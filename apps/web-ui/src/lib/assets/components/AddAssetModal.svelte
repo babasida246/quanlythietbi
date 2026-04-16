@@ -12,6 +12,7 @@
     models = [],
     vendors = [],
     locations = [],
+    groups = [],
     error = '',
     oncreate
   } = $props<{
@@ -19,8 +20,9 @@
     models?: AssetModel[];
     vendors?: Array<{ id: string; name: string }>;
     locations?: Array<{ id: string; name: string }>;
+    groups?: Array<{ id: string; name: string; parentName?: string | null }>;
     error?: string;
-    oncreate?: (data: AssetCreateInput) => void;
+    oncreate?: (data: AssetCreateInput & { groupId?: string }) => void;
   }>();
 
   let form = $state({
@@ -29,6 +31,7 @@
     status: 'in_stock' as AssetStatus,
     vendorId: '',
     locationId: '',
+    groupId: '',
     serialNo: '',
     macAddress: '',
     mgmtIp: '',
@@ -66,6 +69,7 @@
       status: 'in_stock',
       vendorId: '',
       locationId: '',
+      groupId: '',
       serialNo: '',
       macAddress: '',
       mgmtIp: '',
@@ -82,6 +86,8 @@
     if (!open) reset();
   });
 
+  const safeGroups = $derived(Array.isArray(groups) ? groups : []);
+
   function submit() {
     oncreate?.({
       assetCode: form.assetCode,
@@ -89,6 +95,7 @@
       status: form.status,
       vendorId: form.vendorId || undefined,
       locationId: form.locationId || undefined,
+      groupId: form.groupId || undefined,
       serialNo: form.serialNo || undefined,
       macAddress: form.macAddress || undefined,
       mgmtIp: form.mgmtIp || undefined,
@@ -141,6 +148,15 @@
         <option value="">{$isLoading ? 'Select model' : $_('assets.selectModel')}</option>
         {#each safeModels as model}
           <option value={model.id}>{[model.brand, model.model].filter(Boolean).join(' ') || model.model}</option>
+        {/each}
+      </select>
+    </div>
+    <div>
+      <label class="label-base mb-2" for="asset-group">{$isLoading ? 'Equipment Group' : $_('catalogs.equipmentGroup.title')}</label>
+      <select id="asset-group" class="select-base" bind:value={form.groupId}>
+        <option value="">{$isLoading ? 'Select group' : $_('catalogs.placeholder.selectGroup')}</option>
+        {#each safeGroups as group}
+          <option value={group.id}>{group.parentName ? `${group.parentName} / ${group.name}` : group.name}</option>
         {/each}
       </select>
     </div>

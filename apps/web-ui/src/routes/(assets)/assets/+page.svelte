@@ -15,6 +15,7 @@
     type MaintenanceSeverity
   } from '$lib/api/assets';
   import { getAssetCatalogs, getCategorySpecDefs, listStatusCatalogs, type AssetStatusCatalog, type Catalogs, type CategorySpecDef } from '$lib/api/assetCatalogs';
+  import { listEquipmentGroups, type EquipmentGroup } from '$lib/api/equipmentGroups';
   import DynamicSpecForm from '$lib/assets/components/catalogs/DynamicSpecForm.svelte';
   import MaintenanceModal from '$lib/assets/components/MaintenanceModal.svelte';
   import { toast } from '$lib/components/toast';
@@ -68,6 +69,7 @@
   let assets = $state<Asset[]>([]);
   let catalogs = $state<Catalogs | null>(null);
   let statuses = $state<AssetStatusCatalog[]>([]);
+  let groups = $state<EquipmentGroup[]>([]);
   let query = $state('');
 
   let filterStatus = $state('');
@@ -75,6 +77,7 @@
   let filterLocation = $state('');
   let filterVendor = $state('');
   let filterWarranty = $state('');
+  let filterGroup = $state('');
   let filterExpanded = $state(false);
   let selectedIds = $state(new Set<string>());
   let printOpen = $state(false);
@@ -133,14 +136,16 @@
     try {
       loading = true;
       error = '';
-      const [assetResponse, catalogResponse, statusResponse] = await Promise.all([
+      const [assetResponse, catalogResponse, statusResponse, groupsData] = await Promise.all([
         listAssets({ limit: 200 }),
         getAssetCatalogs(),
-        listStatusCatalogs().catch(() => ({ data: [] as AssetStatusCatalog[] }))
+        listStatusCatalogs().catch(() => ({ data: [] as AssetStatusCatalog[] })),
+        listEquipmentGroups(true).catch(() => [] as EquipmentGroup[])
       ]);
       assets = assetResponse.data ?? [];
       catalogs = catalogResponse.data ?? null;
       statuses = (statusResponse.data ?? []).length > 0 ? statusResponse.data : fallbackStatuses;
+      groups = groupsData;
     } catch (err) {
       error = err instanceof Error ? err.message : ($isLoading ? 'Failed to load assets' : $_('assets.errors.loadAssetsFailed'));
       toast.error(error);
@@ -279,6 +284,8 @@
       if (filterLocation && asset.locationId !== filterLocation) return false;
       // vendor filter
       if (filterVendor && asset.vendorId !== filterVendor) return false;
+      // group filter
+      if (filterGroup && asset.groupId !== filterGroup) return false;
       // warranty filter
       if (filterWarranty && asset.warrantyEnd) {
         const days = parseInt(filterWarranty, 10);
@@ -293,7 +300,7 @@
   });
 
   const activeFilterCount = $derived(
-    [filterStatus, filterCategory, filterLocation, filterVendor, filterWarranty].filter(Boolean).length
+    [filterStatus, filterCategory, filterLocation, filterVendor, filterWarranty, filterGroup].filter(Boolean).length
   );
 
   const selectedAssets = $derived(filteredAssets.filter((a) => selectedIds.has(a.id)));
@@ -306,6 +313,7 @@
     filterLocation = '';
     filterVendor = '';
     filterWarranty = '';
+    filterGroup = '';
   }
 
   function toggleSelectAll() {
@@ -450,6 +458,16 @@
               <option value="30">{$isLoading ? 'Expiring in 30 days' : $_('assets.filters.warranty30')}</option>
               <option value="60">{$isLoading ? 'Expiring in 60 days' : $_('assets.filters.warranty60')}</option>
               <option value="90">{$isLoading ? 'Expiring in 90 days' : $_('assets.filters.warranty90')}</option>
+            </select>
+          </div>
+
+          <div class="filter-field">
+            <label class="filter-label" for="filter-group">{$isLoading ? 'Equipment Group' : $_('catalogs.equipmentGroup.title')}</label>
+            <select id="filter-group" class="filter-select" bind:value={filterGroup}>
+              <option value="">{$isLoading ? 'All groups' : $_('assets.filters.allGroups')}</option>
+              {#each groups as group}
+                <option value={group.id}>{group.parentName ? `${group.parentName} / ${group.name}` : group.name}</option>
+              {/each}
             </select>
           </div>
         </div>

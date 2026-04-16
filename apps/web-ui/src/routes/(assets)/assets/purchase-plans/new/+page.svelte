@@ -1,312 +1,363 @@
 <script lang="ts">
-  import { _ } from 'svelte-i18n'
   import { goto } from '$app/navigation'
+  import { _, isLoading } from '$lib/i18n'
   import { API_BASE, apiJson } from '$lib/api/httpClient'
-  import type { PurchasePlanLine } from '$lib/types/qlts.js'
+  import { Plus, Trash2, ArrowLeft, Send, Save } from 'lucide-svelte'
 
-  let docDate = $state(new Date().toISOString().split('T')[0])
+  // ── State ──────────────────────────────────────────────────────────────────
+
+  let docDate   = $state(new Date().toISOString().split('T')[0])
   let fiscalYear = $state(new Date().getFullYear())
   let orgUnitName = $state('')
   let requiredByDate = $state('')
-  let purpose = $state('')
-  let note = $state('')
-  let lines = $state<PurchasePlanLine[]>([{
-    lineNo: 1,
-    modelName: '',
-    quantity: 1,
-    unit: '',
-    estimatedCost: 0,
-    note: ''
+  let purpose   = $state('')   // maps to `title` in API
+  let note      = $state('')
+
+  interface LineItem {
+    lineNo: number
+    modelName: string
+    quantity: number
+    unit: string
+    estimatedCost: number
+    priority: 'high' | 'medium' | 'low'
+    note: string
+  }
+
+  let lines = $state<LineItem[]>([{
+    lineNo: 1, modelName: '', quantity: 1, unit: 'cái', estimatedCost: 0, priority: 'medium', note: ''
   }])
 
   let saving = $state(false)
   let errorMessage = $state('')
 
+  const totalCost = $derived(lines.reduce((s, l) => s + l.quantity * l.estimatedCost, 0))
+
+  // ── Helpers ────────────────────────────────────────────────────────────────
+
   function addLine() {
     lines.push({
       lineNo: lines.length + 1,
-      modelName: '',
-      quantity: 1,
-      unit: '',
-      estimatedCost: 0,
-      note: ''
+      modelName: '', quantity: 1, unit: 'cái', estimatedCost: 0, priority: 'medium', note: ''
     })
   }
 
-  function removeLine(index: number) {
-    if (lines.length > 1) {
-      lines.splice(index, 1)
-      lines.forEach((line, idx) => { line.lineNo = idx + 1 })
-    }
+  function removeLine(i: number) {
+    if (lines.length <= 1) return
+    lines.splice(i, 1)
+    lines.forEach((l, idx) => { l.lineNo = idx + 1 })
   }
 
-  function calculateTotal() {
-    return lines.reduce((sum, line) => sum + (line.quantity * line.estimatedCost), 0)
+  function fmt(n: number) {
+    return new Intl.NumberFormat('vi-VN').format(n)
   }
 
-  async function saveDraft() {
-    await saveDocument('draft')
-  }
+  // ── Submit ─────────────────────────────────────────────────────────────────
 
-  async function saveAndSubmit() {
-    await saveDocument('submit')
-  }
+  async function save(action: 'draft' | 'submit') {
+    if (!purpose.trim()) { errorMessage = 'Vui lòng nhập tiêu đề kế hoạch'; return }
+    if (lines.some(l => !l.modelName.trim())) { errorMessage = 'Vui lòng nhập tên hàng hóa cho tất cả các dòng'; return }
 
-  async function saveDocument(action: 'draft' | 'submit') {
     saving = true
     errorMessage = ''
-
     try {
       const payload = {
         docDate,
         fiscalYear,
         orgUnitName: orgUnitName || undefined,
         requiredByDate: requiredByDate || undefined,
-        purpose: purpose || undefined,
+        purpose: purpose.trim(),
         note: note || undefined,
-        lines: lines.map(line => ({
-          ...line,
-          modelName: line.modelName.trim(),
-          unit: line.unit || undefined,
-          note: line.note || undefined
+        lines: lines.map(l => ({
+          lineNo: l.lineNo,
+          modelName: l.modelName.trim(),
+          quantity: l.quantity,
+          unit: l.unit || undefined,
+          estimatedCost: l.estimatedCost,
+          priority: l.priority,
+          note: l.note || undefined,
         }))
       }
-
       const created = await apiJson<{ data: { id: string } }>(`${API_BASE}/v1/assets/purchase-plans`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       })
-      const { data } = created
-
       if (action === 'submit') {
-        const approvers = ['00000000-0000-0000-0000-000000000001']
-        await apiJson(`${API_BASE}/v1/assets/purchase-plans/${data.id}/submit`, {
+        await apiJson(`${API_BASE}/v1/assets/purchase-plans/${created.data.id}/submit`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ approvers })
+          body: JSON.stringify({ approvers: [] })
         })
       }
-
       goto('/assets/purchase-plans')
-    } catch (error) {
-      errorMessage = error instanceof Error ? error.message : 'Unknown error'
+    } catch (e) {
+      errorMessage = e instanceof Error ? e.message : 'Lỗi không xác định'
     } finally {
       saving = false
     }
   }
 </script>
 
-<div class="page-shell page-content">
-  <div class="flex justify-between items-center mb-4">
-    <h1 class="text-2xl font-bold">{$_('qlts.purchasePlan.form.createTitle')}</h1>
-    <a href="/assets/purchase-plans" class="rounded-lg px-4 py-2 font-medium transition-colors hover:bg-gray-100">
-      {$_('common.cancel')}
-    </a>
+<div class="page-shell page-content space-y-4">
+
+  <!-- Header -->
+  <div class="flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <button
+        class="btn btn-ghost flex items-center gap-1.5 text-sm"
+        onclick={() => goto('/assets/purchase-plans')}
+      >
+        <ArrowLeft class="h-4 w-4" />
+        Danh sách
+      </button>
+      <div>
+        <h1 class="text-xl font-bold">
+          {$isLoading ? 'Tạo kế hoạch mua sắm' : $_('qlts.purchasePlan.form.createTitle')}
+        </h1>
+      </div>
+    </div>
+    <div class="flex gap-2">
+      <button
+        class="btn btn-secondary flex items-center gap-1.5 text-sm"
+        onclick={() => save('draft')}
+        disabled={saving}
+      >
+        <Save class="h-3.5 w-3.5" />
+        {$isLoading ? 'Lưu nháp' : $_('qlts.common.saveDraft')}
+      </button>
+      <button
+        class="btn btn-primary flex items-center gap-1.5 text-sm"
+        onclick={() => save('submit')}
+        disabled={saving}
+      >
+        <Send class="h-3.5 w-3.5" />
+        {$isLoading ? 'Lưu & Gửi duyệt' : $_('qlts.common.saveAndSubmit')}
+      </button>
+    </div>
   </div>
 
   {#if errorMessage}
-    <div class="mb-4 rounded-lg border border-red-200 bg-red-50 p-4 text-red-800">
-      {errorMessage}
-    </div>
+    <div class="alert alert-error text-sm">{errorMessage}</div>
   {/if}
 
-  <form class="space-y-6">
-    <div class="rounded-lg bg-surface-1 shadow">
-      <div class="p-6">
-        <h2 class="text-lg font-semibold mb-4">{$_('qlts.purchasePlan.form.basicInfo')}</h2>
-        
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label for="docDate" class="block text-sm font-medium mb-1">
-              {$_('qlts.common.docDate')} <span class="text-red-500">*</span>
-            </label>
-            <input
-              id="docDate"
-              type="date" 
-              bind:value={docDate}
-              class="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-              required
-            />
-          </div>
+  <!-- Basic info card -->
+  <div class="card p-5 space-y-4">
+    <h2 class="text-sm font-semibold text-slate-300 uppercase tracking-wide">
+      {$isLoading ? 'Thông tin chung' : $_('qlts.purchasePlan.form.basicInfo')}
+    </h2>
 
-          <div>
-            <label for="fiscalYear" class="block text-sm font-medium mb-1">
-              {$_('qlts.purchasePlan.form.fiscalYear')} <span class="text-red-500">*</span>
-            </label>
-            <input
-              id="fiscalYear"
-              type="number" 
-              bind:value={fiscalYear}
-              min="2020"
-              max="2100"
-              class="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-              required
-            />
-          </div>
-
-          <div>
-            <label for="orgUnitName" class="block text-sm font-medium mb-1">
-              {$_('qlts.common.orgUnit')}
-            </label>
-            <input
-              id="orgUnitName"
-              type="text" 
-              bind:value={orgUnitName}
-              class="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-            />
-          </div>
-
-          <div>
-            <label for="requiredByDate" class="block text-sm font-medium mb-1">
-              {$_('qlts.purchasePlan.form.requiredByDate')}
-            </label>
-            <input
-              id="requiredByDate"
-              type="date" 
-              bind:value={requiredByDate}
-              class="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-            />
-          </div>
-        </div>
-
-        <div class="mt-4">
-          <label for="purpose" class="block text-sm font-medium mb-1">
-            {$_('qlts.purchasePlan.form.purpose')}
-          </label>
-          <textarea
-            id="purpose"
-            bind:value={purpose}
-            rows="2"
-            class="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-          ></textarea>
-        </div>
-
-        <div class="mt-4">
-          <label for="note" class="block text-sm font-medium mb-1">
-            {$_('qlts.common.note')}
-          </label>
-          <textarea
-            id="note"
-            bind:value={note}
-            rows="2"
-            class="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-          ></textarea>
-        </div>
+    <!-- Row 1 -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div class="space-y-1">
+        <label class="text-xs text-slate-400" for="pp-purpose">
+          {$isLoading ? 'Tiêu đề kế hoạch' : $_('qlts.purchasePlan.form.purpose')}
+          <span class="text-red-400">*</span>
+        </label>
+        <input
+          id="pp-purpose"
+          class="input-base w-full"
+          type="text"
+          bind:value={purpose}
+          placeholder="VD: Kế hoạch mua sắm CNTT Quý 2/2026"
+        />
+      </div>
+      <div class="space-y-1">
+        <label class="text-xs text-slate-400" for="pp-orgunit">
+          {$isLoading ? 'Phòng ban / Đơn vị' : $_('qlts.common.orgUnit')}
+        </label>
+        <input
+          id="pp-orgunit"
+          class="input-base w-full"
+          type="text"
+          bind:value={orgUnitName}
+          placeholder="VD: Phòng Công nghệ thông tin"
+        />
+      </div>
+      <div class="space-y-1">
+        <label class="text-xs text-slate-400" for="pp-fiscal">
+          {$isLoading ? 'Năm tài chính' : $_('qlts.purchasePlan.form.fiscalYear')}
+          <span class="text-red-400">*</span>
+        </label>
+        <input
+          id="pp-fiscal"
+          class="input-base w-full"
+          type="number"
+          bind:value={fiscalYear}
+          min="2020" max="2100"
+        />
       </div>
     </div>
 
-    <div class="rounded-lg bg-surface-1 shadow">
-      <div class="p-6">
-        <div class="flex justify-between items-center mb-4">
-          <h2 class="text-lg font-semibold">{$_('qlts.purchasePlan.form.lineItems')}</h2>
-          <button
-            type="button"
-            onclick={() => addLine()}
-            class="rounded-lg bg-gray-600 px-3 py-1 text-sm font-medium text-white transition-colors hover:bg-gray-700"
-          >
-            {$_('qlts.common.addLine')}
-          </button>
-        </div>
-
-        <div class="overflow-x-auto">
-          <table class="w-full">
-            <thead class="bg-gray-100">
-              <tr>
-                <th class="w-16 px-3 py-1 text-left text-sm font-semibold">{$_('qlts.common.lineNo')}</th>
-                <th class="w-64 px-3 py-1 text-left text-sm font-semibold">{$_('qlts.common.modelName')}</th>
-                <th class="w-24 px-3 py-1 text-left text-sm font-semibold">{$_('qlts.common.quantity')}</th>
-                <th class="w-24 px-3 py-1 text-left text-sm font-semibold">{$_('qlts.common.unit')}</th>
-                <th class="w-32 px-3 py-1 text-left text-sm font-semibold">{$_('qlts.common.estimatedCost')}</th>
-                <th class="w-48 px-3 py-1 text-left text-sm font-semibold">{$_('qlts.common.note')}</th>
-                <th class="w-16 px-3 py-1 text-left text-sm font-semibold"></th>
-              </tr>
-            </thead>
-            <tbody>
-              {#each lines as line, index}
-                <tr>
-                  <td class="border-t px-3 py-1">{line.lineNo}</td>
-                  <td class="border-t px-3 py-1">
-                    <input 
-                      type="text" 
-                      bind:value={line.modelName}
-                      class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                      required
-                    />
-                  </td>
-                  <td class="border-t px-3 py-1">
-                    <input 
-                      type="number" 
-                      bind:value={line.quantity}
-                      min="1"
-                      class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                      required
-                    />
-                  </td>
-                  <td class="border-t px-3 py-1">
-                    <input 
-                      type="text" 
-                      bind:value={line.unit}
-                      class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                    />
-                  </td>
-                  <td class="border-t px-3 py-1">
-                    <input 
-                      type="number" 
-                      bind:value={line.estimatedCost}
-                      min="0"
-                      class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                    />
-                  </td>
-                  <td class="border-t px-3 py-1">
-                    <input 
-                      type="text" 
-                      bind:value={line.note}
-                      class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                    />
-                  </td>
-                  <td class="border-t px-3 py-1">
-                    {#if lines.length > 1}
-                      <button
-                        type="button"
-                        onclick={() => removeLine(index)}
-                        class="text-red-500 hover:text-red-700"
-                      >
-                        ✕
-                      </button>
-                    {/if}
-                  </td>
-                </tr>
-              {/each}
-              <tr>
-                <td colspan="4" class="border-t px-3 py-1 text-right">{$_('qlts.common.total')}:</td>
-                <td class="border-t px-3 py-1 font-semibold">{calculateTotal().toLocaleString()}</td>
-                <td class="border-t px-3 py-1"></td>
-                <td class="border-t px-3 py-1"></td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+    <!-- Row 2 -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div class="space-y-1">
+        <label class="text-xs text-slate-400" for="pp-docdate">
+          {$isLoading ? 'Ngày chứng từ' : $_('qlts.common.docDate')}
+          <span class="text-red-400">*</span>
+        </label>
+        <input
+          id="pp-docdate"
+          class="input-base w-full"
+          type="date"
+          bind:value={docDate}
+        />
+      </div>
+      <div class="space-y-1">
+        <label class="text-xs text-slate-400" for="pp-reqdate">
+          {$isLoading ? 'Ngày cần hàng' : $_('qlts.purchasePlan.form.requiredByDate')}
+        </label>
+        <input
+          id="pp-reqdate"
+          class="input-base w-full"
+          type="date"
+          bind:value={requiredByDate}
+        />
       </div>
     </div>
 
-    <div class="flex justify-end gap-3">
+    <!-- Note -->
+    <div class="space-y-1">
+      <label class="text-xs text-slate-400" for="pp-note">
+        {$isLoading ? 'Ghi chú' : $_('qlts.common.note')}
+      </label>
+      <textarea
+        id="pp-note"
+        class="input-base w-full resize-none"
+        rows="2"
+        bind:value={note}
+        placeholder="Thông tin bổ sung về kế hoạch..."
+      ></textarea>
+    </div>
+  </div>
+
+  <!-- Line items card -->
+  <div class="card p-5 space-y-3">
+    <div class="flex items-center justify-between">
+      <h2 class="text-sm font-semibold text-slate-300 uppercase tracking-wide">
+        {$isLoading ? 'Danh sách hàng hóa / vật tư' : $_('qlts.purchasePlan.form.lineItems')}
+        <span class="ml-1.5 text-slate-500 font-normal normal-case">({lines.length} dòng)</span>
+      </h2>
       <button
         type="button"
-        onclick={() => saveDraft()}
-        disabled={saving}
-        class="rounded-lg border border-gray-300 px-4 py-2 font-medium transition-colors hover:bg-gray-50 disabled:opacity-50"
+        class="btn btn-secondary flex items-center gap-1.5 text-xs h-7 px-2.5"
+        onclick={addLine}
       >
-        {$_('qlts.common.saveDraft')}
-      </button>
-      <button
-        type="button"
-        onclick={() => saveAndSubmit()}
-        disabled={saving}
-        class="rounded-lg bg-blue-600 px-4 py-2 font-medium text-white transition-colors hover:bg-blue-700 disabled:opacity-50"
-      >
-        {$_('qlts.common.saveAndSubmit')}
+        <Plus class="h-3 w-3" />
+        {$isLoading ? '+ Thêm dòng' : $_('qlts.common.addLine')}
       </button>
     </div>
-  </form>
+
+    <div class="overflow-x-auto rounded-lg border border-slate-700">
+      <table class="min-w-full text-sm">
+        <thead class="bg-slate-800 text-xs uppercase text-slate-400">
+          <tr>
+            <th class="w-10 px-3 py-2 text-center">{$isLoading ? 'STT' : $_('qlts.common.lineNo')}</th>
+            <th class="px-3 py-2 text-left min-w-[220px]">{$isLoading ? 'Tên hàng hóa / Thiết bị' : $_('qlts.common.modelName')} <span class="text-red-400">*</span></th>
+            <th class="w-20 px-3 py-2 text-center">{$isLoading ? 'Số lượng' : $_('qlts.common.quantity')}</th>
+            <th class="w-20 px-3 py-2 text-left">{$isLoading ? 'ĐVT' : $_('qlts.common.unit')}</th>
+            <th class="w-36 px-3 py-2 text-right">{$isLoading ? 'Đơn giá dự toán' : $_('qlts.common.estimatedCost')}</th>
+            <th class="w-28 px-2 py-2 text-center">Ưu tiên</th>
+            <th class="w-36 px-3 py-2 text-left">{$isLoading ? 'Ghi chú' : $_('qlts.common.note')}</th>
+            <th class="w-8 px-2 py-2"></th>
+          </tr>
+        </thead>
+        <tbody>
+          {#each lines as line, i}
+            <tr class="border-t border-slate-800 hover:bg-slate-800/30">
+              <td class="px-3 py-1.5 text-center text-slate-400 text-xs">{line.lineNo}</td>
+              <td class="px-3 py-1">
+                <input
+                  type="text"
+                  class="input-base w-full text-sm h-8"
+                  bind:value={line.modelName}
+                  placeholder="Nhập tên hàng hóa..."
+                />
+              </td>
+              <td class="px-3 py-1">
+                <input
+                  type="number"
+                  class="input-base w-full text-sm h-8 text-center"
+                  bind:value={line.quantity}
+                  min="1"
+                />
+              </td>
+              <td class="px-3 py-1">
+                <input
+                  type="text"
+                  class="input-base w-full text-sm h-8"
+                  bind:value={line.unit}
+                  placeholder="cái"
+                />
+              </td>
+              <td class="px-3 py-1">
+                <input
+                  type="number"
+                  class="input-base w-full text-sm h-8 text-right"
+                  bind:value={line.estimatedCost}
+                  min="0"
+                  step="100000"
+                />
+              </td>
+              <td class="px-2 py-1">
+                <select class="select-base w-full text-xs h-8 py-0" bind:value={line.priority}>
+                  <option value="high">Cao</option>
+                  <option value="medium">Trung bình</option>
+                  <option value="low">Thấp</option>
+                </select>
+              </td>
+              <td class="px-3 py-1">
+                <input
+                  type="text"
+                  class="input-base w-full text-sm h-8"
+                  bind:value={line.note}
+                  placeholder="Ghi chú..."
+                />
+              </td>
+              <td class="px-2 py-1 text-center">
+                {#if lines.length > 1}
+                  <button
+                    type="button"
+                    class="text-slate-500 hover:text-red-400 transition-colors"
+                    onclick={() => removeLine(i)}
+                  >
+                    <Trash2 class="h-4 w-4" />
+                  </button>
+                {/if}
+              </td>
+            </tr>
+          {/each}
+        </tbody>
+        <tfoot>
+          <tr class="border-t-2 border-slate-600 bg-slate-800/40">
+            <td colspan="4" class="px-3 py-2 text-right text-sm font-semibold text-slate-300">
+              {$isLoading ? 'Tổng dự toán:' : $_('qlts.common.total') + ':'}
+            </td>
+            <td class="px-3 py-2 text-right font-bold text-primary">{fmt(totalCost)} VND</td>
+            <td colspan="3"></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  </div>
+
+  <!-- Bottom actions (repeated for convenience) -->
+  <div class="flex justify-end gap-2 pb-4">
+    <button
+      class="btn btn-secondary flex items-center gap-1.5"
+      onclick={() => save('draft')}
+      disabled={saving}
+    >
+      <Save class="h-4 w-4" />
+      {$isLoading ? 'Lưu nháp' : $_('qlts.common.saveDraft')}
+    </button>
+    <button
+      class="btn btn-primary flex items-center gap-1.5"
+      onclick={() => save('submit')}
+      disabled={saving}
+    >
+      <Send class="h-4 w-4" />
+      {$isLoading ? 'Lưu & Gửi duyệt' : $_('qlts.common.saveAndSubmit')}
+    </button>
+  </div>
+
 </div>
