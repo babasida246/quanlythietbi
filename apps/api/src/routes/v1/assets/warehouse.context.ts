@@ -4,6 +4,7 @@ import type { AssetService } from '@qltb/application'
 import {
     CiRepo,
     MovementRepo,
+    OpsAttachmentRepo,
     OpsEventRepo,
     RelationshipRepo,
     RelationshipTypeRepo,
@@ -17,6 +18,7 @@ import {
     WarehouseUnitOfWork
 } from '@qltb/infra-postgres'
 import {
+    OpsAttachmentService,
     RelationshipService,
     RepairService,
     StockDocumentService,
@@ -28,6 +30,7 @@ import { reportsRoutes } from '../reports/reports.routes.js'
 import { warehouseRoutes } from '../warehouse/warehouse.routes.js'
 import { stockDocumentRoutes } from '../warehouse/stock-documents.routes.js'
 import { repairOrderRoutes } from '../warehouse/repair-orders.routes.js'
+import { opsAttachmentRoutes } from '../warehouse/ops-attachments.routes.js'
 
 export async function registerWarehouseContext(
     fastify: FastifyInstance,
@@ -44,6 +47,17 @@ export async function registerWarehouseContext(
     const repairPartRepo = new RepairPartRepo(pgClient)
     const warehouseUnitOfWork = new WarehouseUnitOfWork(pgClient)
     const opsEventRepo = new OpsEventRepo(pgClient)
+    const opsAttachmentRepo = new OpsAttachmentRepo(pgClient)
+
+    // Inline checker: validates that an asset_model entity exists before attaching files
+    const assetModelChecker = {
+        existsById: async (id: string) => {
+            const r = await pgClient.query<{ exists: boolean }>(
+                'SELECT EXISTS(SELECT 1 FROM asset_models WHERE id = $1) AS exists', [id]
+            )
+            return r.rows[0]?.exists ?? false
+        }
+    }
 
     // Local CMDB repos needed only by RepairService
     const ciRepo = new CiRepo(pgClient)
@@ -53,6 +67,9 @@ export async function registerWarehouseContext(
 
     const stockReportService = new StockReportService(stockReportRepo)
     const warehouseCatalogService = new WarehouseCatalogService(warehouseRepo, sparePartRepo, opsEventRepo)
+    const opsAttachmentService = new OpsAttachmentService(
+        opsAttachmentRepo, repairOrderRepo, stockDocumentRepo, opsEventRepo, assetModelChecker
+    )
     const stockService = new StockService(stockRepo)
     const stockDocumentService = new StockDocumentService(
         stockDocumentRepo,
@@ -74,8 +91,10 @@ export async function registerWarehouseContext(
     )
 
     await fastify.register(reportsRoutes, { prefix: '/api/v1', stockReportService })
-    await fastify.register(warehouseRoutes, { prefix: '/api/v1', catalogService: warehouseCatalogService, stockService, assetService: deps.assetService })
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await fastify.register(warehouseRoutes, { prefix: '/api/v1', catalogService: warehouseCatalogService, stockService, assetService: deps.assetService, pgClient: pgClient as any })
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     await fastify.register(stockDocumentRoutes, { prefix: '/api/v1', stockDocumentService, pgClient: pgClient as any })
     await fastify.register(repairOrderRoutes, { prefix: '/api/v1', repairService })
+    await fastify.register(opsAttachmentRoutes, { prefix: '/api/v1', opsAttachmentService })
 }

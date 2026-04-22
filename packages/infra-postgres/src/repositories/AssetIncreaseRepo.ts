@@ -185,49 +185,49 @@ export class AssetIncreaseRepo implements IAssetIncreaseRepo {
 
     async update(id: string, input: AssetIncreaseUpdateInput): Promise<AssetIncreaseDoc> {
         return await this.pg.transaction(async (client) => {
-            const updates: string[] = []
-            const params: unknown[] = []
-            let paramCount = 1
+            const hasDocUpdates =
+                input.docDate !== undefined ||
+                input.increaseType !== undefined ||
+                input.orgUnitId !== undefined ||
+                input.orgUnitName !== undefined ||
+                input.vendorId !== undefined ||
+                input.invoiceNo !== undefined ||
+                input.invoiceDate !== undefined ||
+                input.note !== undefined
 
-            if (input.docDate !== undefined) {
-                updates.push(`doc_date = $${paramCount++}`)
-                params.push(input.docDate)
-            }
-            if (input.increaseType !== undefined) {
-                updates.push(`increase_type = $${paramCount++}`)
-                params.push(input.increaseType)
-            }
-            if (input.orgUnitId !== undefined) {
-                updates.push(`org_unit_id = $${paramCount++}`)
-                params.push(input.orgUnitId)
-            }
-            if (input.orgUnitName !== undefined) {
-                updates.push(`org_unit_name = $${paramCount++}`)
-                params.push(input.orgUnitName)
-            }
-            if (input.vendorId !== undefined) {
-                updates.push(`vendor_id = $${paramCount++}`)
-                params.push(input.vendorId)
-            }
-            if (input.invoiceNo !== undefined) {
-                updates.push(`invoice_no = $${paramCount++}`)
-                params.push(input.invoiceNo)
-            }
-            if (input.invoiceDate !== undefined) {
-                updates.push(`invoice_date = $${paramCount++}`)
-                params.push(input.invoiceDate)
-            }
-            if (input.note !== undefined) {
-                updates.push(`note = $${paramCount++}`)
-                params.push(input.note)
-            }
-
-            if (updates.length > 0) {
-                updates.push(`updated_at = NOW()`)
-                params.push(id)
+            if (hasDocUpdates) {
                 await client.query(
-                    `UPDATE asset_increase_docs SET ${updates.join(', ')} WHERE id = $${paramCount}`,
-                    params
+                    `UPDATE asset_increase_docs
+                     SET
+                        doc_date = CASE WHEN $1::boolean THEN $2::date ELSE doc_date END,
+                        increase_type = CASE WHEN $3::boolean THEN $4::text ELSE increase_type END,
+                        org_unit_id = CASE WHEN $5::boolean THEN $6::varchar ELSE org_unit_id END,
+                        org_unit_name = CASE WHEN $7::boolean THEN $8::varchar ELSE org_unit_name END,
+                        vendor_id = CASE WHEN $9::boolean THEN $10::uuid ELSE vendor_id END,
+                        invoice_no = CASE WHEN $11::boolean THEN $12::varchar ELSE invoice_no END,
+                        invoice_date = CASE WHEN $13::boolean THEN $14::date ELSE invoice_date END,
+                        note = CASE WHEN $15::boolean THEN $16::text ELSE note END,
+                        updated_at = NOW()
+                     WHERE id = $17`,
+                    [
+                        input.docDate !== undefined,
+                        input.docDate ?? null,
+                        input.increaseType !== undefined,
+                        input.increaseType ?? null,
+                        input.orgUnitId !== undefined,
+                        input.orgUnitId ?? null,
+                        input.orgUnitName !== undefined,
+                        input.orgUnitName ?? null,
+                        input.vendorId !== undefined,
+                        input.vendorId ?? null,
+                        input.invoiceNo !== undefined,
+                        input.invoiceNo ?? null,
+                        input.invoiceDate !== undefined,
+                        input.invoiceDate ?? null,
+                        input.note !== undefined,
+                        input.note ?? null,
+                        id
+                    ]
                 )
             }
 
@@ -285,13 +285,52 @@ export class AssetIncreaseRepo implements IAssetIncreaseRepo {
     }
 
     async updateStatus(id: string, status: AssetIncreaseStatus, actor: string): Promise<void> {
-        const statusField = this.getStatusField(status)
-        await this.pg.query(
-            `UPDATE asset_increase_docs 
-             SET status = $1, ${statusField} = $2, ${statusField.replace('_at', '_by')} = $3, updated_at = NOW()
-             WHERE id = $4`,
-            [status, new Date(), actor, id]
-        )
+        switch (status) {
+            case 'submitted': {
+                await this.pg.query(
+                    `UPDATE asset_increase_docs
+                     SET status = $1, submitted_at = NOW(), submitted_by = $2, updated_at = NOW()
+                     WHERE id = $3`,
+                    [status, actor, id]
+                )
+                return
+            }
+            case 'approved': {
+                await this.pg.query(
+                    `UPDATE asset_increase_docs
+                     SET status = $1, approved_at = NOW(), approved_by = $2, updated_at = NOW()
+                     WHERE id = $3`,
+                    [status, actor, id]
+                )
+                return
+            }
+            case 'posted': {
+                await this.pg.query(
+                    `UPDATE asset_increase_docs
+                     SET status = $1, posted_at = NOW(), posted_by = $2, updated_at = NOW()
+                     WHERE id = $3`,
+                    [status, actor, id]
+                )
+                return
+            }
+            case 'cancelled': {
+                await this.pg.query(
+                    `UPDATE asset_increase_docs
+                     SET status = $1, cancelled_at = NOW(), cancelled_by = $2, updated_at = NOW()
+                     WHERE id = $3`,
+                    [status, actor, id]
+                )
+                return
+            }
+            default: {
+                await this.pg.query(
+                    `UPDATE asset_increase_docs
+                     SET status = $1, updated_at = NOW()
+                     WHERE id = $2`,
+                    [status, id]
+                )
+            }
+        }
     }
 
     async list(filters: {
@@ -302,30 +341,26 @@ export class AssetIncreaseRepo implements IAssetIncreaseRepo {
         page?: number
         limit?: number
     }): Promise<{ items: AssetIncreaseDoc[]; total: number }> {
-        const conditions: string[] = ['1=1']
-        const params: unknown[] = []
-        let paramCount = 1
+        const status = filters.status ?? null
+        const increaseType = filters.increaseType ?? null
+        const fromDate = filters.fromDate ?? null
+        const toDate = filters.toDate ?? null
 
-        if (filters.status) {
-            conditions.push(`status = $${paramCount++}`)
-            params.push(filters.status)
-        }
-        if (filters.increaseType) {
-            conditions.push(`increase_type = $${paramCount++}`)
-            params.push(filters.increaseType)
-        }
-        if (filters.fromDate) {
-            conditions.push(`doc_date >= $${paramCount++}`)
-            params.push(filters.fromDate)
-        }
-        if (filters.toDate) {
-            conditions.push(`doc_date <= $${paramCount++}`)
-            params.push(filters.toDate)
-        }
+        const baseFilterParams: [AssetIncreaseStatus | null, IncreaseType | null, Date | null, Date | null] = [
+            status,
+            increaseType,
+            fromDate,
+            toDate
+        ]
 
         const countResult = await this.pg.query<{ count: string }>(
-            `SELECT COUNT(*) as count FROM asset_increase_docs WHERE ${conditions.join(' AND ')}`,
-            params
+            `SELECT COUNT(*) as count
+             FROM asset_increase_docs
+             WHERE ($1::text IS NULL OR status = $1::text)
+               AND ($2::text IS NULL OR increase_type = $2::text)
+               AND ($3::date IS NULL OR doc_date >= $3::date)
+               AND ($4::date IS NULL OR doc_date <= $4::date)`,
+            baseFilterParams
         )
 
         const page = filters.page ?? 1
@@ -334,10 +369,13 @@ export class AssetIncreaseRepo implements IAssetIncreaseRepo {
 
         const result = await this.pg.query<AssetIncreaseDocRow>(
             `SELECT * FROM asset_increase_docs 
-             WHERE ${conditions.join(' AND ')}
+             WHERE ($1::text IS NULL OR status = $1::text)
+               AND ($2::text IS NULL OR increase_type = $2::text)
+               AND ($3::date IS NULL OR doc_date >= $3::date)
+               AND ($4::date IS NULL OR doc_date <= $4::date)
              ORDER BY doc_date DESC, doc_no DESC
-             LIMIT $${paramCount++} OFFSET $${paramCount}`,
-            [...params, limit, offset]
+             LIMIT $5 OFFSET $6`,
+            [...baseFilterParams, limit, offset]
         )
 
         const items = await Promise.all(
@@ -366,16 +404,6 @@ export class AssetIncreaseRepo implements IAssetIncreaseRepo {
         const seq = parseInt(result.rows[0].count) + 1
         const year = new Date().getFullYear()
         return `AI-${year}-${seq.toString().padStart(4, '0')}`
-    }
-
-    private getStatusField(status: AssetIncreaseStatus): string {
-        switch (status) {
-            case 'submitted': return 'submitted_at'
-            case 'approved': return 'approved_at'
-            case 'posted': return 'posted_at'
-            case 'cancelled': return 'cancelled_at'
-            default: return 'updated_at'
-        }
     }
 
     private mapDocRow(row: AssetIncreaseDocRow): AssetIncreaseDoc {

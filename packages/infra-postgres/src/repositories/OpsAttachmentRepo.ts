@@ -84,4 +84,8 @@ export class OpsAttachmentRepo implements IOpsAttachmentRepo {
         )
         return result.rows[0] ? mapAttachment(result.rows[0]) : null
     }
+
+    async delete(id: string): Promise<void> {
+        await this.pg.query(`DELETE FROM attachments WHERE id = $1`, [id])
+    }
 }

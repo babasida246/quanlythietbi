@@ -221,6 +221,20 @@ export async function listStockAssets(
     return res.data
 }
 
+export type SparePartSearchResult = {
+    id: string; partCode: string; name: string;
+    category: string | null; uom: string | null;
+    manufacturer: string | null; model: string | null; unitCost: number
+}
+
+export async function searchSpareParts(q: string, limit = 15): Promise<SparePartSearchResult[]> {
+    const qs = new URLSearchParams({ q, limit: String(limit) }).toString()
+    const res = await apiJson<ApiResponse<SparePartSearchResult[]>>(
+        `${API_BASE}/v1/spare-parts/search?${qs}`, { headers: getAssetHeaders() }
+    )
+    return res.data ?? []
+}
+
 export async function listSpareParts(params: { q?: string; page?: number; limit?: number } = {}): Promise<ApiResponse<SparePartRecord[]>> {
     const query = buildQuery(params)
     return apiJson<ApiResponse<SparePartRecord[]>>(`${API_BASE}/v1/spare-parts${query}`, {
@@ -524,3 +538,74 @@ export async function reportValuation(params: { warehouseId?: string; currencyId
     const query = buildQuery(params)
     return apiJsonData<ValuationResult>(`${API_BASE}/v1/reports/valuation${query}`, { headers: getAssetHeaders() })
 }
+
+// ── Ops Attachments (stock documents & asset models) ──────────────────────────
+
+export type OpsAttachment = {
+    id: string
+    entityType: string
+    entityId: string
+    fileName: string
+    mimeType: string | null
+    storageKey: string
+    sizeBytes: number | null
+    version: number
+    uploadedBy: string | null
+    createdAt: string
+}
+
+function makeOpsAttachmentUrl(entityPrefix: string, entityId: string, suffix = ''): string {
+    return `${API_BASE}/v1/${entityPrefix}/${entityId}/attachments${suffix}`
+}
+
+async function uploadOpsAttachment(entityPrefix: string, entityId: string, file: File): Promise<OpsAttachment> {
+    const formData = new FormData()
+    formData.append('file', file)
+    const res = await fetch(makeOpsAttachmentUrl(entityPrefix, entityId), {
+        method: 'POST',
+        headers: getAssetHeaders(),
+        body: formData
+    })
+    if (!res.ok) throw new Error(await res.text())
+    const json = await res.json()
+    return json.data
+}
+
+async function listOpsAttachments(entityPrefix: string, entityId: string): Promise<OpsAttachment[]> {
+    const res = await fetch(makeOpsAttachmentUrl(entityPrefix, entityId), { headers: getAssetHeaders() })
+    if (!res.ok) throw new Error(await res.text())
+    const json = await res.json()
+    return json.data ?? []
+}
+
+function getOpsAttachmentDownloadUrl(entityPrefix: string, entityId: string, attachmentId: string): string {
+    return makeOpsAttachmentUrl(entityPrefix, entityId, `/${attachmentId}/download`)
+}
+
+async function deleteOpsAttachment(entityPrefix: string, entityId: string, attachmentId: string): Promise<void> {
+    const res = await fetch(makeOpsAttachmentUrl(entityPrefix, entityId, `/${attachmentId}`), {
+        method: 'DELETE',
+        headers: getAssetHeaders()
+    })
+    if (!res.ok) throw new Error(await res.text())
+}
+
+// Stock document attachments (invoices, delivery notes, etc.)
+export const uploadStockDocAttachment = (docId: string, file: File) =>
+    uploadOpsAttachment('stock-documents', docId, file)
+export const listStockDocAttachments = (docId: string) =>
+    listOpsAttachments('stock-documents', docId)
+export const getStockDocAttachmentUrl = (docId: string, attachmentId: string) =>
+    getOpsAttachmentDownloadUrl('stock-documents', docId, attachmentId)
+export const deleteStockDocAttachment = (docId: string, attachmentId: string) =>
+    deleteOpsAttachment('stock-documents', docId, attachmentId)
+
+// Asset model attachments (product images, spec sheets, etc.)
+export const uploadAssetModelAttachment = (modelId: string, file: File) =>
+    uploadOpsAttachment('asset-models', modelId, file)
+export const listAssetModelAttachments = (modelId: string) =>
+    listOpsAttachments('asset-models', modelId)
+export const getAssetModelAttachmentUrl = (modelId: string, attachmentId: string) =>
+    getOpsAttachmentDownloadUrl('asset-models', modelId, attachmentId)
+export const deleteAssetModelAttachment = (modelId: string, attachmentId: string) =>
+    deleteOpsAttachment('asset-models', modelId, attachmentId)

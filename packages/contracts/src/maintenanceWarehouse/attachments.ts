@@ -1,4 +1,4 @@
-export type OpsAttachmentEntityType = 'repair_order' | 'stock_document'
+export type OpsAttachmentEntityType = 'repair_order' | 'stock_document' | 'asset_model'
 
 export interface OpsAttachmentRecord {
     id: string
@@ -30,4 +30,5 @@ export interface IOpsAttachmentRepo {
     add(input: OpsAttachmentInput): Promise<OpsAttachmentRecord>
     listByEntity(entityType: OpsAttachmentEntityType, entityId: string): Promise<OpsAttachmentRecord[]>
     getById(id: string): Promise<OpsAttachmentRecord | null>
+    delete(id: string): Promise<void>
 }

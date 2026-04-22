@@ -1,6 +1,7 @@
 import type { FastifyPluginAsync } from 'fastify'
 import type { AssetIncreaseRepo, ApprovalRepo, PgClient } from '@qltb/infra-postgres'
 import { WorkflowService } from '../services/WorkflowService.js'
+import { AssetIncreasePostingService } from '../services/AssetIncreasePostingService.js'
 import {
     CreateAssetIncreaseSchema,
     UpdateAssetIncreaseSchema,
@@ -8,15 +9,7 @@ import {
     SubmitAssetIncreaseSchema
 } from '../schemas/assetIncrease.js'
 import { ApproveRejectSchema } from '../schemas/purchasePlan.js'
-import { UnauthorizedError } from '../../../shared/errors/http-errors.js'
-
-function requireAuthenticatedUserId(request: { user?: { id?: string } }): string {
-    const userId = request.user?.id?.trim()
-    if (!userId) {
-        throw new UnauthorizedError('Missing authenticated user context')
-    }
-    return userId
-}
+import { requireAuthenticatedUserId } from './auth-context.js'
 
 export const assetIncreaseRoutes: FastifyPluginAsync = async (fastify) => {
     if (!fastify.diContainer) {
@@ -27,6 +20,7 @@ export const assetIncreaseRoutes: FastifyPluginAsync = async (fastify) => {
     const pgClient = fastify.diContainer.resolve<PgClient>('pgClient')
 
     const workflowService = new WorkflowService(pgClient, approvalRepo)
+    const postingService = new AssetIncreasePostingService(pgClient)
 
     // POST /api/v1/assets/asset-increases
     fastify.post('/', async (request, reply) => {
@@ -114,6 +108,10 @@ export const assetIncreaseRoutes: FastifyPluginAsync = async (fastify) => {
         const { approvalId, note } = ApproveRejectSchema.parse(request.body)
         const userId = requireAuthenticatedUserId(request)
 
+        if (!approvalId) {
+            return reply.code(400).send({ error: 'Approval ID is required' })
+        }
+
         await workflowService.approve(approvalId, userId, note)
 
         const approvals = await workflowService.getApprovalHistory('asset_increase', id)
@@ -131,6 +129,10 @@ export const assetIncreaseRoutes: FastifyPluginAsync = async (fastify) => {
         const { id } = request.params as { id: string }
         const { approvalId, note } = ApproveRejectSchema.parse(request.body)
         const userId = requireAuthenticatedUserId(request)
+
+        if (!approvalId) {
+            return reply.code(400).send({ error: 'Approval ID is required' })
+        }
 
         if (!note) {
             return reply.code(400).send({ error: 'Rejection reason required' })
@@ -157,63 +159,8 @@ export const assetIncreaseRoutes: FastifyPluginAsync = async (fastify) => {
             return reply.code(400).send({ error: transition.reason })
         }
 
-        const lines = doc.lines ?? []
-
-        await pgClient.transaction(async (client: any) => {
-            for (const line of lines) {
-                // Column names must match the actual assets table schema:
-                //   asset_code (not code), model_id, serial_no (not serial_number),
-                //   location_id, status, purchase_date (not acquisition_date),
-                //   warranty_end (not warranty_end_date), vendor_id,
-                //   source_doc_type/source_doc_id/source_doc_no (added by migration 026)
-                const assetResult = await client.query(
-                    `INSERT INTO assets (
-                        asset_code, model_id, serial_no,
-                        location_id, status,
-                        purchase_date, warranty_end,
-                        notes,
-                        source_doc_type, source_doc_id, source_doc_no
-                    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
-                    RETURNING id`,
-                    [
-                        line.assetCode || `AST-${Date.now()}-${line.lineNo}`,
-                        line.modelId,
-                        line.serialNumber ?? null,
-                        line.locationId ?? null,
-                        'in_stock',
-                        line.acquisitionDate || doc.docDate || null,
-                        line.warrantyEndDate ?? null,
-                        line.assetName ? `Tăng TS: ${line.assetName}` : null,
-                        'asset_increase',
-                        doc.id,
-                        doc.docNo
-                    ]
-                )
-
-                await client.query(
-                    `UPDATE asset_increase_lines SET asset_id = $1 WHERE id = $2`,
-                    [assetResult.rows[0].id, line.id]
-                )
-
-                if (line.modelId) {
-                    await client.query(
-                        `UPDATE asset_models 
-                         SET current_stock_qty = COALESCE(current_stock_qty, 0) + $1
-                         WHERE id = $2`,
-                        [line.quantity, line.modelId]
-                    )
-                }
-            }
-
-            await client.query(
-                `UPDATE asset_increase_docs 
-                 SET status = $1, posted_by = $2, posted_at = NOW(), updated_at = NOW()
-                 WHERE id = $3`,
-                ['posted', userId, id]
-            )
-        })
-
-        return { data: { posted: true, assetsCreated: lines.length } }
+        const assetsCreated = await postingService.postDocument(doc, userId)
+        return { data: { posted: true, assetsCreated } }
     })
 
     // DELETE /api/v1/assets/asset-increases/:id/cancel

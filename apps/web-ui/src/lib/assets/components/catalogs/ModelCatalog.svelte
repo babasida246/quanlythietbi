@@ -7,9 +7,19 @@
     type AssetModel,
     type Vendor
   } from '$lib/api/assetCatalogs';
+  import {
+    deleteAssetModelAttachment,
+    getAssetModelAttachmentUrl,
+    listAssetModelAttachments,
+    uploadAssetModelAttachment,
+    type OpsAttachment
+  } from '$lib/api/warehouse';
   import ModelForm from './ModelForm.svelte';
   import ModelFilters from './ModelFilters.svelte';
   import ModelTable from './ModelTable.svelte';
+  import Modal from '$lib/components/Modal.svelte';
+  import FileGallery from '$lib/components/FileGallery.svelte';
+  import { _, isLoading } from '$lib/i18n';
 
   let {
     models = [],
@@ -35,7 +45,32 @@
   let filterLoading = $state(false);
   let lastFilters = $state<{ categoryId: string; specFilters: Record<string, unknown> } | null>(null);
   let selectedModel = $state<AssetModel | null>(null);
+  let imageModel = $state<AssetModel | null>(null);
+  let imageModalOpen = $state(false);
+  let imageAttachments = $state<OpsAttachment[]>([]);
+  let imageLoading = $state(false);
   let error = $state('');
+
+  async function openImages(model: AssetModel) {
+    imageModel = model;
+    imageModalOpen = true;
+    imageLoading = true;
+    try {
+      imageAttachments = await listAssetModelAttachments(model.id);
+    } catch { imageAttachments = [] } finally { imageLoading = false; }
+  }
+
+  async function handleImageUpload(file: File) {
+    if (!imageModel) return;
+    await uploadAssetModelAttachment(imageModel.id, file);
+    imageAttachments = await listAssetModelAttachments(imageModel.id);
+  }
+
+  async function handleImageDelete(attachmentId: string) {
+    if (!imageModel) return;
+    await deleteAssetModelAttachment(imageModel.id, attachmentId);
+    imageAttachments = await listAssetModelAttachments(imageModel.id);
+  }
 
   $effect(() => {
     if (!filterActive) {
@@ -132,5 +167,23 @@
     disabled={filterLoading}
     onedit={(model) => handleEdit(model)}
     onremove={(id) => remove(id)}
+    onimages={(model) => openImages(model)}
   />
 </div>
+
+<Modal
+  bind:open={imageModel}
+  title={$isLoading ? 'Ảnh thiết bị' : $_('catalogs.model.imagesModalTitle', { values: { name: imageModel?.model ?? '' } })}
+  size="lg"
+>
+  {#snippet children()}
+    <FileGallery
+      attachments={imageAttachments}
+      loading={imageLoading}
+      accept="image/*"
+      getDownloadUrl={(id) => getAssetModelAttachmentUrl(imageModel?.id ?? '', id)}
+      onUpload={handleImageUpload}
+      onDelete={handleImageDelete}
+    />
+  {/snippet}
+</Modal>

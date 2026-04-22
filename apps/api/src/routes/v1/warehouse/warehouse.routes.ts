@@ -29,7 +29,13 @@ interface WarehouseRoutesOptions {
     catalogService: WarehouseCatalogService
     stockService: StockService
     assetService?: AssetService
+    pgClient?: { query: <T>(sql: string, params?: unknown[]) => Promise<{ rows: T[] }> }
 }
+
+const partsSearchSchema = z.object({
+    q: z.string().min(1).max(200),
+    limit: z.coerce.number().int().min(1).max(50).default(15)
+})
 
 export async function warehouseRoutes(
     fastify: FastifyInstance,
@@ -203,5 +209,70 @@ export async function warehouseRoutes(
             }
         }
         return reply.send({ data: results })
+    })
+
+    // ==================== OCR Fuzzy Search ====================
+
+    fastify.get('/spare-parts/search', async (request, reply) => {
+        getUserContext(request)
+        const { q, limit } = partsSearchSchema.parse(request.query)
+
+        if (!opts.pgClient) {
+            // Fallback: use catalogService with name filter
+            const result = await catalogService.listParts({ page: 1, limit, q })
+            return reply.send({ data: result.items })
+        }
+
+        // Tokenise the query: split on whitespace, hyphens, slashes
+        const rawTokens = q.split(/[\s\-\/,]+/).map(t => t.trim()).filter(t => t.length >= 2)
+        if (rawTokens.length === 0) {
+            return reply.send({ data: [] })
+        }
+
+        // Build WHERE conditions: each token must match at least one field
+        const conditions: string[] = []
+        const params: string[] = []
+        let paramIdx = 1
+        for (const token of rawTokens) {
+            const like = `%${token}%`
+            conditions.push(
+                `(name ILIKE $${paramIdx} OR part_code ILIKE $${paramIdx} OR manufacturer ILIKE $${paramIdx} OR model ILIKE $${paramIdx})`
+            )
+            params.push(like)
+            paramIdx++
+        }
+
+        // Exact / prefix boost: whole query phrase
+        const exactLike = `%${q}%`
+        params.push(exactLike)
+        const boostParam = paramIdx
+
+        const sql = `
+            SELECT id, part_code, name, category, uom, manufacturer, model, unit_cost
+            FROM spare_parts
+            WHERE deleted_at IS NULL
+              AND (${conditions.join(' OR ')})
+            ORDER BY
+                CASE WHEN part_code ILIKE $${boostParam} OR name ILIKE $${boostParam} THEN 0 ELSE 1 END,
+                length(name)
+            LIMIT ${limit}
+        `
+        const result = await opts.pgClient.query<{
+            id: string; part_code: string; name: string;
+            category: string | null; uom: string | null;
+            manufacturer: string | null; model: string | null; unit_cost: string
+        }>(sql, params)
+
+        const items = result.rows.map(r => ({
+            id: r.id,
+            partCode: r.part_code,
+            name: r.name,
+            category: r.category,
+            uom: r.uom,
+            manufacturer: r.manufacturer,
+            model: r.model,
+            unitCost: parseFloat(r.unit_cost ?? '0')
+        }))
+        return reply.send({ data: items })
     })
 }

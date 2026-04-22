@@ -1,6 +1,6 @@
 <script lang="ts">
   import { _, isLoading } from '$lib/i18n';
-  import { Edit, Trash2 } from 'lucide-svelte';
+  import { Edit, Trash2, Images } from 'lucide-svelte';
   import DataTable from '$lib/components/DataTable.svelte';
   import type { AssetCategory, AssetModel, Vendor } from '$lib/api/assetCatalogs';
 
@@ -10,7 +10,8 @@
     vendors = [],
     disabled = false,
     onedit,
-    onremove
+    onremove,
+    onimages
   } = $props<{
     models?: AssetModel[];
     categories?: AssetCategory[];
@@ -18,6 +19,7 @@
     disabled?: boolean;
     onedit?: (model: AssetModel) => void;
     onremove?: (id: string) => void;
+    onimages?: (model: AssetModel) => void;
   }>();
 
   // Ensure all props are always arrays
@@ -50,6 +52,12 @@
     disabled
       ? []
       : [
+          {
+            label: $isLoading ? 'Images' : $_('catalogs.model.images'),
+            icon: Images,
+            color: 'secondary' as const,
+            onClick: (row: AssetModel) => onimages?.(row)
+          },
           {
             label: $isLoading ? 'Edit' : $_('common.edit'),
             icon: Edit,

@@ -4,6 +4,7 @@ export type OpsEntityType =
     | 'spare_part'
     | 'warehouse'
     | 'asset_category'
+    | 'asset_model'
     | 'cmdb_ci'
     | 'cmdb_rel'
     | 'cmdb_service'

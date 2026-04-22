@@ -1,7 +1,9 @@
 <script lang="ts">
-  import type { SparePartRecord, StockDocumentLine, WarehouseAssetOption } from '$lib/api/warehouse';
+  import type { SparePartRecord, SparePartSearchResult, StockDocumentLine, WarehouseAssetOption } from '$lib/api/warehouse';
   import { getStockAvailable } from '$lib/api/warehouse';
   import { _, isLoading } from '$lib/i18n';
+  import OcrScanModal from '$lib/components/OcrScanModal.svelte';
+  import { ScanLine } from 'lucide-svelte';
 
   type ModelOption = { id: string; name: string; categoryName?: string | null };
 
@@ -69,6 +71,19 @@
     return av !== undefined && qty > av;
   }
   function toggleSpec(i: number) { expandedSpec = { ...expandedSpec, [i]: !expandedSpec[i] }; }
+
+  let ocrOpen = $state(false)
+
+  function handleOcrSelect(part: SparePartSearchResult) {
+    lines = [...lines, {
+      lineType: 'spare_part',
+      partId: part.id,
+      qty: 1,
+      unitCost: showPrice ? (part.unitCost ?? 0) : undefined,
+      adjustDirection: showAdjDir ? 'plus' : undefined,
+      specFields: null
+    }]
+  }
 
   function addSparePartLine() {
     lines = [...lines, {
@@ -142,11 +157,23 @@
         {$isLoading ? '+ Add Asset Line' : $_('stockDoc.addAssetLine')}
       </button>
     {/if}
+    <!-- OCR scan button: available for spare part scanning on any doc type -->
+    <button
+      type="button"
+      class="inline-flex items-center gap-1.5 rounded-lg border border-dashed border-emerald-500/60 bg-emerald-500/10 px-3 py-1.5 text-sm font-medium text-emerald-400 hover:bg-emerald-500/20 transition-colors"
+      onclick={() => (ocrOpen = true)}
+      title={$isLoading ? 'Quét tem sản phẩm bằng OCR' : $_('ocr.scanBtnTitle')}
+    >
+      <ScanLine class="h-4 w-4" />
+      {$isLoading ? 'Quét tem' : $_('ocr.scanBtn')}
+    </button>
     {#if lines.length > 0}
       <span class="text-xs text-slate-500">{$isLoading ? lines.length + ' lines' : $_('stockDoc.lineCount', { values: { count: lines.length } })}</span>
     {/if}
   </div>
 {/if}
+
+<OcrScanModal bind:open={ocrOpen} onSelect={handleOcrSelect} />
 
 <div class="overflow-x-auto rounded-xl border border-slate-700">
   <table class="w-full border-collapse text-sm">

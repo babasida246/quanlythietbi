@@ -1082,8 +1082,10 @@ test.describe('Assets API', () => {
     let authToken: string
 
     test.beforeAll(async ({ request }) => {
+        const email = process.env.E2E_ADMIN_EMAIL ?? '<admin-email-from-env>'
+        const password = process.env.E2E_ADMIN_PASSWORD ?? '<admin-password-from-env>'
         const res = await request.post('/api/v1/auth/login', {
-            data: { email: 'admin@example.com', password: 'Benhvien@121' }
+            data: { email, password }
         })
         authToken = (await res.json()).accessToken
     })
@@ -1255,9 +1257,9 @@ pnpm build:web    # Build Web UI với Vite
 
 | Role | Email | Password |
 |------|-------|----------|
-| Admin | admin@example.com | Benhvien@121 |
-| IT Manager | it_manager@example.com | Benhvien@121 |
-| User | user@example.com | Benhvien@121 |
+| Admin | admin@example.com | lấy từ biến môi trường local/test |
+| IT Manager | it_manager@example.com | lấy từ biến môi trường local/test |
+| User | user@example.com | lấy từ biến môi trường local/test |
 
 ## Quick Start
 

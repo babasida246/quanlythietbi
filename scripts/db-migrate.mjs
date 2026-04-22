@@ -43,6 +43,7 @@ const MIGRATIONS = [
 
     // Migrations mới thêm vào đây (từ 065_xxx.sql trở đi)
     { label: '065_equipment_groups.sql', path: join(DB_MIGRATIONS, '065_equipment_groups.sql') },
+    { label: '066_asset_model_attachments.sql', path: join(DB_MIGRATIONS, '066_asset_model_attachments.sql') },
 ]
 
 const client = new pg.Client(pgConfig())

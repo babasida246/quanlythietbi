@@ -10,17 +10,23 @@
   import {
     approveStockDocument,
     cancelStockDocument,
+    deleteStockDocAttachment,
     getStockDocument,
+    getStockDocAttachmentUrl,
     listSpareParts,
+    listStockDocAttachments,
     listWarehouses,
     postStockDocument,
     submitStockDocument,
     updateStockDocument,
+    uploadStockDocAttachment,
+    type OpsAttachment,
     type SparePartRecord,
     type StockDocumentLine,
     type StockDocumentRecord,
     type WarehouseRecord
   } from '$lib/api/warehouse';
+  import FileGallery from '$lib/components/FileGallery.svelte';
 
   const docId = $derived(page.params.id ?? '');
 
@@ -43,6 +49,9 @@
   let submitterName = $state('');
   let receiverName = $state('');
   let department = $state('');
+
+  let attachments = $state<OpsAttachment[]>([])
+  let attachmentsLoading = $state(false)
 
   const isDraft = $derived(document?.status === 'draft');
   const isSubmitted = $derived(document?.status === 'submitted');
@@ -91,6 +100,26 @@
     };
   });
 
+  async function loadAttachments() {
+    if (!docId) return;
+    attachmentsLoading = true;
+    try {
+      attachments = await listStockDocAttachments(docId);
+    } catch { /* non-critical */ } finally {
+      attachmentsLoading = false;
+    }
+  }
+
+  async function handleAttachmentUpload(file: File) {
+    await uploadStockDocAttachment(docId, file);
+    await loadAttachments();
+  }
+
+  async function handleAttachmentDelete(attachmentId: string) {
+    await deleteStockDocAttachment(docId, attachmentId);
+    await loadAttachments();
+  }
+
   async function loadDetail() {
     if (!docId) {
       loading = false;
@@ -123,6 +152,7 @@
     } finally {
       loading = false;
     }
+    void loadAttachments();
   }
 
   async function save() {
@@ -355,6 +385,21 @@
         {/if}
       </div>
       <StockDocumentLines bind:lines={lines} parts={parts} docType={document.docType} warehouseId={warehouseId} readonly={!isDraft} />
+    </div>
+
+    <!-- ── Attachments (invoices, delivery notes, photos) ───────────────── -->
+    <div class="rounded-xl border border-slate-700 bg-slate-900/40 px-5 py-4">
+      <h3 class="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-400">
+        {$isLoading ? 'Đính kèm (hóa đơn, phiếu giao hàng...)' : $_('fileGallery.sectionTitle')}
+      </h3>
+      <FileGallery
+        attachments={attachments}
+        loading={attachmentsLoading}
+        readonly={!isDraft}
+        getDownloadUrl={(id) => getStockDocAttachmentUrl(docId, id)}
+        onUpload={isDraft ? handleAttachmentUpload : undefined}
+        onDelete={isDraft ? handleAttachmentDelete : undefined}
+      />
     </div>
 
     <!-- ── Status timeline + action buttons ─────────────────────────────── -->

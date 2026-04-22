@@ -17,15 +17,7 @@ import {
     SubmitPurchasePlanSchema,
     ApproveRejectSchema
 } from '../schemas/purchasePlan.js'
-import { UnauthorizedError } from '../../../shared/errors/http-errors.js'
-
-function requireAuthenticatedUserId(request: { user?: { id?: string } }): string {
-    const userId = request.user?.id?.trim()
-    if (!userId) {
-        throw new UnauthorizedError('Missing authenticated user context')
-    }
-    return userId
-}
+import { requireAuthenticatedUserId } from './auth-context.js'
 
 export const purchasePlanRoutes: FastifyPluginAsync = async (fastify) => {
     if (!fastify.diContainer) {

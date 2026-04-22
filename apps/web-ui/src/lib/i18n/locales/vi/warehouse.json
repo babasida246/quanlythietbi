@@ -416,5 +416,18 @@
     "selectPart": "-- Chọn vật tư --",
     "selectAsset": "-- Chọn thiết bị --",
     "serviceNote": "Mô tả trong cột ghi chú →"
+  },
+  "ocr": {
+    "modalTitle": "Quét tem sản phẩm (OCR)",
+    "scanBtn": "Quét tem",
+    "scanBtnTitle": "Quét tem sản phẩm bằng camera / ảnh để tìm vật tư tương tự",
+    "captureBtn": "Chụp ảnh / Chọn file",
+    "processing": "Đang nhận dạng văn bản...",
+    "ocrError": "OCR gặp lỗi — hãy nhập thủ công bên dưới.",
+    "rawText": "Văn bản OCR thô",
+    "searchLabel": "Tìm sản phẩm tương tự",
+    "searchPlaceholder": "Nhập mã / tên sản phẩm...",
+    "noResults": "Không tìm thấy sản phẩm phù hợp.",
+    "hint": "Chụp ảnh tem sản phẩm hoặc nhập tên vào ô tìm kiếm."
   }
 }

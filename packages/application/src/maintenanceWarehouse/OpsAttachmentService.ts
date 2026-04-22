@@ -2,12 +2,17 @@ import { AppError } from '@qltb/domain'
 import type { IOpsAttachmentRepo, IOpsEventRepo, IRepairOrderRepo, IStockDocumentRepo, OpsAttachmentInput, OpsAttachmentRecord, OpsAttachmentEntityType } from '@qltb/contracts'
 import type { MaintenanceWarehouseContext } from './types.js'
 
+export interface IAssetModelChecker {
+    existsById(id: string): Promise<boolean>
+}
+
 export class OpsAttachmentService {
     constructor(
         private attachments: IOpsAttachmentRepo,
         private repairs: IRepairOrderRepo,
         private documents: IStockDocumentRepo,
-        private opsEvents?: IOpsEventRepo
+        private opsEvents?: IOpsEventRepo,
+        private assetModels?: IAssetModelChecker
     ) { }
 
     async addAttachment(
@@ -51,11 +56,32 @@ export class OpsAttachmentService {
         return record
     }
 
+    async deleteAttachment(
+        id: string,
+        ctx: MaintenanceWarehouseContext
+    ): Promise<OpsAttachmentRecord> {
+        const record = await this.getAttachment(id)
+        await this.attachments.delete(id)
+        await this.appendEvent(record.entityType, record.entityId, 'ATTACHMENT_DELETED', {
+            attachmentId: id,
+            fileName: record.fileName
+        }, ctx)
+        return record
+    }
+
     private async ensureEntity(entityType: OpsAttachmentEntityType, entityId: string): Promise<void> {
         if (entityType === 'repair_order') {
             const repair = await this.repairs.getById(entityId)
             if (!repair) {
                 throw AppError.notFound('Repair order not found')
+            }
+            return
+        }
+
+        if (entityType === 'asset_model') {
+            if (this.assetModels) {
+                const exists = await this.assetModels.existsById(entityId)
+                if (!exists) throw AppError.notFound('Asset model not found')
             }
             return
         }

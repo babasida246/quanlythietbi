@@ -416,5 +416,18 @@
     "selectPart": "-- Select material --",
     "selectAsset": "-- Select device --",
     "serviceNote": "Describe in note column →"
+  },
+  "ocr": {
+    "modalTitle": "Scan Product Label (OCR)",
+    "scanBtn": "Scan Label",
+    "scanBtnTitle": "Scan a product label via camera or image to find matching items",
+    "captureBtn": "Take Photo / Choose File",
+    "processing": "Recognizing text...",
+    "ocrError": "OCR failed — please enter text manually below.",
+    "rawText": "Raw OCR text",
+    "searchLabel": "Find similar product",
+    "searchPlaceholder": "Enter product code / name...",
+    "noResults": "No matching products found.",
+    "hint": "Take a photo of the product label or type a name in the search box."
   }
 }
