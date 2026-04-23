@@ -72,3 +72,6 @@ export * from './organizations/index.js'
 
 // Equipment Groups (Nhóm vật tư trang bị)
 export * from './equipmentGroups/index.js'
+
+// LDAP Directory integration
+export * from './ldap/index.js'

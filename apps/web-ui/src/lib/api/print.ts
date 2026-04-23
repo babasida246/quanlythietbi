@@ -79,6 +79,131 @@ export async function exportFile(
     return (await response.json()) as { success: boolean; data: ExportResponse }
 }
 
+export type SqlDataSourceKind = 'function' | 'procedure'
+
+export interface SqlDataSourceRoutineInfo {
+    schema: string
+    name: string
+    qualifiedName: string
+}
+
+export interface SqlDataSourceSandboxResult {
+    templateId: string | null
+    kind: SqlDataSourceKind
+    routineName: string
+    rows: Record<string, unknown>[]
+    resolvedData: Record<string, unknown>
+    fields: string[]
+}
+
+export interface SqlDataSourceIntrospectionResult {
+    templateId: string | null
+    kind: SqlDataSourceKind
+    routineName: string
+    fields: string[]
+    sampleData: Record<string, unknown>
+}
+
+export async function registerPrintSqlDataSource(input: {
+    templateId: string
+    kind: SqlDataSourceKind
+    routineName: string
+    definitionSql: string
+    samplePayload?: Record<string, unknown>
+    sampleLimit?: number
+}) {
+    const response = await fetch(`${API_BASE}/v1/print/sql-datasource/register`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify(input)
+    })
+
+    if (!response.ok) {
+        const err = await response.json().catch(() => ({ error: { message: 'Register SQL data source failed' } }))
+        throw new Error(err?.error?.message ?? 'Register SQL data source failed')
+    }
+
+    return (await response.json()) as {
+        success: boolean
+        data: {
+            routine: SqlDataSourceRoutineInfo
+            template: unknown
+            sampleRows: Record<string, unknown>[]
+            sampleData: Record<string, unknown>
+            availableFields: string[]
+        }
+    }
+}
+
+export async function sandboxPrintSqlDataSource(input: {
+    templateId?: string
+    kind?: SqlDataSourceKind
+    routineName?: string
+    payload?: Record<string, unknown>
+    limit?: number
+}) {
+    const response = await fetch(`${API_BASE}/v1/print/sql-datasource/sandbox`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify(input)
+    })
+
+    if (!response.ok) {
+        const err = await response.json().catch(() => ({ error: { message: 'SQL data source sandbox failed' } }))
+        throw new Error(err?.error?.message ?? 'SQL data source sandbox failed')
+    }
+
+    return (await response.json()) as { success: boolean; data: SqlDataSourceSandboxResult }
+}
+
+export async function introspectPrintSqlDataSource(input: {
+    templateId?: string
+    kind?: SqlDataSourceKind
+    routineName?: string
+    payload?: Record<string, unknown>
+    limit?: number
+}) {
+    const response = await fetch(`${API_BASE}/v1/print/sql-datasource/introspect`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify(input)
+    })
+
+    if (!response.ok) {
+        const err = await response.json().catch(() => ({ error: { message: 'SQL data source introspection failed' } }))
+        throw new Error(err?.error?.message ?? 'SQL data source introspection failed')
+    }
+
+    return (await response.json()) as { success: boolean; data: SqlDataSourceIntrospectionResult }
+}
+
+export async function resolveTemplatePrintDataSource(
+    templateId: string,
+    payload: Record<string, unknown>,
+    limit = 30
+) {
+    const response = await fetch(`${API_BASE}/v1/print/data-source/resolve-template`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify({ templateId, payload, limit })
+    })
+
+    if (!response.ok) {
+        const err = await response.json().catch(() => ({ error: { message: 'Resolve template data source failed' } }))
+        throw new Error(err?.error?.message ?? 'Resolve template data source failed')
+    }
+
+    return (await response.json()) as {
+        success: boolean
+        data: {
+            templateId: string
+            kind: SqlDataSourceKind
+            routineName: string
+            resolvedData: Record<string, unknown>
+        }
+    }
+}
+
 /**
  * Download file from response blob
  */
@@ -176,6 +301,32 @@ export function downloadDocxFromBase64(base64: string, fileName: string) {
         type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
     })
     downloadFile(blob, fileName.endsWith('.docx') ? fileName : `${fileName}.docx`)
+}
+
+export interface ExtractPlaceholdersResponse {
+    simpleFields: string[]   // scalar {field} placeholders
+    loopFields: string[]     // {#field}...{/field} — array loops used for table rows
+}
+
+/**
+ * Extract all {placeholder} names from an uploaded .docx version.
+ * Returns simpleFields (scalar) and loopFields (array/table loops).
+ */
+export async function extractDocxPlaceholders(
+    templateId: string,
+    versionId: string
+): Promise<ExtractPlaceholdersResponse> {
+    const response = await fetch(`${API_BASE}/v1/print/extract-docx-placeholders`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify({ templateId, versionId }),
+    })
+    if (!response.ok) {
+        const err = await response.json().catch(() => ({ error: { message: 'Extract failed' } }))
+        throw new Error(err?.error?.message ?? 'Failed to extract placeholders')
+    }
+    const json = await response.json()
+    return json.data
 }
 
 /**

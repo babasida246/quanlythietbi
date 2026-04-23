@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
+  import { page } from '$app/state';
   import { _, isLoading } from '$lib/i18n';
   import { Plus, RefreshCw, Edit, Trash2, Settings } from 'lucide-svelte';
   import CategorySpecPanel from '$lib/assets/components/catalogs/CategorySpecPanel.svelte';
@@ -49,9 +50,6 @@
     TableRow,
     TableHeaderCell,
     TableCell,
-    Tabs,
-    TabsList,
-    TabsTrigger
   } from '$lib/components/ui';
 
   type CatalogTab = 'categories' | 'vendors' | 'models' | 'locations' | 'statuses' | 'equipmentGroups';
@@ -101,7 +99,17 @@
 
   let loading = $state(true);
   let error = $state('');
-  let activeTab = $state<CatalogTab>('categories');
+  let activeTab = $state<CatalogTab>((page.url.searchParams.get('tab') as CatalogTab) || 'categories');
+
+  // Sync activeTab when sidebar navigation changes the URL search param
+  $effect(() => {
+    const tab = (page.url.searchParams.get('tab') as CatalogTab) || 'categories';
+    if (tab !== activeTab) {
+      activeTab = tab;
+      editingItem = null;
+      deletingItem = null;
+    }
+  });
 
   let categories = $state<AssetCategory[]>([]);
   let vendors = $state<Vendor[]>([]);
@@ -359,24 +367,6 @@
       </Button>
     {/snippet}
   </PageHeader>
-
-  <Tabs>
-    <TabsList>
-      {#each Object.keys(tabLabels) as tabKey}
-        {@const tab = tabKey as CatalogTab}
-        <TabsTrigger 
-          active={activeTab === tab}
-          onclick={() => {
-            activeTab = tab;
-            editingItem = null;
-            deletingItem = null;
-          }}
-        >
-          {tabLabels[tab]}
-        </TabsTrigger>
-      {/each}
-    </TabsList>
-  </Tabs>
 
   {#if error}
     <div class="alert alert-error">{error}</div>

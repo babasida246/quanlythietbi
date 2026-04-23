@@ -42,7 +42,7 @@
       }))
 
     const totalLines = (lines: unknown[], field: string) =>
-      (lines ?? []).reduce((s, l: unknown) => s + (Number((l as Record<string, unknown>)[field]) || 0), 0)
+      (lines ?? []).reduce((s: number, l: unknown) => s + (Number((l as Record<string, unknown>)[field]) || 0), 0)
 
     // Common org fields
     const orgFields = {
@@ -189,24 +189,24 @@
           rawData = {
             code:          doc.code,
             date:          doc.docDate,
-            warehouseName: doc.warehouseName ?? doc.warehouseId ?? 'Kho',
+            warehouseName: doc.warehouseId ?? 'Kho',
             supplier:      doc.supplier,
-            reference:     doc.reference,
+            reference:     doc.refType ?? doc.refId ?? '',
             recipient:     doc.receiverName,
             department:    doc.department,
             note:          doc.note,
             preparedBy:    doc.submitterName,
             approvedBy:    doc.approvedBy,
             receivedBy:    doc.receiverName,
-            issuedBy:      doc.issuedBy,
-            lines: res.data.lines.map((l: Record<string, unknown>, i: number) => ({
+            issuedBy:      doc.submitterName,
+            lines: res.data.lines.map((l, i) => ({
               i:        i + 1,
-              partCode: l.partCode ?? l.partId ?? '',
-              partName: l.partName ?? `Vật tư ${l.partId}`,
-              uom:      l.uom,
+              partCode: l.assetCode ?? l.partId ?? '',
+              partName: l.assetName ?? `Vật tư ${l.partId ?? ''}`,
+              uom:      '',
               qty:      l.qty,
               unitCost: l.unitCost,
-              total:    l.unitCost ? Number(l.qty) * Number(l.unitCost) : undefined,
+              total:    l.unitCost != null ? l.qty * l.unitCost : undefined,
               serialNo: l.serialNo,
               lineNote: l.note,
             })),

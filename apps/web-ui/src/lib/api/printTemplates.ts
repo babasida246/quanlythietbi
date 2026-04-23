@@ -1,6 +1,7 @@
 import { API_BASE, apiJsonData, requireAccessToken } from './httpClient'
 
 export type DocumentTemplateVersionStatus = 'draft' | 'published' | 'archived'
+export type DocumentTemplateDataSourceKind = 'none' | 'function' | 'procedure'
 
 export type DocumentTemplateVersion = {
     id: string
@@ -25,6 +26,8 @@ export type DocumentTemplateSummary = {
     name: string
     description?: string
     module: string
+    dataSourceKind: DocumentTemplateDataSourceKind
+    dataSourceName?: string
     organizationId?: string
     activeVersionId?: string
     isActive: boolean
@@ -50,7 +53,9 @@ export type CreateDocumentTemplateInput = {
     name: string
     description?: string
     module?: string
-    htmlContent: string
+    dataSourceKind?: DocumentTemplateDataSourceKind
+    dataSourceName?: string
+    htmlContent?: string
     fields?: string[]
     title?: string
     changeNote?: string
@@ -61,6 +66,8 @@ export type UpdateDocumentTemplateInput = {
     name?: string
     description?: string
     module?: string
+    dataSourceKind?: DocumentTemplateDataSourceKind
+    dataSourceName?: string
     isActive?: boolean
 }
 
@@ -93,6 +100,25 @@ export async function listDocumentTemplates(query: ListDocumentTemplatesQuery = 
         search: query.search,
     })
     return apiJsonData<DocumentTemplateSummary[]>(`${API_BASE}/v1/labels/document-templates${qs}`)
+}
+
+export type SuggestTemplatesResult = {
+    templates: DocumentTemplateSummary[]
+    defaultTemplateId: string | null
+}
+
+export async function suggestTemplates(docType: string): Promise<SuggestTemplatesResult> {
+    const token = requireAccessToken()
+    const qs = `?docType=${encodeURIComponent(docType)}`
+    const res = await fetch(`${API_BASE}/v1/print/suggest-template${qs}`, {
+        headers: { Authorization: `Bearer ${token}` }
+    })
+    if (!res.ok) throw new Error(await res.text())
+    const json = await res.json()
+    return {
+        templates: json.data ?? [],
+        defaultTemplateId: json.meta?.defaultTemplateId ?? null
+    }
 }
 
 export async function getDocumentTemplateById(id: string): Promise<DocumentTemplateSummary> {
@@ -149,6 +175,15 @@ export async function publishDocumentTemplateVersion(id: string, versionId: stri
     })
 }
 
+export async function deleteDocumentTemplate(id: string): Promise<void> {
+    const token = requireAccessToken()
+    const res = await fetch(`${API_BASE}/v1/labels/document-templates/${id}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` },
+    })
+    if (!res.ok && res.status !== 204) throw new Error(await res.text())
+}
+
 export async function rollbackDocumentTemplateVersion(
     id: string,
     versionId: string,
@@ -160,4 +195,25 @@ export async function rollbackDocumentTemplateVersion(
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ versionId, changeNote }),
     })
+}
+
+export async function upsertLabelSetting(key: string, value: string, updatedBy: string): Promise<void> {
+    const token = requireAccessToken()
+    const res = await fetch(`${API_BASE}/v1/labels/settings/${encodeURIComponent(key)}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ settingValue: value, updatedBy }),
+    })
+    if (!res.ok) throw new Error(await res.text())
+}
+
+export async function getLabelSetting(key: string): Promise<string | null> {
+    const token = requireAccessToken()
+    const res = await fetch(`${API_BASE}/v1/labels/settings/${encodeURIComponent(key)}`, {
+        headers: { Authorization: `Bearer ${token}` },
+    })
+    if (res.status === 404) return null
+    if (!res.ok) throw new Error(await res.text())
+    const json = await res.json()
+    return json.data?.value ?? null
 }

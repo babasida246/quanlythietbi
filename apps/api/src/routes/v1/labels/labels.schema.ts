@@ -154,11 +154,20 @@ export const validateAssetsSchema = z.object({
 
 // ==================== Shared Document Template Schemas ====================
 
+const documentTemplateDataSourceKindSchema = z.enum(['none', 'function', 'procedure']);
+const routineNameSchema = z
+    .string()
+    .min(1)
+    .max(200)
+    .regex(/^[a-zA-Z_][a-zA-Z0-9_]*(\.[a-zA-Z_][a-zA-Z0-9_]*)?$/, 'Routine name must be schema.name or name');
+
 export const createDocumentTemplateSchema = z.object({
     name: z.string().min(1).max(160),
     description: z.string().max(2000).optional(),
     module: z.string().min(1).max(50).optional(),
-    htmlContent: z.string().min(1),
+    dataSourceKind: documentTemplateDataSourceKindSchema.optional(),
+    dataSourceName: routineNameSchema.optional(),
+    htmlContent: z.string().optional().default(''),
     fields: z.array(z.string().min(1)).optional(),
     title: z.string().max(200).optional(),
     changeNote: z.string().max(2000).optional(),
@@ -169,6 +178,8 @@ export const updateDocumentTemplateSchema = z.object({
     name: z.string().min(1).max(160).optional(),
     description: z.string().max(2000).optional(),
     module: z.string().min(1).max(50).optional(),
+    dataSourceKind: documentTemplateDataSourceKindSchema.optional(),
+    dataSourceName: z.union([routineNameSchema, z.literal('')]).optional(),
     isActive: z.boolean().optional(),
 });
 

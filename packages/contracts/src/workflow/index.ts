@@ -16,6 +16,8 @@
 
 export const WF_REQUEST_TYPES = [
     'asset_request',
+    'asset_recall',
+    'asset_transfer',
     'repair_request',
     'disposal_request',
     'purchase',
@@ -104,6 +106,8 @@ export type WfRequestLineStatus = (typeof WF_LINE_STATUSES)[number];
 
 export const WF_TYPE_LABELS: Record<WfRequestType, string> = {
     asset_request: 'Cấp phát tài sản',
+    asset_recall: 'Thu hồi tài sản',
+    asset_transfer: 'Điều chuyển tài sản',
     repair_request: 'Sửa chữa / Bảo trì',
     disposal_request: 'Thanh lý tài sản',
     purchase: 'Mua sắm',

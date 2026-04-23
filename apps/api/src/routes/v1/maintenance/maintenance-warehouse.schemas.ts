@@ -100,6 +100,7 @@ export const stockDocumentCreateSchema = z.object({
     submitterName: z.string().max(255).nullable().optional(),
     receiverName: z.string().max(255).nullable().optional(),
     department: z.string().max(255).nullable().optional(),
+    recipientOuId: z.string().uuid().nullable().optional(),
     /** Destination location for issue documents */
     locationId: z.string().uuid().nullable().optional(),
     lines: z.array(stockDocumentLineSchema).min(1, 'At least one line is required')
@@ -114,6 +115,7 @@ export const stockDocumentUpdateSchema = z.object({
     submitterName: z.string().max(255).nullable().optional(),
     receiverName: z.string().max(255).nullable().optional(),
     department: z.string().max(255).nullable().optional(),
+    recipientOuId: z.string().uuid().nullable().optional(),
     /** Destination location for issue documents */
     locationId: z.string().uuid().nullable().optional(),
     lines: z.array(stockDocumentLineSchema).min(1, 'At least one line is required')

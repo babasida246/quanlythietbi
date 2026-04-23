@@ -163,6 +163,7 @@ export interface LabelSetting {
 // ==================== Shared Document Templates ====================
 
 export type DocumentTemplateVersionStatus = 'draft' | 'published' | 'archived';
+export type DocumentTemplateDataSourceKind = 'none' | 'function' | 'procedure';
 
 export interface DocumentTemplate {
     id: string;
@@ -170,6 +171,8 @@ export interface DocumentTemplate {
     name: string;
     description?: string;
     module: string;
+    dataSourceKind: DocumentTemplateDataSourceKind;
+    dataSourceName?: string;
     organizationId?: string;
     activeVersionId?: string;
     isActive: boolean;
@@ -207,6 +210,8 @@ export interface CreateDocumentTemplateDto {
     name: string;
     description?: string;
     module?: string;
+    dataSourceKind?: DocumentTemplateDataSourceKind;
+    dataSourceName?: string;
     htmlContent: string;
     fields?: string[];
     title?: string;
@@ -218,6 +223,8 @@ export interface UpdateDocumentTemplateDto {
     name?: string;
     description?: string;
     module?: string;
+    dataSourceKind?: DocumentTemplateDataSourceKind;
+    dataSourceName?: string;
     isActive?: boolean;
 }
 

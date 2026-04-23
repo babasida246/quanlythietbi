@@ -244,6 +244,21 @@ export async function labelsRoute(
         },
     });
 
+    fastify.delete('/labels/document-templates/:id', {
+        schema: { tags: ['Document Templates'], summary: 'Delete a document template and all its versions' },
+        handler: async (request: FastifyRequest, reply: FastifyReply) => {
+            const { id } = idParamSchema.parse(request.params);
+            try {
+                await labelsService.deleteDocumentTemplate(id);
+                return reply.status(204).send();
+            } catch (error) {
+                const message = (error as Error).message;
+                const status = message.includes('not found') ? 404 : 400;
+                return reply.status(status).send({ success: false, error: { code: status === 404 ? 'NOT_FOUND' : 'DELETE_FAILED', message } });
+            }
+        },
+    });
+
     fastify.post('/labels/document-templates/:id/versions', {
         schema: { tags: ['Document Templates'], summary: 'Create a new draft version' },
         handler: async (request: FastifyRequest, reply: FastifyReply) => {

@@ -147,5 +147,8 @@ export type { ILicenseRepository } from './licenses/LicenseService.js'
 export { WfService, WfError, WfNotFoundError, WfForbiddenError } from './wf/WfService.js'
 export type { IWfRepository, IApproverResolver } from './wf/WfService.js'
 
+// Feature: Asset Flow (auto-doc generation from approved WF requests)
+export { AssetFlowService } from './assetFlow/AssetFlowService.js'
+
 // Organizations (OU)
 export { OrganizationService } from './organizations/OrganizationService.js'

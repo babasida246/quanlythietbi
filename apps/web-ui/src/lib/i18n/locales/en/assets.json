@@ -822,6 +822,10 @@
       "selectGroup": "Select equipment group",
       "noParentGroup": "No parent group"
     },
+    "model": {
+      "images": "Images",
+      "imagesModalTitle": "Images: {name}"
+    },
     "equipmentGroup": {
       "title": "Equipment Groups",
       "description": "Mandatory classification applied to all assets and items in the system",

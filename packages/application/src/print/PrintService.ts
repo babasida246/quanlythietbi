@@ -42,6 +42,28 @@ export class PrintService {
                 matchType = 'normalized'
             }
 
+            // Try alias: template may use 'items' but data uses 'lines' (and vice versa)
+            if (value === undefined) {
+                const aliases: Array<[string, string]> = [['items', 'lines'], ['lines', 'items']]
+                for (const [from, to] of aliases) {
+                    if (fieldName.includes(`.${from}.`)) {
+                        const aliased = fieldName.replace(`.${from}.`, `.${to}.`)
+                        value = this.deepGet(flatData, aliased)
+                        if (value === undefined) {
+                            // also try without leading docType prefix (e.g. "lines.0.code")
+                            const parts = aliased.split('.')
+                            if (parts.length >= 3) {
+                                value = this.deepGet(flatData, parts.slice(-3).join('.'))
+                            }
+                        }
+                        if (value !== undefined) {
+                            matchType = 'partial'
+                            break
+                        }
+                    }
+                }
+            }
+
             if (value !== undefined) {
                 mappings[fieldName] = value
                 detectedFields.push({
@@ -90,9 +112,25 @@ export class PrintService {
 
     private flattenObject(obj: unknown, prefix = ''): Record<string, unknown> {
         const result: Record<string, unknown> = {}
-
         if (obj === null || obj === undefined) return result
-        if (typeof obj !== 'object' || Array.isArray(obj)) return result
+
+        if (Array.isArray(obj)) {
+            const arr = obj as unknown[]
+            for (let i = 0; i < arr.length; i++) {
+                const fullKey = prefix ? `${prefix}.${i}` : String(i)
+                const item = arr[i]
+                if (item === null || item === undefined) {
+                    result[fullKey] = null
+                } else if (typeof item === 'object') {
+                    Object.assign(result, this.flattenObject(item, fullKey))
+                } else {
+                    result[fullKey] = item
+                }
+            }
+            return result
+        }
+
+        if (typeof obj !== 'object') return result
 
         for (const [key, value] of Object.entries(obj as Record<string, unknown>)) {
             const fullKey = prefix ? `${prefix}.${key}` : key
@@ -106,7 +144,7 @@ export class PrintService {
                 result[fullKey] = value
             } else if (value instanceof Date) {
                 result[fullKey] = value.toISOString()
-            } else if (typeof value === 'object' && !Array.isArray(value)) {
+            } else if (typeof value === 'object') {
                 Object.assign(result, this.flattenObject(value, fullKey))
             }
         }

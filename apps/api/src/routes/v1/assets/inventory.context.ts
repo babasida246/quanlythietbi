@@ -8,11 +8,13 @@ import {
     ConsumableRepo,
     DepreciationRepo,
     LicenseRepo,
+    StockDocumentRepo,
     WfRepo,
     WfApproverResolverRepo
 } from '@qltb/infra-postgres'
 import {
     AccessoryService,
+    AssetFlowService,
     AuditService,
     CheckoutService,
     ComponentService,
@@ -41,10 +43,12 @@ export async function registerInventoryContext(
     const consumableRepo = new ConsumableRepo(pgClient)
     const depreciationRepo = new DepreciationRepo(pgClient)
     const licenseRepo = new LicenseRepo(pgClient)
+    const stockDocRepo = new StockDocumentRepo(pgClient)
     const wfRepo = new WfRepo(pgClient)
     const wfApproverResolverRepo = new WfApproverResolverRepo(pgClient)
 
     const accessoryService = new AccessoryService(accessoryRepo)
+    const assetFlowService = new AssetFlowService(stockDocRepo)
     const auditService = new AuditService(auditRepo)
     const checkoutService = new CheckoutService(checkoutRepo)
     const componentService = new ComponentService(componentRepo)
@@ -60,5 +64,5 @@ export async function registerInventoryContext(
     await fastify.register(consumablesRoute, { prefix: '/api/v1', consumableService })
     await fastify.register(depreciationRoute, { prefix: '/api/v1', depreciationService })
     await fastify.register(licensesRoute, { prefix: '/api/v1', licenseService })
-    await fastify.register(wfRoute, { prefix: '/api/v1', wfService })
+    await fastify.register(wfRoute, { prefix: '/api/v1', wfService, assetFlowService })
 }

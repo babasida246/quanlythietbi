@@ -3,11 +3,18 @@
   import Button from '$lib/components/ui/Button.svelte'
   import { _, isLoading } from '$lib/i18n'
   import {
-    listDocumentTemplates,
+    suggestTemplates,
     type DocumentTemplateSummary,
     type DocumentTemplateVersion
   } from '$lib/api/printTemplates'
-  import { autoMapFields, renderTemplate, exportFile, renderDocx, downloadDocxFromBase64 } from '$lib/api/print'
+  import {
+    autoMapFields,
+    renderTemplate,
+    exportFile,
+    renderDocx,
+    downloadDocxFromBase64,
+    resolveTemplatePrintDataSource
+  } from '$lib/api/print'
 
   type ExportFormat = 'pdf' | 'excel' | 'csv' | 'docx' | 'json'
   type Step = 'select' | 'preview' | 'config'
@@ -42,6 +49,7 @@
   let confidence = $state(0)
   let exportFormat = $state<ExportFormat>('pdf')
   let previewInNewWindow = $state(true)
+  let resolvedSourceData = $state<Record<string, unknown>>({})
 
   const selectedTemplate = $derived(templates.find((item) => item.id === selectedTemplateId) ?? null)
   const templateVersion = $derived<DocumentTemplateVersion | null>(
@@ -62,17 +70,15 @@
     previewHtml = ''
     fieldMappings = {}
     confidence = 0
+    resolvedSourceData = sourceData
 
     try {
-      const list = await listDocumentTemplates({
-        module: docType,
-        includeVersions: true,
-        limit: 100
-      })
+      const { templates: list, defaultTemplateId } = await suggestTemplates(docType)
 
       templates = list
       if (templates.length > 0) {
-        selectedTemplateId = templates[0].id
+        const preferred = defaultTemplateId && list.find((t) => t.id === defaultTemplateId)
+        selectedTemplateId = preferred ? preferred.id : list[0].id
         await runAutoMap()
       }
     } catch (err) {
@@ -89,8 +95,10 @@
     error = ''
 
     try {
+      const source = await resolveSourceDataForTemplate()
+      resolvedSourceData = source
       const fields = templateVersion.fields ?? []
-      const mapped = await autoMapFields(docType, sourceData, fields)
+      const mapped = await autoMapFields(docType, source, fields)
       fieldMappings = mapped.data.mappings ?? {}
       confidence = mapped.data.confidence ?? 0
       const currentFormat = templateVersion?.templateFormat ?? 'html'
@@ -120,6 +128,23 @@
     } catch (err) {
       error = err instanceof Error ? err.message : String(err)
     }
+  }
+
+  async function resolveSourceDataForTemplate(): Promise<Record<string, unknown>> {
+    const dataSourceKind = selectedTemplate?.dataSourceKind ?? 'none'
+    const dataSourceName = selectedTemplate?.dataSourceName ?? ''
+
+    if (dataSourceKind === 'none' || !dataSourceName || !selectedTemplateId) {
+      return sourceData
+    }
+
+    const resolved = await resolveTemplatePrintDataSource(selectedTemplateId, {
+      docType,
+      recordId: recordId ?? null,
+      sourceData
+    })
+
+    return resolved.data.resolvedData ?? {}
   }
 
   function saveBlob(blob: Blob, filename: string) {
@@ -186,6 +211,7 @@
     try {
       const safeName = (selectedTemplate?.name ?? 'print').trim().replace(/[^a-zA-Z0-9-_]+/g, '_')
       const templateFormat = templateVersion.templateFormat ?? 'html'
+      const source = Object.keys(resolvedSourceData).length > 0 ? resolvedSourceData : sourceData
 
       if (exportFormat === 'docx') {
         if (templateFormat !== 'docx') {
@@ -195,7 +221,7 @@
         const docxResult = await renderDocx(
           selectedTemplateId,
           templateVersion.id,
-          { ...sourceData, ...fieldMappings },
+          { ...source, ...fieldMappings },
           safeName || 'print'
         )
         downloadDocxFromBase64(docxResult.data.content, docxResult.data.fileName || `${safeName || 'print'}.docx`)
@@ -204,6 +230,25 @@
       }
 
       const html = previewHtml || (await renderTemplate(templateVersion.htmlContent, fieldMappings)).data.html || ''
+
+      // JSON export: build locally so we can include full sourceData (arrays, nested objects)
+      if (exportFormat === 'json') {
+        const jsonPayload = {
+          docType,
+          templateId: selectedTemplateId,
+          templateName: selectedTemplate?.name,
+          recordId,
+          confidence,
+          sourceData: source,
+          mappings: fieldMappings,
+          renderedHtml: html
+        }
+        const blob = new Blob([JSON.stringify(jsonPayload, null, 2)], { type: 'application/json' })
+        saveBlob(blob, `${safeName || 'print'}.json`)
+        onExport?.(exportFormat, { html, mappings: fieldMappings })
+        onClose()
+        return
+      }
 
       const exported = await exportFile(html, fieldMappings, exportFormat, {
         fileName: safeName || 'print',
@@ -262,6 +307,11 @@
             <div class="font-semibold text-slate-100">{selectedTemplate.name}</div>
             <div class="text-xs text-slate-400">Fields: {templateVersion?.fields?.length ?? 0}</div>
             <div class="text-xs text-slate-400">{$isLoading ? 'Type' : $_('assets.print.docType')}: {docType}</div>
+            {#if selectedTemplate.dataSourceKind !== 'none' && selectedTemplate.dataSourceName}
+              <div class="text-xs text-cyan-300">
+                SQL source: {selectedTemplate.dataSourceKind} {selectedTemplate.dataSourceName}
+              </div>
+            {/if}
           </div>
         {:else}
           <div class="text-xs text-slate-400">

@@ -17,6 +17,7 @@
     "netops": "NetOps",
     "settings": "Cài đặt",
     "admin": "Quản trị",
+    "ldap": "LDAP / Active Directory",
     "core": "Quản lý",
     "operations": "Vận hành",
     "reports": "Báo cáo",
@@ -42,7 +43,17 @@
     "groupAssets": "QUẢN LÝ TÀI SẢN",
     "groupSupport": "HỖ TRỢ",
     "depreciation": "Khấu hao",
-    "purchasePlans": "Kế hoạch mua sắm"
+    "purchasePlans": "Kế hoạch mua sắm",
+    "assetGroup": "Tài sản & Danh mục",
+    "warehouseGroup": "Kho hàng",
+    "maintenanceGroup": "Bảo trì",
+    "workflowGroup": "Quy trình",
+    "analyticsGroup": "Phân tích",
+    "opsGroup": "Vận hành",
+    "stock": "Tồn kho",
+    "warehouseDocuments": "Chứng từ",
+    "allocate": "Cấp phát thiết bị",
+    "recall": "Thu hồi thiết bị"
   },
   "common": {
     "success": "Thành công",

@@ -11,6 +11,8 @@ export interface StockDocumentRecord {
     docDate: string
     refType?: string | null
     refId?: string | null
+    /** Direct FK to wf_requests(id) — populated when doc is auto-generated from a WF request */
+    refRequestId?: string | null
     note?: string | null
     idempotencyKey?: string | null
     /** Supplier/vendor name (used in receipt) */
@@ -19,8 +21,10 @@ export interface StockDocumentRecord {
     submitterName?: string | null
     /** Name of person receiving an issue */
     receiverName?: string | null
-    /** Department / cost centre */
+    /** Deprecated free-text department snapshot (kept for backward compatibility) */
     department?: string | null
+    /** Recipient OU (org_units.id) linked to RBAC OU tree */
+    recipientOuId?: string | null
     /** Destination location for issue documents (where assets are deployed) */
     locationId?: string | null
     createdBy?: string | null
@@ -88,11 +92,14 @@ export interface StockDocumentCreateInput {
     docDate?: string
     refType?: string | null
     refId?: string | null
+    /** Direct FK to wf_requests(id) */
+    refRequestId?: string | null
     note?: string | null
     supplier?: string | null
     submitterName?: string | null
     receiverName?: string | null
     department?: string | null
+    recipientOuId?: string | null
     /** Destination location for issue documents */
     locationId?: string | null
     createdBy?: string | null
@@ -108,6 +115,7 @@ export interface StockDocumentUpdatePatch {
     submitterName?: string | null
     receiverName?: string | null
     department?: string | null
+    recipientOuId?: string | null
     /** Destination location for issue documents */
     locationId?: string | null
     correlationId?: string | null
@@ -132,6 +140,7 @@ export interface StockDocumentPage {
 
 export interface IStockDocumentRepo {
     create(input: StockDocumentCreateInput): Promise<StockDocumentRecord>
+    findByRefRequest(requestId: string, docType?: StockDocType): Promise<StockDocumentRecord | null>
     update(id: string, patch: StockDocumentUpdatePatch): Promise<StockDocumentRecord | null>
     getById(id: string): Promise<StockDocumentRecord | null>
     list(filters: StockDocumentListFilters): Promise<StockDocumentPage>

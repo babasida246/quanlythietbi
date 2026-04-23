@@ -429,5 +429,12 @@
     "searchPlaceholder": "Enter product code / name...",
     "noResults": "No matching products found.",
     "hint": "Take a photo of the product label or type a name in the search box."
+  },
+  "fileGallery": {
+    "sectionTitle": "Attachments",
+    "uploading": "Uploading...",
+    "uploadBtn": "Upload file / image",
+    "acceptHint": "Max {mb} MB · Images, PDF",
+    "empty": "No attachments yet."
   }
 }

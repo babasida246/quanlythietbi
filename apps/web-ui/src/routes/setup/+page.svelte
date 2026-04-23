@@ -380,13 +380,13 @@
   const adminDone = $derived.by(() => Boolean(status?.adminExists) || adminCreated !== null);
   const servicesDone = $derived.by(() => Boolean(status?.db.ok) && apiHealthOk);
   const canFinalize = $derived.by(() =>
-    Boolean(status?.db.ok) && migrateDone && seedDone && adminDone && !status?.initialized
+    Boolean(status?.db.ok) && migrateDone && adminDone && !status?.initialized
   );
 
   const currentStep = $derived.by(() => {
     if (status?.initialized || finalizedOk) return 4;
     if (adminDone) return 4;
-    if (migrateDone && seedDone) return 3;
+    if (migrateDone) return 3;
     if (servicesDone) return 2;
     return 1;
   });

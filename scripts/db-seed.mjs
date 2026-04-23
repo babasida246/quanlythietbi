@@ -42,6 +42,7 @@ const SEED_FILES = [
     'seed-cmdb-config-files.sql', // 14. CMDB config files & version history
     'seed-my-pages.sql',          // 15. My Assets + My Requests: OU→org mappings, assignment org_id, wf_requests for admin
     'seed-pc001.sql',             // 16. PC-001 complete data: repair orders, components, documents
+    'seed-asset-flow.sql',        // 17. Asset flow: thu hồi + điều chuyển WF definitions, requests, approvals, draft docs
 ]
 
 const client = new pg.Client(pgConfig())

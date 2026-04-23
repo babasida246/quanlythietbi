@@ -1,5 +1,24 @@
 {
   "admin": {
+    "ldap": {
+      "title": "LDAP / Active Directory",
+      "subtitle": "Sync OU tree from Domain Controller",
+      "tabConfigs": "DC Configurations",
+      "tabOuTree": "OU Tree",
+      "addConfig": "Add Configuration",
+      "editConfig": "Edit Configuration",
+      "confirmDelete": "Delete this configuration?",
+      "noConfigs": "No configurations yet",
+      "noConfigsHint": "Add a Domain Controller connection to start syncing.",
+      "noOus": "No OUs found. Sync from DC or create manually.",
+      "col": {
+        "name": "OU Name",
+        "path": "Path",
+        "source": "Source",
+        "ldapDn": "LDAP DN",
+        "syncAt": "Synced At"
+      }
+    },
     "title": "Admin Console",
     "subtitle": "Manage users, OU directory, policies and audit logs",
     "sectionLabel": "Section",

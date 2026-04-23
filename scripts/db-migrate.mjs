@@ -44,6 +44,10 @@ const MIGRATIONS = [
     // Migrations mới thêm vào đây (từ 065_xxx.sql trở đi)
     { label: '065_equipment_groups.sql', path: join(DB_MIGRATIONS, '065_equipment_groups.sql') },
     { label: '066_asset_model_attachments.sql', path: join(DB_MIGRATIONS, '066_asset_model_attachments.sql') },
+    { label: '067_document_template_sql_data_source.sql', path: join(DB_MIGRATIONS, '067_document_template_sql_data_source.sql') },
+    { label: '068_wf_request_type_asset_recall.sql', path: join(DB_MIGRATIONS, '068_wf_request_type_asset_recall.sql') },
+    { label: '069_stock_document_recipient_ou.sql', path: join(DB_MIGRATIONS, '069_stock_document_recipient_ou.sql') },
+    { label: '070_ldap_directory.sql', path: join(DB_MIGRATIONS, '070_ldap_directory.sql') },
 ]
 
 const client = new pg.Client(pgConfig())

@@ -2,6 +2,7 @@ import type { FastifyInstance } from 'fastify'
 import type { StockDocumentService } from '@qltb/application'
 import { z } from 'zod'
 import { getUserContext, requirePermission } from '../assets/assets.helpers.js'
+import { BadRequestError } from '../../../shared/errors/http-errors.js'
 import {
     stockDocumentCreateSchema,
     stockDocumentIdParamsSchema,
@@ -33,6 +34,38 @@ async function generateSequentialDocCode(pgClient?: StockDocumentRoutesOptions['
     return `SD-${year}-${ts}`
 }
 
+type RecipientOuSnapshot = {
+    recipientOuId: string | null
+    department: string | null
+}
+
+async function resolveRecipientOuSnapshot(
+    pgClient: StockDocumentRoutesOptions['pgClient'],
+    recipientOuId?: string | null,
+    fallbackDepartment?: string | null
+): Promise<RecipientOuSnapshot> {
+    const normalizedFallback = fallbackDepartment?.trim() ? fallbackDepartment.trim() : null
+    if (!recipientOuId) {
+        return { recipientOuId: null, department: normalizedFallback }
+    }
+    if (!pgClient) {
+        return { recipientOuId, department: normalizedFallback }
+    }
+    const result = await pgClient.query<{ id: string; path: string }>(
+        `SELECT id, path FROM org_units WHERE id = $1 LIMIT 1`,
+        [recipientOuId]
+    )
+    const ou = result.rows[0]
+    if (!ou) {
+        throw new BadRequestError(`Recipient OU not found: ${recipientOuId}`)
+    }
+    return {
+        recipientOuId: ou.id,
+        // Keep legacy department snapshot for backward compatibility.
+        department: ou.path
+    }
+}
+
 export async function stockDocumentRoutes(
     fastify: FastifyInstance,
     opts: StockDocumentRoutesOptions
@@ -58,6 +91,7 @@ export async function stockDocumentRoutes(
         const body = stockDocumentCreateSchema.parse(request.body)
         const code = body.code?.trim() || await generateSequentialDocCode(pgClient)
         const docDate = body.docDate?.trim() || undefined
+        const recipientSnapshot = await resolveRecipientOuSnapshot(pgClient, body.recipientOuId ?? null, body.department ?? null)
         const detail = await stockDocumentService.createDocument({
             docType: body.docType,
             code,
@@ -70,7 +104,8 @@ export async function stockDocumentRoutes(
             supplier: body.supplier ?? null,
             submitterName: body.submitterName ?? null,
             receiverName: body.receiverName ?? null,
-            department: body.department ?? null,
+            department: recipientSnapshot.department,
+            recipientOuId: recipientSnapshot.recipientOuId,
             locationId: body.locationId ?? null
         }, body.lines, ctx)
         return reply.status(201).send({ data: detail })
@@ -81,6 +116,7 @@ export async function stockDocumentRoutes(
         const { id } = stockDocumentIdParamsSchema.parse(request.params)
         const body = stockDocumentUpdateSchema.parse(request.body)
         const docDate = body.docDate?.trim() || undefined
+        const recipientSnapshot = await resolveRecipientOuSnapshot(pgClient, body.recipientOuId ?? null, body.department ?? null)
         const detail = await stockDocumentService.updateDocument(id, {
             docDate,
             note: body.note ?? null,
@@ -89,7 +125,8 @@ export async function stockDocumentRoutes(
             supplier: body.supplier ?? null,
             submitterName: body.submitterName ?? null,
             receiverName: body.receiverName ?? null,
-            department: body.department ?? null,
+            department: recipientSnapshot.department,
+            recipientOuId: recipientSnapshot.recipientOuId,
             locationId: body.locationId ?? null,
             correlationId: ctx.correlationId
         }, body.lines, ctx)
@@ -130,6 +167,26 @@ export async function stockDocumentRoutes(
         const query = stockLedgerSchema.parse(request.query)
         const result = await stockDocumentService.listMovements(query)
         return reply.send({ data: result.items, meta: { total: result.total, page: result.page, limit: result.limit } })
+    })
+
+    fastify.get('/stock/recipient-ous', async (request, reply) => {
+        getUserContext(request)
+        if (!pgClient) return reply.send({ data: [] })
+        type OuRow = { id: string; name: string; parent_id: string | null; path: string; depth: number }
+        const result = await pgClient.query<OuRow>(
+            `SELECT id, name, parent_id, path, depth
+             FROM org_units
+             ORDER BY path ASC`
+        )
+        return reply.send({
+            data: result.rows.map((row) => ({
+                id: row.id,
+                name: row.name,
+                parentId: row.parent_id,
+                path: row.path,
+                depth: row.depth
+            }))
+        })
     })
 
     // List assets currently in-stock at a warehouse (for issue document line picker)

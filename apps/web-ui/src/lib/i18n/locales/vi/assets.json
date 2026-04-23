@@ -822,6 +822,10 @@
       "selectGroup": "Chọn nhóm vật tư",
       "noParentGroup": "Không có nhóm cha"
     },
+    "model": {
+      "images": "Hình ảnh",
+      "imagesModalTitle": "Hình ảnh: {name}"
+    },
     "equipmentGroup": {
       "title": "Nhóm vật tư trang bị",
       "description": "Phân loại bắt buộc áp dụng cho tất cả vật tư, thiết bị trong hệ thống",

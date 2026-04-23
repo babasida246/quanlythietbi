@@ -80,17 +80,22 @@ export class DocxRenderService {
 
     /**
      * Extract all {placeholder} names from a .docx template buffer.
-     * Useful for building field-mapping UIs or validating data before render.
+     * Returns:
+     *   simpleFields — scalar {field} tags (top-level values)
+     *   loopFields   — {#field}...{/field} loop tags (arrays → table rows)
+     *   allFields    — all unique tag names (backward-compat)
      */
-    async extractPlaceholders(templateBuffer: Buffer): Promise<string[]> {
+    async extractPlaceholders(templateBuffer: Buffer): Promise<{
+        simpleFields: string[]
+        loopFields: string[]
+        allFields: string[]
+    }> {
         const [{ default: Docxtemplater }, { default: PizZip }] = await Promise.all([
             import('docxtemplater'),
             import('pizzip'),
         ])
 
         const zip = new PizZip(templateBuffer)
-
-        // Parse without rendering to collect tag names
         const collected: string[] = []
         const doc = new Docxtemplater(zip, {
             paragraphLoop: true,
@@ -101,9 +106,9 @@ export class DocxRenderService {
         })
         try { doc.render({}) } catch { /* ignore missing-value errors */ }
 
-        // Deduplicate, filter out loop markers (#tag / /tag)
-        const names = [...new Set(collected)]
-            .filter((t) => !t.startsWith('#') && !t.startsWith('/') && !t.startsWith('^'))
-        return names
+        const unique = [...new Set(collected)]
+        const loopFields = unique.filter((t) => t.startsWith('#')).map((t) => t.slice(1))
+        const simpleFields = unique.filter((t) => !t.startsWith('#') && !t.startsWith('/') && !t.startsWith('^'))
+        return { simpleFields, loopFields, allFields: simpleFields }
     }
 }

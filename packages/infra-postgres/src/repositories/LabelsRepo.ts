@@ -29,6 +29,7 @@ import type {
     CreateDocumentTemplateVersionDto,
     CreateDocumentTemplateVersionDocxDto,
     DocumentTemplateListQuery,
+    DocumentTemplateDataSourceKind,
 } from '@qltb/contracts';
 
 export class LabelsRepository {
@@ -591,6 +592,8 @@ export class LabelsRepository {
 
     async createDocumentTemplate(dto: CreateDocumentTemplateDto, actorId: string): Promise<DocumentTemplateSummary> {
         const module = dto.module?.trim() || 'general';
+        const dataSourceKind = (dto.dataSourceKind ?? 'none') as DocumentTemplateDataSourceKind;
+        const dataSourceName = dto.dataSourceName?.trim() || null;
         const codeBase = dto.name
             .toLowerCase()
             .replace(/[^a-z0-9]+/g, '-')
@@ -601,16 +604,19 @@ export class LabelsRepository {
         const templateId = await this.withTransaction(async (client) => {
             const templateResult = await client.query(
                 `INSERT INTO document_templates (
-                    template_code, name, description, module, organization_id, created_by, updated_by
-                ) VALUES ($1, $2, $3, $4, $5, $6, $6)
+                    template_code, name, description, module, data_source_kind, data_source_name,
+                    data_source_updated_at, data_source_updated_by, organization_id, created_by, updated_by
+                ) VALUES ($1, $2, $3, $4, $5, $6, NOW(), $7, $8, $7, $7)
                 RETURNING id`,
                 [
                     templateCode,
                     dto.name.trim(),
                     dto.description?.trim() || null,
                     module,
-                    dto.organizationId ?? null,
+                    dataSourceKind,
+                    dataSourceKind === 'none' ? null : dataSourceName,
                     actorId,
+                    dto.organizationId ?? null,
                 ]
             );
 
@@ -791,6 +797,25 @@ export class LabelsRepository {
             updates.push(`module = $${paramIndex++}`);
             values.push(dto.module.trim() || 'general');
         }
+        if (dto.dataSourceKind !== undefined) {
+            updates.push(`data_source_kind = $${paramIndex++}`);
+            values.push(dto.dataSourceKind);
+            updates.push(`data_source_updated_at = NOW()`);
+            updates.push(`data_source_updated_by = $${paramIndex++}`);
+            values.push(actorId);
+
+            // Unbind routine name automatically when disabling SQL data source.
+            if (dto.dataSourceKind === 'none') {
+                updates.push(`data_source_name = NULL`);
+            }
+        }
+        if (dto.dataSourceName !== undefined) {
+            updates.push(`data_source_name = $${paramIndex++}`);
+            values.push(dto.dataSourceName.trim() || null);
+            updates.push(`data_source_updated_at = NOW()`);
+            updates.push(`data_source_updated_by = $${paramIndex++}`);
+            values.push(actorId);
+        }
         if (dto.isActive !== undefined) {
             updates.push(`is_active = $${paramIndex++}`);
             values.push(dto.isActive);
@@ -809,6 +834,14 @@ export class LabelsRepository {
         );
 
         return result.rows[0] ? this.mapDocumentTemplate(result.rows[0]) : null;
+    }
+
+    async deleteDocumentTemplate(id: string): Promise<boolean> {
+        const result = await this.db.query(
+            `DELETE FROM document_templates WHERE id = $1`,
+            [id]
+        );
+        return (result.rowCount ?? 0) > 0;
     }
 
     async findDocumentTemplateVersions(templateId: string): Promise<DocumentTemplateVersion[]> {
@@ -1136,6 +1169,95 @@ export class LabelsRepository {
         return this.mapDocumentTemplateVersion(result.rows[0]);
     }
 
+    async bindDocumentTemplateDataSource(
+        templateId: string,
+        kind: DocumentTemplateDataSourceKind,
+        routineName: string | null,
+        actorId: string,
+    ): Promise<DocumentTemplate | null> {
+        const normalizedName = kind === 'none' ? null : (routineName?.trim() || null);
+        const result = await this.db.query(
+            `UPDATE document_templates
+             SET
+                data_source_kind = $2,
+                data_source_name = $3,
+                data_source_updated_at = NOW(),
+                data_source_updated_by = $4,
+                updated_by = $4,
+                updated_at = NOW()
+             WHERE id = $1
+             RETURNING *`,
+            [templateId, kind, normalizedName, actorId],
+        );
+        return result.rows[0] ? this.mapDocumentTemplate(result.rows[0]) : null;
+    }
+
+    async createOrReplacePrintDataSourceRoutine(
+        kind: Exclude<DocumentTemplateDataSourceKind, 'none'>,
+        routineName: string,
+        definitionSql: string,
+    ): Promise<{ schema: string; name: string; qualifiedName: string }> {
+        const parsed = this.parseRoutineName(routineName);
+        await this.db.query(`CREATE SCHEMA IF NOT EXISTS ${parsed.schemaSql}`);
+        await this.db.query(definitionSql);
+
+        const verify = await this.db.query<{ prokind: 'f' | 'p' | 'a' | 'w' }>(
+            `SELECT p.prokind
+             FROM pg_proc p
+             INNER JOIN pg_namespace n ON n.oid = p.pronamespace
+             WHERE n.nspname = $1
+               AND p.proname = $2
+             ORDER BY p.oid DESC
+             LIMIT 1`,
+            [parsed.schema, parsed.name],
+        );
+
+        const routine = verify.rows[0];
+        if (!routine) {
+            throw new Error(`Routine '${parsed.qualifiedName}' was not created`);
+        }
+
+        if ((kind === 'function' && routine.prokind !== 'f') || (kind === 'procedure' && routine.prokind !== 'p')) {
+            throw new Error(`Routine '${parsed.qualifiedName}' kind mismatch. Expected ${kind}`);
+        }
+
+        return {
+            schema: parsed.schema,
+            name: parsed.name,
+            qualifiedName: parsed.qualifiedName,
+        };
+    }
+
+    async sandboxPrintDataSourceRoutine(
+        kind: Exclude<DocumentTemplateDataSourceKind, 'none'>,
+        routineName: string,
+        payload: Record<string, unknown>,
+        limit = 30,
+    ): Promise<Record<string, unknown>[]> {
+        const parsed = this.parseRoutineName(routineName);
+        const safeLimit = Number.isFinite(limit) ? Math.max(1, Math.min(Math.trunc(limit), 200)) : 30;
+        const payloadJson = JSON.stringify(payload ?? {});
+
+        return this.withTransaction(async (client) => {
+            await client.query(`SET LOCAL statement_timeout = '5000ms'`);
+            await client.query('SET LOCAL default_transaction_read_only = on');
+
+            if (kind === 'function') {
+                const result = await client.query(
+                    `SELECT * FROM ${parsed.qualifiedSql}($1::jsonb) LIMIT $2`,
+                    [payloadJson, safeLimit],
+                );
+                return result.rows as Record<string, unknown>[];
+            }
+
+            const result = await client.query(
+                `CALL ${parsed.qualifiedSql}($1::jsonb, $2::jsonb)`,
+                [payloadJson, null],
+            );
+            return result.rows as Record<string, unknown>[];
+        });
+    }
+
     // ==================== Transaction Helper ====================
 
     async withTransaction<T>(callback: (client: PoolClient) => Promise<T>): Promise<T> {
@@ -1254,6 +1376,8 @@ export class LabelsRepository {
             name: row.name as string,
             description: row.description as string | undefined,
             module: row.module as string,
+            dataSourceKind: ((row.data_source_kind as string | undefined) ?? 'none') as DocumentTemplate['dataSourceKind'],
+            dataSourceName: (row.data_source_name as string | null) ?? undefined,
             organizationId: row.organization_id as string | undefined,
             activeVersionId: (row.active_version_id as string | undefined) ?? (row.active_version_id_value as string | undefined),
             isActive: row.is_active as boolean,
@@ -1325,6 +1449,43 @@ export class LabelsRepository {
             activeVersion,
             latestVersion,
         };
+    }
+
+    private parseRoutineName(rawName: string): {
+        schema: string;
+        name: string;
+        schemaSql: string;
+        qualifiedSql: string;
+        qualifiedName: string;
+    } {
+        const clean = rawName.trim().replace(/"/g, '');
+        const parts = clean.split('.').map((part) => part.trim()).filter(Boolean);
+        if (parts.length < 1 || parts.length > 2) {
+            throw new Error('Routine name must be in format name or schema.name');
+        }
+
+        const schema = parts.length === 2 ? parts[0].toLowerCase() : 'print_data_sources';
+        const name = parts.length === 2 ? parts[1].toLowerCase() : parts[0].toLowerCase();
+
+        const ident = /^[a-zA-Z_][a-zA-Z0-9_]*$/;
+        if (!ident.test(schema) || !ident.test(name)) {
+            throw new Error('Routine name contains invalid characters');
+        }
+
+        const schemaSql = this.quoteIdentifier(schema);
+        const nameSql = this.quoteIdentifier(name);
+
+        return {
+            schema,
+            name,
+            schemaSql,
+            qualifiedSql: `${schemaSql}.${nameSql}`,
+            qualifiedName: `${schema}.${name}`,
+        };
+    }
+
+    private quoteIdentifier(identifier: string): string {
+        return `"${identifier.replace(/"/g, '""')}"`;
     }
 
     private extractFields(htmlContent: string): string[] {

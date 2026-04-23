@@ -172,7 +172,7 @@
 </div>
 
 <Modal
-  bind:open={imageModel}
+  bind:open={imageModalOpen}
   title={$isLoading ? 'Ảnh thiết bị' : $_('catalogs.model.imagesModalTitle', { values: { name: imageModel?.model ?? '' } })}
   size="lg"
 >

@@ -1,5 +1,24 @@
 {
   "admin": {
+    "ldap": {
+      "title": "LDAP / Active Directory",
+      "subtitle": "Đồng bộ cây OU từ Domain Controller",
+      "tabConfigs": "Cấu hình DC",
+      "tabOuTree": "Cây OU",
+      "addConfig": "Thêm cấu hình",
+      "editConfig": "Sửa cấu hình",
+      "confirmDelete": "Xóa cấu hình này?",
+      "noConfigs": "Chưa có cấu hình nào",
+      "noConfigsHint": "Thêm cấu hình kết nối Domain Controller để bắt đầu đồng bộ.",
+      "noOus": "Chưa có OU nào. Hãy sync từ DC hoặc tạo thủ công.",
+      "col": {
+        "name": "Tên OU",
+        "path": "Đường dẫn",
+        "source": "Nguồn",
+        "ldapDn": "LDAP DN",
+        "syncAt": "Sync lúc"
+      }
+    },
     "title": "Bảng điều khiển Quản trị",
     "subtitle": "Quản lý người dùng, thư mục OU, policy và nhật ký hoạt động",
     "sectionLabel": "Mục",

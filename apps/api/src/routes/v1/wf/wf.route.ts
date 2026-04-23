@@ -4,7 +4,7 @@
  */
 
 import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
-import type { WfService } from '@qltb/application';
+import type { WfService, AssetFlowService } from '@qltb/application';
 import { WfError } from '@qltb/application';
 import { requirePermission, getUserContext } from '../assets/assets.helpers.js';
 import {
@@ -31,9 +31,9 @@ function handleWfError(err: unknown, reply: FastifyReply) {
 
 export async function wfRoute(
     fastify: FastifyInstance,
-    opts: { wfService: WfService }
+    opts: { wfService: WfService; assetFlowService: AssetFlowService }
 ): Promise<void> {
-    const { wfService } = opts;
+    const { wfService, assetFlowService } = opts;
 
     // ==================== Requester (me) routes ====================
 
@@ -216,6 +216,14 @@ export async function wfRoute(
                 actorId: userId,
                 comment: parse.data.comment,
             });
+            if (result.status === 'approved') {
+                await assetFlowService.onRequestApproved(result, userId).catch((error: unknown) => {
+                    request.log.warn(
+                        { err: error, requestId: result.id, requestType: result.requestType },
+                        'Failed to auto-generate stock document after approval'
+                    );
+                });
+            }
             return reply.send({ success: true, data: result });
         } catch (err) {
             return handleWfError(err, reply);

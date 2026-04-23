@@ -20,12 +20,14 @@ type DocumentRow = {
     doc_date: Date
     ref_type: string | null
     ref_id: string | null
+    ref_request_id: string | null
     note: string | null
     idempotency_key: string | null
     supplier: string | null
     submitter_name: string | null
     receiver_name: string | null
     department: string | null
+    recipient_ou_id: string | null
     location_id: string | null
     created_by: string | null
     approved_by: string | null
@@ -55,7 +57,7 @@ type LineRow = {
 type Update = { column: string; value: unknown }
 
 const DOC_COLS = `id, doc_type, code, status, warehouse_id, target_warehouse_id, doc_date, ref_type, ref_id,
-                  note, idempotency_key, supplier, submitter_name, receiver_name, department, location_id,
+                  ref_request_id, note, idempotency_key, supplier, submitter_name, receiver_name, department, recipient_ou_id, location_id,
                   created_by, approved_by, correlation_id, created_at, updated_at`
 
 const LINE_COLS = `id, document_id, line_type, part_id, qty, unit_cost, serial_no, note,
@@ -74,12 +76,14 @@ const mapDocument = (row: DocumentRow): StockDocumentRecord => ({
     docDate: mapDocDate(row.doc_date),
     refType: row.ref_type,
     refId: row.ref_id,
+    refRequestId: row.ref_request_id,
     note: row.note,
     idempotencyKey: row.idempotency_key,
     supplier: row.supplier,
     submitterName: row.submitter_name,
     receiverName: row.receiver_name,
     department: row.department,
+    recipientOuId: row.recipient_ou_id,
     locationId: row.location_id,
     createdBy: row.created_by,
     approvedBy: row.approved_by,
@@ -116,6 +120,7 @@ function buildUpdates(patch: StockDocumentUpdatePatch): Update[] {
     if (patch.submitterName !== undefined) updates.push({ column: 'submitter_name', value: patch.submitterName })
     if (patch.receiverName !== undefined) updates.push({ column: 'receiver_name', value: patch.receiverName })
     if (patch.department !== undefined) updates.push({ column: 'department', value: patch.department })
+    if (patch.recipientOuId !== undefined) updates.push({ column: 'recipient_ou_id', value: patch.recipientOuId })
     if (patch.locationId !== undefined) updates.push({ column: 'location_id', value: patch.locationId })
     if (patch.correlationId !== undefined) updates.push({ column: 'correlation_id', value: patch.correlationId })
     return updates
@@ -136,9 +141,9 @@ export class StockDocumentRepo implements IStockDocumentRepo {
         const result = await this.pg.query<DocumentRow>(
             `INSERT INTO stock_documents (
                 doc_type, code, status, warehouse_id, target_warehouse_id, doc_date,
-                ref_type, ref_id, note, supplier, submitter_name, receiver_name,
-                department, location_id, created_by, correlation_id
-             ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16)
+                ref_type, ref_id, ref_request_id, note, supplier, submitter_name, receiver_name,
+                department, recipient_ou_id, location_id, created_by, correlation_id
+             ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18)
              RETURNING ${DOC_COLS}`,
             [
                 input.docType,
@@ -149,17 +154,38 @@ export class StockDocumentRepo implements IStockDocumentRepo {
                 docDate,
                 input.refType ?? null,
                 input.refId ?? null,
+                input.refRequestId ?? null,
                 input.note ?? null,
                 input.supplier ?? null,
                 input.submitterName ?? null,
                 input.receiverName ?? null,
                 input.department ?? null,
+                input.recipientOuId ?? null,
                 input.locationId ?? null,
                 input.createdBy ?? null,
                 input.correlationId ?? null
             ]
         )
         return mapDocument(result.rows[0])
+    }
+
+    async findByRefRequest(
+        requestId: string,
+        docType?: StockDocumentRecord['docType']
+    ): Promise<StockDocumentRecord | null> {
+        const params: unknown[] = [requestId]
+        const typeFilter = docType ? ` AND doc_type = $2` : ''
+        if (docType) params.push(docType)
+
+        const result = await this.pg.query<DocumentRow>(
+            `SELECT ${DOC_COLS}
+             FROM stock_documents
+             WHERE ref_request_id = $1${typeFilter}
+             ORDER BY created_at DESC
+             LIMIT 1`,
+            params
+        )
+        return result.rows[0] ? mapDocument(result.rows[0]) : null
     }
 
     async update(id: string, patch: StockDocumentUpdatePatch): Promise<StockDocumentRecord | null> {

@@ -531,10 +531,15 @@ export class LabelsService {
         if (!dto.name.trim()) {
             throw new Error('Template name is required');
         }
-        if (!dto.htmlContent.trim()) {
-            throw new Error('Template content is required');
-        }
+        this.validateDocumentTemplateDataSource(dto.dataSourceKind, dto.dataSourceName);
         return this.repository.createDocumentTemplate(dto, actorId);
+    }
+
+    async deleteDocumentTemplate(id: string): Promise<void> {
+        const deleted = await this.repository.deleteDocumentTemplate(id);
+        if (!deleted) {
+            throw new Error(`Document template '${id}' not found`);
+        }
     }
 
     async listDocumentTemplates(query: DocumentTemplateListQuery): Promise<PaginatedResult<DocumentTemplateSummary>> {
@@ -556,6 +561,7 @@ export class LabelsService {
     }
 
     async updateDocumentTemplate(id: string, dto: UpdateDocumentTemplateDto, actorId: string): Promise<DocumentTemplate> {
+        this.validateDocumentTemplateDataSource(dto.dataSourceKind, dto.dataSourceName);
         const updated = await this.repository.updateDocumentTemplate(id, dto, actorId);
         if (!updated) {
             throw new Error('Document template not found');
@@ -613,5 +619,18 @@ export class LabelsService {
 
     async getActiveDocumentTemplateVersion(templateId: string): Promise<DocumentTemplateVersion | null> {
         return this.repository.findActiveDocumentTemplateVersion(templateId);
+    }
+
+    private validateDocumentTemplateDataSource(kind?: string, name?: string): void {
+        const normalizedKind = (kind ?? 'none').trim();
+        const normalizedName = name?.trim();
+
+        if (normalizedKind === 'none') {
+            return;
+        }
+
+        if ((normalizedKind === 'function' || normalizedKind === 'procedure') && !normalizedName) {
+            throw new Error('Data source routine name is required when data source kind is function/procedure');
+        }
     }
 }

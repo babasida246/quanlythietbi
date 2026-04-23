@@ -34,7 +34,6 @@
   import CreateEditModal from '$lib/components/crud/CreateEditModal.svelte';
   import DeleteConfirmModal from '$lib/components/crud/DeleteConfirmModal.svelte';
   import { Table, TableHeader, TableHeaderCell, TableRow, TableCell } from '$lib/components/ui';
-  import { Tabs, TabsList, TabsTrigger } from '$lib/components/ui';
   import CmdbServicesPanel from '$lib/cmdb/CmdbServicesPanel.svelte';
   import CmdbConfigFilesPanel from '$lib/cmdb/CmdbConfigFilesPanel.svelte';
   import TopologyGraph from '$lib/cmdb/TopologyGraph.svelte';
@@ -78,7 +77,20 @@
 
   let loading = $state(true);
   let error = $state('');
-  let activeTab = $state<CmdbTab>('types');
+  let activeTab = $state<CmdbTab>((page.url.searchParams.get('tab') as CmdbTab) || 'types');
+
+  // Sync activeTab when sidebar navigation changes the URL
+  $effect(() => {
+    const tab = (page.url.searchParams.get('tab') as CmdbTab) || 'types';
+    if (allTabs.includes(tab) && tab !== activeTab) {
+      activeTab = tab;
+      editingItem = null;
+      deletingItem = null;
+      typesPage = 1;
+      cisPage = 1;
+      relPage = 1;
+    }
+  });
   const isCrudTab = $derived(crudTabs.includes(activeTab as CrudTab));
 
   // ── Pagination ──────────────────────────────────────────────────────────────
@@ -373,16 +385,6 @@
       {/if}
     {/snippet}
   </PageHeader>
-
-  <Tabs>
-    <TabsList>
-      {#each allTabs as tab}
-        <TabsTrigger active={activeTab === tab} onclick={() => setTab(tab)}>
-          {tabLabels[tab]}
-        </TabsTrigger>
-      {/each}
-    </TabsList>
-  </Tabs>
 
   {#if activeTab === 'services'}
     <CmdbServicesPanel />

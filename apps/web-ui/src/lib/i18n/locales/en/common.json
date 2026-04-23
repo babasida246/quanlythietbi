@@ -17,6 +17,7 @@
     "netops": "NetOps",
     "settings": "Settings",
     "admin": "Admin",
+    "ldap": "LDAP / Active Directory",
     "core": "Management",
     "operations": "Operations",
     "reports": "Reports",
@@ -42,7 +43,17 @@
     "groupAssets": "ASSET MANAGEMENT",
     "groupSupport": "SUPPORT",
     "depreciation": "Depreciation",
-    "purchasePlans": "Purchase Plans"
+    "purchasePlans": "Purchase Plans",
+    "assetGroup": "Assets & Catalog",
+    "warehouseGroup": "Warehouse",
+    "maintenanceGroup": "Maintenance",
+    "workflowGroup": "Workflow",
+    "analyticsGroup": "Analytics",
+    "opsGroup": "Operations",
+    "stock": "Stock",
+    "warehouseDocuments": "Documents",
+    "allocate": "Device Allocation",
+    "recall": "Device Recall"
   },
   "common": {
     "success": "Success",

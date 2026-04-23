@@ -429,5 +429,12 @@
     "searchPlaceholder": "Nhập mã / tên sản phẩm...",
     "noResults": "Không tìm thấy sản phẩm phù hợp.",
     "hint": "Chụp ảnh tem sản phẩm hoặc nhập tên vào ô tìm kiếm."
+  },
+  "fileGallery": {
+    "sectionTitle": "Đính kèm",
+    "uploading": "Đang tải lên...",
+    "uploadBtn": "Tải lên file / ảnh",
+    "acceptHint": "Tối đa {mb} MB · Hình ảnh, PDF",
+    "empty": "Chưa có file đính kèm."
   }
 }
