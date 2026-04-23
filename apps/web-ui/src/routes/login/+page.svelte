@@ -8,14 +8,10 @@
   import { defaultLandingPath, getCapabilities } from '$lib/auth/capabilities';
   import { effectivePermsStore } from '$lib/stores/effectivePermsStore';
   import { _, isLoading as i18nLoading } from '$lib/i18n';
-  import { getSetupStatus } from '$lib/api/setup';
-
   let email = $state('');
   let password = $state('');
   let loading = $state(false);
   let error = $state<string | null>(null);
-  let systemInitialized = $state(false);
-
   function isSafePostLoginRedirect(path: string | null): path is string {
     if (!path || !path.startsWith('/')) return false;
     if (path.startsWith('/login') || path.startsWith('/setup') || path.startsWith('/logout')) return false;
@@ -80,10 +76,6 @@
       goto(defaultLandingPath(caps), { replaceState: true });
       return;
     }
-    // Kiểm tra trạng thái setup để ẩn/hiện link /setup
-    void getSetupStatus()
-      .then((s) => { systemInitialized = s.initialized; })
-      .catch(() => { /* ignore — setup API có thể chưa sẵn sàng */ });
   });
 </script>
 
@@ -127,7 +119,8 @@
             <input
               id="login-email"
               class="login-input"
-              type="email"
+              type="text"
+              inputmode="email"
               bind:value={email}
               autocomplete="email"
               disabled={loading}

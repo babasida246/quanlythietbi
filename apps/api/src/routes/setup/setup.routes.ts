@@ -159,7 +159,7 @@ class SetupJobStore {
 
 const adminBodySchema = z.object({
     fullName: z.string().trim().min(2).max(120),
-    email: z.string().trim().email().max(255),
+    email: z.string().trim().regex(/^[^\s@]+@[^\s@]+\.[^\s@]+$/, 'Invalid email format').max(255),
     username: z
         .string()
         .trim()

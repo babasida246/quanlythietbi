@@ -362,7 +362,7 @@
     finalizeError = null;
     finalizeBusy = true;
     try {
-      await finalizeSetup({});
+      await finalizeSetup({ allowSkipSeed: true });
       finalizedOk = true;
       await refreshStatus(true);
       setTimeout(() => {
