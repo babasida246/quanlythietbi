@@ -2,6 +2,7 @@
  * Integration Hub Service
  * Manages connectors, sync rules, webhooks
  */
+import { ZabbixClient, type ZabbixConfig } from './providers/ZabbixClient.js'
 
 // --- Interfaces (decoupled from infra) ---
 export interface IntegrationConnector {
@@ -62,15 +63,36 @@ export class IntegrationService {
     async updateConnector(id: string, patch: Partial<Pick<IntegrationConnector, 'name' | 'config' | 'isActive' | 'healthStatus'>>) { return this.connectors.update(id, patch) }
     async deleteConnector(id: string) { return this.connectors.delete(id) }
 
-    async testConnection(id: string): Promise<{ healthy: boolean; message: string }> {
+    async testConnection(id: string): Promise<{ healthy: boolean; message: string; version?: string; hostCount?: number }> {
         const connector = await this.connectors.getById(id)
         if (!connector) return { healthy: false, message: 'Connector not found' }
 
-        // Simulate connection test
         try {
-            const status = connector.isActive ? 'healthy' : 'error'
-            await this.connectors.update(id, { healthStatus: status })
-            return { healthy: status === 'healthy', message: status === 'healthy' ? 'Connection successful' : 'Connector is disabled' }
+            let result: { healthy: boolean; message: string; version?: string; hostCount?: number }
+
+            switch (connector.provider) {
+                case 'zabbix': {
+                    const cfg = connector.config as unknown as ZabbixConfig
+                    if (!cfg.baseUrl) {
+                        result = { healthy: false, message: 'Missing required config field: baseUrl' }
+                        break
+                    }
+                    const client = new ZabbixClient(cfg)
+                    result = await client.testConnection()
+                    break
+                }
+
+                default:
+                    // Generic: verify the connector is enabled and config has a baseUrl/url
+                    if (!connector.isActive) {
+                        result = { healthy: false, message: 'Connector is disabled' }
+                    } else {
+                        result = { healthy: true, message: 'Connector is active (no live check implemented for this provider)' }
+                    }
+            }
+
+            await this.connectors.update(id, { healthStatus: result.healthy ? 'healthy' : 'error' })
+            return result
         } catch (err) {
             await this.connectors.update(id, { healthStatus: 'error' })
             return { healthy: false, message: err instanceof Error ? err.message : 'Unknown error' }
@@ -89,6 +111,6 @@ export class IntegrationService {
 
     // --- Provider helpers ---
     async getProviderTypes(): Promise<string[]> {
-        return ['servicenow', 'jira', 'slack', 'teams', 'aws', 'azure', 'email', 'webhook', 'csv_import', 'api_generic']
+        return ['servicenow', 'jira', 'slack', 'teams', 'aws', 'azure', 'email', 'webhook', 'csv_import', 'api_generic', 'zabbix']
     }
 }

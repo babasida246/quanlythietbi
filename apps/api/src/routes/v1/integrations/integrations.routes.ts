@@ -22,7 +22,7 @@ export async function integrationRoutes(
         const ctx = requirePermission(request, 'integrations:manage')
         const body = z.object({
             name: z.string().min(1),
-            provider: z.enum(['servicenow', 'jira', 'slack', 'teams', 'aws', 'azure', 'email', 'webhook', 'csv_import', 'api_generic']),
+            provider: z.enum(['servicenow', 'jira', 'slack', 'teams', 'aws', 'azure', 'email', 'webhook', 'csv_import', 'api_generic', 'zabbix']),
             config: z.record(z.unknown()).optional().default({}),
             credentialsRef: z.string().optional(),
             isActive: z.boolean().optional().default(false)

@@ -51,6 +51,7 @@ const MIGRATIONS = [
     { label: '071_location_ou_link.sql', path: join(DB_MIGRATIONS, '071_location_ou_link.sql') },
     { label: '072_user_location_access.sql', path: join(DB_MIGRATIONS, '072_user_location_access.sql') },
     { label: '073_category_item_type.sql', path: join(DB_MIGRATIONS, '073_category_item_type.sql') },
+    { label: '074_zabbix_provider.sql', path: join(DB_MIGRATIONS, '074_zabbix_provider.sql') },
 ]
 
 const client = new pg.Client(pgConfig())
