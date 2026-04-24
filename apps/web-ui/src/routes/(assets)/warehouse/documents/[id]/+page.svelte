@@ -16,11 +16,13 @@
     listSpareParts,
     listStockDocAttachments,
     listWarehouses,
+    listOrgUnits,
     postStockDocument,
     submitStockDocument,
     updateStockDocument,
     uploadStockDocAttachment,
     type OpsAttachment,
+    type OrgUnitOption,
     type SparePartRecord,
     type StockDocumentLine,
     type StockDocumentRecord,
@@ -48,7 +50,8 @@
   let supplier = $state('');
   let submitterName = $state('');
   let receiverName = $state('');
-  let department = $state('');
+  let recipientOuId = $state('');
+  let orgUnits = $state<OrgUnitOption[]>([]);
 
   let attachments = $state<OpsAttachment[]>([])
   let attachmentsLoading = $state(false)
@@ -130,15 +133,17 @@
     try {
       loading = true;
       error = '';
-      const [detailResponse, warehouseResponse, partsResponse] = await Promise.all([
+      const [detailResponse, warehouseResponse, partsResponse, orgUnitsResponse] = await Promise.all([
         getStockDocument(docId),
         listWarehouses(),
-        listSpareParts({ page: 1, limit: 200 })
+        listSpareParts({ page: 1, limit: 200 }),
+        listOrgUnits()
       ]);
       document = detailResponse.data.document;
       lines = detailResponse.data.lines ?? [];
       warehouses = warehouseResponse.data ?? [];
       parts = partsResponse.data ?? [];
+      orgUnits = orgUnitsResponse.data ?? [];
       warehouseId = document.warehouseId ?? '';
       targetWarehouseId = document.targetWarehouseId ?? '';
       docDate = document.docDate;
@@ -146,7 +151,7 @@
       supplier = document.supplier ?? '';
       submitterName = document.submitterName ?? '';
       receiverName = document.receiverName ?? '';
-      department = document.department ?? '';
+      recipientOuId = document.recipientOuId ?? '';
     } catch (err) {
       error = err instanceof Error ? err.message : $_('warehouse.errors.loadDocumentFailed');
     } finally {
@@ -168,7 +173,7 @@
         supplier: supplier || null,
         submitterName: submitterName || null,
         receiverName: receiverName || null,
-        department: department || null,
+        recipientOuId: recipientOuId || null,
         lines
       });
       document = response.data.document;
@@ -344,23 +349,41 @@
           </div>
         {/if}
 
-        <!-- issue: người nhận + phòng ban -->
+        <!-- issue: người nhận + nơi nhận (OU) -->
         {#if document.docType === 'issue'}
           <div>
             <label for="doc-receiver" class="mb-1 block text-xs font-medium text-slate-400">{$isLoading ? 'Receiver' : $_('warehouse.field.receiver')}</label>
             <input id="doc-receiver" class="input-base text-sm" bind:value={receiverName} disabled={!isDraft} placeholder={$isLoading ? 'Receiver name...' : $_('warehouse.field.receiverPlaceholder')} />
           </div>
           <div>
-            <label for="doc-dept" class="mb-1 block text-xs font-medium text-slate-400">{$isLoading ? 'Department' : $_('warehouse.field.department')}</label>
-            <input id="doc-dept" class="input-base text-sm" bind:value={department} disabled={!isDraft} placeholder={$isLoading ? 'Department...' : $_('warehouse.field.departmentPlaceholder')} />
+            <label for="doc-ou" class="mb-1 block text-xs font-medium text-slate-400">{$isLoading ? 'Recipient' : $_('warehouse.field.department')}</label>
+            {#if isDraft}
+              <select id="doc-ou" class="select-base text-sm" bind:value={recipientOuId}>
+                <option value="">{$isLoading ? '-- No recipient --' : $_('warehouse.field.noRecipientOu')}</option>
+                {#each orgUnits as ou}
+                  <option value={ou.id}>{'　'.repeat(ou.depth)}{ou.name}</option>
+                {/each}
+              </select>
+            {:else}
+              <input class="input-base text-sm" disabled value={orgUnits.find(o => o.id === recipientOuId)?.path ?? document.department ?? ''} />
+            {/if}
           </div>
         {/if}
 
-        <!-- adjust / transfer: bộ phận + người thực hiện -->
+        <!-- adjust / transfer: nơi nhận + người thực hiện -->
         {#if document.docType === 'adjust' || document.docType === 'transfer'}
           <div>
-            <label for="doc-dept2" class="mb-1 block text-xs font-medium text-slate-400">{$isLoading ? 'Department' : $_('warehouse.field.department')}</label>
-            <input id="doc-dept2" class="input-base text-sm" bind:value={department} disabled={!isDraft} placeholder={$isLoading ? 'Related department...' : $_('warehouse.field.departmentPlaceholder')} />
+            <label for="doc-ou2" class="mb-1 block text-xs font-medium text-slate-400">{$isLoading ? 'Recipient' : $_('warehouse.field.department')}</label>
+            {#if isDraft}
+              <select id="doc-ou2" class="select-base text-sm" bind:value={recipientOuId}>
+                <option value="">{$isLoading ? '-- No recipient --' : $_('warehouse.field.noRecipientOu')}</option>
+                {#each orgUnits as ou}
+                  <option value={ou.id}>{'　'.repeat(ou.depth)}{ou.name}</option>
+                {/each}
+              </select>
+            {:else}
+              <input class="input-base text-sm" disabled value={orgUnits.find(o => o.id === recipientOuId)?.path ?? document.department ?? ''} />
+            {/if}
           </div>
           <div>
             <label for="doc-submitter2" class="mb-1 block text-xs font-medium text-slate-400">{$isLoading ? 'Executor' : $_('warehouse.field.executor')}</label>

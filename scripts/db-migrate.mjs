@@ -48,6 +48,7 @@ const MIGRATIONS = [
     { label: '068_wf_request_type_asset_recall.sql', path: join(DB_MIGRATIONS, '068_wf_request_type_asset_recall.sql') },
     { label: '069_stock_document_recipient_ou.sql', path: join(DB_MIGRATIONS, '069_stock_document_recipient_ou.sql') },
     { label: '070_ldap_directory.sql', path: join(DB_MIGRATIONS, '070_ldap_directory.sql') },
+    { label: '071_location_ou_link.sql', path: join(DB_MIGRATIONS, '071_location_ou_link.sql') },
 ]
 
 const client = new pg.Client(pgConfig())

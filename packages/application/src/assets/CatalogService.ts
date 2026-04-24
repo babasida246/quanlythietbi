@@ -206,6 +206,8 @@ export class CatalogService {
         const created = await this.catalogs.createLocation({
             name: input.name,
             parentId: input.parentId ?? null,
+            organizationId: input.organizationId ?? null,
+            ouId: input.ouId ?? null,
             path: '/'
         })
         const path = await this.buildLocationPath(input.parentId ?? null, created.id)
@@ -226,6 +228,8 @@ export class CatalogService {
         const updated = await this.catalogs.updateLocation(id, {
             name: patch.name,
             parentId: patch.parentId,
+            organizationId: patch.organizationId,
+            ouId: patch.ouId,
             path
         })
         if (!updated) throw AppError.internal('Failed to update location')

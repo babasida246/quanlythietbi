@@ -5,7 +5,7 @@ import type { SpecFieldType, NormalizeMode, SpecVersionStatus } from '@qltb/cont
 export type { SpecFieldType, NormalizeMode, SpecVersionStatus }
 
 export type Vendor = { id: string; name: string; taxCode?: string | null; phone?: string | null; email?: string | null; address?: string | null }
-export type Location = { id: string; name: string; parentId?: string | null; path: string; organizationId?: string | null; organizationName?: string | null }
+export type Location = { id: string; name: string; parentId?: string | null; path: string; organizationId?: string | null; organizationName?: string | null; ouId?: string | null; ouName?: string | null; ouPath?: string | null }
 export type AssetCategory = { id: string; name: string }
 export type AssetModel = { id: string; model: string; brand?: string | null; categoryId?: string | null; specVersionId?: string | null; vendorId?: string | null; spec: Record<string, unknown> }
 export type AssetStatusCatalog = { id: string; name: string; code: string; isTerminal: boolean; color?: string | null; createdAt?: string }
@@ -69,7 +69,7 @@ export type Catalogs = {
 export type VendorInput = { name: string; taxCode?: string | null; phone?: string | null; email?: string | null; address?: string | null }
 export type CategoryInput = { name: string }
 export type ModelInput = { model: string; brand?: string | null; categoryId?: string | null; specVersionId?: string | null; vendorId?: string | null; spec?: Record<string, unknown> | null }
-export type LocationInput = { name: string; parentId?: string | null; organizationId?: string | null }
+export type LocationInput = { name: string; parentId?: string | null; organizationId?: string | null; ouId?: string | null }
 export type StatusCatalogInput = { name: string; code: string; isTerminal?: boolean; color?: string | null }
 export type CategorySpecDefInput = {
     key: string
@@ -159,7 +159,10 @@ function normalizeLocation(value: unknown): Location | null {
         parentId: readOptionalString(value.parentId),
         path: readOptionalString(value.path) ?? `/${id}`,
         organizationId: readOptionalString(value.organizationId),
-        organizationName: readOptionalString(value.organizationName)
+        organizationName: readOptionalString(value.organizationName),
+        ouId: readOptionalString(value.ouId),
+        ouName: readOptionalString(value.ouName),
+        ouPath: readOptionalString(value.ouPath)
     }
 }
 

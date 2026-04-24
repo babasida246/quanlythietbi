@@ -798,7 +798,9 @@
     "editTitle": "Chỉnh sửa {entity}",
     "header": {
       "categoryName": "Tên danh mục",
-      "locationName": "Tên vị trí"
+      "locationName": "Tên vị trí",
+      "organization": "Tổ chức (OU)",
+      "adOuLink": "Thư mục AD (OU)"
     },
     "field": {
       "categoryName": "Tên danh mục",
@@ -809,6 +811,8 @@
       "vendor": "Nhà cung cấp",
       "locationName": "Tên vị trí",
       "parentLocation": "Vị trí cha",
+      "locationOrganization": "Liên kết đơn vị tổ chức",
+      "adOuLink": "Liên kết thư mục AD (OU)",
       "statusName": "Tên trạng thái",
       "statusCode": "Mã trạng thái",
       "isTerminal": "Trạng thái kết thúc",
@@ -819,6 +823,8 @@
       "selectCategory": "Chọn danh mục",
       "selectVendor": "Chọn nhà cung cấp",
       "noParentLocation": "Không có vị trí cha",
+      "noOrganization": "— Không liên kết đơn vị —",
+      "noAdOu": "— Không liên kết thư mục AD —",
       "selectGroup": "Chọn nhóm vật tư",
       "noParentGroup": "Không có nhóm cha"
     },

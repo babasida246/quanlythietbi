@@ -211,6 +211,17 @@ export async function warehouseRoutes(
         return reply.send({ data: results })
     })
 
+    // ==================== OU Tree Picker ====================
+
+    fastify.get('/org-units', async (request, reply) => {
+        getUserContext(request)
+        if (!opts.pgClient) return reply.send({ data: [] })
+        const result = await opts.pgClient.query<{ id: string; name: string; path: string; depth: number }>(
+            `SELECT id, name, path, depth FROM org_units ORDER BY path`
+        )
+        return reply.send({ data: result.rows })
+    })
+
     // ==================== OCR Fuzzy Search ====================
 
     fastify.get('/spare-parts/search', async (request, reply) => {

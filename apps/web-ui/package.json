@@ -7,6 +7,12 @@
         "dev": "vite dev --port 5173",
         "build": "svelte-kit sync && NODE_OPTIONS=--max-old-space-size=4096 vite build",
         "build:prod": "svelte-kit sync && NODE_OPTIONS=--max-old-space-size=4096 vite build --mode production",
+        "build:mobile": "node scripts/build-mobile.mjs",
+        "cap:sync": "cap sync",
+        "cap:android": "cap open android",
+        "cap:ios": "cap open ios",
+        "cap:run:android": "cap run android",
+        "cap:run:ios": "cap run ios",
         "preview": "vite preview",
         "lint": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.check.json",
         "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.check.json",
@@ -14,7 +20,11 @@
         "test:e2e": "playwright test"
     },
     "devDependencies": {
+        "@capacitor/android": "^8.3.1",
+        "@capacitor/cli": "^8.3.1",
+        "@capacitor/ios": "^8.3.1",
         "@sveltejs/adapter-node": "^5.5.4",
+        "@sveltejs/adapter-static": "^3.0.10",
         "@sveltejs/kit": "^2.55.0",
         "@sveltejs/vite-plugin-svelte": "^4.0.4",
         "@testing-library/jest-dom": "^6.9.1",
@@ -32,6 +42,9 @@
         "vitest": "^3.0.0"
     },
     "dependencies": {
+        "@capacitor-mlkit/barcode-scanning": "^8.0.1",
+        "@capacitor/core": "^8.3.1",
+        "@capacitor/haptics": "^8.0.2",
         "@qltb/contracts": "workspace:*",
         "@qltb/domain": "workspace:*",
         "@xyflow/svelte": "^1.5.1",

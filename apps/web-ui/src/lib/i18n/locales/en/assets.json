@@ -798,7 +798,9 @@
     "editTitle": "Edit {entity}",
     "header": {
       "categoryName": "Category Name",
-      "locationName": "Location Name"
+      "locationName": "Location Name",
+      "organization": "Organization (OU)",
+      "adOuLink": "AD Directory (OU)"
     },
     "field": {
       "categoryName": "Category Name",
@@ -809,6 +811,8 @@
       "vendor": "Vendor",
       "locationName": "Location Name",
       "parentLocation": "Parent Location",
+      "locationOrganization": "Organization Link",
+      "adOuLink": "AD Directory Link (OU)",
       "statusName": "Status Name",
       "statusCode": "Status Code",
       "isTerminal": "Terminal status",
@@ -819,6 +823,8 @@
       "selectCategory": "Select category",
       "selectVendor": "Select vendor",
       "noParentLocation": "No parent location",
+      "noOrganization": "— No organization link —",
+      "noAdOu": "— No AD directory link —",
       "selectGroup": "Select equipment group",
       "noParentGroup": "No parent group"
     },

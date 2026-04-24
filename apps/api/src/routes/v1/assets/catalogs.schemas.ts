@@ -42,7 +42,8 @@ export const modelSearchQuerySchema = z.object({
 const locationBase = z.object({
     name: z.string().min(1),
     parentId: z.string().uuid().nullable().optional(),
-    organizationId: z.string().uuid().nullable().optional()
+    organizationId: z.string().uuid().nullable().optional(),
+    ouId: z.string().uuid().nullable().optional()
 })
 
 export const locationCreateSchema = locationBase

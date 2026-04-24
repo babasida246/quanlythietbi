@@ -125,6 +125,13 @@ export type RepairOrderEvent = {
 }
 
 
+export type OrgUnitOption = {
+    id: string
+    name: string
+    path: string
+    depth: number
+}
+
 export type StockDocumentCreateInput = {
     docType: StockDocumentRecord['docType']
     code?: string
@@ -138,6 +145,7 @@ export type StockDocumentCreateInput = {
     submitterName?: string | null
     receiverName?: string | null
     department?: string | null
+    recipientOuId?: string | null
     /** Destination location for issue documents */
     locationId?: string | null
     lines: StockDocumentLine[]
@@ -152,6 +160,7 @@ export type StockDocumentUpdateInput = {
     submitterName?: string | null
     receiverName?: string | null
     department?: string | null
+    recipientOuId?: string | null
     /** Destination location for issue documents */
     locationId?: string | null
     lines: StockDocumentLine[]
@@ -167,6 +176,12 @@ export type WarehouseAssetOption = {
 }
 
 type ApiResponse<T> = { data: T; meta?: { total?: number; page?: number; limit?: number } }
+
+export async function listOrgUnits(): Promise<ApiResponse<OrgUnitOption[]>> {
+    return apiJson<ApiResponse<OrgUnitOption[]>>(`${API_BASE}/v1/org-units`, {
+        headers: getAssetHeaders()
+    })
+}
 
 export async function listWarehouses(): Promise<ApiResponse<WarehouseRecord[]>> {
     return apiJson<ApiResponse<WarehouseRecord[]>>(`${API_BASE}/v1/warehouses`, {

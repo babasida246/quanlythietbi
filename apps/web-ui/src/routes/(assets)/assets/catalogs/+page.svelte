@@ -35,6 +35,7 @@
     listOrganizations,
     type OrganizationDto
   } from '$lib/api/organizations';
+  import { listOrgUnits, type OrgUnitOption } from '$lib/api/warehouse';
   import { toast } from '$lib/components/toast';
   import PageHeader from '$lib/components/PageHeader.svelte';
   import TextField from '$lib/components/TextField.svelte';
@@ -53,6 +54,15 @@
   } from '$lib/components/ui';
 
   type CatalogTab = 'categories' | 'vendors' | 'models' | 'locations' | 'statuses' | 'equipmentGroups';
+
+  const tabTitleFallbacks: Record<CatalogTab, string> = {
+    categories: 'Danh mục',
+    vendors: 'Nhà cung cấp',
+    models: 'Mẫu mã',
+    locations: 'Vị trí',
+    statuses: 'Trạng thái',
+    equipmentGroups: 'Nhóm vật tư'
+  };
 
   const tabLabels: Record<CatalogTab, string> = $derived({
     categories: $_('catalogs.tab.categories'),
@@ -87,7 +97,8 @@
   const locationSchema = $derived(z.object({
     name: z.string().trim().min(1, $_('catalogs.validation.locationNameRequired')),
     parentId: z.string().optional(),
-    organizationId: z.string().optional()
+    organizationId: z.string().optional(),
+    ouId: z.string().optional()
   }));
 
   const statusSchema = $derived(z.object({
@@ -117,6 +128,7 @@
   let locations = $state<Location[]>([]);
   let statuses = $state<AssetStatusCatalog[]>([]);
   let organizations = $state<OrganizationDto[]>([]); // for dropdown only
+  let orgUnits = $state<OrgUnitOption[]>([]); // LDAP-synced AD OU tree
 
   let createOpen = $state(false);
   let editOpen = $state(false);
@@ -153,12 +165,13 @@
   const vendorOptions = $derived(vendors.map((item) => ({ value: item.id, label: item.name })));
   const locationOptions = $derived(locations.map((item) => ({ value: item.id, label: item.name })));
   const orgOptions = $derived(organizations.map((item) => ({ value: item.id, label: item.path || item.name })));
+  const ouOptions = $derived(orgUnits.map((ou) => ({ value: ou.id, label: `${'  '.repeat(ou.depth)}${ou.name}` })));
 
   function getCreateValues(tab: CatalogTab): Record<string, unknown> {
     if (tab === 'categories') return { name: '', parentId: '' };
     if (tab === 'vendors') return { name: '', taxCode: '', phone: '', email: '', address: '' };
     if (tab === 'models') return { name: '', brand: '', categoryId: '', vendorId: '', notes: '' };
-    if (tab === 'locations') return { name: '', parentId: '', organizationId: '' };
+    if (tab === 'locations') return { name: '', parentId: '', organizationId: '', ouId: '' };
     return { name: '', code: '', isTerminal: false, color: '' };
   }
 
@@ -189,7 +202,8 @@
       return {
         name: String(item.name ?? ''),
         parentId: String(item.parentId ?? ''),
-        organizationId: String(item.organizationId ?? '')
+        organizationId: String(item.organizationId ?? ''),
+        ouId: String(item.ouId ?? '')
       };
     }
     return {
@@ -213,10 +227,11 @@
     try {
       loading = true;
       error = '';
-      const [catalogResponse, statusResponse, orgResponse] = await Promise.all([
+      const [catalogResponse, statusResponse, orgResponse, ouResponse] = await Promise.all([
         getAssetCatalogs(),
         listStatusCatalogs().catch(() => ({ data: [] as AssetStatusCatalog[] })),
-        listOrganizations({ flat: true, limit: 200 }).catch(() => ({ data: [] as OrganizationDto[] }))
+        listOrganizations({ flat: true, limit: 200 }).catch(() => ({ data: [] as OrganizationDto[] })),
+        listOrgUnits().catch(() => ({ data: [] as OrgUnitOption[] }))
       ]);
       categories = catalogResponse.data?.categories ?? [];
       vendors = catalogResponse.data?.vendors ?? [];
@@ -224,6 +239,7 @@
       locations = catalogResponse.data?.locations ?? [];
       statuses = statusResponse.data ?? [];
       organizations = orgResponse.data ?? [];
+      orgUnits = ouResponse.data ?? [];
     } catch (err) {
       error = err instanceof Error ? err.message : 'Khong the tai danh muc';
       toast.error(error);
@@ -259,7 +275,8 @@
       await createLocation({
         name: parsed.name,
         parentId: parsed.parentId || null,
-        organizationId: parsed.organizationId || null
+        organizationId: parsed.organizationId || null,
+        ouId: parsed.ouId || null
       });
     } else {
       const parsed = statusSchema.parse(values);
@@ -305,7 +322,8 @@
       await updateLocation(id, {
         name: parsed.name,
         parentId: parsed.parentId || null,
-        organizationId: parsed.organizationId || null
+        organizationId: parsed.organizationId || null,
+        ouId: parsed.ouId || null
       });
     } else {
       const parsed = statusSchema.parse(values);
@@ -349,7 +367,7 @@
 </script>
 
 <div class="page-shell page-content">
-  <PageHeader title={$isLoading ? 'Asset Catalogs' : $_('catalogs.pageTitle')} subtitle={`${currentRows.length} ${$isLoading ? 'records' : $_('common.records')}`}>
+  <PageHeader title={$isLoading ? tabTitleFallbacks[activeTab] : tabLabels[activeTab]} subtitle={`${currentRows.length} ${$isLoading ? 'records' : $_('common.records')}`}>
     {#snippet actions()}
       {#if activeTab !== 'models' && activeTab !== 'equipmentGroups'}
       <Button variant="primary" size="sm" data-testid="btn-create" onclick={() => (createOpen = true)}>
@@ -405,6 +423,7 @@
             <TableHeaderCell>Parent</TableHeaderCell>
             <TableHeaderCell>Path</TableHeaderCell>
             <TableHeaderCell>{$isLoading ? 'Organization (OU)' : $_('catalogs.header.organization')}</TableHeaderCell>
+            <TableHeaderCell>{$isLoading ? 'AD Directory (OU)' : $_('catalogs.header.adOuLink')}</TableHeaderCell>
           {:else}
             <TableHeaderCell>{$isLoading ? 'Name' : $_('common.name')}</TableHeaderCell>
             <TableHeaderCell>Code</TableHeaderCell>
@@ -438,6 +457,16 @@
                 <TableCell>{locations.find((item) => item.id === rowAny.parentId)?.name ?? '-'}</TableCell>
                 <TableCell>{rowAny.path}</TableCell>
                 <TableCell class="text-slate-400">{rowAny.organizationName ?? '-'}</TableCell>
+                <TableCell class="text-slate-400">
+                  {#if rowAny.ouPath}
+                    <span class="inline-flex items-center gap-1 text-xs">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-primary/60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+                      {rowAny.ouName ?? rowAny.ouPath}
+                    </span>
+                  {:else}
+                    -
+                  {/if}
+                </TableCell>
               {:else}
                 <TableCell>{rowAny.name}</TableCell>
                 <TableCell class="font-mono text-xs">{rowAny.code}</TableCell>
@@ -527,6 +556,9 @@
       {#if organizations.length > 0}
       <SelectField id="location-org-create" label={$isLoading ? 'Organization (OU)' : $_('catalogs.field.locationOrganization')} value={String(values.organizationId ?? '')} options={orgOptions} placeholder={$isLoading ? 'No organization' : $_('catalogs.placeholder.noOrganization')} onValueChange={(v) => setValue('organizationId', v)} disabled={disabled} />
       {/if}
+      {#if orgUnits.length > 0}
+      <SelectField id="location-ou-create" label={$isLoading ? 'AD Directory (OU)' : $_('catalogs.field.adOuLink')} value={String(values.ouId ?? '')} options={ouOptions} placeholder={$isLoading ? 'No AD OU' : $_('catalogs.placeholder.noAdOu')} onValueChange={(v) => setValue('ouId', v)} disabled={disabled} />
+      {/if}
     {:else}
       <TextField id="status-name-create" label={$isLoading ? 'Status Name' : $_('catalogs.field.statusName')} required value={String(values.name ?? '')} error={errors.name} onValueChange={(v) => setValue('name', v)} disabled={disabled} />
       <TextField id="status-code-create" label={$isLoading ? 'Status Code' : $_('catalogs.field.statusCode')} required value={String(values.code ?? '')} error={errors.code} onValueChange={(v) => setValue('code', v)} disabled={disabled} />
@@ -570,6 +602,9 @@
       <SelectField id="location-parent-edit" label={$isLoading ? 'Parent Location' : $_('catalogs.field.parentLocation')} value={String(values.parentId ?? '')} options={locationOptions} placeholder={$isLoading ? 'No parent location' : $_('catalogs.placeholder.noParentLocation')} onValueChange={(v) => setValue('parentId', v)} disabled={disabled} />
       {#if organizations.length > 0}
       <SelectField id="location-org-edit" label={$isLoading ? 'Organization (OU)' : $_('catalogs.field.locationOrganization')} value={String(values.organizationId ?? '')} options={orgOptions} placeholder={$isLoading ? 'No organization' : $_('catalogs.placeholder.noOrganization')} onValueChange={(v) => setValue('organizationId', v)} disabled={disabled} />
+      {/if}
+      {#if orgUnits.length > 0}
+      <SelectField id="location-ou-edit" label={$isLoading ? 'AD Directory (OU)' : $_('catalogs.field.adOuLink')} value={String(values.ouId ?? '')} options={ouOptions} placeholder={$isLoading ? 'No AD OU' : $_('catalogs.placeholder.noAdOu')} onValueChange={(v) => setValue('ouId', v)} disabled={disabled} />
       {/if}
     {:else}
       <TextField id="status-name-edit" label={$isLoading ? 'Status Name' : $_('catalogs.field.statusName')} required value={String(values.name ?? '')} error={errors.name} onValueChange={(v) => setValue('name', v)} disabled={disabled} />

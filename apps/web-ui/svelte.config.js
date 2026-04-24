@@ -1,5 +1,8 @@
-import adapter from '@sveltejs/adapter-node';
+import nodeAdapter from '@sveltejs/adapter-node';
+import staticAdapter from '@sveltejs/adapter-static';
 import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
+
+const isMobileBuild = process.env.BUILD_TARGET === 'mobile';
 
 const config = {
     preprocess: vitePreprocess(),
@@ -16,11 +19,18 @@ const config = {
         handler(warning);
     },
     kit: {
-        adapter: adapter({
-            out: 'build',
-            precompress: false,
-            envPrefix: ''
-        }),
+        adapter: isMobileBuild
+            ? staticAdapter({
+                pages: 'build',
+                assets: 'build',
+                fallback: 'index.html',
+                precompress: false
+            })
+            : nodeAdapter({
+                out: 'build',
+                precompress: false,
+                envPrefix: ''
+            }),
         alias: {
             $lib: './src/lib'
         }

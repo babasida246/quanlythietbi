@@ -8,10 +8,12 @@
     listSpareParts,
     listWarehouses,
     listStockAssets,
+    listOrgUnits,
     type SparePartRecord,
     type StockDocumentLine,
     type WarehouseRecord,
-    type WarehouseAssetOption
+    type WarehouseAssetOption,
+    type OrgUnitOption
   } from '$lib/api/warehouse';
   import { getAssetCatalogs, listLocations, type Vendor, type Location } from '$lib/api/assetCatalogs';
   import { listAssetModels } from '$lib/api/assets';
@@ -24,6 +26,7 @@
   let locations      = $state<Location[]>([]);
   let models         = $state<ModelOption[]>([]);
   let warehouseAssets= $state<WarehouseAssetOption[]>([]);
+  let orgUnits       = $state<OrgUnitOption[]>([]);
   let lines          = $state<StockDocumentLine[]>([]);
 
   let loading  = $state(true);
@@ -39,17 +42,18 @@
   let supplier         = $state('');
   let submitterName    = $state('');
   let receiverName     = $state('');
-  let department       = $state('');
+  let recipientOuId    = $state('');
 
   async function loadCatalogs() {
     try {
       loading = true;
-      const [warehousesRes, partsRes, catalogsRes, locationsRes, modelsRes] = await Promise.all([
+      const [warehousesRes, partsRes, catalogsRes, locationsRes, modelsRes, orgUnitsRes] = await Promise.all([
         listWarehouses(),
         listSpareParts({ page: 1, limit: 200 }),
         getAssetCatalogs(),
         listLocations(),
-        listAssetModels({ limit: 500 })
+        listAssetModels({ limit: 500 }),
+        listOrgUnits()
       ]);
       warehouses = warehousesRes.data ?? [];
       parts      = partsRes.data ?? [];
@@ -58,6 +62,7 @@
       models     = (modelsRes.data ?? []).map((m: { id: string; name: string; categoryName?: string | null }) => ({
         id: m.id, name: m.name, categoryName: m.categoryName ?? null
       }));
+      orgUnits   = orgUnitsRes.data ?? [];
     } catch (err) {
       error = err instanceof Error ? err.message : $_('warehouse.errors.loadCatalogsFailed');
     } finally {
@@ -108,7 +113,7 @@
         supplier: supplier || null,
         submitterName: submitterName || null,
         receiverName: receiverName || null,
-        department: department || null,
+        recipientOuId: recipientOuId || null,
         lines
       });
       await goto(`/warehouse/documents/${response.data.document.id}`);
@@ -210,15 +215,20 @@
           </div>
         {/if}
 
-        <!-- issue: Người nhận + Phòng ban + Vị trí nhận -->
+        <!-- issue: Người nhận + Nơi nhận (OU) + Vị trí nhận -->
         {#if docType === 'issue'}
           <div>
             <label for="new-doc-receiver" class="mb-1 block text-xs font-medium text-slate-400">{$isLoading ? 'Receiver' : $_('warehouse.field.receiver')}</label>
             <input id="new-doc-receiver" class="input-base text-sm" bind:value={receiverName} placeholder={$isLoading ? 'Receiver name...' : $_('warehouse.field.receiverPlaceholder')} />
           </div>
           <div>
-            <label for="new-doc-dept" class="mb-1 block text-xs font-medium text-slate-400">{$isLoading ? 'Department' : $_('warehouse.field.department')}</label>
-            <input id="new-doc-dept" class="input-base text-sm" bind:value={department} placeholder={$isLoading ? 'Department...' : $_('warehouse.field.departmentPlaceholder')} />
+            <label for="new-doc-ou" class="mb-1 block text-xs font-medium text-slate-400">{$isLoading ? 'Recipient' : $_('warehouse.field.department')}</label>
+            <select id="new-doc-ou" class="select-base text-sm" bind:value={recipientOuId}>
+              <option value="">{$isLoading ? '-- No recipient --' : $_('warehouse.field.noRecipientOu')}</option>
+              {#each orgUnits as ou}
+                <option value={ou.id} style="padding-left: {ou.depth * 12}px">{'　'.repeat(ou.depth)}{ou.name}</option>
+              {/each}
+            </select>
           </div>
           <div>
             <label for="new-doc-location" class="mb-1 block text-xs font-medium text-slate-400">{$isLoading ? 'Receiving Location' : $_('warehouse.field.receivingLocation')}</label>
@@ -231,11 +241,16 @@
           </div>
         {/if}
 
-        <!-- adjust / transfer: Bộ phận + Người thực hiện -->
+        <!-- adjust / transfer: Nơi nhận + Người thực hiện -->
         {#if docType === 'adjust' || docType === 'transfer'}
           <div>
-            <label for="new-doc-dept2" class="mb-1 block text-xs font-medium text-slate-400">{$isLoading ? 'Department' : $_('warehouse.field.department')}</label>
-            <input id="new-doc-dept2" class="input-base text-sm" bind:value={department} placeholder={$isLoading ? 'Related department...' : $_('warehouse.field.departmentPlaceholder')} />
+            <label for="new-doc-ou2" class="mb-1 block text-xs font-medium text-slate-400">{$isLoading ? 'Recipient' : $_('warehouse.field.department')}</label>
+            <select id="new-doc-ou2" class="select-base text-sm" bind:value={recipientOuId}>
+              <option value="">{$isLoading ? '-- No recipient --' : $_('warehouse.field.noRecipientOu')}</option>
+              {#each orgUnits as ou}
+                <option value={ou.id}>{'　'.repeat(ou.depth)}{ou.name}</option>
+              {/each}
+            </select>
           </div>
           <div>
             <label for="new-doc-submitter2" class="mb-1 block text-xs font-medium text-slate-400">{$isLoading ? 'Executor' : $_('warehouse.field.executor')}</label>
