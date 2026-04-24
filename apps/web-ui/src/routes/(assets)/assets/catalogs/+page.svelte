@@ -53,7 +53,7 @@
   type CatalogTab = 'categories' | 'vendors' | 'models' | 'locations' | 'statuses' | 'equipmentGroups';
 
   const tabTitleFallbacks: Record<CatalogTab, string> = {
-    categories: 'Danh mục',
+    categories: 'Loại tài sản',
     vendors: 'Nhà cung cấp',
     models: 'Mẫu mã',
     locations: 'Vị trí',

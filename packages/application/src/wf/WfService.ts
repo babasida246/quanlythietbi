@@ -145,6 +145,7 @@ export class WfService {
 
         const def = await this.repo.findDefinitionByType(req.requestType);
         if (!def || !def.steps.length) {
+            // Backward-compatible behavior: requests without definition are auto-approved.
             await this.repo.updateRequestStatus(dto.requestId, 'approved', {
                 submittedAt: new Date(),
                 closedAt: new Date(),
@@ -166,6 +167,7 @@ export class WfService {
             definitionId: def.id,
         });
 
+        // Create pending approvals for the first workflow step.
         await this.startStep(dto.requestId, def, def.steps[0], dto.actorId, req.requesterOuId);
 
         await this.repo.appendEvent({
@@ -192,6 +194,7 @@ export class WfService {
 
         const remaining = await this.repo.findPendingApprovalsByRequest(approval.requestId);
         if (remaining.length === 0) {
+            // Step is complete only when all pending approvals in that step are resolved.
             await this.advanceRequest(approval.requestId, approval.stepNo, 'approved', dto.actorId);
         }
 

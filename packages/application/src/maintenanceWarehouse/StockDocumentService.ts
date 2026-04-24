@@ -27,6 +27,12 @@ type StockChange = {
     refId?: string | null
 }
 
+/**
+ * Handles stock document lifecycle and posting side effects.
+ *
+ * Posting is transactional: inventory adjustments, movements, and asset updates
+ * are committed together through WarehouseUnitOfWork.
+ */
 export class StockDocumentService {
     constructor(
         private documents: IStockDocumentRepo,
@@ -95,6 +101,7 @@ export class StockDocumentService {
             throw AppError.badRequest('Only draft documents can be submitted')
         }
         const lines = await this.documents.listLines(id)
+        // Validate line shape/rules before status can advance.
         assertStockDocLines(lines)
 
         const submitted = await this.documents.setStatus(id, 'submitted', document.approvedBy ?? null)
@@ -110,6 +117,7 @@ export class StockDocumentService {
             throw AppError.badRequest('Only submitted documents can be approved')
         }
         if (document.createdBy && document.createdBy === ctx.userId) {
+            // Enforce maker-checker separation.
             throw AppError.forbidden('Document creator cannot approve the same document')
         }
         const lines = await this.documents.listLines(id)
@@ -140,6 +148,7 @@ export class StockDocumentService {
             throw AppError.forbidden('Document creator cannot post the same document')
         }
         if (document.approvedBy === ctx.userId) {
+            // Posting must be executed by a third actor (not creator, not approver).
             throw AppError.forbidden('Approver cannot post the same document')
         }
 
@@ -177,6 +186,7 @@ export class StockDocumentService {
                         throw AppError.badRequest(`Asset line ${line.id} is missing assetModelId`)
                     }
                     const assetCode = line.assetCode ?? await nextAssetCode(tx.documents)
+                    // Receipt lines can bootstrap brand-new asset records directly from warehouse flow.
                     const asset = await tx.assets.create({
                         assetCode,
                         modelId: line.assetModelId,
@@ -208,6 +218,7 @@ export class StockDocumentService {
                     }
 
                     await tx.assets.update(asset.id, {
+                        // Issue means asset leaves warehouse and becomes in_use at destination location.
                         status: 'in_use',
                         locationId: document.locationId ?? null,
                         warehouseId: null

@@ -16,6 +16,10 @@ interface StockDocumentRoutesOptions {
     pgClient?: { query: <T>(sql: string, params?: unknown[]) => Promise<{ rows: T[] }> }
 }
 
+/**
+ * Generates a human-readable stock document code.
+ * Uses DB sequence when available; otherwise falls back to timestamp-based code.
+ */
 async function generateSequentialDocCode(pgClient?: StockDocumentRoutesOptions['pgClient']): Promise<string> {
     const year = new Date().getFullYear()
     if (pgClient) {
@@ -89,8 +93,10 @@ export async function stockDocumentRoutes(
     fastify.post('/stock-documents', async (request, reply) => {
         const ctx = requirePermission(request, 'warehouse:create')
         const body = stockDocumentCreateSchema.parse(request.body)
+        // Keep client override support, but auto-generate when code is not provided.
         const code = body.code?.trim() || await generateSequentialDocCode(pgClient)
         const docDate = body.docDate?.trim() || undefined
+        // Persist OU path snapshot so historical documents remain readable if org tree changes.
         const recipientSnapshot = await resolveRecipientOuSnapshot(pgClient, body.recipientOuId ?? null, body.department ?? null)
         const detail = await stockDocumentService.createDocument({
             docType: body.docType,
@@ -150,6 +156,7 @@ export async function stockDocumentRoutes(
     fastify.post('/stock-documents/:id/post', async (request, reply) => {
         const ctx = requirePermission(request, 'warehouse:approve')
         const { id } = stockDocumentIdParamsSchema.parse(request.params)
+        // Optional idempotency key prevents duplicate posting on client retries.
         const idempotencyKey = (request.headers['idempotency-key'] as string) || undefined
         const posted = await stockDocumentService.postDocument(id, ctx, idempotencyKey)
         return reply.send({ data: posted })

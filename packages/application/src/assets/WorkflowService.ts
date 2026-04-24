@@ -56,6 +56,14 @@ type IssuedDocumentLineSnapshot = {
     note?: string | null
 }
 
+/**
+ * Orchestrates workflow transitions and invokes domain services for side effects.
+ *
+ * This service behaves like an application-level state machine:
+ * - validates allowed transitions
+ * - executes request-type-specific actions
+ * - stores progress snapshots back into workflow payload
+ */
 export class WorkflowService {
     constructor(
         private workflows: IWorkflowRepo,
@@ -136,6 +144,7 @@ export class WorkflowService {
             throw AppError.conflict('Request is not approved')
         }
 
+        // Mark request as active before invoking side-effecting operations.
         await this.workflows.updateStatus(id, 'in_progress', {
             approvedBy: request.approvedBy ?? ctx.userId,
             correlationId: ctx.correlationId
@@ -187,6 +196,7 @@ export class WorkflowService {
 
         let assignedAsset = false
         if (request.assetId && input.assigneeId && input.assigneeName && input.assigneeType) {
+            // Assignment remains an explicit step after warehouse issue flow.
             await this.assets.assignAsset(request.assetId, {
                 assigneeId: input.assigneeId,
                 assigneeName: input.assigneeName,
@@ -290,6 +300,7 @@ export class WorkflowService {
             return { partId, requestedQty, issueQty: issuedQty }
         })
 
+        // Remaining quantity is calculated from persisted progress, not from client input.
         const remainingByPart = new Map(progressLines.map((line) => [line.partId, line.requestedQty - line.issueQty]))
         const hasRemaining = [...remainingByPart.values()].some((value) => value > 0)
         if (!hasRemaining) {
@@ -474,6 +485,7 @@ export class WorkflowService {
     }
 
     private async executeAction(request: WorkflowRequestRecord, ctx: WorkflowServiceContext): Promise<WorkflowActionOutcome> {
+        // Request type drives which domain service is invoked.
         switch (request.requestType) {
             case 'assign': {
                 const assetId = this.requireAssetId(request)
@@ -524,6 +536,7 @@ export class WorkflowService {
                 return {}
             }
             case 'issue_stock':
+                // Returns payload patch with stock issue progress metadata.
                 return await this.executeIssueStockRequest(request, ctx)
             default:
                 throw AppError.badRequest('Unsupported request type')
@@ -556,6 +569,7 @@ export class WorkflowService {
             throw AppError.badRequest('issue_stock payload missing lines')
         }
 
+        // Track full-vs-partial issue at line level so follow-up rounds can continue safely.
         let isPartial = false
         const requestedSummary: Array<{ partId: string; requestedQty: number; issueQty: number }> = []
         const issuedRoundLines: IssuedDocumentLineSnapshot[] = []
@@ -612,6 +626,7 @@ export class WorkflowService {
         return {
             nextStatus: 'in_progress',
             payloadPatch: {
+                // Persist generated stock document and progress snapshot for subsequent actions.
                 stockIssue: {
                     stockDocumentId: created.document.id,
                     stockDocumentCode: created.document.code,

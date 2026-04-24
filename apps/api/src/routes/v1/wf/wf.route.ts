@@ -23,12 +23,19 @@ import {
 } from './wf.schema.js';
 
 function handleWfError(err: unknown, reply: FastifyReply) {
+    // Keep domain-specific workflow failures in a stable API shape.
     if (err instanceof WfError) {
         return reply.status(err.statusCode).send({ success: false, error: err.message });
     }
     throw err;
 }
 
+/**
+ * Registers workflow requester, approver inbox, and admin endpoints.
+ *
+ * Route handlers intentionally keep orchestration thin: validate input,
+ * authorize action, delegate to service, and map known domain errors.
+ */
 export async function wfRoute(
     fastify: FastifyInstance,
     opts: { wfService: WfService; assetFlowService: AssetFlowService }
@@ -73,6 +80,7 @@ export async function wfRoute(
         try {
             const result = await wfService.getRequest(param.data.id);
             const ctx = getUserContext(request);
+            // Request owners can view their own request; elevated roles can inspect all.
             if (result.requesterId !== userId && ctx.role !== 'root' && ctx.role !== 'admin' && ctx.role !== 'super_admin') {
                 return reply.status(403).send({ success: false, error: 'Access denied' });
             }
@@ -217,6 +225,7 @@ export async function wfRoute(
                 comment: parse.data.comment,
             });
             if (result.status === 'approved') {
+                // Approval success should not fail the HTTP request if follow-up automation fails.
                 await assetFlowService.onRequestApproved(result, userId).catch((error: unknown) => {
                     request.log.warn(
                         { err: error, requestId: result.id, requestType: result.requestType },

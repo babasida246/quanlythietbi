@@ -2,7 +2,7 @@
   import { _ } from 'svelte-i18n'
   import { goto } from '$app/navigation'
   import { API_BASE, apiJson } from '$lib/api/httpClient'
-  import { getAssetCatalogs, type Vendor } from '$lib/api/assetCatalogs'
+  import { getAssetCatalogs, type Vendor, type AssetCategory } from '$lib/api/assetCatalogs'
   import type { AssetIncreaseLine, IncreaseType } from '$lib/types/qlts.js'
   import { onMount } from 'svelte'
 
@@ -15,6 +15,7 @@
   let purchasePlanDocId = $state('')
   let note = $state('')
   let vendors = $state<Vendor[]>([])
+  let categories = $state<AssetCategory[]>([])
   let lines = $state<AssetIncreaseLine[]>([{
     lineNo: 1,
     assetName: '',
@@ -36,6 +37,7 @@
     try {
       const catalogs = await getAssetCatalogs()
       vendors = catalogs.data?.vendors ?? []
+      categories = catalogs.data?.categories ?? []
     } catch { /* non-critical */ }
   })
 
@@ -270,6 +272,7 @@
             <thead class="bg-gray-100">
               <tr>
                 <th class="w-12 px-2 py-1 text-left font-semibold">#</th>
+                <th class="w-36 px-2 py-1 text-left font-semibold">{$_('catalogs.tab.categories')}</th>
                 <th class="w-48 px-2 py-1 text-left font-semibold">{$_('qlts.common.assetName')}</th>
                 <th class="w-32 px-2 py-1 text-left font-semibold">{$_('qlts.common.serialNumber')}</th>
                 <th class="w-20 px-2 py-1 text-left font-semibold">{$_('qlts.common.quantity')}</th>
@@ -285,6 +288,17 @@
               {#each lines as line, index}
                 <tr>
                   <td class="border-t px-2 py-1">{line.lineNo}</td>
+                  <td class="border-t px-2 py-1">
+                    <select
+                      bind:value={line.categoryId}
+                      class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                    >
+                      <option value="">--</option>
+                      {#each categories as cat}
+                        <option value={cat.id}>{cat.name}</option>
+                      {/each}
+                    </select>
+                  </td>
                   <td class="border-t px-2 py-1">
                     <input
                       type="text"
@@ -359,7 +373,7 @@
                 </tr>
               {/each}
               <tr>
-                <td colspan="5" class="border-t px-2 py-1 text-right">{$_('qlts.common.total')}:</td>
+                <td colspan="6" class="border-t px-2 py-1 text-right">{$_('qlts.common.total')}:</td>
                 <td class="border-t px-2 py-1 font-semibold">{calculateTotal().toLocaleString()}</td>
                 <td class="border-t px-2 py-1"></td>
                 <td class="border-t px-2 py-1"></td>

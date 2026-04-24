@@ -8,6 +8,9 @@ import { ExecutorEngine } from './ExecutorEngine.js'
 import type { ChatRequest, ChatResponse } from './types.js'
 import { TIER_THRESHOLDS } from './types.js'
 
+/**
+ * Coordinates policy checks, model-tier routing, execution, and escalation.
+ */
 export class ChatOrchestrator {
     constructor(
         private policyEngine: PolicyEngine,
@@ -74,6 +77,7 @@ export class ChatOrchestrator {
     ): Promise<{ response: ChatResponse; finalTier: ModelTier }> {
         let currentTier = startTier
 
+        // Retry upward across pricing/quality tiers until one meets quality threshold.
         while (currentTier <= ModelTier.T3_PAID_PREMIUM) {
             try {
                 // Execute at current tier
@@ -97,6 +101,7 @@ export class ChatOrchestrator {
 
                 currentTier++
             } catch (error) {
+                // Executor failures are treated like quality failures and trigger escalation.
                 this.logger.error('Executor failed at tier', {
                     tier: currentTier,
                     error: error instanceof Error ? error.message : String(error),
@@ -111,6 +116,7 @@ export class ChatOrchestrator {
 
     private mapError(error: unknown, correlationId: string): AppError {
         if (error instanceof AppError) {
+            // Preserve domain error type while attaching request-level trace ID.
             error.correlationId = correlationId
             return error
         }

@@ -42,6 +42,7 @@ type UploadTokenPayload = {
 }
 
 function signUploadToken(payload: UploadTokenPayload): string {
+    // Token format: base64url(payload).hex_hmac_sha256(signature)
     const data = Buffer.from(JSON.stringify(payload)).toString('base64url')
     const sig = crypto.createHmac('sha256', UPLOAD_TOKEN_SECRET).update(data).digest('hex')
     return `${data}.${sig}`
@@ -65,6 +66,7 @@ function sanitizeFileName(name: string): string {
 
 function buildStorageKey(documentId: string, fileName: string): { storageKey: string; filePath: string } {
     const safeName = sanitizeFileName(fileName)
+    // Keep key in POSIX style for metadata portability; resolve later for local FS writes.
     const storageKey = path.posix.join('docs', documentId, `${crypto.randomUUID()}-${safeName || 'attachment'}`)
     const filePath = path.resolve(UPLOAD_ROOT, storageKey)
     return { storageKey, filePath }
@@ -216,6 +218,7 @@ export async function documentsRoute(
         await documentService.get(id)
 
         if (!request.isMultipart?.()) {
+            // Two-step upload mode: issue a short-lived signed token for raw PUT upload.
             const bodySchema = z.object({ filename: z.string().min(1), mimeType: z.string().optional() })
             const body = bodySchema.parse(request.body ?? {})
             const ext = path.extname(body.filename).toLowerCase()
@@ -272,6 +275,7 @@ export async function documentsRoute(
         if (payload.documentId !== id) throw new ForbiddenError('Upload token does not match target document')
 
         const filePath = path.resolve(UPLOAD_ROOT, payload.storageKey)
+        // Defend against path traversal by forcing writes under configured upload root.
         if (!filePath.startsWith(UPLOAD_ROOT)) throw new NotFoundError('Invalid storage path')
 
         await fs.promises.mkdir(path.dirname(filePath), { recursive: true })
@@ -326,6 +330,7 @@ export async function documentsRoute(
         if (!file || file.document_id !== id) throw new NotFoundError('File not found')
 
         const filePath = path.resolve(UPLOAD_ROOT, file.storage_key)
+        // Same root-prefix check for reads to prevent serving arbitrary files.
         if (!filePath.startsWith(UPLOAD_ROOT)) throw new NotFoundError('Invalid storage path')
         await fs.promises.access(filePath).catch(() => { throw new NotFoundError('File missing') })
 

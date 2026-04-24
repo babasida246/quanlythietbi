@@ -773,7 +773,7 @@
   "catalogs": {
     "pageTitle": "Asset Catalogs",
     "tab": {
-      "categories": "Categories",
+      "categories": "Asset Types",
       "vendors": "Vendors",
       "models": "Models",
       "locations": "Locations",

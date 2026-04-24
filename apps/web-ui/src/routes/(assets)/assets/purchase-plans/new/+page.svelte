@@ -2,6 +2,8 @@
   import { goto } from '$app/navigation'
   import { _, isLoading } from '$lib/i18n'
   import { API_BASE, apiJson } from '$lib/api/httpClient'
+  import { getAssetCatalogs, type AssetCategory } from '$lib/api/assetCatalogs'
+  import { onMount } from 'svelte'
   import { Plus, Trash2, ArrowLeft, Send, Save } from 'lucide-svelte'
 
   // ── State ──────────────────────────────────────────────────────────────────
@@ -12,9 +14,11 @@
   let requiredByDate = $state('')
   let purpose   = $state('')   // maps to `title` in API
   let note      = $state('')
+  let categories = $state<AssetCategory[]>([])
 
   interface LineItem {
     lineNo: number
+    categoryId: string
     modelName: string
     quantity: number
     unit: string
@@ -24,7 +28,7 @@
   }
 
   let lines = $state<LineItem[]>([{
-    lineNo: 1, modelName: '', quantity: 1, unit: 'cái', estimatedCost: 0, priority: 'medium', note: ''
+    lineNo: 1, categoryId: '', modelName: '', quantity: 1, unit: 'cái', estimatedCost: 0, priority: 'medium', note: ''
   }])
 
   let saving = $state(false)
@@ -34,10 +38,17 @@
 
   // ── Helpers ────────────────────────────────────────────────────────────────
 
+  onMount(async () => {
+    try {
+      const catalogs = await getAssetCatalogs()
+      categories = catalogs.data?.categories ?? []
+    } catch { /* non-critical */ }
+  })
+
   function addLine() {
     lines.push({
       lineNo: lines.length + 1,
-      modelName: '', quantity: 1, unit: 'cái', estimatedCost: 0, priority: 'medium', note: ''
+      categoryId: '', modelName: '', quantity: 1, unit: 'cái', estimatedCost: 0, priority: 'medium', note: ''
     })
   }
 
@@ -69,6 +80,7 @@
         note: note || undefined,
         lines: lines.map(l => ({
           lineNo: l.lineNo,
+          categoryId: l.categoryId || undefined,
           modelName: l.modelName.trim(),
           quantity: l.quantity,
           unit: l.unit || undefined,
@@ -252,7 +264,8 @@
         <thead class="bg-slate-800 text-xs uppercase text-slate-400">
           <tr>
             <th class="w-10 px-3 py-2 text-center">{$isLoading ? 'STT' : $_('qlts.common.lineNo')}</th>
-            <th class="px-3 py-2 text-left min-w-[220px]">{$isLoading ? 'Tên hàng hóa / Thiết bị' : $_('qlts.common.modelName')} <span class="text-red-400">*</span></th>
+            <th class="w-36 px-3 py-2 text-left">{$isLoading ? 'Loại tài sản' : $_('catalogs.tab.categories')}</th>
+            <th class="px-3 py-2 text-left min-w-[200px]">{$isLoading ? 'Tên hàng hóa / Thiết bị' : $_('qlts.common.modelName')} <span class="text-red-400">*</span></th>
             <th class="w-20 px-3 py-2 text-center">{$isLoading ? 'Số lượng' : $_('qlts.common.quantity')}</th>
             <th class="w-20 px-3 py-2 text-left">{$isLoading ? 'ĐVT' : $_('qlts.common.unit')}</th>
             <th class="w-36 px-3 py-2 text-right">{$isLoading ? 'Đơn giá dự toán' : $_('qlts.common.estimatedCost')}</th>
@@ -265,6 +278,14 @@
           {#each lines as line, i}
             <tr class="border-t border-slate-800 hover:bg-slate-800/30">
               <td class="px-3 py-1.5 text-center text-slate-400 text-xs">{line.lineNo}</td>
+              <td class="px-3 py-1">
+                <select class="select-base w-full text-sm h-8 py-0" bind:value={line.categoryId}>
+                  <option value="">--</option>
+                  {#each categories as cat}
+                    <option value={cat.id}>{cat.name}</option>
+                  {/each}
+                </select>
+              </td>
               <td class="px-3 py-1">
                 <input
                   type="text"
@@ -329,7 +350,7 @@
         </tbody>
         <tfoot>
           <tr class="border-t-2 border-slate-600 bg-slate-800/40">
-            <td colspan="4" class="px-3 py-2 text-right text-sm font-semibold text-slate-300">
+            <td colspan="5" class="px-3 py-2 text-right text-sm font-semibold text-slate-300">
               {$isLoading ? 'Tổng dự toán:' : $_('qlts.common.total') + ':'}
             </td>
             <td class="px-3 py-2 text-right font-bold text-primary">{fmt(totalCost)} VND</td>
