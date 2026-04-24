@@ -49,6 +49,8 @@ const MIGRATIONS = [
     { label: '069_stock_document_recipient_ou.sql', path: join(DB_MIGRATIONS, '069_stock_document_recipient_ou.sql') },
     { label: '070_ldap_directory.sql', path: join(DB_MIGRATIONS, '070_ldap_directory.sql') },
     { label: '071_location_ou_link.sql', path: join(DB_MIGRATIONS, '071_location_ou_link.sql') },
+    { label: '072_user_location_access.sql', path: join(DB_MIGRATIONS, '072_user_location_access.sql') },
+    { label: '073_category_item_type.sql', path: join(DB_MIGRATIONS, '073_category_item_type.sql') },
 ]
 
 const client = new pg.Client(pgConfig())

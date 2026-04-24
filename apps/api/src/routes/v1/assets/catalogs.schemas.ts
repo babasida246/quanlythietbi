@@ -16,7 +16,8 @@ export const vendorCreateSchema = vendorBase
 export const vendorUpdateSchema = vendorBase.partial()
 
 const categoryBase = z.object({
-    name: z.string().min(1)
+    name: z.string().min(1),
+    itemType: z.enum(['asset', 'spare_part', 'consumable']).optional()
 })
 
 export const categoryCreateSchema = categoryBase

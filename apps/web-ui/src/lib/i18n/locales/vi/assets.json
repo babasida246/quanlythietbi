@@ -798,12 +798,20 @@
     "editTitle": "Chỉnh sửa {entity}",
     "header": {
       "categoryName": "Tên danh mục",
+      "categoryItemType": "Loại mục",
       "locationName": "Tên vị trí",
       "organization": "Tổ chức (OU)",
       "adOuLink": "Thư mục AD (OU)"
     },
+    "itemType": {
+      "label": "Loại mục",
+      "asset": "Thiết bị",
+      "spare_part": "Linh kiện",
+      "consumable": "Vật tư tiêu hao"
+    },
     "field": {
       "categoryName": "Tên danh mục",
+      "categoryItemType": "Loại mục",
       "parentCategory": "Danh mục cha",
       "vendorName": "Tên nhà cung cấp",
       "modelName": "Tên mẫu mã",

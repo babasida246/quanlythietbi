@@ -798,12 +798,20 @@
     "editTitle": "Edit {entity}",
     "header": {
       "categoryName": "Category Name",
+      "categoryItemType": "Type",
       "locationName": "Location Name",
       "organization": "Organization (OU)",
       "adOuLink": "AD Directory (OU)"
     },
+    "itemType": {
+      "label": "Item Type",
+      "asset": "Asset",
+      "spare_part": "Spare Part",
+      "consumable": "Consumable"
+    },
     "field": {
       "categoryName": "Category Name",
+      "categoryItemType": "Item Type",
       "parentCategory": "Parent Category",
       "vendorName": "Vendor Name",
       "modelName": "Model Name",

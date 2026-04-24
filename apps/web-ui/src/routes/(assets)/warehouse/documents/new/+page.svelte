@@ -15,10 +15,9 @@
     type WarehouseAssetOption,
     type OrgUnitOption
   } from '$lib/api/warehouse';
-  import { getAssetCatalogs, listLocations, type Vendor, type Location } from '$lib/api/assetCatalogs';
-  import { listAssetModels } from '$lib/api/assets';
+  import { getAssetCatalogs, listLocations, type Vendor, type Location, type CategoryItemType } from '$lib/api/assetCatalogs';
 
-  type ModelOption = { id: string; name: string; categoryName?: string | null };
+  type ModelOption = { id: string; name: string; categoryName?: string | null; categoryItemType?: CategoryItemType | null };
 
   let warehouses     = $state<WarehouseRecord[]>([]);
   let parts          = $state<SparePartRecord[]>([]);
@@ -47,22 +46,25 @@
   async function loadCatalogs() {
     try {
       loading = true;
-      const [warehousesRes, partsRes, catalogsRes, locationsRes, modelsRes, orgUnitsRes] = await Promise.all([
+      const [warehousesRes, partsRes, catalogsRes, locationsRes, orgUnitsRes] = await Promise.all([
         listWarehouses(),
         listSpareParts({ page: 1, limit: 200 }),
         getAssetCatalogs(),
         listLocations(),
-        listAssetModels({ limit: 500 }),
         listOrgUnits()
       ]);
       warehouses = warehousesRes.data ?? [];
       parts      = partsRes.data ?? [];
       vendors    = catalogsRes.data?.vendors ?? [];
       locations  = locationsRes.data ?? [];
-      models     = (modelsRes.data ?? []).map((m: { id: string; name: string; categoryName?: string | null }) => ({
-        id: m.id, name: m.name, categoryName: m.categoryName ?? null
-      }));
       orgUnits   = orgUnitsRes.data ?? [];
+      const categoryById = Object.fromEntries(
+        (catalogsRes.data?.categories ?? []).map(c => [c.id, c])
+      );
+      models = (catalogsRes.data?.models ?? []).map(m => {
+        const cat = m.categoryId ? categoryById[m.categoryId] : null;
+        return { id: m.id, name: m.model, categoryName: cat?.name ?? null, categoryItemType: cat?.itemType ?? 'asset' };
+      });
     } catch (err) {
       error = err instanceof Error ? err.message : $_('warehouse.errors.loadCatalogsFailed');
     } finally {

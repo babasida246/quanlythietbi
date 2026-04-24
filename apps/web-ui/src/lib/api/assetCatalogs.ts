@@ -6,7 +6,8 @@ export type { SpecFieldType, NormalizeMode, SpecVersionStatus }
 
 export type Vendor = { id: string; name: string; taxCode?: string | null; phone?: string | null; email?: string | null; address?: string | null }
 export type Location = { id: string; name: string; parentId?: string | null; path: string; organizationId?: string | null; organizationName?: string | null; ouId?: string | null; ouName?: string | null; ouPath?: string | null }
-export type AssetCategory = { id: string; name: string }
+export type CategoryItemType = 'asset' | 'spare_part' | 'consumable'
+export type AssetCategory = { id: string; name: string; itemType?: CategoryItemType }
 export type AssetModel = { id: string; model: string; brand?: string | null; categoryId?: string | null; specVersionId?: string | null; vendorId?: string | null; spec: Record<string, unknown> }
 export type AssetStatusCatalog = { id: string; name: string; code: string; isTerminal: boolean; color?: string | null; createdAt?: string }
 export type CategorySpecVersion = {
@@ -67,7 +68,7 @@ export type Catalogs = {
 }
 
 export type VendorInput = { name: string; taxCode?: string | null; phone?: string | null; email?: string | null; address?: string | null }
-export type CategoryInput = { name: string }
+export type CategoryInput = { name: string; itemType?: CategoryItemType }
 export type ModelInput = { model: string; brand?: string | null; categoryId?: string | null; specVersionId?: string | null; vendorId?: string | null; spec?: Record<string, unknown> | null }
 export type LocationInput = { name: string; parentId?: string | null; organizationId?: string | null; ouId?: string | null }
 export type StatusCatalogInput = { name: string; code: string; isTerminal?: boolean; color?: string | null }
@@ -140,12 +141,16 @@ function readOptionalString(value: unknown): string | null {
     return readTextValue(value)
 }
 
+const VALID_ITEM_TYPES = new Set(['asset', 'spare_part', 'consumable'])
+
 function normalizeCategory(value: unknown): AssetCategory | null {
     if (!isRecord(value)) return null
     const id = readRequiredString(value.id)
     const name = readRequiredString(value.name)
     if (!id || !name) return null
-    return { id, name }
+    const rawType = readOptionalString(value.itemType)
+    const itemType = (rawType && VALID_ITEM_TYPES.has(rawType) ? rawType : 'asset') as CategoryItemType
+    return { id, name, itemType }
 }
 
 function normalizeLocation(value: unknown): Location | null {

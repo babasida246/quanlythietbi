@@ -21,9 +21,12 @@ export interface LocationRecord {
     createdAt: Date
 }
 
+export type CategoryItemType = 'asset' | 'spare_part' | 'consumable'
+
 export interface AssetCategoryRecord {
     id: string
     name: string
+    itemType: CategoryItemType
     createdAt: Date
 }
 
@@ -50,6 +53,7 @@ export type VendorUpdatePatch = Partial<VendorCreateInput>
 
 export interface AssetCategoryCreateInput {
     name: string
+    itemType?: CategoryItemType
 }
 
 export type AssetCategoryUpdatePatch = Partial<AssetCategoryCreateInput>

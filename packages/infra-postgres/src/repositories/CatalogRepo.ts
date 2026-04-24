@@ -2,6 +2,7 @@ import type {
     AssetCategoryRecord,
     AssetCategoryCreateInput,
     AssetCategoryUpdatePatch,
+    CategoryItemType,
     AssetModelRecord,
     AssetModelCreateInput,
     AssetModelUpdatePatch,
@@ -17,7 +18,7 @@ import type { Queryable } from './types.js'
 
 type VendorRow = { id: string; name: string; tax_code: string | null; phone: string | null; email: string | null; address: string | null; created_at: Date }
 type LocationRow = { id: string; name: string; parent_id: string | null; path: string; organization_id: string | null; organization_name: string | null; ou_id: string | null; ou_name: string | null; ou_path: string | null; created_at: Date }
-type CategoryRow = { id: string; name: string; created_at: Date }
+type CategoryRow = { id: string; name: string; item_type: string; created_at: Date }
 type ModelRow = {
     id: string
     category_id: string | null
@@ -63,9 +64,11 @@ const mapLocation = (row: LocationRow): LocationRecord => ({
     createdAt: row.created_at
 })
 
+const VALID_ITEM_TYPES = new Set(['asset', 'spare_part', 'consumable'])
 const mapCategory = (row: CategoryRow): AssetCategoryRecord => ({
     id: row.id,
     name: row.name,
+    itemType: (VALID_ITEM_TYPES.has(row.item_type) ? row.item_type : 'asset') as CategoryItemType,
     createdAt: row.created_at
 })
 
@@ -102,7 +105,7 @@ export class CatalogRepo implements ICatalogRepo {
     }
 
     async listCategories(): Promise<AssetCategoryRecord[]> {
-        const result = await this.pg.query<CategoryRow>('SELECT id, name, created_at FROM asset_categories ORDER BY name ASC')
+        const result = await this.pg.query<CategoryRow>('SELECT id, name, item_type, created_at FROM asset_categories ORDER BY name ASC')
         return result.rows.map(mapCategory)
     }
 
@@ -192,20 +195,24 @@ export class CatalogRepo implements ICatalogRepo {
     }
 
     async createCategory(input: AssetCategoryCreateInput): Promise<AssetCategoryRecord> {
-        const result = await this.pg.query<CategoryRow>('INSERT INTO asset_categories (name) VALUES ($1) RETURNING id, name, created_at', [input.name])
+        const itemType = input.itemType ?? 'asset'
+        const result = await this.pg.query<CategoryRow>(
+            'INSERT INTO asset_categories (name, item_type) VALUES ($1, $2) RETURNING id, name, item_type, created_at',
+            [input.name, itemType]
+        )
         return mapCategory(result.rows[0])
     }
 
     async updateCategory(id: string, patch: AssetCategoryUpdatePatch): Promise<AssetCategoryRecord | null> {
-        const updates = buildUpdates(patch as Record<string, unknown>, [['name', 'name']])
+        const updates = buildUpdates(patch as Record<string, unknown>, [['name', 'name'], ['itemType', 'item_type']])
         if (updates.length === 0) {
-            const existing = await this.pg.query<CategoryRow>('SELECT id, name, created_at FROM asset_categories WHERE id = $1', [id])
+            const existing = await this.pg.query<CategoryRow>('SELECT id, name, item_type, created_at FROM asset_categories WHERE id = $1', [id])
             return existing.rows[0] ? mapCategory(existing.rows[0]) : null
         }
         const setClause = updates.map((update, index) => `${update.column} = $${index + 1}`).join(', ')
         const params = updates.map(update => update.value)
         params.push(id)
-        const result = await this.pg.query<CategoryRow>(`UPDATE asset_categories SET ${setClause} WHERE id = $${params.length} RETURNING id, name, created_at`, params)
+        const result = await this.pg.query<CategoryRow>(`UPDATE asset_categories SET ${setClause} WHERE id = $${params.length} RETURNING id, name, item_type, created_at`, params)
         return result.rows[0] ? mapCategory(result.rows[0]) : null
     }
 

@@ -5,7 +5,7 @@
   import OcrScanModal from '$lib/components/OcrScanModal.svelte';
   import { ScanLine } from 'lucide-svelte';
 
-  type ModelOption = { id: string; name: string; categoryName?: string | null };
+  type ModelOption = { id: string; name: string; categoryName?: string | null; categoryItemType?: string | null };
 
   let {
     lines = $bindable<StockDocumentLine[]>([]),
@@ -37,6 +37,12 @@
       category: p.category ?? '—',
       spec: p.spec
     }))
+  );
+
+  // Only show models from 'asset' categories in the asset line model selector.
+  // Models with no category (categoryItemType null/undefined) default to 'asset'.
+  const assetModels = $derived(
+    models.filter((m: ModelOption) => !m.categoryItemType || m.categoryItemType === 'asset')
   );
 
   const needsStockCheck = $derived(docType === 'issue' || docType === 'transfer');
@@ -289,7 +295,7 @@
                         onchange={(e) => updateLine(i, 'assetModelId', (e.currentTarget as HTMLSelectElement).value)}
                       >
                         <option value="">-- {$isLoading ? 'Select Model' : $_('stockDoc.selectModel')} --</option>
-                        {#each models as m}
+                        {#each assetModels as m}
                           <option value={m.id}>{m.name}{m.categoryName ? ' · ' + m.categoryName : ''}</option>
                         {/each}
                       </select>

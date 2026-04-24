@@ -84,6 +84,32 @@ export async function listAuditLogs(params?: { limit?: number; page?: number }):
     return authJsonCached(`${API_BASE}/v1/admin/audit-logs${query ? `?${query}` : ''}`, undefined, { ttlMs: 5000, errorTtlMs: 10000 })
 }
 
+// ──── User Location Access ─────────────────────────────────────────────────────
+
+export interface UserLocationAccess {
+    id: string
+    locationId: string
+    locationName: string
+    locationPath: string
+    createdAt: string
+}
+
+export async function listUserLocations(userId: string): Promise<{ data: UserLocationAccess[] }> {
+    return authJson(`${API_BASE}/v1/admin/users/${userId}/locations`)
+}
+
+export async function addUserLocation(userId: string, locationId: string): Promise<{ data: { id: string; locationId: string; createdAt: string } }> {
+    return authJson(`${API_BASE}/v1/admin/users/${userId}/locations`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ locationId })
+    })
+}
+
+export async function removeUserLocation(userId: string, locationId: string): Promise<{ data: { success: boolean } }> {
+    return authJson(`${API_BASE}/v1/admin/users/${userId}/locations/${locationId}`, { method: 'DELETE' })
+}
+
 // ──── RBAC Management ──────────────────────────────────────────────────────────
 
 export interface RbacRole {

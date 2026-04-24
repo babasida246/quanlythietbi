@@ -113,7 +113,7 @@ export class CatalogService {
     ): Promise<{ category: AssetCategoryRecord; versionId: string; specDefs?: CategorySpecDefRecord[] }> {
         const template = matchCategoryTemplate(input.name)
         const result = await this.specs.withTransaction(async ({ catalogs, specs, versions }) => {
-            const category = await catalogs.createCategory(input)
+            const category = await catalogs.createCategory({ name: input.name, itemType: input.itemType })
             const version = await versions.create(category.id, 1, 'active', ctx?.userId ?? null)
             const specDefs = template ? await specs.bulkInsert(version.id, template) : []
             return { category, versionId: version.id, specDefs }
@@ -143,7 +143,7 @@ export class CatalogService {
     }
 
     async updateCategory(id: string, patch: AssetCategoryUpdatePatch): Promise<AssetCategoryRecord> {
-        const updated = await this.catalogs.updateCategory(id, patch)
+        const updated = await this.catalogs.updateCategory(id, { name: patch.name, itemType: patch.itemType })
         if (!updated) throw AppError.notFound('Category not found')
         await this.invalidateCache()
         return updated

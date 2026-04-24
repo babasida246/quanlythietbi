@@ -426,6 +426,95 @@ export const adminRoutes: FastifyPluginAsync<AdminRoutesOptions> = async (
         )
     })
 
+    // ─── User Location Access ──────────────────────────────────────────────────
+
+    fastify.get('/users/:id/locations', async (request, reply) => {
+        await requirePermission(request, 'admin:settings')
+
+        const { id } = userIdParamsSchema.parse(request.params)
+
+        const rows = await pgClient.query<{ id: string; location_id: string; location_name: string; location_path: string; created_at: Date }>(
+            `
+            SELECT ula.id, ula.location_id, l.name AS location_name, l.path AS location_path, ula.created_at
+            FROM user_location_access ula
+            JOIN locations l ON l.id = ula.location_id
+            WHERE ula.user_id = $1
+            ORDER BY l.path
+            `,
+            [id]
+        )
+
+        return reply.send(createSuccessResponse(
+            rows.rows.map(r => ({
+                id: r.id,
+                locationId: r.location_id,
+                locationName: r.location_name,
+                locationPath: r.location_path,
+                createdAt: r.created_at.toISOString()
+            })),
+            String(request.id)
+        ))
+    })
+
+    fastify.post('/users/:id/locations', async (request, reply) => {
+        const ctx = await requirePermission(request, 'admin:settings')
+
+        const { id } = userIdParamsSchema.parse(request.params)
+        const body = z.object({ locationId: z.string().uuid() }).parse(request.body)
+
+        try {
+            const inserted = await pgClient.query<{ id: string; location_id: string; created_at: Date }>(
+                `
+                INSERT INTO user_location_access (user_id, location_id)
+                VALUES ($1, $2)
+                RETURNING id, location_id, created_at
+                `,
+                [id, body.locationId]
+            )
+
+            await appendAuditLog(pgClient, request, {
+                actorUserId: ctx.userId,
+                action: 'admin.user.location.assign',
+                resource: 'user_location_access',
+                details: { userId: id, locationId: body.locationId }
+            })
+
+            return reply.status(201).send(createSuccessResponse(
+                { id: inserted.rows[0].id, locationId: body.locationId, createdAt: inserted.rows[0].created_at.toISOString() },
+                String(request.id)
+            ))
+        } catch (error) {
+            if (isPgUniqueViolation(error)) {
+                throw new ConflictError('User already has access to this location')
+            }
+            throw error
+        }
+    })
+
+    fastify.delete('/users/:id/locations/:locationId', async (request, reply) => {
+        const ctx = await requirePermission(request, 'admin:settings')
+
+        const params = z.object({ id: z.string().uuid(), locationId: z.string().uuid() }).parse(request.params)
+
+        const result = await pgClient.query(
+            `DELETE FROM user_location_access WHERE user_id = $1 AND location_id = $2`,
+            [params.id, params.locationId]
+        )
+
+        if (result.rowCount === 0) {
+            throw new NotFoundError('Location access not found')
+        }
+
+        await appendAuditLog(pgClient, request, {
+            actorUserId: ctx.userId,
+            action: 'admin.user.location.revoke',
+            resource: 'user_location_access',
+            details: { userId: params.id, locationId: params.locationId }
+        })
+
+        return reply.send(createSuccessResponse({ success: true }, String(request.id)))
+    })
+
     fastify.post('/users/:id/reset-password', async (request, reply) => {
         const ctx = await requirePermission(request, 'admin:settings')
         await ensureTable(pgClient, 'users')

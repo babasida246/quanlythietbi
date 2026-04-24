@@ -2,11 +2,13 @@
   import { onMount } from 'svelte'
   import {
     listUsers, updateUser, deleteUser, resetPassword, getUnifiedEffectivePerms,
-    type AdminUser, type UnifiedEffectivePerms
+    listUserLocations, addUserLocation, removeUserLocation,
+    type AdminUser, type UnifiedEffectivePerms, type UserLocationAccess
   } from '$lib/api/admin'
+  import { getAssetCatalogs, type Location } from '$lib/api/assetCatalogs'
   import {
     Pencil, Trash2, KeyRound, Check, X,
-    RefreshCw, Search, User, Eye, EyeOff, ShieldCheck, ChevronDown
+    RefreshCw, Search, User, Eye, EyeOff, ShieldCheck, MapPin, Plus
   } from 'lucide-svelte'
 
   const ROLES = [
@@ -49,6 +51,14 @@
   let pwdError = $state('')
   let showPwdNew = $state(false)
   let showPwdConfirm = $state(false)
+
+  // ── Location access ──────────────────────────────────────────────────────────
+  let locAccessUserId = $state<string | null>(null)
+  let locAccessList = $state<UserLocationAccess[]>([])
+  let locAccessLoading = $state(false)
+  let locAccessError = $state('')
+  let allLocations = $state<Location[]>([])
+  let addingLocationId = $state('')
 
   // ── Effective perms inline viewer ────────────────────────────────────────────
   let permsUserId = $state<string | null>(null)
@@ -129,6 +139,47 @@
       pwdError = e?.message ?? 'Đổi mật khẩu thất bại'
     } finally {
       pwdSaving = false
+    }
+  }
+
+  // ── Location access ──────────────────────────────────────────────────────────
+  async function toggleLocAccess(u: AdminUser) {
+    if (locAccessUserId === u.id) { locAccessUserId = null; locAccessList = []; return }
+    editingId = null; pwdUserId = null; permsUserId = null
+    locAccessUserId = u.id; locAccessList = []; locAccessLoading = true; locAccessError = ''
+    try {
+      const [locRes, catRes] = await Promise.all([
+        listUserLocations(u.id),
+        allLocations.length === 0 ? getAssetCatalogs() : Promise.resolve(null)
+      ])
+      locAccessList = locRes.data ?? []
+      if (catRes) allLocations = catRes.data?.locations ?? []
+    } catch (e: any) {
+      locAccessError = e?.message ?? 'Không thể tải danh sách vị trí'
+    } finally {
+      locAccessLoading = false
+    }
+  }
+
+  async function doAddLocation() {
+    if (!locAccessUserId || !addingLocationId) return
+    try {
+      await addUserLocation(locAccessUserId, addingLocationId)
+      addingLocationId = ''
+      const res = await listUserLocations(locAccessUserId)
+      locAccessList = res.data ?? []
+    } catch (e: any) {
+      locAccessError = e?.message ?? 'Không thể thêm vị trí'
+    }
+  }
+
+  async function doRemoveLocation(locationId: string) {
+    if (!locAccessUserId) return
+    try {
+      await removeUserLocation(locAccessUserId, locationId)
+      locAccessList = locAccessList.filter(l => l.locationId !== locationId)
+    } catch (e: any) {
+      locAccessError = e?.message ?? 'Không thể xoá vị trí'
     }
   }
 
@@ -231,6 +282,15 @@
               </td>
               <td class="px-4 py-3">
                 <div class="flex items-center gap-0.5 justify-end">
+                  <!-- Location access -->
+                  <button
+                    class="p-1.5 rounded hover:bg-surface-3 transition-colors
+                      {locAccessUserId === u.id ? 'text-emerald-400 bg-emerald-900/20' : 'text-slate-500 hover:text-emerald-400'}"
+                    title="Vị trí được phép"
+                    onclick={() => toggleLocAccess(u)}
+                  >
+                    <MapPin class="w-3.5 h-3.5" />
+                  </button>
                   <!-- View effective permissions -->
                   <button
                     class="p-1.5 rounded hover:bg-surface-3 transition-colors
@@ -260,6 +320,67 @@
                 </div>
               </td>
             </tr>
+
+            <!-- Location access row -->
+            {#if locAccessUserId === u.id}
+              <tr class="border-b border-surface-3/50 bg-emerald-900/5">
+                <td colspan="5" class="px-4 py-4">
+                  <div class="flex items-center gap-2 mb-3">
+                    <MapPin class="w-3.5 h-3.5 text-emerald-400" />
+                    <p class="text-xs font-semibold text-emerald-300">Vị trí được phép — {u.name}</p>
+                    <button class="ml-auto p-1 rounded hover:bg-surface-3 text-slate-500" onclick={() => { locAccessUserId = null; locAccessList = [] }}>
+                      <X class="w-3 h-3" />
+                    </button>
+                  </div>
+
+                  {#if locAccessLoading}
+                    <div class="text-xs text-slate-500 py-2">Đang tải...</div>
+                  {:else if locAccessError}
+                    <p class="text-xs text-rose-400 mb-2">{locAccessError}</p>
+                  {/if}
+
+                  <!-- Assigned locations list -->
+                  <div class="flex flex-col gap-1 mb-3 max-h-40 overflow-y-auto">
+                    {#if locAccessList.length === 0 && !locAccessLoading}
+                      <p class="text-xs text-slate-500">Chưa có vị trí nào. Người dùng có thể truy cập tất cả vị trí theo role.</p>
+                    {:else}
+                      {#each locAccessList as loc}
+                        <div class="flex items-center gap-2 px-2 py-1 rounded bg-emerald-900/20 border border-emerald-700/30">
+                          <MapPin class="w-3 h-3 text-emerald-400 flex-shrink-0" />
+                          <span class="text-xs text-emerald-200 flex-1">{loc.locationName}</span>
+                          <span class="text-xs text-slate-500 font-mono">{loc.locationPath}</span>
+                          <button
+                            class="p-0.5 rounded hover:bg-rose-900/30 text-slate-500 hover:text-rose-400 transition-colors"
+                            title="Xoá quyền truy cập"
+                            onclick={() => doRemoveLocation(loc.locationId)}
+                          ><X class="w-3 h-3" /></button>
+                        </div>
+                      {/each}
+                    {/if}
+                  </div>
+
+                  <!-- Add location -->
+                  <div class="flex items-center gap-2">
+                    <select
+                      class="select-base text-xs h-7 flex-1"
+                      bind:value={addingLocationId}
+                    >
+                      <option value="">— Chọn vị trí để thêm —</option>
+                      {#each allLocations.filter(l => !locAccessList.some(a => a.locationId === l.id)) as loc}
+                        <option value={loc.id}>{loc.name} ({loc.path})</option>
+                      {/each}
+                    </select>
+                    <button
+                      class="btn btn-primary px-2.5 h-7 text-xs flex items-center gap-1"
+                      onclick={doAddLocation}
+                      disabled={!addingLocationId}
+                    >
+                      <Plus class="w-3 h-3" />Thêm
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            {/if}
 
             <!-- Effective permissions row -->
             {#if permsUserId === u.id}
