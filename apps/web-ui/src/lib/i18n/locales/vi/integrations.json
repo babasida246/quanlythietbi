@@ -1,0 +1,124 @@
+{
+  "integrations": {
+    "title": "Trung tâm tích hợp",
+    "subtitle": "Quản lý kết nối, quy tắc đồng bộ và webhook với hệ thống bên ngoài",
+    "tabs": {
+      "connectors": "Kết nối",
+      "syncRules": "Quy tắc đồng bộ",
+      "webhooks": "Webhooks"
+    },
+    "connector": {
+      "new": "Thêm kết nối",
+      "name": "Tên kết nối",
+      "provider": "Nhà cung cấp",
+      "status": "Trạng thái",
+      "health": "Tình trạng",
+      "lastSync": "Đồng bộ lần cuối",
+      "actions": "Thao tác",
+      "active": "Đang hoạt động",
+      "inactive": "Tắt",
+      "never": "Chưa đồng bộ",
+      "testBtn": "Kiểm tra kết nối",
+      "syncBtn": "Đồng bộ ngay",
+      "deleteConfirm": "Xóa kết nối này?",
+      "noConnectors": "Chưa có kết nối nào được cấu hình"
+    },
+    "form": {
+      "connectorName": "Tên kết nối",
+      "connectorNamePlaceholder": "VD: Zabbix Production",
+      "provider": "Nhà cung cấp",
+      "active": "Kích hoạt",
+      "create": "Tạo kết nối",
+      "saving": "Đang lưu...",
+      "cancel": "Hủy",
+      "invalidJson": "Cấu hình JSON không hợp lệ",
+      "zabbix": {
+        "title": "Cấu hình Zabbix",
+        "baseUrl": "URL Zabbix",
+        "baseUrlPlaceholder": "https://zabbix.company.com",
+        "authMethod": "Phương thức xác thực",
+        "authToken": "API Token",
+        "authCredentials": "Tài khoản / Mật khẩu",
+        "apiToken": "API Token",
+        "apiTokenPlaceholder": "Token từ User profile > API tokens",
+        "username": "Tên đăng nhập",
+        "password": "Mật khẩu",
+        "hostGroupFilter": "Lọc Host Group (tùy chọn)",
+        "hostGroupFilterPlaceholder": "Linux Servers, Network Devices",
+        "hostGroupFilterHint": "Để trống để đồng bộ tất cả Host Group",
+        "defaultModelId": "Model mặc định (UUID)",
+        "defaultModelIdPlaceholder": "UUID của model thiết bị mặc định khi tạo mới",
+        "defaultModelIdHint": "Bắt buộc nếu muốn tự động tạo tài sản mới từ Zabbix",
+        "webhookSecret": "Secret key cho Inbound Webhook (tùy chọn)",
+        "webhookSecretPlaceholder": "Chuỗi bí mật để xác thực webhook từ Zabbix",
+        "inboundUrl": "URL nhận alert từ Zabbix",
+        "inboundUrlHint": "Cấu hình URL này trong Zabbix > Administration > Media Types"
+      }
+    },
+    "test": {
+      "success": "Kết nối thành công",
+      "failed": "Kết nối thất bại",
+      "version": "Zabbix",
+      "hosts": "host đang giám sát"
+    },
+    "sync": {
+      "title": "Kết quả đồng bộ",
+      "synced": "Đã xử lý",
+      "created": "Tạo mới",
+      "updated": "Cập nhật",
+      "failed": "Lỗi",
+      "duration": "Thời gian",
+      "ms": "ms",
+      "errors": "Chi tiết lỗi"
+    },
+    "syncRule": {
+      "new": "Thêm quy tắc",
+      "name": "Tên quy tắc",
+      "direction": "Chiều đồng bộ",
+      "entityType": "Loại đối tượng",
+      "schedule": "Lịch chạy (cron)",
+      "lastSync": "Đồng bộ lần cuối",
+      "lastStatus": "Trạng thái",
+      "active": "Đang hoạt động",
+      "inactive": "Tắt",
+      "noRules": "Chưa có quy tắc đồng bộ nào",
+      "selectConnector": "Chọn kết nối để xem quy tắc",
+      "deleteConfirm": "Xóa quy tắc này?",
+      "viewLogs": "Xem lịch sử",
+      "directions": {
+        "inbound": "Zabbix → QLTB",
+        "outbound": "QLTB → Ngoài",
+        "bidirectional": "Hai chiều"
+      }
+    },
+    "syncLog": {
+      "title": "Lịch sử đồng bộ",
+      "status": "Trạng thái",
+      "processed": "Xử lý",
+      "created": "Tạo mới",
+      "updated": "Cập nhật",
+      "failed": "Lỗi",
+      "startedAt": "Bắt đầu",
+      "duration": "Thời gian",
+      "noLogs": "Chưa có lịch sử",
+      "statuses": {
+        "running": "Đang chạy",
+        "success": "Thành công",
+        "partial": "Một phần",
+        "failed": "Thất bại"
+      }
+    },
+    "webhook": {
+      "new": "Thêm webhook",
+      "name": "Tên",
+      "url": "URL",
+      "events": "Sự kiện",
+      "status": "Trạng thái",
+      "noWebhooks": "Chưa có webhook nào",
+      "deleteConfirm": "Xóa webhook này?",
+      "eventsPlaceholder": "asset.created, asset.updated",
+      "active": "Đang hoạt động",
+      "inactive": "Tắt"
+    }
+  }
+}

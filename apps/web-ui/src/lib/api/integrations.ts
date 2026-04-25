@@ -1,9 +1,9 @@
 /**
  * Integration Hub API Client
- * Connectors, sync rules, webhooks
+ * Connectors, sync rules, webhooks, sync logs
  */
 import { API_BASE, apiJson, authorizedFetch } from './httpClient'
-import { getAssetHeaders, buildQuery } from './assets'
+import { getAssetHeaders } from './assets'
 
 type ApiResponse<T> = { data: T; meta?: Record<string, unknown> }
 
@@ -16,6 +16,7 @@ export type IntegrationConnector = {
     isActive: boolean
     lastSyncAt: string | null
     healthStatus: string
+    lastHealthCheck: string | null
     createdBy: string
     createdAt: string
     updatedAt: string
@@ -31,7 +32,24 @@ export type SyncRule = {
     filterConditions: Record<string, unknown>
     scheduleCron: string | null
     isActive: boolean
+    lastSyncAt: string | null
+    lastSyncStatus: string | null
+    lastSyncCount: number
     createdAt: string
+}
+
+export type SyncLog = {
+    id: string
+    syncRuleId: string
+    direction: string
+    recordsProcessed: number
+    recordsCreated: number
+    recordsUpdated: number
+    recordsFailed: number
+    errors: string[]
+    startedAt: string
+    completedAt: string | null
+    status: string
 }
 
 export type Webhook = {
@@ -45,19 +63,24 @@ export type Webhook = {
     createdAt: string
 }
 
-export type ProviderType = {
-    provider: string
-    label: string
-    description: string
-    configSchema: Record<string, unknown>
-}
-
 export type ConnectionTestResult = {
     healthy: boolean
     message: string
+    version?: string
+    hostCount?: number
 }
 
-// Connectors
+export type SyncTriggerResult = {
+    synced: number
+    created: number
+    updated: number
+    failed: number
+    errors: string[]
+    durationMs: number
+}
+
+// ── Connectors ─────────────────────────────────────────────────────────────────
+
 export async function listConnectors(): Promise<ApiResponse<IntegrationConnector[]>> {
     return apiJson(`${API_BASE}/v1/integrations/connectors`, { headers: getAssetHeaders() })
 }
@@ -96,7 +119,16 @@ export async function testConnection(id: string): Promise<ApiResponse<Connection
     })
 }
 
-// Sync Rules
+export async function syncNow(id: string, syncRuleId?: string): Promise<ApiResponse<SyncTriggerResult>> {
+    return apiJson(`${API_BASE}/v1/integrations/connectors/${id}/sync`, {
+        method: 'POST',
+        headers: { ...getAssetHeaders(), 'Content-Type': 'application/json' },
+        body: JSON.stringify(syncRuleId ? { syncRuleId } : {})
+    })
+}
+
+// ── Sync Rules ─────────────────────────────────────────────────────────────────
+
 export async function listSyncRules(connectorId: string): Promise<ApiResponse<SyncRule[]>> {
     return apiJson(`${API_BASE}/v1/integrations/connectors/${connectorId}/sync-rules`, { headers: getAssetHeaders() })
 }
@@ -116,7 +148,12 @@ export async function deleteSyncRule(id: string): Promise<void> {
     })
 }
 
-// Webhooks
+export async function listSyncLogs(syncRuleId: string): Promise<ApiResponse<SyncLog[]>> {
+    return apiJson(`${API_BASE}/v1/integrations/sync-rules/${syncRuleId}/logs`, { headers: getAssetHeaders() })
+}
+
+// ── Webhooks ──────────────────────────────────────────────────────────────────
+
 export async function listWebhooks(): Promise<ApiResponse<Webhook[]>> {
     return apiJson(`${API_BASE}/v1/integrations/webhooks`, { headers: getAssetHeaders() })
 }
@@ -136,7 +173,8 @@ export async function deleteWebhook(id: string): Promise<void> {
     })
 }
 
-// Providers
-export async function getProviderTypes(): Promise<ApiResponse<ProviderType[]>> {
+// ── Providers ─────────────────────────────────────────────────────────────────
+
+export async function getProviderTypes(): Promise<ApiResponse<string[]>> {
     return apiJson(`${API_BASE}/v1/integrations/providers`, { headers: getAssetHeaders() })
 }

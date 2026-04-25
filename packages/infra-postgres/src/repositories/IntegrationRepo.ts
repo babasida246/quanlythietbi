@@ -156,6 +156,59 @@ export class SyncRuleRepo {
     }
 }
 
+export class SyncLogRepo {
+    constructor(private pg: PgClient) { }
+
+    async create(input: Omit<SyncLog, 'id' | 'completedAt'>): Promise<SyncLog> {
+        const result = await this.pg.query<SyncLog>(
+            `INSERT INTO integration_sync_logs
+               (sync_rule_id, direction, records_processed, records_created, records_updated, records_failed, errors, started_at, status)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`,
+            [
+                input.syncRuleId, input.direction,
+                input.recordsProcessed, input.recordsCreated, input.recordsUpdated, input.recordsFailed,
+                JSON.stringify(input.errors), input.startedAt, input.status
+            ]
+        )
+        return this.mapRow(result.rows[0])
+    }
+
+    async complete(id: string, patch: { status: string; recordsProcessed: number; recordsCreated: number; recordsUpdated: number; recordsFailed: number; errors: unknown[] }): Promise<void> {
+        await this.pg.query(
+            `UPDATE integration_sync_logs
+             SET status = $1, records_processed = $2, records_created = $3,
+                 records_updated = $4, records_failed = $5, errors = $6, completed_at = NOW()
+             WHERE id = $7`,
+            [patch.status, patch.recordsProcessed, patch.recordsCreated, patch.recordsUpdated, patch.recordsFailed, JSON.stringify(patch.errors), id]
+        )
+    }
+
+    async listByRule(syncRuleId: string, limit = 20): Promise<SyncLog[]> {
+        const result = await this.pg.query<SyncLog>(
+            `SELECT * FROM integration_sync_logs WHERE sync_rule_id = $1 ORDER BY started_at DESC LIMIT $2`,
+            [syncRuleId, limit]
+        )
+        return result.rows.map((r: any) => this.mapRow(r))
+    }
+
+    async updateSyncRuleLastSync(syncRuleId: string, status: string): Promise<void> {
+        await this.pg.query(
+            `UPDATE integration_sync_rules SET last_sync_at = NOW(), last_sync_status = $1 WHERE id = $2`,
+            [status, syncRuleId]
+        )
+    }
+
+    private mapRow(row: any): SyncLog {
+        return {
+            id: row.id, syncRuleId: row.sync_rule_id, direction: row.direction,
+            recordsProcessed: row.records_processed ?? 0, recordsCreated: row.records_created ?? 0,
+            recordsUpdated: row.records_updated ?? 0, recordsFailed: row.records_failed ?? 0,
+            errors: row.errors ?? [], startedAt: row.started_at, completedAt: row.completed_at,
+            status: row.status
+        }
+    }
+}
+
 export class WebhookRepo {
     constructor(private pg: PgClient) { }
 

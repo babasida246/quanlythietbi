@@ -1,0 +1,124 @@
+{
+  "integrations": {
+    "title": "Integration Hub",
+    "subtitle": "Manage connections, sync rules and webhooks with external systems",
+    "tabs": {
+      "connectors": "Connectors",
+      "syncRules": "Sync Rules",
+      "webhooks": "Webhooks"
+    },
+    "connector": {
+      "new": "New Connector",
+      "name": "Name",
+      "provider": "Provider",
+      "status": "Status",
+      "health": "Health",
+      "lastSync": "Last Sync",
+      "actions": "Actions",
+      "active": "Active",
+      "inactive": "Inactive",
+      "never": "Never synced",
+      "testBtn": "Test Connection",
+      "syncBtn": "Sync Now",
+      "deleteConfirm": "Delete this connector?",
+      "noConnectors": "No connectors configured"
+    },
+    "form": {
+      "connectorName": "Connector Name",
+      "connectorNamePlaceholder": "e.g. Zabbix Production",
+      "provider": "Provider",
+      "active": "Active",
+      "create": "Create Connector",
+      "saving": "Saving...",
+      "cancel": "Cancel",
+      "invalidJson": "Invalid JSON configuration",
+      "zabbix": {
+        "title": "Zabbix Configuration",
+        "baseUrl": "Zabbix URL",
+        "baseUrlPlaceholder": "https://zabbix.company.com",
+        "authMethod": "Authentication Method",
+        "authToken": "API Token",
+        "authCredentials": "Username / Password",
+        "apiToken": "API Token",
+        "apiTokenPlaceholder": "Token from User profile > API tokens",
+        "username": "Username",
+        "password": "Password",
+        "hostGroupFilter": "Host Group Filter (optional)",
+        "hostGroupFilterPlaceholder": "Linux Servers, Network Devices",
+        "hostGroupFilterHint": "Leave empty to sync all host groups",
+        "defaultModelId": "Default Model UUID",
+        "defaultModelIdPlaceholder": "UUID of the default asset model for new assets",
+        "defaultModelIdHint": "Required to auto-create new assets from Zabbix hosts",
+        "webhookSecret": "Inbound Webhook Secret (optional)",
+        "webhookSecretPlaceholder": "Secret string to authenticate Zabbix webhook calls",
+        "inboundUrl": "Inbound Alert URL",
+        "inboundUrlHint": "Configure this URL in Zabbix > Administration > Media Types"
+      }
+    },
+    "test": {
+      "success": "Connection successful",
+      "failed": "Connection failed",
+      "version": "Zabbix",
+      "hosts": "host(s) monitored"
+    },
+    "sync": {
+      "title": "Sync Result",
+      "synced": "Processed",
+      "created": "Created",
+      "updated": "Updated",
+      "failed": "Failed",
+      "duration": "Duration",
+      "ms": "ms",
+      "errors": "Error details"
+    },
+    "syncRule": {
+      "new": "New Rule",
+      "name": "Rule Name",
+      "direction": "Direction",
+      "entityType": "Entity Type",
+      "schedule": "Schedule (cron)",
+      "lastSync": "Last Sync",
+      "lastStatus": "Status",
+      "active": "Active",
+      "inactive": "Inactive",
+      "noRules": "No sync rules configured",
+      "selectConnector": "Select a connector to view its rules",
+      "deleteConfirm": "Delete this sync rule?",
+      "viewLogs": "View Logs",
+      "directions": {
+        "inbound": "Zabbix → QLTB",
+        "outbound": "QLTB → External",
+        "bidirectional": "Bidirectional"
+      }
+    },
+    "syncLog": {
+      "title": "Sync History",
+      "status": "Status",
+      "processed": "Processed",
+      "created": "Created",
+      "updated": "Updated",
+      "failed": "Failed",
+      "startedAt": "Started",
+      "duration": "Duration",
+      "noLogs": "No sync history yet",
+      "statuses": {
+        "running": "Running",
+        "success": "Success",
+        "partial": "Partial",
+        "failed": "Failed"
+      }
+    },
+    "webhook": {
+      "new": "New Webhook",
+      "name": "Name",
+      "url": "URL",
+      "events": "Events",
+      "status": "Status",
+      "noWebhooks": "No webhooks configured",
+      "deleteConfirm": "Delete this webhook?",
+      "eventsPlaceholder": "asset.created, asset.updated",
+      "active": "Active",
+      "inactive": "Inactive"
+    }
+  }
+}

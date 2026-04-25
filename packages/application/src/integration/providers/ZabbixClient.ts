@@ -117,6 +117,31 @@ export class ZabbixClient {
     }
 
     /**
+     * Fetches all monitored hosts with interfaces and inventory.
+     * Optionally filtered by host group names.
+     */
+    async getHosts(groupFilter?: string[]): Promise<unknown[]> {
+        const params: Record<string, unknown> = {
+            output: ['hostid', 'host', 'name', 'available', 'status'],
+            selectInterfaces: ['interfaceid', 'type', 'ip', 'dns', 'port', 'main'],
+            selectInventory: ['serialno_a', 'serialno_b', 'macaddress_a', 'macaddress_b', 'model', 'os'],
+            filter: { status: '0' }, // monitored only
+        }
+
+        if (groupFilter && groupFilter.length > 0) {
+            const groups = await this.rpc<Array<{ groupid: string }>>(
+                'hostgroup.get',
+                { output: ['groupid'], filter: { name: groupFilter } },
+            )
+            if (groups.length > 0) {
+                params.groupids = groups.map(g => g.groupid)
+            }
+        }
+
+        return this.rpc<unknown[]>('host.get', params)
+    }
+
+    /**
      * Tests connectivity and authentication.
      * 1. Fetches API version (no auth) — verifies network reachability.
      * 2. Authenticates (if credentials auth).

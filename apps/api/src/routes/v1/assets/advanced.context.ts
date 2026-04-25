@@ -2,6 +2,7 @@ import type { FastifyInstance } from 'fastify'
 import type { PgClient } from '@qltb/infra-postgres'
 import {
     AnalyticsRepo,
+    AssetRepo,
     AutomationLogRepo,
     AutomationRuleRepo,
     ComplianceRepo,
@@ -13,6 +14,7 @@ import {
     RbacPermissionRepo,
     ScheduledTaskRepo,
     SecurityAuditRepo,
+    SyncLogRepo,
     SyncRuleRepo,
     WebhookRepo
 } from '@qltb/infra-postgres'
@@ -42,14 +44,23 @@ export async function registerAdvancedContext(
     const dashboardConfigRepo = new DashboardConfigRepo(pgClient)
     const integrationConnectorRepo = new IntegrationConnectorRepo(pgClient)
     const syncRuleRepo = new SyncRuleRepo(pgClient)
+    const syncLogRepo = new SyncLogRepo(pgClient)
     const webhookRepo = new WebhookRepo(pgClient)
+    const assetRepo = new AssetRepo(pgClient)
     const rbacPermissionRepo = new RbacPermissionRepo(pgClient)
     const securityAuditRepo = new SecurityAuditRepo(pgClient)
     const complianceRepo = new ComplianceRepo(pgClient)
 
     const automationService = new AutomationService(automationRuleRepo as any, automationLogRepo as any, notificationRepo as any, scheduledTaskRepo)
     const analyticsService = new AnalyticsService(analyticsRepo, costRecordRepo, performanceMetricRepo, dashboardConfigRepo)
-    const integrationService = new IntegrationService(integrationConnectorRepo, syncRuleRepo, webhookRepo as any)
+    const integrationService = new IntegrationService(
+        integrationConnectorRepo,
+        syncRuleRepo,
+        webhookRepo as any,
+        syncLogRepo,
+        assetRepo as any,
+        pgClient as any,
+    )
     const securityService = new SecurityService(rbacPermissionRepo as any, securityAuditRepo, complianceRepo)
 
     await fastify.register(analyticsRoutes, { prefix: '/api/v1', analyticsService })

@@ -143,4 +143,73 @@ export async function integrationRoutes(
         const providers = await svc.getProviderTypes()
         return reply.send({ data: providers })
     })
+
+    // --- Manual Sync Trigger ---
+    fastify.post('/integrations/connectors/:id/sync', async (request, reply) => {
+        requirePermission(request, 'integrations:manage')
+        const { id } = request.params as { id: string }
+        const body = z.object({ syncRuleId: z.string().uuid().optional() }).parse(request.body ?? {})
+        const result = await svc.triggerSync(id, body.syncRuleId)
+        return reply.send({ data: result })
+    })
+
+    // --- Sync Logs ---
+    fastify.get('/integrations/sync-rules/:id/logs', async (request, reply) => {
+        requirePermission(request, 'integrations:read')
+        const { id } = request.params as { id: string }
+        const logs = await svc.getSyncLogs(id)
+        return reply.send({ data: logs })
+    })
+
+    // --- Inbound Webhook (called by Zabbix, no JWT) ---
+    fastify.post('/integrations/inbound/:connectorId', async (request, reply) => {
+        const { connectorId } = request.params as { connectorId: string }
+
+        const connector = await svc.getConnector(connectorId)
+        if (!connector || !connector.isActive) {
+            return reply.status(404).send({ error: 'Connector not found or inactive' })
+        }
+
+        // Verify HMAC-SHA256 if webhookSecret is configured
+        const secret = (connector.config as Record<string, unknown>).webhookSecret as string | undefined
+        if (secret) {
+            const { createHmac } = await import('node:crypto')
+            const sig = request.headers['x-zabbix-signature'] as string | undefined
+            if (!sig) {
+                return reply.status(401).send({ error: 'Missing X-Zabbix-Signature header' })
+            }
+            const expected = 'sha256=' + createHmac('sha256', secret)
+                .update(JSON.stringify(request.body))
+                .digest('hex')
+            if (sig !== expected) {
+                return reply.status(401).send({ error: 'Invalid signature' })
+            }
+        }
+
+        const payload = z.object({
+            event_id: z.string().optional(),
+            trigger_id: z.string().optional(),
+            trigger_name: z.string().optional(),
+            trigger_severity: z.string().optional(),
+            host_name: z.string().optional(),
+            host_ip: z.string().optional(),
+            problem_name: z.string(),
+            event_recovery: z.string().optional().default('0'),
+        }).parse(request.body)
+
+        // Skip recovery events (problem resolved)
+        if (payload.event_recovery === '1') {
+            return reply.send({ data: { accepted: true, action: 'recovery_ignored' } })
+        }
+
+        const result = await svc.handleInboundAlert({
+            connectorId,
+            problemName: payload.problem_name,
+            triggerName: payload.trigger_name ?? payload.problem_name,
+            severity: payload.trigger_severity ?? '2',
+            hostname: payload.host_name,
+            hostIp: payload.host_ip,
+        })
+        return reply.send({ data: result })
+    })
 }

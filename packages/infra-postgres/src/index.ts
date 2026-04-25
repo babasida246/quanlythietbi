@@ -46,7 +46,7 @@ export { ApprovalRepo } from './repositories/ApprovalRepo.js'
 // Advanced feature repos
 export { AutomationRuleRepo, AutomationLogRepo, NotificationRepo, ScheduledTaskRepo } from './repositories/AutomationRepo.js'
 export { AnalyticsRepo, CostRecordRepo, PerformanceMetricRepo, DashboardConfigRepo } from './repositories/AnalyticsRepo.js'
-export { IntegrationConnectorRepo, SyncRuleRepo, WebhookRepo } from './repositories/IntegrationRepo.js'
+export { IntegrationConnectorRepo, SyncRuleRepo, SyncLogRepo, WebhookRepo } from './repositories/IntegrationRepo.js'
 export { RbacPermissionRepo, SecurityAuditRepo, ComplianceRepo } from './repositories/SecurityComplianceRepo.js'
 export { DiscoveryRuleRepo, DiscoveryResultRepo, SmartTagRepo, ChangeAssessmentRepo } from './repositories/CmdbEnhancementRepo.js'
 

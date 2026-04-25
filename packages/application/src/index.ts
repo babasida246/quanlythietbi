@@ -99,6 +99,8 @@ export { CmdbEnhancementService } from './cmdb/CmdbEnhancementService.js'
 
 // Feature: Integration Hub
 export { IntegrationService } from './integration/IntegrationService.js'
+export { ZabbixSyncService } from './integration/ZabbixSyncService.js'
+export type { IZabbixAssetRepo, ISyncLogOps, ICiStatusQueryable } from './integration/ZabbixSyncService.js'
 
 // Feature: Security & Compliance
 export { SecurityService } from './compliance/SecurityService.js'

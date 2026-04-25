@@ -1,8 +1,14 @@
 /**
  * Integration Hub Service
- * Manages connectors, sync rules, webhooks
+ * Manages connectors, sync rules, webhooks, and sync orchestration.
  */
 import { ZabbixClient, type ZabbixConfig } from './providers/ZabbixClient.js'
+import { ZabbixSyncService, type IZabbixAssetRepo, type ISyncLogOps, type ICiStatusQueryable } from './ZabbixSyncService.js'
+
+// Severity mapping: Zabbix 0-5 → QLTB maintenance severity
+const ZABBIX_SEVERITY: Record<string, string> = {
+    '0': 'low', '1': 'low', '2': 'medium', '3': 'high', '4': 'critical', '5': 'critical',
+}
 
 // --- Interfaces (decoupled from infra) ---
 export interface IntegrationConnector {
@@ -49,11 +55,23 @@ export interface IWebhookRepo {
     delete(id: string): Promise<boolean>
 }
 
+export interface IInboundAlertInput {
+    connectorId: string
+    problemName: string
+    triggerName: string
+    severity: string
+    hostname?: string
+    hostIp?: string
+}
+
 export class IntegrationService {
     constructor(
         private connectors: IIntegrationConnectorRepo,
         private syncRules: ISyncRuleRepo,
-        private webhooks: IWebhookRepo
+        private webhooks: IWebhookRepo,
+        private syncLogOps?: ISyncLogOps,
+        private assetRepo?: IZabbixAssetRepo,
+        private db?: ICiStatusQueryable,
     ) { }
 
     // --- Connectors ---
@@ -112,5 +130,104 @@ export class IntegrationService {
     // --- Provider helpers ---
     async getProviderTypes(): Promise<string[]> {
         return ['servicenow', 'jira', 'slack', 'teams', 'aws', 'azure', 'email', 'webhook', 'csv_import', 'api_generic', 'zabbix']
+    }
+
+    // --- Sync orchestration ---
+
+    async triggerSync(connectorId: string, syncRuleId?: string): Promise<{ synced: number; created: number; updated: number; failed: number; errors: string[]; durationMs: number }> {
+        const connector = await this.connectors.getById(connectorId)
+        if (!connector) throw new Error('Connector not found')
+
+        if (connector.provider !== 'zabbix') {
+            throw new Error(`Manual sync not implemented for provider: ${connector.provider}`)
+        }
+        if (!this.syncLogOps || !this.assetRepo) {
+            throw new Error('Sync dependencies not configured on this service instance')
+        }
+
+        // Pick sync rule: given ID or first active rule for this connector
+        let ruleId = syncRuleId
+        if (!ruleId) {
+            const rules = await this.syncRules.listByConnector(connectorId) as Array<{ id: string; isActive: boolean; filterConditions?: Record<string, unknown> }>
+            const active = rules.find(r => r.isActive)
+            if (!active) throw new Error('No active sync rule found for this connector')
+            ruleId = active.id
+        }
+
+        const rules = await this.syncRules.listByConnector(connectorId) as Array<{ id: string; filterConditions?: Record<string, unknown> }>
+        const rule = rules.find(r => r.id === ruleId)
+        const ruleConfig = rule?.filterConditions ?? {}
+
+        const zabbixConfig = connector.config as unknown as ZabbixConfig & { defaultModelId?: string; hostGroupFilter?: string[] }
+        const merged = { ...zabbixConfig, ...ruleConfig }
+
+        const svc = new ZabbixSyncService(this.assetRepo, this.syncLogOps, this.db)
+        const result = await svc.runSync(connectorId, ruleId, merged)
+
+        return {
+            synced: result.created + result.updated,
+            created: result.created,
+            updated: result.updated,
+            failed: result.failed,
+            errors: result.errors,
+            durationMs: result.durationMs,
+        }
+    }
+
+    /**
+     * Handles an inbound alert from Zabbix (via webhook).
+     * Finds the affected asset by hostname/IP and creates a maintenance ticket.
+     * If no asset is found, records the alert in sync_logs and returns.
+     */
+    async handleInboundAlert(input: IInboundAlertInput): Promise<{ action: string; ticketId?: string; assetId?: string }> {
+        if (!this.db) {
+            return { action: 'no_db_configured' }
+        }
+
+        // Find asset by hostname or IP (Zabbix-synced assets have mgmt_ip and hostname)
+        const assetResult = await this.db.query<{ id: string; asset_code: string }>(
+            `SELECT id, asset_code FROM assets
+             WHERE (hostname = $1 OR mgmt_ip = $2)
+               AND deleted_at IS NULL
+             LIMIT 1`,
+            [input.hostname ?? '', input.hostIp ?? ''],
+        )
+        const asset = assetResult.rows[0]
+
+        if (!asset) {
+            return { action: 'asset_not_found' }
+        }
+
+        // Create maintenance ticket via direct SQL (avoid circular dependency with MaintenanceService)
+        const severity = ZABBIX_SEVERITY[input.severity] ?? 'medium'
+        const title = `[Zabbix] ${input.triggerName}`
+        const diagnosis = `Problem: ${input.problemName}\nHost: ${input.hostname ?? input.hostIp ?? 'unknown'}\nSeverity: ${input.severity}`
+
+        const ticketResult = await this.db.query<{ id: string }>(
+            `INSERT INTO maintenance_tickets (asset_id, title, severity, status, diagnosis, created_by, opened_at)
+             VALUES ($1, $2, $3, 'open', $4, 'system_zabbix', NOW())
+             RETURNING id`,
+            [asset.id, title, severity, diagnosis],
+        )
+        const ticket = ticketResult.rows[0]
+
+        // Update CI status to 'maintenance' for the affected asset
+        await this.db.query(
+            `UPDATE cmdb_cis SET status = 'maintenance', updated_at = NOW()
+             WHERE asset_id = $1 AND status != 'decommissioned'`,
+            [asset.id],
+        )
+
+        return { action: 'ticket_created', ticketId: ticket?.id, assetId: asset.id }
+    }
+
+    async getSyncLogs(syncRuleId: string): Promise<unknown[]> {
+        if (!this.syncLogOps) return []
+        // SyncLogOps has listByRule if implemented by SyncLogRepo
+        const repo = this.syncLogOps as unknown as { listByRule?: (id: string) => Promise<unknown[]> }
+        if (typeof repo.listByRule === 'function') {
+            return repo.listByRule(syncRuleId)
+        }
+        return []
     }
 }

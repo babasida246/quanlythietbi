@@ -15,7 +15,9 @@ function shouldSkipAuth(request: FastifyRequest): boolean {
     const path = getRequestPath(request)
     if (!path.startsWith('/api/v1')) return true
 
-    return path === '/api/v1/auth' || path.startsWith('/api/v1/auth/')
+    if (path === '/api/v1/auth' || path.startsWith('/api/v1/auth/')) return true
+    // Inbound webhooks are called by external systems (Zabbix) — auth via HMAC secret
+    return path.startsWith('/api/v1/integrations/inbound/')
 }
 
 export function createApiV1AuthHook(pgClient?: PgClient) {
