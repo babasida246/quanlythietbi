@@ -1,5 +1,6 @@
-import { AppError, assertStockAvailable } from '@qltb/domain'
+import { AppError, assertStatusTransition, assertStockAvailable } from '@qltb/domain'
 import type {
+    IAssetRepo,
     ICiRepo,
     IOpsEventRepo,
     IRepairOrderRepo,
@@ -39,7 +40,8 @@ export class RepairService {
         private unitOfWork: IWarehouseUnitOfWork,
         private opsEvents?: IOpsEventRepo,
         private ciRepo?: ICiRepo,
-        private graphProvider?: GraphProvider
+        private graphProvider?: GraphProvider,
+        private assets?: IAssetRepo
     ) { }
 
     async createRepairOrder(input: RepairOrderCreateInput, ctx: MaintenanceWarehouseContext): Promise<RepairOrderRecord> {
@@ -51,6 +53,16 @@ export class RepairService {
             correlationId: ctx.correlationId
         })
         await this.appendEvent(record.id, 'REPAIR_CREATED', { code: record.code }, ctx)
+
+        // Transition linked asset to in_repair (TC4.1 business requirement)
+        if (input.assetId && this.assets) {
+            const asset = await this.assets.getById(input.assetId)
+            if (asset && asset.status !== 'in_repair') {
+                assertStatusTransition(asset.status ?? 'in_stock', 'in_repair')
+                await this.assets.update(input.assetId, { status: 'in_repair' })
+            }
+        }
+
         return record
     }
 
@@ -75,6 +87,15 @@ export class RepairService {
             throw AppError.notFound('Repair order not found')
         }
         await this.appendEvent(updated.id, 'REPAIR_STATUS_CHANGED', { status }, ctx)
+
+        // On WO close/repaired: transition linked asset back from in_repair → in_use (TC4.3 business requirement)
+        if ((status === 'closed' || status === 'repaired') && updated.assetId && this.assets) {
+            const asset = await this.assets.getById(updated.assetId)
+            if (asset?.status === 'in_repair') {
+                await this.assets.update(updated.assetId, { status: 'in_use' })
+            }
+        }
+
         if (status === 'closed' && updated.ciId && this.graphProvider) {
             const impact = await this.graphProvider.getGraph(updated.ciId, 2, 'downstream')
             await this.appendEvent(updated.id, 'REPAIR_IMPACT_SNAPSHOT', {

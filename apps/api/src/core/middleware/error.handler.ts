@@ -3,6 +3,7 @@
  */
 import type { FastifyError, FastifyRequest, FastifyReply } from 'fastify'
 import { ZodError } from 'zod'
+import { AppError } from '@qltb/domain'
 import { createErrorResponse, createApiError, ERROR_CODES } from '../../shared/utils/response.utils.js'
 
 /**
@@ -14,6 +15,13 @@ export async function errorHandler(
     reply: FastifyReply
 ): Promise<void> {
     const requestId = request.id
+
+    // Domain AppError — use httpStatus field (not Fastify's statusCode)
+    if (error instanceof AppError) {
+        const apiError = { code: error.code, message: error.message }
+        reply.status(error.httpStatus).send(createErrorResponse(apiError, requestId))
+        return
+    }
 
     // Zod validation errors
     if (error instanceof ZodError) {

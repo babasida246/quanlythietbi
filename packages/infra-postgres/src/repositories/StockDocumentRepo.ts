@@ -272,7 +272,7 @@ export class StockDocumentRepo implements IStockDocumentRepo {
         await this.pg.query('DELETE FROM stock_document_lines WHERE document_id = $1', [documentId])
         if (lines.length === 0) return []
 
-        const COLS_PER_ROW = 13
+        const COLS_PER_ROW = 14
         const params: unknown[] = []
         const values = lines.map((line, index) => {
             const base = index * COLS_PER_ROW
@@ -289,17 +289,18 @@ export class StockDocumentRepo implements IStockDocumentRepo {
                 line.assetModelId ?? null,
                 line.assetCategoryId ?? null,
                 line.assetName ?? null,
-                line.assetCode ?? null
+                line.assetCode ?? null,
+                line.assetId ?? null
             )
             const p = (n: number) => `$${base + n}`
-            return `(${p(1)},${p(2)},${p(3)},${p(4)},${p(5)},${p(6)},${p(7)},${p(8)},${p(9)},${p(10)},${p(11)},${p(12)},${p(13)})`
+            return `(${p(1)},${p(2)},${p(3)},${p(4)},${p(5)},${p(6)},${p(7)},${p(8)},${p(9)},${p(10)},${p(11)},${p(12)},${p(13)},${p(14)})`
         })
 
         const result = await this.pg.query<LineRow>(
             `INSERT INTO stock_document_lines (
                 document_id, line_type, part_id, qty, unit_cost, serial_no, note,
                 adjust_direction, spec_fields, asset_model_id, asset_category_id,
-                asset_name, asset_code
+                asset_name, asset_code, asset_id
              ) VALUES ${values.join(', ')}
              RETURNING ${LINE_COLS}`,
             params

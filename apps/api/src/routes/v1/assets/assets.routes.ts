@@ -217,7 +217,7 @@ export async function assetsRoutes(fastify: FastifyInstance, opts: AssetRoutesOp
     })
 
     fastify.put('/assets/:id', async (request, reply) => {
-        const ctx = await requirePermission(request, 'assets:manage')
+        const ctx = await requirePermission(request, 'assets:update')
         const { id } = assetIdParamsSchema.parse(request.params)
         const body = assetUpdateSchema.parse(request.body)
         const updated = await assetService.updateAsset(id, body, ctx)
@@ -225,14 +225,14 @@ export async function assetsRoutes(fastify: FastifyInstance, opts: AssetRoutesOp
     })
 
     fastify.delete('/assets/:id', async (request, reply) => {
-        await requirePermission(request, 'assets:manage')
+        await requirePermission(request, 'assets:delete')
         const { id } = assetIdParamsSchema.parse(request.params)
         await assetService.deleteAsset(id)
         return reply.send({ data: { id } })
     })
 
     fastify.post('/assets/:id/assign', async (request, reply) => {
-        const ctx = await requirePermission(request, 'assets:manage')
+        const ctx = await requirePermission(request, 'assets:assign')
         const { id } = assetIdParamsSchema.parse(request.params)
         const body = assignmentSchema.parse(request.body)
         const result = await assetService.assignAsset(id, body, ctx)
@@ -240,7 +240,7 @@ export async function assetsRoutes(fastify: FastifyInstance, opts: AssetRoutesOp
     })
 
     fastify.post('/assets/:id/return', async (request, reply) => {
-        const ctx = await requirePermission(request, 'assets:manage')
+        const ctx = await requirePermission(request, 'assets:assign')
         const { id } = assetIdParamsSchema.parse(request.params)
         const body = returnSchema.parse(request.body)
         const result = await assetService.returnAsset(id, body.note, ctx)
@@ -248,7 +248,7 @@ export async function assetsRoutes(fastify: FastifyInstance, opts: AssetRoutesOp
     })
 
     fastify.post('/assets/:id/move', async (request, reply) => {
-        const ctx = await requirePermission(request, 'assets:manage')
+        const ctx = await requirePermission(request, 'assets:update')
         const { id } = assetIdParamsSchema.parse(request.params)
         const body = moveSchema.parse(request.body)
         const result = await assetService.moveAsset(id, body.locationId, ctx)
@@ -256,7 +256,7 @@ export async function assetsRoutes(fastify: FastifyInstance, opts: AssetRoutesOp
     })
 
     fastify.post('/assets/:id/status', async (request, reply) => {
-        const ctx = await requirePermission(request, 'assets:manage')
+        const ctx = await requirePermission(request, 'assets:update')
         const { id } = assetIdParamsSchema.parse(request.params)
         const body = statusSchema.parse(request.body)
         const result = await assetService.changeStatus(id, body.status, ctx)

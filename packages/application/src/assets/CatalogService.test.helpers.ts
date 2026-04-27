@@ -19,7 +19,7 @@ import type {
 export class FakeCatalogRepo implements ICatalogRepo {
     private vendors = [{ id: 'v1', name: 'Vendor', createdAt: new Date() }]
     private locations: LocationRecord[] = [{ id: 'l1', name: 'HQ', path: '/l1', parentId: null, createdAt: new Date() }]
-    private categories = [{ id: 'c1', name: 'Cat', createdAt: new Date() }]
+    private categories: AssetCategoryRecord[] = [{ id: 'c1', name: 'Cat', itemType: 'asset' as const, createdAt: new Date() }]
     private models: AssetModelRecord[] = [{ id: 'm1', model: 'Model', spec: {}, createdAt: new Date() }]
 
     async listVendors() { return this.vendors }
@@ -35,13 +35,13 @@ export class FakeCatalogRepo implements ICatalogRepo {
     async createVendor(input: VendorCreateInput): Promise<VendorRecord> { throw new Error('Not implemented') }
     async updateVendor(id: string, patch: Partial<VendorCreateInput>): Promise<VendorRecord | null> { throw new Error('Not implemented') }
     async deleteVendor(id: string): Promise<boolean> { throw new Error('Not implemented') }
-    async createCategory(input: { name: string }) {
-        const record = { id: `cat-${this.categories.length + 1}`, name: input.name, createdAt: new Date() }
+    async createCategory(input: AssetCategoryCreateInput): Promise<AssetCategoryRecord> {
+        const record: AssetCategoryRecord = { id: `cat-${this.categories.length + 1}`, name: input.name, itemType: input.itemType ?? 'asset', createdAt: new Date() }
         this.categories.push(record)
         return record
     }
-    seedCategory(record: { id: string; name: string; createdAt?: Date }) {
-        this.categories.push({ id: record.id, name: record.name, createdAt: record.createdAt ?? new Date() })
+    seedCategory(record: { id: string; name: string; itemType?: 'asset' | 'spare_part' | 'consumable'; createdAt?: Date }) {
+        this.categories.push({ id: record.id, name: record.name, itemType: record.itemType ?? 'asset', createdAt: record.createdAt ?? new Date() })
     }
     async updateCategory(id: string, patch: Partial<AssetCategoryCreateInput>): Promise<AssetCategoryRecord | null> { throw new Error('Not implemented') }
     async deleteCategory(id: string): Promise<boolean> { throw new Error('Not implemented') }

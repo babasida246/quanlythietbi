@@ -2,6 +2,7 @@ import type { FastifyInstance } from 'fastify'
 import type { PgClient } from '@qltb/infra-postgres'
 import type { AssetService } from '@qltb/application'
 import {
+    AssetRepo,
     CiRepo,
     MovementRepo,
     OpsAttachmentRepo,
@@ -78,6 +79,7 @@ export async function registerWarehouseContext(
         warehouseUnitOfWork,
         opsEventRepo
     )
+    const assetRepo = new AssetRepo(pgClient)
     const repairService = new RepairService(
         repairOrderRepo,
         repairPartRepo,
@@ -87,7 +89,8 @@ export async function registerWarehouseContext(
         warehouseUnitOfWork,
         opsEventRepo,
         ciRepo,
-        localRelationshipService
+        localRelationshipService,
+        assetRepo
     )
 
     await fastify.register(reportsRoutes, { prefix: '/api/v1', stockReportService })

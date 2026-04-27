@@ -56,6 +56,7 @@ export interface ILabelsRepository {
     findSettingByKey(key: string, organizationId?: string): Promise<LabelSetting | null>;
     upsertSetting(key: string, value: string, updatedBy: string, organizationId?: string): Promise<LabelSetting>;
     createDocumentTemplate(dto: CreateDocumentTemplateDto, actorId: string): Promise<DocumentTemplateSummary>;
+    deleteDocumentTemplate(id: string): Promise<boolean>;
     findAllDocumentTemplates(query: DocumentTemplateListQuery): Promise<{ data: DocumentTemplateSummary[]; total: number }>;
     findDocumentTemplateById(id: string): Promise<DocumentTemplateSummary | null>;
     updateDocumentTemplate(id: string, dto: UpdateDocumentTemplateDto, actorId: string): Promise<DocumentTemplate | null>;
