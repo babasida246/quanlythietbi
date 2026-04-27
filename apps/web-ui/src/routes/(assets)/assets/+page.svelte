@@ -363,12 +363,7 @@
         {#snippet leftIcon()}<Upload class="h-3.5 w-3.5" />{/snippet}
         {$isLoading ? 'Import CSV' : $_('assets.importCsv')}
       </Button>
-      {#if caps.assets.create}
-        <Button variant="primary" size="sm" data-testid="btn-create" onclick={() => goto('/assets/new')}>
-          {#snippet leftIcon()}<Plus class="h-3.5 w-3.5" />{/snippet}
-          {$isLoading ? 'Create new' : $_('assets.createNew')}
-        </Button>
-      {/if}
+      <!-- asset creation locked: use stock receipt instead -->
       <Button variant="ghost" size="sm" data-testid="btn-refresh" onclick={() => loadPageData()}>
         {#snippet leftIcon()}<RefreshCw class="h-3.5 w-3.5" />{/snippet}
         {$isLoading ? 'Reload' : $_('assets.reload')}
@@ -495,8 +490,8 @@
       icon={HardDrive}
       title={$isLoading ? 'No assets' : $_('assets.noAssets')}
       description={query ? ($isLoading ? 'No matching results. Try different keywords.' : $_('assets.noResults')) : ($isLoading ? 'Start by creating a new asset.' : $_('assets.emptyHint'))}
-      actionLabel={query || !caps.assets.create ? '' : ($isLoading ? 'Create Asset' : $_('assets.createAsset'))}
-      onAction={() => goto('/assets/new')}
+      actionLabel=""
+      onAction={() => {}}
     />
   {:else}
     <div class="data-table-wrap">

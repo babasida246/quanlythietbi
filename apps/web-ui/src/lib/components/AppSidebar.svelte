@@ -189,6 +189,7 @@
           requires: (caps) => caps.warehouse.read,
           match: (path) => path.startsWith('/warehouse/documents')
         },
+        { kind: 'leaf', href: '/warehouse/issue-return', labelKey: 'warehouse.tabs.issueReturn', icon: FileText, testId: 'nav-issue-return', requires: (caps) => caps.warehouse.read },
         { kind: 'leaf', href: '/warehouse/ledger', labelKey: 'warehouse.tabs.ledger', icon: BookOpen, testId: 'nav-warehouse-ledger', requires: (caps) => caps.warehouse.read },
         { kind: 'leaf', href: '/warehouse/parts', labelKey: 'warehouse.tabs.spareParts', icon: Wrench, testId: 'nav-warehouse-parts', requires: (caps) => caps.warehouse.read },
         { kind: 'leaf', href: '/warehouse/reconciliation', labelKey: 'warehouse.tabs.reconciliation', icon: ClipboardCheck, testId: 'nav-warehouse-reconciliation', requires: (caps) => caps.warehouse.read },

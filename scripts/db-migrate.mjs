@@ -52,6 +52,8 @@ const MIGRATIONS = [
     { label: '072_user_location_access.sql', path: join(DB_MIGRATIONS, '072_user_location_access.sql') },
     { label: '073_category_item_type.sql', path: join(DB_MIGRATIONS, '073_category_item_type.sql') },
     { label: '074_zabbix_provider.sql', path: join(DB_MIGRATIONS, '074_zabbix_provider.sql') },
+    { label: '075_spare_part_category_link_return_doc.sql', path: join(DB_MIGRATIONS, '075_spare_part_category_link_return_doc.sql') },
+    { label: '076_stock_doc_equipment_group.sql', path: join(DB_MIGRATIONS, '076_stock_doc_equipment_group.sql') },
 ]
 
 const client = new pg.Client(pgConfig())

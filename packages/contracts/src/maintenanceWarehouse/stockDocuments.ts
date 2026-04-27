@@ -1,4 +1,4 @@
-export type StockDocType = 'receipt' | 'issue' | 'adjust' | 'transfer'
+export type StockDocType = 'receipt' | 'issue' | 'adjust' | 'transfer' | 'return'
 export type StockDocStatus = 'draft' | 'submitted' | 'approved' | 'posted' | 'canceled'
 
 export interface StockDocumentRecord {
@@ -27,6 +27,10 @@ export interface StockDocumentRecord {
     recipientOuId?: string | null
     /** Destination location for issue documents (where assets are deployed) */
     locationId?: string | null
+    /** Filter nhóm vật tư: 'asset' | 'spare_part' | 'consumable' */
+    itemGroup?: string | null
+    /** FK to equipment_groups(id) — links document to Nhóm vật tư catalog */
+    equipmentGroupId?: string | null
     createdBy?: string | null
     approvedBy?: string | null
     correlationId?: string | null
@@ -102,6 +106,10 @@ export interface StockDocumentCreateInput {
     recipientOuId?: string | null
     /** Destination location for issue documents */
     locationId?: string | null
+    /** Filter nhóm vật tư: 'asset' | 'spare_part' | 'consumable' */
+    itemGroup?: string | null
+    /** FK to equipment_groups(id) */
+    equipmentGroupId?: string | null
     createdBy?: string | null
     correlationId?: string | null
 }
@@ -118,13 +126,19 @@ export interface StockDocumentUpdatePatch {
     recipientOuId?: string | null
     /** Destination location for issue documents */
     locationId?: string | null
+    /** Filter nhóm vật tư: 'asset' | 'spare_part' | 'consumable' */
+    itemGroup?: string | null
+    /** FK to equipment_groups(id) */
+    equipmentGroupId?: string | null
     correlationId?: string | null
 }
 
 export interface StockDocumentListFilters {
     docType?: StockDocType
+    docTypes?: StockDocType[]
     status?: StockDocStatus
     warehouseId?: string
+    itemGroup?: string
     from?: string
     to?: string
     page?: number

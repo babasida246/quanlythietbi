@@ -5,10 +5,10 @@
     "type": "module",
     "description": "Hệ thống Quản lý Thiết bị - Asset Management System (cloned from source workspace)",
     "scripts": {
-        "dev": "pnpm --filter @qltb/api dev",
-        "dev:web": "pnpm --filter @qltb/web-ui dev",
+        "dev": "node scripts/check-install.mjs && pnpm --filter @qltb/api dev",
+        "dev:web": "node scripts/check-install.mjs && pnpm --filter @qltb/web-ui dev",
         "dev:packages": "pnpm --filter './packages/**' dev",
-        "dev:all": "concurrently -n \"pkgs,api,web\" -c \"cyan,green,blue\" --kill-others-on-fail \"pnpm dev:packages\" \"pnpm dev\" \"pnpm dev:web\"",
+        "dev:all": "node scripts/check-install.mjs && concurrently -n \"pkgs,api,web\" -c \"cyan,green,blue\" --kill-others-on-fail \"pnpm dev:packages\" \"pnpm --filter @qltb/api dev\" \"pnpm --filter @qltb/web-ui dev\"",
         "dev:infra": "docker-compose -f docker-compose.dev.yml up -d",
         "dev:stop": "pnpm exec kill-port 3000",
         "dev:web:stop": "pnpm exec kill-port 5173",

@@ -1543,7 +1543,7 @@
       "submitFailedDetail": "Trình duyệt phiếu thất bại: {error}",
       "approveFailedDetail": "Duyệt phiếu thất bại: {error}"
     },
-    "pageTitle": "Nhập / Xuất kho",
+    "pageTitle": "Chứng từ",
     "createDocument": "Tạo chứng từ",
     "allWarehouses": "Tất cả kho",
     "emptyState": "Không có chứng từ nào. Nhấn \"Tạo chứng từ\" để bắt đầu.",

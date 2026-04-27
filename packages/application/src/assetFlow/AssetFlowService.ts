@@ -1,14 +1,14 @@
 /**
- * AssetFlowService — Auto-generates draft warehouse documents when a workflow
+ * AssetFlowService — Auto-generates warehouse documents when a workflow
  * request reaches the "approved" state.
  *
  * Mapping:
- *   asset_request  → issue document (cấp phát)
- *   asset_recall   → adjust/minus document (thu hồi về kho)
+ *   asset_request  → issue document  (cấp phát)
+ *   asset_recall   → return document (thu hồi về kho)
  *   asset_transfer → transfer document (điều chuyển giữa kho)
  *
- * The generated document is left in 'draft' status so the warehouse keeper
- * can review, add lines, and post it manually.
+ * Generated documents are placed in 'submitted' status — already approved by
+ * workflow, waiting for the warehouse keeper to post (update stock).
  */
 
 import type {
@@ -56,15 +56,16 @@ export class AssetFlowService {
                     ? this.mapRequestLinesToIssueLines(request.lines)
                     : this.mapPayloadLinesToIssueLines(request.payload);
                 await this.ensureIssueLines(created.id, lines);
-                return created;
+                await this.stockDocRepo.setStatus(created.id, 'submitted');
+                return { ...created, status: 'submitted' };
             }
 
             case 'asset_recall': {
-                const existing = await this.stockDocRepo.findByRefRequest(request.id, 'adjust');
+                const existing = await this.stockDocRepo.findByRefRequest(request.id, 'return');
                 if (existing) return existing;
-                return this.stockDocRepo.create({
-                    docType: 'adjust',
-                    code: `ADJ-WF-${requestCode}`,
+                const recallDoc = await this.stockDocRepo.create({
+                    docType: 'return',
+                    code: `RET-WF-${requestCode}`,
                     docDate: today,
                     refType,
                     refId,
@@ -72,12 +73,18 @@ export class AssetFlowService {
                     note: `Sinh tự động từ yêu cầu thu hồi: ${request.title}`,
                     createdBy: actorId,
                 });
+                const recallLines = (request.lines && request.lines.length > 0)
+                    ? this.mapRequestLinesToReturnLines(request.lines)
+                    : [];
+                await this.ensureIssueLines(recallDoc.id, recallLines);
+                await this.stockDocRepo.setStatus(recallDoc.id, 'submitted');
+                return { ...recallDoc, status: 'submitted' };
             }
 
             case 'asset_transfer': {
                 const existing = await this.stockDocRepo.findByRefRequest(request.id, 'transfer');
                 if (existing) return existing;
-                return this.stockDocRepo.create({
+                const transferDoc = await this.stockDocRepo.create({
                     docType: 'transfer',
                     code: `TRF-WF-${requestCode}`,
                     docDate: today,
@@ -87,6 +94,8 @@ export class AssetFlowService {
                     note: `Sinh tự động từ yêu cầu điều chuyển: ${request.title}`,
                     createdBy: actorId,
                 });
+                await this.stockDocRepo.setStatus(transferDoc.id, 'submitted');
+                return { ...transferDoc, status: 'submitted' };
             }
 
             default:
@@ -163,6 +172,20 @@ export class AssetFlowService {
             }
         }
 
+        return output;
+    }
+
+    private mapRequestLinesToReturnLines(requestLines: WfRequestLine[]): StockDocumentLineInput[] {
+        const output: StockDocumentLineInput[] = [];
+        for (const line of requestLines) {
+            if (line.itemType !== 'asset' || !line.assetId) continue;
+            output.push({
+                lineType: 'asset',
+                assetId: line.assetId,
+                qty: 1,
+                note: line.note ?? null,
+            });
+        }
         return output;
     }
 

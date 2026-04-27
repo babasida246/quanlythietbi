@@ -4,6 +4,7 @@
   import { _, isLoading } from '$lib/i18n';
   import OcrScanModal from '$lib/components/OcrScanModal.svelte';
   import { ScanLine } from 'lucide-svelte';
+  import type { AssetCategory } from '$lib/api/assetCatalogs';
 
   type ModelOption = { id: string; name: string; categoryName?: string | null; categoryItemType?: string | null };
 
@@ -11,6 +12,7 @@
     lines = $bindable<StockDocumentLine[]>([]),
     parts = [],
     models = [],
+    assetCategories = [],
     warehouseAssets = [],
     docType,
     warehouseId = '',
@@ -19,8 +21,9 @@
     lines?: StockDocumentLine[];
     parts?: SparePartRecord[];
     models?: ModelOption[];
+    assetCategories?: AssetCategory[];
     warehouseAssets?: WarehouseAssetOption[];
-    docType: 'receipt' | 'issue' | 'adjust' | 'transfer';
+    docType: 'receipt' | 'issue' | 'adjust' | 'transfer' | 'return';
     warehouseId?: string;
     readonly?: boolean;
   }>();
@@ -34,10 +37,45 @@
       id: p.id,
       label: `${p.partCode} – ${p.name}`,
       uom: p.uom ?? '—',
-      category: p.category ?? '—',
+      categoryId: p.categoryId ?? null,
+      categoryName: p.categoryName ?? p.category ?? '—',
       spec: p.spec
     }))
   );
+
+  type CatOption = { id: string; name: string };
+
+  // Unique spare-part categories derived from parts list
+  const sparePartCategories = $derived(
+    [...new Map<string, CatOption>(
+      parts
+        .filter((p: SparePartRecord) => p.categoryId)
+        .map((p: SparePartRecord) => [
+          p.categoryId as string,
+          { id: p.categoryId as string, name: (p.categoryName ?? p.category ?? p.categoryId) as string }
+        ])
+    ).values()].sort((a: CatOption, b: CatOption) => a.name.localeCompare(b.name, 'vi'))
+  );
+
+  // Per-line category filter for spare_part type
+  let lineCategoryFilter = $state<Record<number, string>>({});
+
+  // Per-line category filter for asset type (receipt only)
+  let lineAssetCategoryFilter = $state<Record<number, string>>({});
+
+  function getFilteredAssetModels(lineIdx: number) {
+    const catId = lineAssetCategoryFilter[lineIdx];
+    if (!catId) return assetModels;
+    const catName = assetCategories.find((c: AssetCategory) => c.id === catId)?.name;
+    if (!catName) return assetModels;
+    return assetModels.filter((m: ModelOption) => m.categoryName === catName);
+  }
+
+  function getFilteredPartOptions(lineIdx: number) {
+    const cat = lineCategoryFilter[lineIdx];
+    if (!cat) return partOptions;
+    return partOptions.filter((p: { categoryId: string | null }) => p.categoryId === cat);
+  }
 
   // Only show models from 'asset' categories in the asset line model selector.
   // Models with no category (categoryItemType null/undefined) default to 'asset'.
@@ -45,7 +83,7 @@
     models.filter((m: ModelOption) => !m.categoryItemType || m.categoryItemType === 'asset')
   );
 
-  const needsStockCheck = $derived(docType === 'issue' || docType === 'transfer');
+  const needsStockCheck = $derived(docType === 'issue' || docType === 'transfer' || docType === 'return');
   const showPrice       = $derived(docType !== 'issue');
   const showAdjDir      = $derived(docType === 'adjust');
 
@@ -65,9 +103,9 @@
     } catch { /* server validates on submit */ }
   }
 
-  type PartOption = { id: string; label: string; uom: string; category: string; spec: unknown }
+  type PartOption = { id: string; label: string; uom: string; categoryId: string | null; categoryName: string; spec: unknown }
   function getPartUom(partId: string)      { return partOptions.find((p: PartOption) => p.id === partId)?.uom ?? '—'; }
-  function getPartCategory(partId: string) { return partOptions.find((p: PartOption) => p.id === partId)?.category ?? '—'; }
+  function getPartCategory(partId: string) { return partOptions.find((p: PartOption) => p.id === partId)?.categoryName ?? '—'; }
   function getPartLabel(partId: string)    { return partOptions.find((p: PartOption) => p.id === partId)?.label ?? partId; }
   function getSpecForPart(partId: string): Record<string, unknown> {
     return (parts.find((pt: SparePartRecord) => pt.id === partId)?.spec ?? {}) as Record<string, unknown>;
@@ -94,7 +132,7 @@
   function addSparePartLine() {
     lines = [...lines, {
       lineType: 'spare_part',
-      partId: '',
+      partId: undefined,
       qty: 1,
       unitCost: showPrice ? 0 : undefined,
       adjustDirection: showAdjDir ? 'plus' : undefined,
@@ -106,10 +144,10 @@
     lines = [...lines, {
       lineType: 'asset',
       partId: undefined,
-      assetModelId: '',
+      assetModelId: undefined,
       assetName: '',
       assetCode: '',
-      assetId: '',
+      assetId: undefined,
       qty: 1,
       unitCost: showPrice ? 0 : undefined,
       specFields: null
@@ -239,9 +277,9 @@
                   onchange={(e) => {
                     const v = (e.currentTarget as HTMLSelectElement).value as 'spare_part' | 'asset';
                     const n = [...lines];
-                    n[i] = { qty: line.qty, lineType: v, partId: v === 'spare_part' ? '' : undefined,
-                              assetModelId: v === 'asset' ? '' : undefined,
-                              assetId: v === 'asset' ? '' : undefined,
+                    n[i] = { qty: line.qty, lineType: v, partId: undefined,
+                              assetModelId: undefined,
+                              assetId: undefined,
                               unitCost: showPrice ? (line.unitCost ?? 0) : undefined,
                               adjustDirection: showAdjDir ? 'plus' : undefined, specFields: null };
                     lines = n;
@@ -288,6 +326,28 @@
                     </div>
                   {:else}
                     <div class="space-y-1">
+                      <!-- Asset category filter (narrows model list) -->
+                      {#if assetCategories.length > 0}
+                        <select
+                          aria-label="Loc loai tai san dong {i + 1}"
+                          class="w-full rounded-md border border-slate-700 bg-slate-800 px-2 py-1 text-xs text-slate-400 focus:border-amber-400 focus:outline-none"
+                          value={lineAssetCategoryFilter[i] ?? ''}
+                          onchange={(e) => {
+                            const v = (e.currentTarget as HTMLSelectElement).value;
+                            lineAssetCategoryFilter = { ...lineAssetCategoryFilter, [i]: v };
+                            // Clear model if it no longer matches the new category filter
+                            if (line.assetModelId && v) {
+                              const still = getFilteredAssetModels(i).find((m: ModelOption) => m.id === line.assetModelId);
+                              if (!still) updateLine(i, 'assetModelId', '');
+                            }
+                          }}
+                        >
+                          <option value="">{$isLoading ? '-- All categories --' : $_('stockDoc.allCategories')}</option>
+                          {#each assetCategories as cat}
+                            <option value={cat.id}>{cat.name}</option>
+                          {/each}
+                        </select>
+                      {/if}
                       <select
                         aria-label="Model thiet bi dong {i + 1}"
                         class="w-full rounded-md border border-amber-600/50 bg-slate-900 px-2 py-1 text-sm focus:border-amber-400 focus:outline-none"
@@ -295,7 +355,7 @@
                         onchange={(e) => updateLine(i, 'assetModelId', (e.currentTarget as HTMLSelectElement).value)}
                       >
                         <option value="">-- {$isLoading ? 'Select Model' : $_('stockDoc.selectModel')} --</option>
-                        {#each assetModels as m}
+                        {#each getFilteredAssetModels(i) as m}
                           <option value={m.id}>{m.name}{m.categoryName ? ' · ' + m.categoryName : ''}</option>
                         {/each}
                       </select>
@@ -322,6 +382,29 @@
                 {#if readonly}
                   <span class="text-slate-200">{getPartLabel(line.partId ?? '')}</span>
                 {:else}
+                  <!-- Category filter -->
+                  {#if sparePartCategories.length > 0}
+                    <select
+                      aria-label="Loc danh muc dong {i + 1}"
+                      class="w-full rounded-md border border-slate-700 bg-slate-800 px-2 py-1 text-xs text-slate-400 mb-1 focus:border-primary focus:outline-none"
+                      value={lineCategoryFilter[i] ?? ''}
+                      onchange={(e) => {
+                        const v = (e.currentTarget as HTMLSelectElement).value;
+                        lineCategoryFilter = { ...lineCategoryFilter, [i]: v };
+                        // Clear part selection if it no longer matches the new filter
+                        const currentPart = line.partId;
+                        if (currentPart && v) {
+                          const stillVisible = partOptions.find((p: PartOption) => p.id === currentPart && p.categoryId === v);
+                          if (!stillVisible) updateLine(i, 'partId', '');
+                        }
+                      }}
+                    >
+                      <option value="">{$isLoading ? '-- All categories --' : $_('stockDoc.allCategories')}</option>
+                      {#each sparePartCategories as cat}
+                        <option value={cat.id}>{cat.name}</option>
+                      {/each}
+                    </select>
+                  {/if}
                   <select
                     aria-label="Hang hoa vat tu dong {i + 1}"
                     class="w-full rounded-md border {over ? 'border-red-500 bg-red-900/10' : 'border-slate-600 bg-slate-900'} px-2 py-1 text-sm focus:border-primary focus:outline-none"
@@ -333,7 +416,7 @@
                     }}
                   >
                     <option value="">-- {$isLoading ? 'Select Part' : $_('stockDoc.selectPart')} --</option>
-                    {#each partOptions as p}
+                    {#each getFilteredPartOptions(i) as p}
                       <option value={p.id}>{p.label}</option>
                     {/each}
                   </select>

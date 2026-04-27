@@ -79,7 +79,10 @@ export async function stockDocumentRoutes(
     fastify.get('/stock-documents', async (request, reply) => {
         getUserContext(request)
         const query = stockDocumentListSchema.parse(request.query)
-        const result = await stockDocumentService.listDocuments(query)
+        const docTypes = query.docTypes
+            ? query.docTypes.split(',').map(s => s.trim()).filter(Boolean) as Parameters<typeof stockDocumentService.listDocuments>[0]['docTypes']
+            : undefined
+        const result = await stockDocumentService.listDocuments({ ...query, docTypes })
         return reply.send({ data: result.items, meta: { total: result.total, page: result.page, limit: result.limit } })
     })
 
@@ -112,7 +115,9 @@ export async function stockDocumentRoutes(
             receiverName: body.receiverName ?? null,
             department: recipientSnapshot.department,
             recipientOuId: recipientSnapshot.recipientOuId,
-            locationId: body.locationId ?? null
+            locationId: body.locationId ?? null,
+            itemGroup: body.itemGroup ?? null,
+            equipmentGroupId: body.equipmentGroupId ?? null
         }, body.lines, ctx)
         return reply.status(201).send({ data: detail })
     })
@@ -134,6 +139,8 @@ export async function stockDocumentRoutes(
             department: recipientSnapshot.department,
             recipientOuId: recipientSnapshot.recipientOuId,
             locationId: body.locationId ?? null,
+            itemGroup: body.itemGroup ?? null,
+            equipmentGroupId: body.equipmentGroupId ?? null,
             correlationId: ctx.correlationId
         }, body.lines, ctx)
         return reply.send({ data: detail })

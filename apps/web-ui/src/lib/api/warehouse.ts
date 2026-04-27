@@ -1,13 +1,16 @@
 import { API_BASE, apiJson, apiJsonData } from './httpClient'
 import { buildQuery, getAssetHeaders, type Asset } from './assets'
 import type {
-    StockDocType, StockDocStatus, MovementType, RepairStatus, RepairSeverity, RepairType,
-    WarehouseRecord, StockDocumentRecord, StockDocumentLineRecord, StockDocumentLineInput, StockDocumentDetail,
+    StockDocStatus, MovementType, RepairStatus, RepairSeverity, RepairType,
+    WarehouseRecord, StockDocumentLineRecord, StockDocumentLineInput, StockDocumentDetail,
     RepairOrderRecord, RepairOrderPartRecord, RepairOrderDetail, RepairOrderSummary
 } from '@qltb/contracts'
 
-export type { StockDocType, StockDocStatus, MovementType, RepairStatus, RepairSeverity, RepairType }
-export type { WarehouseRecord, StockDocumentRecord, StockDocumentLineRecord, StockDocumentDetail }
+export type StockDocType = 'receipt' | 'issue' | 'adjust' | 'transfer' | 'return'
+export type { StockDocStatus, MovementType, RepairStatus, RepairSeverity, RepairType }
+export type StockDocumentRecord = Omit<import('@qltb/contracts').StockDocumentRecord, 'docType'> & { docType: StockDocType }
+export type { StockDocumentLineRecord, StockDocumentDetail }
+export type { WarehouseRecord }
 export type { RepairOrderRecord, RepairOrderPartRecord, RepairOrderDetail, RepairOrderSummary }
 export type StockDocumentLine = StockDocumentLineInput
 
@@ -16,11 +19,14 @@ export type SparePartRecord = {
     partCode: string
     name: string
     category?: string | null
+    categoryId?: string | null
+    categoryName?: string | null
     uom?: string | null
     manufacturer?: string | null
     model?: string | null
     spec: Record<string, unknown>
     minLevel: number
+    unitCost?: number | null
     createdAt: string
 }
 
@@ -133,7 +139,7 @@ export type OrgUnitOption = {
 }
 
 export type StockDocumentCreateInput = {
-    docType: StockDocumentRecord['docType']
+    docType: StockDocType
     code?: string
     warehouseId?: string | null
     targetWarehouseId?: string | null
@@ -148,6 +154,8 @@ export type StockDocumentCreateInput = {
     recipientOuId?: string | null
     /** Destination location for issue documents */
     locationId?: string | null
+    itemGroup?: string | null
+    equipmentGroupId?: string | null
     lines: StockDocumentLine[]
 }
 
@@ -163,6 +171,8 @@ export type StockDocumentUpdateInput = {
     recipientOuId?: string | null
     /** Destination location for issue documents */
     locationId?: string | null
+    itemGroup?: string | null
+    equipmentGroupId?: string | null
     lines: StockDocumentLine[]
 }
 
@@ -336,10 +346,12 @@ export async function getStockAvailable(warehouseId: string, partId: string): Pr
 }
 
 export async function listStockDocuments(
-    params: { docType?: string; status?: StockDocumentRecord['status']; warehouseId?: string; from?: string; to?: string; page?: number; limit?: number } = {}
+    params: { docType?: string; docTypes?: string[]; status?: StockDocumentRecord['status']; warehouseId?: string; itemGroup?: string; from?: string; to?: string; page?: number; limit?: number } = {}
 ): Promise<ApiResponse<StockDocumentRecord[]>> {
-    const query = buildQuery(params)
-    return apiJson<ApiResponse<StockDocumentRecord[]>>(`${API_BASE}/v1/stock-documents${query}`, {
+    const { docTypes, ...rest } = params
+    const base = buildQuery(rest)
+    const extra = docTypes && docTypes.length ? `${base ? '&' : '?'}docTypes=${docTypes.join(',')}` : ''
+    return apiJson<ApiResponse<StockDocumentRecord[]>>(`${API_BASE}/v1/stock-documents${base}${extra}`, {
         headers: getAssetHeaders()
     })
 }

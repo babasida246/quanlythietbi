@@ -29,6 +29,7 @@
     type WarehouseRecord
   } from '$lib/api/warehouse';
   import FileGallery from '$lib/components/FileGallery.svelte';
+  import { getAssetCatalogs, type AssetCategory } from '$lib/api/assetCatalogs';
 
   const docId = $derived(page.params.id ?? '');
 
@@ -36,6 +37,10 @@
   let lines = $state<StockDocumentLine[]>([]);
   let warehouses = $state<WarehouseRecord[]>([]);
   let parts = $state<SparePartRecord[]>([]);
+
+  type ModelOption = { id: string; name: string; categoryName?: string | null; categoryItemType?: string | null };
+  let models = $state<ModelOption[]>([]);
+  let assetCats = $state<AssetCategory[]>([]);
 
   let loading = $state(true);
   let saving = $state(false);
@@ -133,17 +138,25 @@
     try {
       loading = true;
       error = '';
-      const [detailResponse, warehouseResponse, partsResponse, orgUnitsResponse] = await Promise.all([
+      const [detailResponse, warehouseResponse, partsResponse, orgUnitsResponse, catalogsResponse] = await Promise.all([
         getStockDocument(docId),
         listWarehouses(),
         listSpareParts({ page: 1, limit: 200 }),
-        listOrgUnits()
+        listOrgUnits(),
+        getAssetCatalogs()
       ]);
       document = detailResponse.data.document;
       lines = detailResponse.data.lines ?? [];
       warehouses = warehouseResponse.data ?? [];
       parts = partsResponse.data ?? [];
       orgUnits = orgUnitsResponse.data ?? [];
+      const allCats = catalogsResponse.data?.categories ?? [];
+      const categoryById = Object.fromEntries(allCats.map(c => [c.id, c]));
+      assetCats = allCats.filter(c => !c.itemType || c.itemType === 'asset');
+      models = (catalogsResponse.data?.models ?? []).map(m => {
+        const cat = m.categoryId ? categoryById[m.categoryId] : null;
+        return { id: m.id, name: m.model, categoryName: cat?.name ?? null, categoryItemType: cat?.itemType ?? 'asset' };
+      });
       warehouseId = document.warehouseId ?? '';
       targetWarehouseId = document.targetWarehouseId ?? '';
       docDate = document.docDate;
@@ -407,7 +420,7 @@
           <span class="text-xs text-slate-500">{lines.length} {$isLoading ? 'lines' : $_('warehouse.linesCount')}</span>
         {/if}
       </div>
-      <StockDocumentLines bind:lines={lines} parts={parts} docType={document.docType} warehouseId={warehouseId} readonly={!isDraft} />
+      <StockDocumentLines bind:lines={lines} parts={parts} {models} assetCategories={assetCats} docType={document.docType} warehouseId={warehouseId} readonly={!isDraft} />
     </div>
 
     <!-- ── Attachments (invoices, delivery notes, photos) ───────────────── -->

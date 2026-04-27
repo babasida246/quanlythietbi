@@ -330,7 +330,7 @@ export function isRouteAllowed(pathname: string, caps: Capabilities): boolean {
   // Asset management
   if (pathname.startsWith('/assets')) {
     // Create routes require explicit create permission
-    if (pathname === '/assets/new') return caps.assets.create
+    if (pathname === '/assets/new') return false // locked: assets must be created via stock receipt
     if (pathname.startsWith('/assets/asset-increases/new')) return caps.assets.create
     if (pathname.startsWith('/assets/purchase-plans/new')) return caps.assets.create
     // Catalogs management requires categories permission

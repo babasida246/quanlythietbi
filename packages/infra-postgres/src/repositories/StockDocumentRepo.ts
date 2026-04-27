@@ -29,6 +29,8 @@ type DocumentRow = {
     department: string | null
     recipient_ou_id: string | null
     location_id: string | null
+    item_group: string | null
+    equipment_group_id: string | null
     created_by: string | null
     approved_by: string | null
     correlation_id: string | null
@@ -57,7 +59,8 @@ type LineRow = {
 type Update = { column: string; value: unknown }
 
 const DOC_COLS = `id, doc_type, code, status, warehouse_id, target_warehouse_id, doc_date, ref_type, ref_id,
-                  ref_request_id, note, idempotency_key, supplier, submitter_name, receiver_name, department, recipient_ou_id, location_id,
+                  ref_request_id, note, idempotency_key, supplier, submitter_name, receiver_name, department,
+                  recipient_ou_id, location_id, item_group, equipment_group_id,
                   created_by, approved_by, correlation_id, created_at, updated_at`
 
 const LINE_COLS = `id, document_id, line_type, part_id, qty, unit_cost, serial_no, note,
@@ -85,6 +88,8 @@ const mapDocument = (row: DocumentRow): StockDocumentRecord => ({
     department: row.department,
     recipientOuId: row.recipient_ou_id,
     locationId: row.location_id,
+    itemGroup: row.item_group,
+    equipmentGroupId: row.equipment_group_id,
     createdBy: row.created_by,
     approvedBy: row.approved_by,
     correlationId: row.correlation_id,
@@ -122,6 +127,8 @@ function buildUpdates(patch: StockDocumentUpdatePatch): Update[] {
     if (patch.department !== undefined) updates.push({ column: 'department', value: patch.department })
     if (patch.recipientOuId !== undefined) updates.push({ column: 'recipient_ou_id', value: patch.recipientOuId })
     if (patch.locationId !== undefined) updates.push({ column: 'location_id', value: patch.locationId })
+    if (patch.itemGroup !== undefined) updates.push({ column: 'item_group', value: patch.itemGroup })
+    if (patch.equipmentGroupId !== undefined) updates.push({ column: 'equipment_group_id', value: patch.equipmentGroupId })
     if (patch.correlationId !== undefined) updates.push({ column: 'correlation_id', value: patch.correlationId })
     return updates
 }
@@ -142,8 +149,8 @@ export class StockDocumentRepo implements IStockDocumentRepo {
             `INSERT INTO stock_documents (
                 doc_type, code, status, warehouse_id, target_warehouse_id, doc_date,
                 ref_type, ref_id, ref_request_id, note, supplier, submitter_name, receiver_name,
-                department, recipient_ou_id, location_id, created_by, correlation_id
-             ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18)
+                department, recipient_ou_id, location_id, item_group, equipment_group_id, created_by, correlation_id
+             ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20)
              RETURNING ${DOC_COLS}`,
             [
                 input.docType,
@@ -162,6 +169,8 @@ export class StockDocumentRepo implements IStockDocumentRepo {
                 input.department ?? null,
                 input.recipientOuId ?? null,
                 input.locationId ?? null,
+                input.itemGroup ?? null,
+                input.equipmentGroupId ?? null,
                 input.createdBy ?? null,
                 input.correlationId ?? null
             ]
@@ -216,10 +225,15 @@ export class StockDocumentRepo implements IStockDocumentRepo {
     async list(filters: StockDocumentListFilters): Promise<StockDocumentPage> {
         const params: unknown[] = []
         const conditions: string[] = []
+
         if (filters.docType) {
             params.push(filters.docType)
             conditions.push(`doc_type = $${params.length}`)
+        } else if (filters.docTypes && filters.docTypes.length > 0) {
+            params.push(filters.docTypes)
+            conditions.push(`doc_type = ANY($${params.length}::text[])`)
         }
+
         if (filters.status) {
             params.push(filters.status)
             conditions.push(`status = $${params.length}`)
@@ -227,6 +241,10 @@ export class StockDocumentRepo implements IStockDocumentRepo {
         if (filters.warehouseId) {
             params.push(filters.warehouseId)
             conditions.push(`warehouse_id = $${params.length}`)
+        }
+        if (filters.itemGroup) {
+            params.push(filters.itemGroup)
+            conditions.push(`item_group = $${params.length}`)
         }
         if (filters.from) {
             params.push(filters.from)

@@ -38,7 +38,17 @@
       "Bash(ls \"e:/GitHub/QuanLyThietBi/apps/web-ui/src/routes/\\(assets\\)/admin/\")",
       "Bash(ls \"e:/GitHub/QuanLyThietBi/apps/web-ui/src/routes/\\(assets\\)/security/\")",
       "Bash(xargs grep:*)",
-      "Bash(grep -n '\"\"tabs\"\"' apps/web-ui/src/lib/i18n/locales/vi/cmdb.json)"
+      "Bash(grep -n '\"\"tabs\"\"' apps/web-ui/src/lib/i18n/locales/vi/cmdb.json)",
+      "Bash(netstat -ano)",
+      "PowerShell(netsh int ipv4 show excludedportrange protocol=tcp)",
+      "Bash(docker-compose -f docker-compose.dev.yml up -d)",
+      "Bash(node scripts/check-install.mjs)",
+      "Bash(echo \"Exit: $?\")",
+      "Bash(npx tsc *)",
+      "Bash(grep \"CREATE TABLE public\\\\\\\\.asset_\" /d/GitHub/quanlythietbi/packages/infra-postgres/src/schema.sql)",
+      "Bash(python3 -c ' *)",
+      "Bash(node -e ' *)",
+      "Bash(, '${newCatId}'\\\\$1)"
     ]
   }
 }

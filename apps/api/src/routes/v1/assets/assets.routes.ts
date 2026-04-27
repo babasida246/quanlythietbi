@@ -14,6 +14,7 @@ import {
 } from './assets.schemas.js'
 import type { AssetRecord, AssetSearchFilters } from '@qltb/contracts'
 import { getUserContext, requirePermission } from './assets.helpers.js'
+import { ForbiddenError } from '../../../shared/errors/http-errors.js'
 
 interface AssetRoutesOptions {
     assetService: AssetService
@@ -199,14 +200,8 @@ export async function assetsRoutes(fastify: FastifyInstance, opts: AssetRoutesOp
         return reply.type('text/csv').send(csv)
     })
 
-    fastify.post('/assets', async (request, reply) => {
-        const ctx = await requirePermission(request, 'assets:create')
-        const body = assetCreateSchema.parse(request.body)
-        const created = await assetService.createAsset({
-            ...body,
-            status: body.status ?? 'in_stock'
-        }, ctx)
-        return reply.status(201).send({ data: created })
+    fastify.post('/assets', async (_request, _reply) => {
+        throw new ForbiddenError('Chỉ cho phép thêm tài sản từ phiếu nhập kho')
     })
 
     fastify.get('/assets/:id', async (request, reply) => {

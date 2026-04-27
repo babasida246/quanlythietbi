@@ -23,27 +23,32 @@ export const sparePartIdParamsSchema = z.object({
 export const sparePartCreateSchema = z.object({
     partCode: z.string().min(1),
     name: z.string().min(1),
-    category: z.string().optional(),
+    category: z.string().nullable().optional(),
+    categoryId: z.string().uuid().nullable().optional(),
     uom: z.string().optional(),
     manufacturer: z.string().optional(),
     model: z.string().optional(),
     spec: z.record(z.unknown()).optional(),
-    minLevel: z.coerce.number().int().min(0).optional()
+    minLevel: z.coerce.number().int().min(0).optional(),
+    unitCost: z.coerce.number().min(0).nullable().optional()
 })
 
 export const sparePartUpdateSchema = z.object({
     partCode: z.string().min(1).optional(),
     name: z.string().min(1).optional(),
     category: z.string().nullable().optional(),
+    categoryId: z.string().uuid().nullable().optional(),
     uom: z.string().nullable().optional(),
     manufacturer: z.string().nullable().optional(),
     model: z.string().nullable().optional(),
     spec: z.record(z.unknown()).optional(),
-    minLevel: z.coerce.number().int().min(0).optional()
+    minLevel: z.coerce.number().int().min(0).optional(),
+    unitCost: z.coerce.number().min(0).nullable().optional()
 })
 
 export const sparePartListSchema = z.object({
     q: z.string().optional(),
+    categoryId: z.string().uuid().optional(),
     page: z.coerce.number().int().min(1).optional(),
     limit: z.coerce.number().int().min(1).max(1000).optional()
 })
@@ -60,10 +65,16 @@ export const stockDocumentIdParamsSchema = z.object({
     id: z.string().uuid()
 })
 
+// Coerce empty-string / null to undefined so z.string().uuid().optional() passes
+const optUuid = z.preprocess(
+    (v) => (v === '' || v === null) ? undefined : v,
+    z.string().uuid().optional()
+)
+
 export const stockDocumentLineSchema = z.object({
     lineType: z.enum(['spare_part', 'asset']).default('spare_part'),
     /** Required for spare_part lines */
-    partId: z.string().uuid().optional(),
+    partId: optUuid,
     qty: z.coerce.number().int().min(1),
     unitCost: z.coerce.number().min(0).optional(),
     serialNo: z.string().optional(),
@@ -71,13 +82,13 @@ export const stockDocumentLineSchema = z.object({
     adjustDirection: z.enum(['plus', 'minus']).optional(),
     specFields: z.record(z.unknown()).nullable().optional(),
     /** Asset lines (receipt): model to create from */
-    assetModelId: z.string().uuid().optional(),
-    assetCategoryId: z.string().uuid().optional(),
+    assetModelId: optUuid,
+    assetCategoryId: optUuid,
     assetName: z.string().max(255).optional(),
     /** Optional explicit code; auto-generated if omitted */
     assetCode: z.string().max(100).optional(),
     /** Asset lines (issue): the specific asset to deploy */
-    assetId: z.string().uuid().optional()
+    assetId: optUuid
 }).superRefine((val, ctx) => {
     if (val.lineType === 'spare_part' && !val.partId) {
         ctx.addIssue({ code: 'custom', path: ['partId'], message: 'partId is required for spare_part lines' })
@@ -88,7 +99,7 @@ export const stockDocumentLineSchema = z.object({
 })
 
 export const stockDocumentCreateSchema = z.object({
-    docType: z.enum(['receipt', 'issue', 'adjust', 'transfer']),
+    docType: z.enum(['receipt', 'issue', 'adjust', 'transfer', 'return']),
     code: z.string().min(1).optional(),
     warehouseId: z.string().uuid().nullable().optional(),
     targetWarehouseId: z.string().uuid().nullable().optional(),
@@ -103,6 +114,10 @@ export const stockDocumentCreateSchema = z.object({
     recipientOuId: z.string().uuid().nullable().optional(),
     /** Destination location for issue documents */
     locationId: z.string().uuid().nullable().optional(),
+    /** Nhóm vật tư: 'asset' | 'spare_part' | 'consumable' */
+    itemGroup: z.enum(['asset', 'spare_part', 'consumable']).nullable().optional(),
+    /** FK to equipment_groups(id) — Nhóm vật tư from catalog */
+    equipmentGroupId: z.string().uuid().nullable().optional(),
     lines: z.array(stockDocumentLineSchema).min(1, 'At least one line is required')
 })
 
@@ -118,13 +133,19 @@ export const stockDocumentUpdateSchema = z.object({
     recipientOuId: z.string().uuid().nullable().optional(),
     /** Destination location for issue documents */
     locationId: z.string().uuid().nullable().optional(),
+    /** Nhóm vật tư: 'asset' | 'spare_part' | 'consumable' */
+    itemGroup: z.enum(['asset', 'spare_part', 'consumable']).nullable().optional(),
+    /** FK to equipment_groups(id) */
+    equipmentGroupId: z.string().uuid().nullable().optional(),
     lines: z.array(stockDocumentLineSchema).min(1, 'At least one line is required')
 })
 
 export const stockDocumentListSchema = z.object({
-    docType: z.enum(['receipt', 'issue', 'adjust', 'transfer']).optional(),
+    docType: z.enum(['receipt', 'issue', 'adjust', 'transfer', 'return']).optional(),
+    docTypes: z.string().optional(),
     status: z.enum(['draft', 'submitted', 'approved', 'posted', 'canceled']).optional(),
     warehouseId: z.string().uuid().optional(),
+    itemGroup: z.enum(['asset', 'spare_part', 'consumable']).optional(),
     from: z.string().optional(),
     to: z.string().optional(),
     page: z.coerce.number().int().min(1).optional(),

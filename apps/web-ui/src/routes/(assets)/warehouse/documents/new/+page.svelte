@@ -15,24 +15,28 @@
     type WarehouseAssetOption,
     type OrgUnitOption
   } from '$lib/api/warehouse';
-  import { getAssetCatalogs, listLocations, type Vendor, type Location, type CategoryItemType } from '$lib/api/assetCatalogs';
+  import { getAssetCatalogs, listLocations, type Vendor, type Location, type CategoryItemType, type AssetCategory } from '$lib/api/assetCatalogs';
+  import { listEquipmentGroups, type EquipmentGroup } from '$lib/api/equipmentGroups';
 
   type ModelOption = { id: string; name: string; categoryName?: string | null; categoryItemType?: CategoryItemType | null };
 
-  let warehouses     = $state<WarehouseRecord[]>([]);
-  let parts          = $state<SparePartRecord[]>([]);
-  let vendors        = $state<Vendor[]>([]);
-  let locations      = $state<Location[]>([]);
-  let models         = $state<ModelOption[]>([]);
-  let warehouseAssets= $state<WarehouseAssetOption[]>([]);
-  let orgUnits       = $state<OrgUnitOption[]>([]);
-  let lines          = $state<StockDocumentLine[]>([]);
+  let warehouses       = $state<WarehouseRecord[]>([]);
+  let parts            = $state<SparePartRecord[]>([]);
+  let vendors          = $state<Vendor[]>([]);
+  let locations        = $state<Location[]>([]);
+  let models           = $state<ModelOption[]>([]);
+  let warehouseAssets  = $state<WarehouseAssetOption[]>([]);
+  let orgUnits         = $state<OrgUnitOption[]>([]);
+  let equipmentGroups  = $state<EquipmentGroup[]>([]);
+  let assetCats        = $state<AssetCategory[]>([]);
+  let lines            = $state<StockDocumentLine[]>([]);
 
   let loading  = $state(true);
   let saving   = $state(false);
   let error    = $state('');
 
-  let docType          = $state<'receipt' | 'issue' | 'adjust' | 'transfer'>('receipt');
+  let docType          = $state<'receipt' | 'issue' | 'adjust' | 'transfer' | 'return'>('receipt');
+  let equipmentGroupId = $state('');
   let warehouseId      = $state('');
   let targetWarehouseId= $state('');
   let locationId       = $state('');
@@ -46,21 +50,23 @@
   async function loadCatalogs() {
     try {
       loading = true;
-      const [warehousesRes, partsRes, catalogsRes, locationsRes, orgUnitsRes] = await Promise.all([
+      const [warehousesRes, partsRes, catalogsRes, locationsRes, orgUnitsRes, eqGroupsRes] = await Promise.all([
         listWarehouses(),
         listSpareParts({ page: 1, limit: 200 }),
         getAssetCatalogs(),
         listLocations(),
-        listOrgUnits()
+        listOrgUnits(),
+        listEquipmentGroups(true)
       ]);
-      warehouses = warehousesRes.data ?? [];
-      parts      = partsRes.data ?? [];
-      vendors    = catalogsRes.data?.vendors ?? [];
-      locations  = locationsRes.data ?? [];
-      orgUnits   = orgUnitsRes.data ?? [];
-      const categoryById = Object.fromEntries(
-        (catalogsRes.data?.categories ?? []).map(c => [c.id, c])
-      );
+      warehouses      = warehousesRes.data ?? [];
+      parts           = partsRes.data ?? [];
+      vendors         = catalogsRes.data?.vendors ?? [];
+      locations       = locationsRes.data ?? [];
+      orgUnits        = orgUnitsRes.data ?? [];
+      equipmentGroups = eqGroupsRes ?? [];
+      const allCats = catalogsRes.data?.categories ?? [];
+      const categoryById = Object.fromEntries(allCats.map(c => [c.id, c]));
+      assetCats = allCats.filter(c => !c.itemType || c.itemType === 'asset');
       models = (catalogsRes.data?.models ?? []).map(m => {
         const cat = m.categoryId ? categoryById[m.categoryId] : null;
         return { id: m.id, name: m.model, categoryName: cat?.name ?? null, categoryItemType: cat?.itemType ?? 'asset' };
@@ -74,7 +80,7 @@
 
   // Reload in-stock assets when warehouse or docType changes
   $effect(() => {
-    if (warehouseId && (docType === 'issue' || docType === 'transfer')) {
+    if (warehouseId && (docType === 'issue' || docType === 'transfer' || docType === 'return')) {
       listStockAssets(warehouseId).then(r => { warehouseAssets = r; }).catch(() => {});
     } else {
       warehouseAssets = [];
@@ -107,6 +113,7 @@
       error  = '';
       const response = await createStockDocument({
         docType,
+        equipmentGroupId: equipmentGroupId || null,
         warehouseId: warehouseId || null,
         targetWarehouseId: docType === 'transfer' ? (targetWarehouseId || null) : null,
         locationId: docType === 'issue' ? (locationId || null) : null,
@@ -163,8 +170,20 @@
           <select id="new-doc-type" class="select-base text-sm" bind:value={docType}>
             <option value="receipt">{$isLoading ? 'Receipt' : $_('warehouse.docType.receipt')}</option>
             <option value="issue">{$isLoading ? 'Issue' : $_('warehouse.docType.issue')}</option>
+            <option value="return">{$isLoading ? 'Return' : $_('warehouse.docType.return')}</option>
             <option value="adjust">{$isLoading ? 'Adjustment' : $_('warehouse.docType.adjust')}</option>
             <option value="transfer">{$isLoading ? 'Transfer' : $_('warehouse.docType.transfer')}</option>
+          </select>
+        </div>
+
+        <!-- Nhóm vật tư -->
+        <div>
+          <label for="new-doc-item-group" class="mb-1 block text-xs font-medium text-slate-400">{$isLoading ? 'Item Group' : $_('warehouse.itemGroup.label')}</label>
+          <select id="new-doc-item-group" class="select-base text-sm" bind:value={equipmentGroupId}>
+            <option value="">{$isLoading ? '-- All groups --' : $_('warehouse.itemGroup.placeholder')}</option>
+            {#each equipmentGroups as eg}
+              <option value={eg.id}>{eg.name}</option>
+            {/each}
           </select>
         </div>
 
@@ -243,6 +262,23 @@
           </div>
         {/if}
 
+        <!-- return: Người trả + Kho thu hồi -->
+        {#if docType === 'return'}
+          <div>
+            <label for="new-doc-returned-by" class="mb-1 block text-xs font-medium text-slate-400">{$isLoading ? 'Returned By' : $_('warehouse.field.returnedBy')}</label>
+            <input id="new-doc-returned-by" class="input-base text-sm" bind:value={submitterName} placeholder={$isLoading ? 'Person returning...' : $_('warehouse.field.returnedByPlaceholder')} />
+          </div>
+          <div>
+            <label for="new-doc-ou-return" class="mb-1 block text-xs font-medium text-slate-400">{$isLoading ? 'Department' : $_('warehouse.field.department')}</label>
+            <select id="new-doc-ou-return" class="select-base text-sm" bind:value={recipientOuId}>
+              <option value="">{$isLoading ? '-- No department --' : $_('warehouse.field.noRecipientOu')}</option>
+              {#each orgUnits as ou}
+                <option value={ou.id}>{'　'.repeat(ou.depth)}{ou.name}</option>
+              {/each}
+            </select>
+          </div>
+        {/if}
+
         <!-- adjust / transfer: Nơi nhận + Người thực hiện -->
         {#if docType === 'adjust' || docType === 'transfer'}
           <div>
@@ -273,7 +309,7 @@
       <div class="mb-3 flex items-center gap-3">
         <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-400">{$isLoading ? 'Item Lines' : $_('warehouse.linesHeading')}</h3>
       </div>
-      <StockDocumentLines bind:lines {parts} {models} {warehouseAssets} {docType} {warehouseId} />
+      <StockDocumentLines bind:lines {parts} {models} assetCategories={assetCats} {warehouseAssets} {docType} {warehouseId} />
     </div>
 
     <!-- ── Bottom action bar ─────────────────────────────────────────────── -->

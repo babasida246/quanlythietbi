@@ -85,7 +85,10 @@ export class StockDocumentService {
 
     async listDocuments(filters: {
         docType?: StockDocumentRecord['docType']
+        docTypes?: StockDocumentRecord['docType'][]
         status?: StockDocumentRecord['status']
+        warehouseId?: string
+        itemGroup?: string
         from?: string
         to?: string
         page?: number
@@ -202,6 +205,22 @@ export class StockDocumentService {
                 }
             }
 
+            // ── Return: bring assets back to warehouse ────────────────────────
+            if (document.docType === 'return') {
+                for (const line of assetLines) {
+                    if (!line.assetId) {
+                        throw AppError.badRequest(`Return asset line ${line.id} is missing assetId`)
+                    }
+                    const asset = await tx.assets.getById(line.assetId)
+                    if (!asset) throw AppError.notFound(`Asset ${line.assetId} not found`)
+                    await tx.assets.update(asset.id, {
+                        status: 'in_stock',
+                        warehouseId: document.warehouseId ?? null,
+                        locationId: null
+                    })
+                }
+            }
+
             // ── Issue: deploy existing assets to a location ───────────────────
             if (document.docType === 'issue') {
                 for (const line of assetLines) {
@@ -261,7 +280,7 @@ export class StockDocumentService {
     ): StockChange[] {
         const changes: StockChange[] = []
         const warehouseId = document.warehouseId ?? undefined
-        if ((document.docType === 'receipt' || document.docType === 'issue' || document.docType === 'adjust' || document.docType === 'transfer') && !warehouseId) {
+        if (!warehouseId) {
             throw AppError.badRequest('Warehouse is required for this document')
         }
 
@@ -294,6 +313,16 @@ export class StockDocumentService {
                     partId: line.partId,
                     delta,
                     movementType: delta < 0 ? 'adjust_out' : 'adjust_in',
+                    unitCost: line.unitCost ?? null,
+                    refId: document.id
+                })
+            } else if (document.docType === 'return') {
+                // Thu hồi: linh kiện quay về kho (tương tự receipt)
+                changes.push({
+                    warehouseId: warehouseId as string,
+                    partId: line.partId,
+                    delta: line.qty,
+                    movementType: 'in',
                     unitCost: line.unitCost ?? null,
                     refId: document.id
                 })
