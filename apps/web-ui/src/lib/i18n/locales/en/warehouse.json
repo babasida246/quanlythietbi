@@ -307,6 +307,8 @@
     },
     "partCategory": "Part Category",
     "partCategoryPlaceholder": "-- Select category --",
+    "partModelCatalog": "Model (catalog)",
+    "partModelPlaceholder": "-- Select model --",
     "unitCostLabel": "Unit Cost (₫)",
     "placeholder": {
       "selectWarehouse": "-- Select warehouse --",

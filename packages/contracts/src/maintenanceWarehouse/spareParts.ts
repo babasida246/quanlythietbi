@@ -6,6 +6,8 @@ export interface SparePartRecord {
     category?: string | null
     categoryId?: string | null
     categoryName?: string | null
+    modelId?: string | null
+    modelName?: string | null
     uom?: string | null
     manufacturer?: string | null
     model?: string | null
@@ -21,6 +23,7 @@ export interface SparePartCreateInput {
     /** @deprecated Use categoryId instead */
     category?: string | null
     categoryId?: string | null
+    modelId?: string | null
     uom?: string | null
     manufacturer?: string | null
     model?: string | null

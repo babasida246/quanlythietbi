@@ -15,6 +15,8 @@ type SparePartRow = {
     category: string | null
     category_id: string | null
     category_name: string | null
+    model_id: string | null
+    model_name: string | null
     uom: string | null
     manufacturer: string | null
     model: string | null
@@ -29,12 +31,14 @@ type Update = { column: string; value: unknown }
 const SELECT_COLS = `
     sp.id, sp.part_code, sp.name, sp.category, sp.category_id,
     ac.name AS category_name,
+    sp.model_id, am.model AS model_name,
     sp.uom, sp.manufacturer, sp.model, sp.spec, sp.min_level, sp.unit_cost, sp.created_at
 `
 
 const FROM_JOIN = `
     FROM spare_parts sp
     LEFT JOIN asset_categories ac ON ac.id = sp.category_id
+    LEFT JOIN asset_models am ON am.id = sp.model_id
 `
 
 const mapSparePart = (row: SparePartRow): SparePartRecord => ({
@@ -44,6 +48,8 @@ const mapSparePart = (row: SparePartRow): SparePartRecord => ({
     category: row.category,
     categoryId: row.category_id,
     categoryName: row.category_name,
+    modelId: row.model_id,
+    modelName: row.model_name,
     uom: row.uom,
     manufacturer: row.manufacturer,
     model: row.model,
@@ -59,6 +65,7 @@ function buildUpdates(patch: SparePartUpdatePatch): Update[] {
     if (patch.name !== undefined) updates.push({ column: 'name', value: patch.name })
     if (patch.category !== undefined) updates.push({ column: 'category', value: patch.category })
     if (patch.categoryId !== undefined) updates.push({ column: 'category_id', value: patch.categoryId })
+    if (patch.modelId !== undefined) updates.push({ column: 'model_id', value: patch.modelId })
     if (patch.uom !== undefined) updates.push({ column: 'uom', value: patch.uom })
     if (patch.manufacturer !== undefined) updates.push({ column: 'manufacturer', value: patch.manufacturer })
     if (patch.model !== undefined) updates.push({ column: 'model', value: patch.model })
@@ -130,15 +137,17 @@ export class SparePartRepo implements ISparePartRepo {
     async create(input: SparePartCreateInput): Promise<SparePartRecord> {
         const result = await this.pg.query<SparePartRow>(
             `INSERT INTO spare_parts
-                (part_code, name, category, category_id, uom, manufacturer, model, spec, min_level, unit_cost)
-             VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
+                (part_code, name, category, category_id, model_id, uom, manufacturer, model, spec, min_level, unit_cost)
+             VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
              RETURNING id, part_code, name, category, category_id, NULL AS category_name,
+                       model_id, NULL AS model_name,
                        uom, manufacturer, model, spec, min_level, unit_cost, created_at`,
             [
                 input.partCode,
                 input.name,
                 input.category ?? null,
                 input.categoryId ?? null,
+                input.modelId ?? null,
                 input.uom ?? null,
                 input.manufacturer ?? null,
                 input.model ?? null,

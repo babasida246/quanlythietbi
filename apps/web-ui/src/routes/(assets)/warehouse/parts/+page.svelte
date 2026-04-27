@@ -6,7 +6,7 @@
   import { _, isLoading } from '$lib/i18n';
   import { z } from 'zod';
   import { createSparePart, deleteSparePart, listSpareParts, updateSparePart, type SparePartRecord } from '$lib/api/warehouse';
-  import { getAssetCatalogs, type AssetCategory } from '$lib/api/assetCatalogs';
+  import { getAssetCatalogs, searchAssetModels, type AssetCategory, type AssetModel } from '$lib/api/assetCatalogs';
   import EmptyState from '$lib/components/EmptyState.svelte';
   import InlineError from '$lib/components/InlineError.svelte';
   import PageHeader from '$lib/components/PageHeader.svelte';
@@ -26,15 +26,17 @@
   let saving    = $state(false);
   let editing   = $state<SparePartRecord | null>(null);
 
-  let partCode    = $state('');
-  let name        = $state('');
-  let categoryId  = $state('');
-  let uom         = $state('');
-  let manufacturer= $state('');
-  let model       = $state('');
-  let minLevel    = $state('0');
-  let unitCost    = $state('');
-  let fieldErrors = $state<{ partCode?: string; name?: string; minLevel?: string }>({});
+  let partCode       = $state('');
+  let name           = $state('');
+  let categoryId     = $state('');
+  let modelId        = $state('');
+  let availableModels= $state<AssetModel[]>([]);
+  let uom            = $state('');
+  let manufacturer   = $state('');
+  let model          = $state('');
+  let minLevel       = $state('0');
+  let unitCost       = $state('');
+  let fieldErrors    = $state<{ partCode?: string; name?: string; minLevel?: string }>({});
 
   const partFormSchema = z.object({
     partCode:   z.string().trim().min(1),
@@ -54,6 +56,25 @@
     } catch {
       // non-fatal
     }
+  }
+
+  async function loadModels(catId: string) {
+    if (!catId) { availableModels = []; return; }
+    try {
+      const res = await searchAssetModels({ categoryId: catId });
+      availableModels = res.data ?? [];
+    } catch {
+      availableModels = [];
+    }
+  }
+
+  function onModelSelect(selectedModelId: string) {
+    modelId = selectedModelId;
+    if (!selectedModelId) return;
+    const m = availableModels.find(x => x.id === selectedModelId);
+    if (!m) return;
+    if (m.brand) manufacturer = m.brand;
+    if (m.model) model = m.model;
   }
 
   async function loadParts(page = 1) {
@@ -80,17 +101,19 @@
   }
 
   function openCreate() {
-    editing      = null;
-    partCode     = '';
-    name         = '';
-    categoryId   = '';
-    uom          = '';
-    manufacturer = '';
-    model        = '';
-    minLevel     = '0';
-    unitCost     = '';
-    fieldErrors  = {};
-    showModal    = true;
+    editing          = null;
+    partCode         = '';
+    name             = '';
+    categoryId       = '';
+    modelId          = '';
+    availableModels  = [];
+    uom              = '';
+    manufacturer     = '';
+    model            = '';
+    minLevel         = '0';
+    unitCost         = '';
+    fieldErrors      = {};
+    showModal        = true;
   }
 
   function openEdit(part: SparePartRecord) {
@@ -98,6 +121,7 @@
     partCode     = part.partCode;
     name         = part.name;
     categoryId   = part.categoryId ?? '';
+    modelId      = part.modelId ?? '';
     uom          = part.uom ?? '';
     manufacturer = part.manufacturer ?? '';
     model        = part.model ?? '';
@@ -105,6 +129,7 @@
     unitCost     = part.unitCost != null ? String(part.unitCost) : '';
     fieldErrors  = {};
     showModal    = true;
+    if (categoryId) void loadModels(categoryId);
   }
 
   function validateForm() {
@@ -134,6 +159,7 @@
         partCode:     validData.partCode,
         name:         validData.name,
         categoryId:   validData.categoryId ?? null,
+        modelId:      modelId || null,
         uom:          validData.uom || null,
         manufacturer: validData.manufacturer || null,
         model:        validData.model || null,
@@ -224,9 +250,9 @@
         { key: 'partCode',      label: $isLoading ? 'Code'         : $_('common.code'),        sortable: true, filterable: true, width: 'w-36' },
         { key: 'name',         label: $isLoading ? 'Name'         : $_('common.name'),        sortable: true, filterable: true },
         { key: 'categoryId',   label: $isLoading ? 'Category'     : $_('warehouse.partCategory'), sortable: false, filterable: false, render: (val) => categoryName(val as string) },
+        { key: 'modelName',    label: $isLoading ? 'Model'        : $_('assets.model'),        sortable: false, filterable: false, render: (val) => val ?? '—' },
         { key: 'uom',          label: $isLoading ? 'UOM'          : $_('warehouse.uom'),       sortable: false, filterable: false, width: 'w-20', render: (val) => val ?? '—' },
         { key: 'manufacturer', label: $isLoading ? 'Manufacturer' : $_('warehouse.manufacturer'), sortable: false, filterable: false, render: (val) => val ?? '—' },
-        { key: 'model',        label: $isLoading ? 'Model'        : $_('assets.model'),        sortable: false, filterable: false, render: (val) => val ?? '—' },
         { key: 'unitCost',     label: $isLoading ? 'Unit Cost'    : $_('warehouse.unitCostLabel'), sortable: false, filterable: false, width: 'w-32', render: (val) => val != null ? Number(val).toLocaleString('vi-VN') + ' ₫' : '—' },
         { key: 'minLevel',     label: $isLoading ? 'Min'          : $_('warehouse.minLevel'),  sortable: true, filterable: false, width: 'w-20' }
       ]}
@@ -265,10 +291,19 @@
     </div>
     <div>
       <label for="part-category" class="text-sm font-medium text-slate-300">{$isLoading ? 'Category' : $_('warehouse.partCategory')}</label>
-      <select id="part-category" class="select-base" bind:value={categoryId}>
+      <select id="part-category" class="select-base" bind:value={categoryId} onchange={() => { modelId = ''; void loadModels(categoryId); }}>
         <option value="">{$isLoading ? '-- Select category --' : $_('warehouse.partCategoryPlaceholder')}</option>
         {#each categories as cat}
           <option value={cat.id}>{cat.name}</option>
+        {/each}
+      </select>
+    </div>
+    <div>
+      <label for="part-model-id" class="text-sm font-medium text-slate-300">{$isLoading ? 'Model (catalog)' : $_('warehouse.partModelCatalog')}</label>
+      <select id="part-model-id" class="select-base" value={modelId} onchange={(e) => onModelSelect((e.target as HTMLSelectElement).value)} disabled={availableModels.length === 0 && !modelId}>
+        <option value="">{$isLoading ? '-- Select model --' : $_('warehouse.partModelPlaceholder')}</option>
+        {#each availableModels as m}
+          <option value={m.id}>{m.brand ? m.brand + ' ' : ''}{m.model}</option>
         {/each}
       </select>
     </div>

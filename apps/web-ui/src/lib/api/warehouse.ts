@@ -21,6 +21,8 @@ export type SparePartRecord = {
     category?: string | null
     categoryId?: string | null
     categoryName?: string | null
+    modelId?: string | null
+    modelName?: string | null
     uom?: string | null
     manufacturer?: string | null
     model?: string | null

@@ -319,6 +319,8 @@
     },
     "partCategory": "Danh mục linh kiện",
     "partCategoryPlaceholder": "-- Chọn danh mục --",
+    "partModelCatalog": "Mẫu mã (danh mục)",
+    "partModelPlaceholder": "-- Chọn mẫu mã --",
     "unitCostLabel": "Giá đơn vị (₫)",
     "linesHeading": "Chi tiết hàng hóa / vật tư",
     "linesCount": "dòng",

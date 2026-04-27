@@ -54,6 +54,7 @@ const MIGRATIONS = [
     { label: '074_zabbix_provider.sql', path: join(DB_MIGRATIONS, '074_zabbix_provider.sql') },
     { label: '075_spare_part_category_link_return_doc.sql', path: join(DB_MIGRATIONS, '075_spare_part_category_link_return_doc.sql') },
     { label: '076_stock_doc_equipment_group.sql', path: join(DB_MIGRATIONS, '076_stock_doc_equipment_group.sql') },
+    { label: '077_spare_parts_model_id.sql', path: join(DB_MIGRATIONS, '077_spare_parts_model_id.sql') },
 ]
 
 const client = new pg.Client(pgConfig())
