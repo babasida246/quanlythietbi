@@ -230,3 +230,29 @@ export async function uploadAttachment(assetId: string, file: File): Promise<Api
 export function getAttachmentDownloadUrl(assetId: string, attachmentId: string): string {
     return `${API_BASE}/v1/assets/${assetId}/attachments/${attachmentId}/download`
 }
+
+export interface VerifyScanResult {
+    match: boolean
+    asset?: {
+        id: string
+        assetCode: string
+        name: string
+        status: string
+        modelName?: string | null
+    }
+    lineId?: string | null
+    lineNo?: number | null
+    lineStatus?: string | null
+    message?: string
+}
+
+export async function verifyScan(
+    requestId: string,
+    scannedCode: string,
+    scanType: 'barcode' | 'ocr' | 'manual' = 'barcode'
+): Promise<{ success: boolean; data: VerifyScanResult }> {
+    return apiJson(`${API_BASE}/v1/assets/verify-scan`, {
+        method: 'POST',
+        body: JSON.stringify({ requestId, scannedCode, scanType })
+    })
+}

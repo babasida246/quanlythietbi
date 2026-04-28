@@ -427,6 +427,26 @@ export class WfRepo {
         return rows.length ? mapApproval(rows[0]) : null;
     }
 
+    async findApprovedApprovalForStep(
+        requestId: string,
+        stepNo: number
+    ): Promise<WfApprovalWithDetails | null> {
+        const { rows } = await this.db.query<Record<string, unknown>>(
+            `SELECT a.*,
+                    s.name    AS step_name,
+                    u.name    AS assignee_name,
+                    d.name    AS decision_by_name
+             FROM   wf_approvals a
+             LEFT JOIN wf_steps s ON s.id = a.step_id
+             LEFT JOIN users    u ON u.id = a.assignee_user_id
+             LEFT JOIN users    d ON d.id = a.decision_by
+             WHERE  a.request_id = $1 AND a.step_no = $2 AND a.status = 'approved'
+             LIMIT 1`,
+            [requestId, stepNo]
+        );
+        return rows.length ? mapApprovalWithDetails(rows[0]) : null;
+    }
+
     async findPendingApprovalsByRequestAndStep(
         requestId: string,
         stepNo: number
@@ -535,6 +555,14 @@ export class WfRepo {
         await this.db.query(
             `UPDATE wf_approvals SET status = 'cancelled', updated_at = now()
              WHERE request_id = $1 AND status = 'pending'`,
+            [requestId]
+        );
+    }
+
+    async cancelAllActiveApprovals(requestId: string): Promise<void> {
+        await this.db.query(
+            `UPDATE wf_approvals SET status = 'cancelled', updated_at = now()
+             WHERE request_id = $1 AND status IN ('pending', 'approved')`,
             [requestId]
         );
     }

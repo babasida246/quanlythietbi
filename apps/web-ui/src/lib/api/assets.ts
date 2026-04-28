@@ -114,6 +114,9 @@ export type AssetAssignInput = {
     note?: string
     locationId?: string | null
     organizationId?: string | null
+    verificationMethod?: 'manual' | 'barcode' | 'ocr' | null
+    verifiedAt?: string | null
+    wfRequestId?: string | null
 }
 
 export type MaintenanceCreateInput = {

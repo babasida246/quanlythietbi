@@ -492,7 +492,7 @@ VALUES
     -- ADJ-WF-RC-001: thu hồi LT-002 — nhập lại kho (plus = tăng tồn kho)
     ('b6100000-0000-0000-0000-000000000017',
      'b6000000-0000-0000-0000-000000000008',
-     'asset',
+     'serial',
      'a1000000-0000-0000-0000-000000000012',   -- LT-002
      1,
      'Thu hồi Laptop Dell Inspiron 5415 — SN-LT002-2023 — kèm sạc và túi xách',
@@ -501,7 +501,7 @@ VALUES
     -- TRF-WF-TF-001: điều chuyển MN-007 (transfer không cần adjust_direction)
     ('b6100000-0000-0000-0000-000000000018',
      'b6000000-0000-0000-0000-000000000009',
-     'asset',
+     'serial',
      'a1000000-0000-0000-0000-000000000027',   -- MN-007
      1,
      'Điều chuyển Màn hình Dell 24" SN-MN007-2022 sang phòng Kinh doanh',

@@ -69,6 +69,7 @@ export interface IWfRepository {
     createApproval(data: { requestId: string; stepId: string; stepNo: number; assigneeUserId?: string | null; assigneeGroupId?: string | null; dueAt?: Date | null }): Promise<WfApproval>;
     findApprovalById(id: string): Promise<WfApprovalWithDetails | null>;
     findPendingApprovalsByRequest(requestId: string): Promise<WfApproval[]>;
+    findApprovedApprovalForStep(requestId: string, stepNo: number): Promise<WfApprovalWithDetails | null>;
     findPendingApprovalsByRequestAndStep(requestId: string, stepNo: number): Promise<WfApproval[]>;
     findApprovalsByRequest(requestId: string): Promise<WfApprovalWithDetails[]>;
     listInboxApprovals(assigneeId: string, page?: number, limit?: number, viewAll?: boolean): Promise<WfPaginatedResult<WfApprovalWithDetails & { request: WfRequest }>>;
@@ -78,6 +79,7 @@ export interface IWfRepository {
     claimApproval(id: string, userId: string): Promise<WfApproval | null>;
     listUnassignedApprovals(page?: number, limit?: number): Promise<WfPaginatedResult<WfApprovalWithDetails & { request: WfRequest }>>;
     cancelPendingApprovals(requestId: string): Promise<void>;
+    cancelAllActiveApprovals(requestId: string): Promise<void>;
     getInboxSummary(assigneeId: string, viewAll?: boolean): Promise<InboxSummary>;
     findDefinitionByType(requestType: string): Promise<(WfDefinition & { steps: WfStep[] }) | null>;
     findStepByDefAndNo(definitionId: string, stepNo: number): Promise<WfStep | null>;
@@ -189,9 +191,27 @@ export class WfService {
             throw new WfError(`Approval already decided: ${approval.status}`, 409);
         }
 
-        const decision = await this.repo.updateApprovalDecision(dto.approvalId, 'approved', dto.actorId, dto.comment);
+        let decision: WfApproval | null;
+        try {
+            decision = await this.repo.updateApprovalDecision(dto.approvalId, 'approved', dto.actorId, dto.comment);
+        } catch (err: unknown) {
+            if (typeof err === 'object' && err !== null && (err as { code?: string }).code === '23505') {
+                const existing = await this.repo.findApprovedApprovalForStep(approval.requestId, approval.stepNo);
+                const approverName = existing?.decisionByName ?? 'người dùng khác';
+                throw new WfError(
+                    `Bước phê duyệt này đã được xử lý bởi ${approverName}. Vui lòng tải lại trang.`,
+                    409
+                );
+            }
+            throw err;
+        }
         if (!decision) {
-            throw new WfError('Approval was already processed by another user. Please refresh and try again.', 409);
+            const existing = await this.repo.findApprovedApprovalForStep(approval.requestId, approval.stepNo);
+            const approverName = existing?.decisionByName ?? 'người dùng khác';
+            throw new WfError(
+                `Bước phê duyệt này đã được xử lý bởi ${approverName}. Vui lòng tải lại trang.`,
+                409
+            );
         }
 
         // Auto-skip other pending approvals in the same step (constraint allows only one approved per step)
@@ -285,7 +305,7 @@ export class WfService {
         if (!['submitted', 'in_review'].includes(req.status)) {
             throw new WfError(`Cannot withdraw a request with status '${req.status}'`);
         }
-        await this.repo.cancelPendingApprovals(dto.requestId);
+        await this.repo.cancelAllActiveApprovals(dto.requestId);
         await this.repo.updateRequestStatus(dto.requestId, 'draft', { currentStepNo: null });
         await this.repo.appendEvent({
             requestId: dto.requestId,

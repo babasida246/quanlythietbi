@@ -48,6 +48,7 @@
     type InboxSummary,
   } from '$lib/api/wf';
   import WfRequestLineEditor from '$lib/assets/components/WfRequestLineEditor.svelte';
+  import FulfillRequestModal from '$lib/assets/components/FulfillRequestModal.svelte';
   import { toast } from '$lib/components/toast';
   import { _, isLoading } from '$lib/i18n';
   import { untrack } from 'svelte';
@@ -188,13 +189,21 @@
     finally { inboxActionBusy = false; }
   }
 
-  //  TAB: Tất cả 
+  //  TAB: Tất cả
   let allRequests     = $state<WfRequest[]>([]);
   let allLoading      = $state(false);
   let allError        = $state('');
   let allStatusFilter = $state<WfRequestStatus | ''>('');
   let allTypeFilter   = $state<WfRequestType | ''>('');
   let allMeta         = $state({ total: 0, page: 1, limit: 20 });
+
+  let fulfillModalOpen = $state(false);
+  let fulfillTarget    = $state<WfRequest | null>(null);
+
+  function openFulfill(req: WfRequest) {
+    fulfillTarget = req;
+    fulfillModalOpen = true;
+  }
 
   async function loadAll(p = 1) {
     try {
@@ -466,6 +475,7 @@
               <th>{$isLoading ? 'Status' : $_('requests.header.status')}</th>
               <th>{$isLoading ? 'Requester' : $_('requests.header.requester')}</th>
               <th>{$isLoading ? 'Created' : $_('requests.header.createdAt')}</th>
+              <th class="text-right">{$isLoading ? 'Actions' : $_('requests.header.actions')}</th>
             </tr>
           </thead>
           <tbody>
@@ -480,6 +490,15 @@
                 <td><span class={wfStatusBadgeClass(item.status)}>{WF_STATUS_LABELS[item.status] ?? item.status}</span></td>
                 <td class="text-slate-400">{item.requesterName ?? item.requesterId}</td>
                 <td class="text-slate-400">{new Date(item.createdAt).toLocaleDateString('vi-VN')}</td>
+                <td>
+                  <div class="cell-actions justify-end">
+                    {#if item.status === 'approved' && item.requestType === 'asset_request'}
+                      <Button size="sm" variant="primary" onclick={() => openFulfill(item)}>
+                        Cấp phát
+                      </Button>
+                    {/if}
+                  </div>
+                </td>
               </tr>
             {/each}
           </tbody>
@@ -606,4 +625,16 @@
       </div>
     </div>
   </Modal>
+{/if}
+
+<!-- Modal: Fulfill asset request -->
+{#if fulfillModalOpen && fulfillTarget}
+  <FulfillRequestModal
+    requestId={fulfillTarget.id}
+    requestCode={fulfillTarget.code}
+    requesterId={fulfillTarget.requesterId}
+    requesterName={fulfillTarget.requesterName}
+    bind:open={fulfillModalOpen}
+    onfulfilled={() => { void loadAll(allMeta.page); }}
+  />
 {/if}

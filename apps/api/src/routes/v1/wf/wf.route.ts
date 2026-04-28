@@ -27,6 +27,13 @@ function handleWfError(err: unknown, reply: FastifyReply) {
     if (err instanceof WfError) {
         return reply.status(err.statusCode).send({ success: false, error: err.message });
     }
+    // Unique constraint violation — concurrent approval race condition (PG error code 23505)
+    if (typeof err === 'object' && err !== null && (err as { code?: string }).code === '23505') {
+        return reply.status(409).send({
+            success: false,
+            error: 'Yêu cầu này đã được xử lý bởi người dùng khác. Vui lòng tải lại trang và thử lại.',
+        });
+    }
     throw err;
 }
 

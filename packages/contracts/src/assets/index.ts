@@ -94,6 +94,8 @@ export type AssetUpdatePatch = Partial<Omit<AssetUpsertFields, 'assetCode'>> & {
     assetCode?: string
 }
 
+export type AssignmentVerificationMethod = 'manual' | 'barcode' | 'ocr'
+
 export interface AssetAssignmentRecord {
     id: string
     assetId: string
@@ -105,6 +107,9 @@ export interface AssetAssignmentRecord {
     note?: string | null
     locationId?: string | null
     organizationId?: string | null
+    verificationMethod?: AssignmentVerificationMethod | null
+    verifiedAt?: Date | null
+    wfRequestId?: string | null
 }
 
 export interface AssetAssignmentInput {
@@ -115,6 +120,31 @@ export interface AssetAssignmentInput {
     note?: string | null
     locationId?: string | null
     organizationId?: string | null
+    verificationMethod?: AssignmentVerificationMethod | null
+    verifiedAt?: Date | null
+    wfRequestId?: string | null
+}
+
+export interface AssignmentReturnOpts {
+    note?: string | null
+    verificationMethod?: AssignmentVerificationMethod | null
+    verifiedAt?: Date | null
+    wfRequestId?: string | null
+}
+
+export interface VerifyScanResult {
+    match: boolean
+    asset?: {
+        id: string
+        assetCode: string
+        name: string
+        status: string
+        modelName?: string | null
+    }
+    lineId?: string | null
+    lineNo?: number | null
+    lineStatus?: string | null
+    message?: string
 }
 
 export interface MaintenanceTicketRecord {
@@ -180,7 +210,7 @@ export interface IAssetRepo {
 
 export interface IAssignmentRepo {
     assign(assetId: string, assignment: AssetAssignmentInput): Promise<AssetAssignmentRecord>
-    return(assetId: string, returnedAt: Date, note?: string): Promise<AssetAssignmentRecord | null>
+    return(assetId: string, returnedAt: Date, opts?: AssignmentReturnOpts | string): Promise<AssetAssignmentRecord | null>
     listByAsset(assetId: string): Promise<AssetAssignmentRecord[]>
     getActiveByAsset(assetId: string): Promise<AssetAssignmentRecord | null>
 }

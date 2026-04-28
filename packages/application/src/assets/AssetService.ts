@@ -208,7 +208,11 @@ export class AssetService {
         return { asset: updated, assignment }
     }
 
-    async returnAsset(assetId: string, note: string | undefined, ctx: AssetServiceContext): Promise<{
+    async returnAsset(
+        assetId: string,
+        opts: { note?: string; verificationMethod?: string | null; verifiedAt?: Date | null; wfRequestId?: string | null } | string | undefined,
+        ctx: AssetServiceContext
+    ): Promise<{
         asset: AssetRecord
         assignment: AssetAssignmentRecord
     }> {
@@ -218,7 +222,8 @@ export class AssetService {
             throw AppError.conflict('No active assignment to return')
         }
 
-        const returned = await this.assignments.return(assetId, new Date(), note)
+        const returnOpts = typeof opts === 'string' ? { note: opts } : (opts ?? {})
+        const returned = await this.assignments.return(assetId, new Date(), returnOpts)
         if (!returned) {
             throw AppError.conflict('Failed to return assignment')
         }

@@ -45,6 +45,12 @@ export const assetUpdateSchema = assetCreateSchema.partial().extend({
     assetCode: z.string().min(1).optional()
 })
 
+const verificationFields = {
+    verificationMethod: z.enum(['manual', 'barcode', 'ocr']).nullable().optional(),
+    verifiedAt: z.coerce.date().nullable().optional(),
+    wfRequestId: z.string().uuid().nullable().optional()
+}
+
 export const assignmentSchema = z.object({
     assigneeType: z.enum(AssigneeTypeValues),
     assigneeId: z.string().min(1),
@@ -52,11 +58,19 @@ export const assignmentSchema = z.object({
     assignedAt: z.coerce.date().optional(),
     note: z.string().optional(),
     locationId: z.string().uuid().nullable().optional(),
-    organizationId: z.string().uuid().nullable().optional()
+    organizationId: z.string().uuid().nullable().optional(),
+    ...verificationFields
 })
 
 export const returnSchema = z.object({
-    note: z.string().optional()
+    note: z.string().optional(),
+    ...verificationFields
+})
+
+export const verifyScanSchema = z.object({
+    requestId: z.string().uuid(),
+    scannedCode: z.string().min(1),
+    scanType: z.enum(['barcode', 'ocr', 'manual']).optional()
 })
 
 export const moveSchema = z.object({

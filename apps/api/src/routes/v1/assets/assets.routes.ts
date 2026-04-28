@@ -10,7 +10,8 @@ import {
     moveSchema,
     returnSchema,
     statusSchema,
-    timelineSchema
+    timelineSchema,
+    verifyScanSchema
 } from './assets.schemas.js'
 import type { AssetRecord, AssetSearchFilters } from '@qltb/contracts'
 import { getUserContext, requirePermission } from './assets.helpers.js'
@@ -226,6 +227,91 @@ export async function assetsRoutes(fastify: FastifyInstance, opts: AssetRoutesOp
         return reply.send({ data: { id } })
     })
 
+    // POST /assets/verify-scan
+    // Kiểm tra mã thiết bị vừa quét có nằm trong phiếu yêu cầu đã duyệt không
+    fastify.post('/assets/verify-scan', async (request, reply) => {
+        await requirePermission(request, 'assets:assign')
+        const body = verifyScanSchema.parse(request.body)
+
+        if (!pgClient) {
+            return reply.status(503).send({ success: false, error: 'Database not available' })
+        }
+
+        type ScanRow = {
+            asset_id: string
+            asset_code: string
+            asset_name: string
+            asset_status: string
+            model_name: string | null
+            line_id: string | null
+            line_no: number | null
+            line_status: string | null
+        }
+
+        const uuidRe = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+        const isUuid = uuidRe.test(body.scannedCode)
+
+        const { rows } = await pgClient.query<ScanRow>(
+            `SELECT
+                 a.id          AS asset_id,
+                 a.asset_code,
+                 a.name        AS asset_name,
+                 a.status      AS asset_status,
+                 am.model      AS model_name,
+                 rl.id         AS line_id,
+                 rl.line_no,
+                 rl.status     AS line_status
+             FROM assets a
+             LEFT JOIN asset_models am ON am.id = a.model_id
+             LEFT JOIN wf_request_lines rl
+                 ON rl.asset_id = a.id
+                 AND rl.request_id = $2
+                 AND rl.item_type = 'asset'
+                 AND rl.status NOT IN ('cancelled')
+             WHERE ${isUuid ? 'a.id = $1' : 'UPPER(a.asset_code) = UPPER($1)'}
+             LIMIT 1`,
+            [body.scannedCode, body.requestId]
+        )
+
+        if (rows.length === 0) {
+            return reply.send({
+                success: true,
+                data: { match: false, message: 'Không tìm thấy thiết bị trong hệ thống' }
+            })
+        }
+
+        const row = rows[0]
+        const asset = {
+            id: row.asset_id,
+            assetCode: row.asset_code,
+            name: row.asset_name,
+            status: row.asset_status,
+            modelName: row.model_name
+        }
+
+        if (!row.line_id) {
+            return reply.send({
+                success: true,
+                data: {
+                    match: false,
+                    asset,
+                    message: 'Thiết bị không có trong phiếu yêu cầu này'
+                }
+            })
+        }
+
+        return reply.send({
+            success: true,
+            data: {
+                match: true,
+                asset,
+                lineId: row.line_id,
+                lineNo: row.line_no,
+                lineStatus: row.line_status
+            }
+        })
+    })
+
     fastify.post('/assets/:id/assign', async (request, reply) => {
         const ctx = await requirePermission(request, 'assets:assign')
         const { id } = assetIdParamsSchema.parse(request.params)
@@ -238,7 +324,12 @@ export async function assetsRoutes(fastify: FastifyInstance, opts: AssetRoutesOp
         const ctx = await requirePermission(request, 'assets:assign')
         const { id } = assetIdParamsSchema.parse(request.params)
         const body = returnSchema.parse(request.body)
-        const result = await assetService.returnAsset(id, body.note, ctx)
+        const result = await assetService.returnAsset(id, {
+            note: body.note,
+            verificationMethod: body.verificationMethod ?? null,
+            verifiedAt: body.verifiedAt ?? null,
+            wfRequestId: body.wfRequestId ?? null
+        }, ctx)
         return reply.send({ data: result })
     })
 

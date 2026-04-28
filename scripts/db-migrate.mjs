@@ -56,6 +56,7 @@ const MIGRATIONS = [
     { label: '076_stock_doc_equipment_group.sql', path: join(DB_MIGRATIONS, '076_stock_doc_equipment_group.sql') },
     { label: '077_spare_parts_model_id.sql', path: join(DB_MIGRATIONS, '077_spare_parts_model_id.sql') },
     { label: '078_merge_spare_parts_into_asset_models.sql', path: join(DB_MIGRATIONS, '078_merge_spare_parts_into_asset_models.sql') },
+    { label: '079_assignment_verification.sql', path: join(DB_MIGRATIONS, '079_assignment_verification.sql') },
 ]
 
 const client = new pg.Client(pgConfig())
