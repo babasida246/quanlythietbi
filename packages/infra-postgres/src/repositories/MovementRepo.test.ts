@@ -8,7 +8,7 @@ describe('MovementRepo', () => {
             rows: [{
                 id: 'mv-1',
                 warehouse_id: 'wh-1',
-                part_id: 'part-1',
+                model_id: 'model-1',
                 movement_type: 'in',
                 qty: 2,
                 unit_cost: '10.5',
@@ -22,9 +22,9 @@ describe('MovementRepo', () => {
         const pg = { query } as unknown as Queryable
         const repo = new MovementRepo(pg)
 
-        const rows = await repo.addMany([{ warehouseId: 'wh-1', partId: 'part-1', movementType: 'in', qty: 2 }])
+        const rows = await repo.addMany([{ warehouseId: 'wh-1', modelId: 'model-1', movementType: 'in', qty: 2 }])
         expect(rows[0]?.unitCost).toBeCloseTo(10.5)
-        expect(query).toHaveBeenCalledWith(expect.stringContaining('INSERT INTO spare_part_movements'), expect.any(Array))
+        expect(query).toHaveBeenCalledWith(expect.stringContaining('INSERT INTO asset_model_movements'), expect.any(Array))
     })
 
     it('lists movements with pagination', async () => {
@@ -38,7 +38,7 @@ describe('MovementRepo', () => {
                 rows: [{
                     id: 'mv-2',
                     warehouse_id: 'wh-1',
-                    part_id: 'part-1',
+                    model_id: 'model-1',
                     movement_type: 'out',
                     qty: 1,
                     unit_cost: null,

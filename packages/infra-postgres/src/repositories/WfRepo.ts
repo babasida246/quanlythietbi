@@ -427,6 +427,32 @@ export class WfRepo {
         return rows.length ? mapApproval(rows[0]) : null;
     }
 
+    async findPendingApprovalsByRequestAndStep(
+        requestId: string,
+        stepNo: number
+    ): Promise<WfApproval[]> {
+        const { rows } = await this.db.query<Record<string, unknown>>(
+            `SELECT * FROM wf_approvals
+             WHERE request_id = $1 AND step_no = $2 AND status = 'pending'
+             ORDER BY created_at ASC`,
+            [requestId, stepNo]
+        );
+        return rows.map(mapApproval);
+    }
+
+    async skipPendingApprovalsInStep(
+        requestId: string,
+        stepNo: number
+    ): Promise<number> {
+        const { rowCount } = await this.db.query(
+            `UPDATE wf_approvals
+             SET status = 'skipped', version = version + 1, updated_at = now()
+             WHERE request_id = $1 AND step_no = $2 AND status = 'pending'`,
+            [requestId, stepNo]
+        );
+        return rowCount || 0;
+    }
+
     async updateApprovalAssignee(
         id: string,
         toUserId: string

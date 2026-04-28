@@ -1,8 +1,7 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import { StockDocumentService } from '../StockDocumentService.js'
 import type {
     IStockDocumentRepo,
-    IStockRepo,
     IMovementRepo,
     IWarehouseUnitOfWork,
     StockDocumentRecord,
@@ -45,7 +44,8 @@ function makeDoc(overrides: Partial<StockDocumentRecord> = {}): StockDocumentRec
 
 function makeLines(count = 1): StockDocumentLineInput[] {
     return Array.from({ length: count }, (_, i) => ({
-        partId: `part-${i + 1}`,
+        lineType: 'qty' as const,
+        assetModelId: `part-${i + 1}`,
         qty: 5,
         unitCost: 100,
         serialNo: null,
@@ -79,13 +79,9 @@ function buildService(docOverride: Partial<StockDocumentRecord> = {}, linesOverr
         update: vi.fn(),
         list: vi.fn(),
         delete: vi.fn(),
+        findByRefRequest: vi.fn().mockResolvedValue(null),
+        setAssetOnLine: vi.fn().mockResolvedValue(undefined),
     } as unknown as IStockDocumentRepo
-
-    const mockStock = {
-        adjustStock: vi.fn(),
-        get: vi.fn(),
-        getForUpdate: vi.fn(),
-    } as unknown as IStockRepo
 
     const mockMovements = {
         addMany: vi.fn().mockResolvedValue(undefined),
@@ -94,13 +90,13 @@ function buildService(docOverride: Partial<StockDocumentRecord> = {}, linesOverr
 
     const mockUoW = {
         withTransaction: vi.fn().mockImplementation((fn: Function) =>
-            fn({ stock: { adjustStock: txAdjustStock }, movements: { addMany: txAddMany }, documents: { setStatus: txSetStatus } })
+            fn({ modelStock: { adjustStock: txAdjustStock }, modelMovements: { addMany: txAddMany }, documents: { setStatus: txSetStatus } })
         ),
     } as unknown as IWarehouseUnitOfWork
 
-    const service = new StockDocumentService(mockDocuments, mockStock, mockMovements, mockUoW)
+    const service = new StockDocumentService(mockDocuments, mockMovements, mockUoW)
 
-    return { service, mockDocuments, mockStock, mockMovements, mockUoW, txAdjustStock, txAddMany, txSetStatus, doc, postedDoc }
+    return { service, mockDocuments, mockMovements, mockUoW, txAdjustStock, txAddMany, txSetStatus, doc, postedDoc }
 }
 
 // ──────────────────────────────────────────────────────────────
@@ -233,10 +229,10 @@ describe('StockDocumentService.postDocument', () => {
             const { service, mockUoW } = buildService({ docType: 'issue' })
             mockUoW.withTransaction = vi.fn().mockImplementation((fn: Function) =>
                 fn({
-                    stock: {
+                    modelStock: {
                         adjustStock: vi.fn().mockRejectedValue(Object.assign(new Error('Insufficient stock available'), { httpStatus: 400 })),
                     },
-                    movements: { addMany: vi.fn() },
+                    modelMovements: { addMany: vi.fn() },
                     documents: { setStatus: vi.fn() },
                 })
             )
@@ -249,7 +245,7 @@ describe('StockDocumentService.postDocument', () => {
 
     describe('adjust posting', () => {
         it('uses positive delta and movementType "adjust_in" when direction is plus', async () => {
-            const lines: StockDocumentLineInput[] = [{ partId: 'part-1', qty: 3, adjustDirection: 'plus', unitCost: null, serialNo: null, note: null, specFields: null }]
+            const lines: StockDocumentLineInput[] = [{ lineType: 'qty', assetModelId: 'part-1', qty: 3, adjustDirection: 'plus', unitCost: null, serialNo: null, note: null, specFields: null }]
             const { service, txAdjustStock, txAddMany } = buildService({ docType: 'adjust' }, lines)
 
             await service.postDocument('doc-1', ctx)
@@ -260,7 +256,7 @@ describe('StockDocumentService.postDocument', () => {
         })
 
         it('uses negative delta and movementType "adjust_out" when direction is minus', async () => {
-            const lines: StockDocumentLineInput[] = [{ partId: 'part-1', qty: 3, adjustDirection: 'minus', unitCost: null, serialNo: null, note: null, specFields: null }]
+            const lines: StockDocumentLineInput[] = [{ lineType: 'qty', assetModelId: 'part-1', qty: 3, adjustDirection: 'minus', unitCost: null, serialNo: null, note: null, specFields: null }]
             const { service, txAdjustStock, txAddMany } = buildService({ docType: 'adjust' }, lines)
 
             await service.postDocument('doc-1', ctx)

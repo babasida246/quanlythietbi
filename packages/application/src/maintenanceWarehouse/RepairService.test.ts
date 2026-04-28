@@ -21,7 +21,10 @@ import type {
     StockDocumentLineRecord,
     StockDocumentRecord,
     StockRecord,
+    StockUpsertInput,
+    StockViewFilters,
     StockViewPage,
+    StockMovementFilters,
     StockMovementInput,
     StockMovementPage,
     StockMovementRecord
@@ -195,29 +198,61 @@ class FakeStockDocumentRepo implements IStockDocumentRepo {
     async setStatus(): Promise<StockDocumentRecord | null> {
         return null
     }
+
+    async findByRefRequest(): Promise<StockDocumentRecord | null> {
+        return null
+    }
+
+    async setAssetOnLine(): Promise<void> {
+        return
+    }
 }
 
 class FakeStockRepo implements IStockRepo {
     private records = new Map<string, StockRecord>()
 
-    async get(warehouseId: string, partId: string): Promise<StockRecord | null> {
-        return this.records.get(`${warehouseId}:${partId}`) ?? null
+    async get(warehouseId: string, modelId: string): Promise<StockRecord | null> {
+        return this.records.get(`${warehouseId}:${modelId}`) ?? null
     }
 
-    async upsert(input: { warehouseId: string; partId: string; onHand: number; reserved: number }): Promise<StockRecord> {
+    async getForUpdate(warehouseId: string, modelId: string): Promise<StockRecord | null> {
+        return this.get(warehouseId, modelId)
+    }
+
+    async upsert(input: StockUpsertInput): Promise<StockRecord> {
         const record: StockRecord = {
-            id: `${input.warehouseId}:${input.partId}`,
+            id: `${input.warehouseId}:${input.modelId}`,
             warehouseId: input.warehouseId,
-            partId: input.partId,
+            modelId: input.modelId,
             onHand: input.onHand,
             reserved: input.reserved,
             updatedAt: new Date()
         }
-        this.records.set(`${input.warehouseId}:${input.partId}`, record)
+        this.records.set(`${input.warehouseId}:${input.modelId}`, record)
         return record
     }
 
-    async listView(): Promise<StockViewPage> {
+    async adjustStock(warehouseId: string, modelId: string, delta: number): Promise<StockRecord> {
+        const existing = await this.get(warehouseId, modelId)
+        return this.upsert({ warehouseId, modelId, onHand: (existing?.onHand ?? 0) + delta, reserved: existing?.reserved ?? 0 })
+    }
+
+    async reserve(warehouseId: string, modelId: string, qty: number): Promise<StockRecord> {
+        const existing = await this.get(warehouseId, modelId)
+        return this.upsert({ warehouseId, modelId, onHand: existing?.onHand ?? 0, reserved: (existing?.reserved ?? 0) + qty })
+    }
+
+    async release(warehouseId: string, modelId: string, qty: number): Promise<StockRecord> {
+        const existing = await this.get(warehouseId, modelId)
+        return this.upsert({ warehouseId, modelId, onHand: existing?.onHand ?? 0, reserved: (existing?.reserved ?? 0) - qty })
+    }
+
+    async commitReserved(warehouseId: string, modelId: string, qty: number): Promise<StockRecord> {
+        const existing = await this.get(warehouseId, modelId)
+        return this.upsert({ warehouseId, modelId, onHand: (existing?.onHand ?? 0) - qty, reserved: (existing?.reserved ?? 0) - qty })
+    }
+
+    async listView(_filters: StockViewFilters): Promise<StockViewPage> {
         return { items: [], total: 0, page: 1, limit: 20 }
     }
 }
@@ -229,7 +264,7 @@ class FakeMovementRepo implements IMovementRepo {
         const created = inputs.map((input, index) => ({
             id: `mv-${index + 1}`,
             warehouseId: input.warehouseId,
-            partId: input.partId,
+            modelId: input.modelId,
             movementType: input.movementType,
             qty: input.qty,
             unitCost: input.unitCost ?? null,
@@ -243,7 +278,7 @@ class FakeMovementRepo implements IMovementRepo {
         return created
     }
 
-    async list(): Promise<StockMovementPage> {
+    async list(_filters: StockMovementFilters): Promise<StockMovementPage> {
         return { items: [], total: 0, page: 1, limit: 20 }
     }
 }
@@ -285,17 +320,18 @@ describe('RepairService', () => {
             withTransaction: async (handler) => {
                 return await handler({
                     documents,
-                    stock,
-                    movements,
+                    modelStock: stock,
+                    modelMovements: movements,
                     repairs,
                     repairParts: parts,
+                    assets: null as never,
                     opsEvents
                 })
             }
         }
 
-        service = new RepairService(repairs, parts, documents, stock, movements, unitOfWork, opsEvents)
-        await stock.upsert({ warehouseId: 'wh-1', partId: 'part-1', onHand: 5, reserved: 0 })
+        service = new RepairService(repairs, parts, documents, unitOfWork, opsEvents)
+        await stock.upsert({ warehouseId: 'wh-1', modelId: 'part-1', onHand: 5, reserved: 0 })
     })
 
     it('creates repair orders and appends events', async () => {
@@ -319,7 +355,7 @@ describe('RepairService', () => {
         }, { userId: 'user-1', correlationId: 'corr-1' })
 
         const detail = await service.addRepairPart(order.id, {
-            partId: 'part-1',
+            modelId: 'part-1',
             warehouseId: 'wh-1',
             action: 'replace',
             qty: 2,
@@ -346,7 +382,7 @@ describe('RepairService', () => {
             createdAt: new Date(),
             updatedAt: new Date()
         }])
-        const serviceWithCi = new RepairService(repairs, parts, documents, stock, movements, unitOfWork, opsEvents, ciRepo)
+        const serviceWithCi = new RepairService(repairs, parts, documents, unitOfWork, opsEvents, ciRepo)
 
         const order = await serviceWithCi.createRepairOrder({
             assetId: 'asset-1',
@@ -362,7 +398,7 @@ describe('RepairService', () => {
         const graphProvider = {
             getGraph: async () => ({ nodes: [] as CiRecord[], edges: [] as RelationshipRecord[] })
         } as { getGraph: (ciId: string, depth: number, direction: 'upstream' | 'downstream' | 'both') => Promise<{ nodes: CiRecord[]; edges: RelationshipRecord[] }> }
-        const serviceWithGraph = new RepairService(repairs, parts, documents, stock, movements, unitOfWork, opsEvents, undefined, graphProvider)
+        const serviceWithGraph = new RepairService(repairs, parts, documents, unitOfWork, opsEvents, undefined, graphProvider)
 
         const order = await serviceWithGraph.createRepairOrder({
             assetId: 'asset-1',

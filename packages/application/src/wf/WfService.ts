@@ -69,9 +69,11 @@ export interface IWfRepository {
     createApproval(data: { requestId: string; stepId: string; stepNo: number; assigneeUserId?: string | null; assigneeGroupId?: string | null; dueAt?: Date | null }): Promise<WfApproval>;
     findApprovalById(id: string): Promise<WfApprovalWithDetails | null>;
     findPendingApprovalsByRequest(requestId: string): Promise<WfApproval[]>;
+    findPendingApprovalsByRequestAndStep(requestId: string, stepNo: number): Promise<WfApproval[]>;
     findApprovalsByRequest(requestId: string): Promise<WfApprovalWithDetails[]>;
     listInboxApprovals(assigneeId: string, page?: number, limit?: number, viewAll?: boolean): Promise<WfPaginatedResult<WfApprovalWithDetails & { request: WfRequest }>>;
     updateApprovalDecision(id: string, status: WfApprovalStatus, actorId: string, comment?: string): Promise<WfApproval | null>;
+    skipPendingApprovalsInStep(requestId: string, stepNo: number): Promise<number>;
     updateApprovalAssignee(id: string, toUserId: string): Promise<WfApproval | null>;
     claimApproval(id: string, userId: string): Promise<WfApproval | null>;
     listUnassignedApprovals(page?: number, limit?: number): Promise<WfPaginatedResult<WfApprovalWithDetails & { request: WfRequest }>>;
@@ -191,6 +193,9 @@ export class WfService {
         if (!decision) {
             throw new WfError('Approval was already processed by another user. Please refresh and try again.', 409);
         }
+
+        // Auto-skip other pending approvals in the same step (constraint allows only one approved per step)
+        await this.repo.skipPendingApprovalsInStep(approval.requestId, approval.stepNo);
 
         const remaining = await this.repo.findPendingApprovalsByRequest(approval.requestId);
         if (remaining.length === 0) {
