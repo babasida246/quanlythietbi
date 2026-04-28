@@ -29,7 +29,7 @@ export interface RepairOrderRecord {
 export interface RepairOrderPartRecord {
     id: string
     repairOrderId: string
-    partId?: string | null
+    modelId?: string | null
     partName?: string | null
     warehouseId?: string | null
     action: PartAction
@@ -111,7 +111,7 @@ export interface RepairOrderSummary {
 }
 
 export interface RepairOrderPartInput {
-    partId?: string | null
+    modelId?: string | null
     partName?: string | null
     warehouseId?: string | null
     action: PartAction

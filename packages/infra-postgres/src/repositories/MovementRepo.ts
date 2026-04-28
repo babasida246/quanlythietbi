@@ -4,7 +4,7 @@ import type { Queryable } from './types.js'
 type MovementRow = {
     id: string
     warehouse_id: string
-    part_id: string
+    model_id: string
     movement_type: StockMovementRecord['movementType']
     qty: number
     unit_cost: number | string | null
@@ -18,7 +18,7 @@ type MovementRow = {
 const mapMovement = (row: MovementRow): StockMovementRecord => ({
     id: row.id,
     warehouseId: row.warehouse_id,
-    partId: row.part_id,
+    modelId: row.model_id,
     movementType: row.movement_type,
     qty: row.qty,
     unitCost: row.unit_cost === null ? null : Number(row.unit_cost),
@@ -46,7 +46,7 @@ export class MovementRepo implements IMovementRepo {
             const base = index * 9
             params.push(
                 input.warehouseId,
-                input.partId,
+                input.modelId,
                 input.movementType,
                 input.qty,
                 input.unitCost ?? null,
@@ -59,9 +59,9 @@ export class MovementRepo implements IMovementRepo {
         })
 
         const result = await this.pg.query<MovementRow>(
-            `INSERT INTO spare_part_movements (
+            `INSERT INTO asset_model_movements (
                 warehouse_id,
-                part_id,
+                model_id,
                 movement_type,
                 qty,
                 unit_cost,
@@ -70,7 +70,7 @@ export class MovementRepo implements IMovementRepo {
                 actor_user_id,
                 correlation_id
              ) VALUES ${values.join(', ')}
-             RETURNING id, warehouse_id, part_id, movement_type, qty, unit_cost, ref_type, ref_id, actor_user_id, correlation_id, created_at`,
+             RETURNING id, warehouse_id, model_id, movement_type, qty, unit_cost, ref_type, ref_id, actor_user_id, correlation_id, created_at`,
             params
         )
         return result.rows.map(mapMovement)
@@ -80,9 +80,9 @@ export class MovementRepo implements IMovementRepo {
         const params: unknown[] = []
         const conditions: string[] = []
 
-        if (filters.partId) {
-            params.push(filters.partId)
-            conditions.push(`part_id = $${params.length}`)
+        if (filters.modelId) {
+            params.push(filters.modelId)
+            conditions.push(`model_id = $${params.length}`)
         }
         if (filters.warehouseId) {
             params.push(filters.warehouseId)
@@ -101,15 +101,15 @@ export class MovementRepo implements IMovementRepo {
         const { page, limit, offset } = normalizePagination(filters)
 
         const countResult = await this.pg.query<{ count: string }>(
-            `SELECT COUNT(*) AS count FROM spare_part_movements ${whereClause}`,
+            `SELECT COUNT(*) AS count FROM asset_model_movements ${whereClause}`,
             params
         )
         const total = parseInt(countResult.rows[0]?.count ?? '0', 10)
 
         const listParams = [...params, limit, offset]
         const result = await this.pg.query<MovementRow>(
-            `SELECT id, warehouse_id, part_id, movement_type, qty, unit_cost, ref_type, ref_id, actor_user_id, correlation_id, created_at
-             FROM spare_part_movements
+            `SELECT id, warehouse_id, model_id, movement_type, qty, unit_cost, ref_type, ref_id, actor_user_id, correlation_id, created_at
+             FROM asset_model_movements
              ${whereClause}
              ORDER BY created_at DESC
              LIMIT $${params.length + 1} OFFSET $${params.length + 2}`,

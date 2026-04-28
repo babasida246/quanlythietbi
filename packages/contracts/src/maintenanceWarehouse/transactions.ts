@@ -6,8 +6,8 @@ import type { IAssetRepo } from '../assets/index.js'
 
 export interface WarehouseTransactionContext {
     documents: IStockDocumentRepo
-    stock: IStockRepo
-    movements: IMovementRepo
+    modelStock: IStockRepo
+    modelMovements: IMovementRepo
     repairs: IRepairOrderRepo
     repairParts: IRepairPartRepo
     assets: IAssetRepo

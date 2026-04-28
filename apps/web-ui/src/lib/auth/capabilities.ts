@@ -64,12 +64,6 @@ export type Capabilities = {
     manage: boolean
   }
 
-  // ── Linh kiện ────────────────────────────────────────────────────────────
-  components: {
-    read: boolean
-    manage: boolean
-  }
-
   // ── Mượn/Trả ─────────────────────────────────────────────────────────────
   checkout: {
     read: boolean
@@ -243,10 +237,6 @@ export function getCapabilities(
       read: can(perms, 'consumables:read'),
       manage: can(perms, 'consumables:manage'),
     },
-    components: {
-      read: can(perms, 'components:read'),
-      manage: can(perms, 'components:manage'),
-    },
     checkout: {
       read: can(perms, 'checkout:read'),
       create: can(perms, 'checkout:create'),
@@ -362,7 +352,6 @@ export function isRouteAllowed(pathname: string, caps: Capabilities): boolean {
   if (pathname.startsWith('/licenses')) return caps.licenses.read
   if (pathname.startsWith('/accessories')) return caps.accessories.read
   if (pathname.startsWith('/consumables')) return caps.consumables.read
-  if (pathname.startsWith('/components')) return caps.components.read
   if (pathname.startsWith('/checkout')) return caps.checkout.read
 
   // Quản lý nâng cao

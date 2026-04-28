@@ -8,15 +8,15 @@ export class StockService {
         return await this.stock.listView(filters)
     }
 
-    async reserve(warehouseId: string, partId: string, qty: number, _ctx: MaintenanceWarehouseContext): Promise<StockRecord> {
-        return await this.stock.reserve(warehouseId, partId, qty)
+    async reserve(warehouseId: string, modelId: string, qty: number, _ctx: MaintenanceWarehouseContext): Promise<StockRecord> {
+        return await this.stock.reserve(warehouseId, modelId, qty)
     }
 
-    async release(warehouseId: string, partId: string, qty: number, _ctx: MaintenanceWarehouseContext): Promise<StockRecord> {
-        return await this.stock.release(warehouseId, partId, qty)
+    async release(warehouseId: string, modelId: string, qty: number, _ctx: MaintenanceWarehouseContext): Promise<StockRecord> {
+        return await this.stock.release(warehouseId, modelId, qty)
     }
 
-    async commitReserved(warehouseId: string, partId: string, qty: number, _ctx: MaintenanceWarehouseContext): Promise<StockRecord> {
-        return await this.stock.commitReserved(warehouseId, partId, qty)
+    async commitReserved(warehouseId: string, modelId: string, qty: number, _ctx: MaintenanceWarehouseContext): Promise<StockRecord> {
+        return await this.stock.commitReserved(warehouseId, modelId, qty)
     }
 }

@@ -136,7 +136,7 @@ class FakeRepairPartRepo implements IRepairPartRepo {
         const record: RepairOrderPartRecord = {
             id: `part-${this.seq++}`,
             repairOrderId: orderId,
-            partId: input.partId ?? null,
+            modelId: input.modelId ?? null,
             partName: input.partName ?? null,
             warehouseId: input.warehouseId ?? null,
             action: input.action,

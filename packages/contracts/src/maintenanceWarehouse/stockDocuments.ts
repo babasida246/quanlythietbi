@@ -38,14 +38,12 @@ export interface StockDocumentRecord {
     updatedAt: string
 }
 
-export type StockDocLineType = 'spare_part' | 'asset'
+export type StockDocLineType = 'qty' | 'serial'
 
 export interface StockDocumentLineRecord {
     id: string
     documentId: string
     lineType: StockDocLineType
-    /** Spare-part lines: required. Asset lines: null. */
-    partId?: string | null
     qty: number
     unitCost?: number | null
     serialNo?: string | null
@@ -66,8 +64,6 @@ export interface StockDocumentLineRecord {
 
 export interface StockDocumentLineInput {
     lineType?: StockDocLineType
-    /** Required for spare_part lines */
-    partId?: string | null
     qty: number
     unitCost?: number | null
     serialNo?: string | null

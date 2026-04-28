@@ -11,7 +11,7 @@ export type MovementType =
 export interface StockMovementRecord {
     id: string
     warehouseId: string
-    partId: string
+    modelId: string
     movementType: MovementType
     qty: number
     unitCost?: number | null
@@ -24,7 +24,7 @@ export interface StockMovementRecord {
 
 export interface StockMovementInput {
     warehouseId: string
-    partId: string
+    modelId: string
     movementType: MovementType
     qty: number
     unitCost?: number | null
@@ -35,7 +35,7 @@ export interface StockMovementInput {
 }
 
 export interface StockMovementFilters {
-    partId?: string
+    modelId?: string
     warehouseId?: string
     from?: string
     to?: string
@@ -53,7 +53,7 @@ export interface StockMovementPage {
 export interface StockRecord {
     id: string
     warehouseId: string
-    partId: string
+    modelId: string
     onHand: number
     reserved: number
     updatedAt: Date
@@ -61,7 +61,7 @@ export interface StockRecord {
 
 export interface StockUpsertInput {
     warehouseId: string
-    partId: string
+    modelId: string
     onHand: number
     reserved: number
 }
@@ -70,9 +70,10 @@ export interface StockViewRecord {
     warehouseId: string
     warehouseCode: string
     warehouseName: string
-    partId: string
-    partCode: string
-    partName: string
+    modelId: string
+    modelName: string
+    brand?: string | null
+    categoryName?: string | null
     onHand: number
     reserved: number
     available: number
@@ -96,13 +97,13 @@ export interface StockViewPage {
 }
 
 export interface IStockRepo {
-    get(warehouseId: string, partId: string): Promise<StockRecord | null>
-    getForUpdate(warehouseId: string, partId: string): Promise<StockRecord | null>
+    get(warehouseId: string, modelId: string): Promise<StockRecord | null>
+    getForUpdate(warehouseId: string, modelId: string): Promise<StockRecord | null>
     upsert(input: StockUpsertInput): Promise<StockRecord>
-    adjustStock(warehouseId: string, partId: string, delta: number): Promise<StockRecord>
-    reserve(warehouseId: string, partId: string, qty: number): Promise<StockRecord>
-    release(warehouseId: string, partId: string, qty: number): Promise<StockRecord>
-    commitReserved(warehouseId: string, partId: string, qty: number): Promise<StockRecord>
+    adjustStock(warehouseId: string, modelId: string, delta: number): Promise<StockRecord>
+    reserve(warehouseId: string, modelId: string, qty: number): Promise<StockRecord>
+    release(warehouseId: string, modelId: string, qty: number): Promise<StockRecord>
+    commitReserved(warehouseId: string, modelId: string, qty: number): Promise<StockRecord>
     listView(filters: StockViewFilters): Promise<StockViewPage>
 }
 
@@ -110,3 +111,7 @@ export interface IMovementRepo {
     addMany(inputs: StockMovementInput[]): Promise<StockMovementRecord[]>
     list(filters: StockMovementFilters): Promise<StockMovementPage>
 }
+
+// Aliases for new naming convention
+export type IModelStockRepo = IStockRepo
+export type IModelMovementRepo = IMovementRepo

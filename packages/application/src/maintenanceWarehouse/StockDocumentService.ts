@@ -1,9 +1,8 @@
 import { AppError, assertStockDocLines, assertTransferTarget } from '@qltb/domain'
 import type {
     IOpsEventRepo,
-    IStockDocumentRepo,
-    IStockRepo,
     IMovementRepo,
+    IStockDocumentRepo,
     IWarehouseUnitOfWork,
     StockDocumentCreateInput,
     StockDocumentDetail,
@@ -19,7 +18,7 @@ import type { MaintenanceWarehouseContext } from './types.js'
 
 type StockChange = {
     warehouseId: string
-    partId: string
+    modelId: string
     delta: number
     movementType: StockMovementInput['movementType']
     unitCost?: number | null
@@ -36,7 +35,6 @@ type StockChange = {
 export class StockDocumentService {
     constructor(
         private documents: IStockDocumentRepo,
-        private stock: IStockRepo,
         private movements: IMovementRepo,
         private unitOfWork: IWarehouseUnitOfWork,
         private opsEvents?: IOpsEventRepo
@@ -158,20 +156,20 @@ export class StockDocumentService {
         const lines = await this.documents.listLines(id)
         assertStockDocLines(lines)
 
-        const sparepartLines = lines.filter(l => (l.lineType ?? 'spare_part') === 'spare_part')
-        const assetLines = lines.filter(l => l.lineType === 'asset')
+        const sparepartLines = lines.filter(l => (l.lineType ?? 'qty') === 'qty')
+        const assetLines = lines.filter(l => l.lineType === 'serial')
         const changes = this.buildChangeDescriptors(document, sparepartLines)
 
         const posted = await this.unitOfWork.withTransaction(async (tx) => {
-            // ── Spare-part stock adjustments ──────────────────────────────────
+            // ── Qty-line (non-serialized model) stock adjustments ─────────────
             for (const change of changes) {
-                await tx.stock.adjustStock(change.warehouseId, change.partId, change.delta)
+                await tx.modelStock.adjustStock(change.warehouseId, change.modelId, change.delta)
             }
 
             if (changes.length > 0) {
-                await tx.movements.addMany(changes.map(change => ({
+                await tx.modelMovements.addMany(changes.map(change => ({
                     warehouseId: change.warehouseId,
-                    partId: change.partId,
+                    modelId: change.modelId,
                     movementType: change.movementType,
                     qty: Math.abs(change.delta),
                     unitCost: change.unitCost ?? null,
@@ -285,12 +283,12 @@ export class StockDocumentService {
         }
 
         for (const line of lines) {
-            if (!line.partId) continue
+            if (!line.assetModelId) continue
 
             if (document.docType === 'receipt') {
                 changes.push({
                     warehouseId: warehouseId as string,
-                    partId: line.partId,
+                    modelId: line.assetModelId,
                     delta: line.qty,
                     movementType: 'in',
                     unitCost: line.unitCost ?? null,
@@ -299,7 +297,7 @@ export class StockDocumentService {
             } else if (document.docType === 'issue') {
                 changes.push({
                     warehouseId: warehouseId as string,
-                    partId: line.partId,
+                    modelId: line.assetModelId,
                     delta: -line.qty,
                     movementType: 'out',
                     unitCost: line.unitCost ?? null,
@@ -310,17 +308,16 @@ export class StockDocumentService {
                 const delta = direction === 'minus' ? -line.qty : line.qty
                 changes.push({
                     warehouseId: warehouseId as string,
-                    partId: line.partId,
+                    modelId: line.assetModelId,
                     delta,
                     movementType: delta < 0 ? 'adjust_out' : 'adjust_in',
                     unitCost: line.unitCost ?? null,
                     refId: document.id
                 })
             } else if (document.docType === 'return') {
-                // Thu hồi: linh kiện quay về kho (tương tự receipt)
                 changes.push({
                     warehouseId: warehouseId as string,
-                    partId: line.partId,
+                    modelId: line.assetModelId,
                     delta: line.qty,
                     movementType: 'in',
                     unitCost: line.unitCost ?? null,
@@ -331,7 +328,7 @@ export class StockDocumentService {
                 assertTransferTarget(targetWarehouseId)
                 changes.push({
                     warehouseId: warehouseId as string,
-                    partId: line.partId,
+                    modelId: line.assetModelId,
                     delta: -line.qty,
                     movementType: 'transfer_out',
                     unitCost: line.unitCost ?? null,
@@ -339,7 +336,7 @@ export class StockDocumentService {
                 })
                 changes.push({
                     warehouseId: targetWarehouseId as string,
-                    partId: line.partId,
+                    modelId: line.assetModelId,
                     delta: line.qty,
                     movementType: 'transfer_in',
                     unitCost: line.unitCost ?? null,

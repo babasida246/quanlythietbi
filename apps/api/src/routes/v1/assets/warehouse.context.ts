@@ -74,7 +74,6 @@ export async function registerWarehouseContext(
     const stockService = new StockService(stockRepo)
     const stockDocumentService = new StockDocumentService(
         stockDocumentRepo,
-        stockRepo,
         movementRepo,
         warehouseUnitOfWork,
         opsEventRepo
@@ -84,8 +83,6 @@ export async function registerWarehouseContext(
         repairOrderRepo,
         repairPartRepo,
         stockDocumentRepo,
-        stockRepo,
-        movementRepo,
         warehouseUnitOfWork,
         opsEventRepo,
         ciRepo,

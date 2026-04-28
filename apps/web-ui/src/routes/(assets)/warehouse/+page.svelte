@@ -230,7 +230,7 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
           {#each topItems as item}
             <div class="rounded-lg border border-slate-800 bg-slate-800/30 p-3">
-              <p class="text-xs text-slate-400 truncate">{item.partName ?? item.partCode}</p>
+              <p class="text-xs text-slate-400 truncate">{(item as any).modelName ?? (item as any).partName ?? (item as any).partCode}</p>
               <div class="flex items-end justify-between mt-1">
                 <span class="text-lg font-bold text-white">{(item.onHand ?? 0).toLocaleString('vi-VN')}</span>
                 <span class="text-xs text-slate-500">{(item as any).warehouseName ?? ''}</span>
@@ -271,7 +271,7 @@
             <tbody class="divide-y divide-red-900/20">
               {#each reorderAlerts.slice(0, 10) as alert}
                 <tr class="hover:bg-red-900/10 transition-colors">
-                  <td class="px-3 py-2 font-medium text-white">{alert.partName}</td>
+                  <td class="px-3 py-2 font-medium text-white">{(alert as any).modelName ?? alert.partName}</td>
                   <td class="px-3 py-2 text-slate-400">{alert.warehouseName ?? '-'}</td>
                   <td class="px-3 py-2 text-right text-red-400 font-bold">{alert.onHand}</td>
                   <td class="px-3 py-2 text-right text-slate-400">{alert.minLevel}</td>

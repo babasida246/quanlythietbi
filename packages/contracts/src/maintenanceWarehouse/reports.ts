@@ -1,7 +1,7 @@
 export interface StockOnHandRow {
-    partId: string
-    partCode: string
-    partName: string
+    modelId: string
+    modelName: string
+    brand?: string | null
     warehouseId: string
     warehouseName: string
     onHand: number
@@ -10,9 +10,9 @@ export interface StockOnHandRow {
 }
 
 export interface StockAvailableRow {
-    partId: string
-    partCode: string
-    partName: string
+    modelId: string
+    modelName: string
+    brand?: string | null
     warehouseId: string
     warehouseName: string
     onHand: number
@@ -23,9 +23,9 @@ export interface StockAvailableRow {
 }
 
 export interface ReorderAlertRow {
-    partId: string
-    partCode: string
-    partName: string
+    modelId: string
+    modelName: string
+    brand?: string | null
     warehouseId: string
     warehouseName: string
     onHand: number
@@ -36,9 +36,8 @@ export interface ReorderAlertRow {
 export interface FefoLotRow {
     lotId: string
     lotNumber: string
-    partId: string
-    partCode: string
-    partName: string
+    modelId: string
+    modelName: string
     warehouseId: string
     warehouseName: string
     manufactureDate?: string | null
@@ -50,9 +49,8 @@ export interface FefoLotRow {
 }
 
 export interface ValuationRow {
-    partId: string
-    partCode: string
-    partName: string
+    modelId: string
+    modelName: string
     onHand: number
     avgCost: number
     value: number
@@ -60,7 +58,7 @@ export interface ValuationRow {
 
 export interface StockReportFilters {
     warehouseId?: string
-    partId?: string
+    modelId?: string
     q?: string
     limit?: number
 }

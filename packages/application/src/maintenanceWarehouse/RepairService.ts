@@ -6,8 +6,6 @@ import type {
     IRepairOrderRepo,
     IRepairPartRepo,
     IStockDocumentRepo,
-    IMovementRepo,
-    IStockRepo,
     IWarehouseUnitOfWork,
     RepairOrderCreateInput,
     RepairOrderDetail,
@@ -35,8 +33,6 @@ export class RepairService {
         private repairs: IRepairOrderRepo,
         private repairParts: IRepairPartRepo,
         private documents: IStockDocumentRepo,
-        private stock: IStockRepo,
-        private movements: IMovementRepo,
         private unitOfWork: IWarehouseUnitOfWork,
         private opsEvents?: IOpsEventRepo,
         private ciRepo?: ICiRepo,
@@ -128,10 +124,10 @@ export class RepairService {
         if (!order) {
             throw AppError.notFound('Repair order not found')
         }
-        if (!input.partId && !input.partName) {
+        if (!input.modelId && !input.partName) {
             throw AppError.badRequest('Part selection or name is required')
         }
-        if (input.partId && !input.warehouseId) {
+        if (input.modelId && !input.warehouseId) {
             throw AppError.badRequest('Warehouse is required for stocked parts')
         }
 
@@ -139,9 +135,10 @@ export class RepairService {
             let stockDocumentId: string | null = input.stockDocumentId ?? null
             const unitCost = input.unitCost ?? null
 
-            if (input.partId && input.warehouseId) {
+            if (input.modelId && input.warehouseId) {
                 const line: StockDocumentLineInput = {
-                    partId: input.partId,
+                    lineType: 'qty',
+                    assetModelId: input.modelId,
                     qty: input.qty,
                     unitCost: unitCost ?? 0,
                     serialNo: input.serialNo ?? null,
@@ -159,21 +156,21 @@ export class RepairService {
                 })
                 await tx.documents.replaceLines(doc.id, [line])
 
-                const current = await tx.stock.get(input.warehouseId, input.partId)
+                const current = await tx.modelStock.get(input.warehouseId, input.modelId)
                 const onHand = current?.onHand ?? 0
                 const reserved = current?.reserved ?? 0
                 assertStockAvailable(onHand, reserved, input.qty)
 
-                await tx.stock.upsert({
+                await tx.modelStock.upsert({
                     warehouseId: input.warehouseId,
-                    partId: input.partId,
+                    modelId: input.modelId,
                     onHand: onHand - input.qty,
                     reserved
                 })
 
-                await tx.movements.addMany([{
+                await tx.modelMovements.addMany([{
                     warehouseId: input.warehouseId,
-                    partId: input.partId,
+                    modelId: input.modelId,
                     movementType: 'out',
                     qty: input.qty,
                     unitCost: unitCost ?? 0,

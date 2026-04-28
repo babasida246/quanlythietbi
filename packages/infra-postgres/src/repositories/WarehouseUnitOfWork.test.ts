@@ -12,7 +12,7 @@ describe('WarehouseUnitOfWork', () => {
 
         const result = await uow.withTransaction(async (ctx) => {
             expect(ctx.documents).toBeTruthy()
-            expect(ctx.stock).toBeTruthy()
+            expect(ctx.modelStock).toBeTruthy()
             return 'ok'
         })
 

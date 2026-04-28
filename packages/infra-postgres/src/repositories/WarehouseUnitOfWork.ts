@@ -15,8 +15,8 @@ export class WarehouseUnitOfWork implements IWarehouseUnitOfWork {
         return await this.pg.transaction(async (client) => {
             const context: WarehouseTransactionContext = {
                 documents: new StockDocumentRepo(client),
-                stock: new StockRepo(client),
-                movements: new MovementRepo(client),
+                modelStock: new StockRepo(client),
+                modelMovements: new MovementRepo(client),
                 repairs: new RepairOrderRepo(client),
                 repairParts: new RepairPartRepo(client),
                 assets: new AssetRepo(client),
