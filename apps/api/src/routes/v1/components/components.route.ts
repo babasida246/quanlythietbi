@@ -173,8 +173,12 @@ export async function componentsRoute(
     // Get asset components
     fastify.get('/components/assets/:assetId/components', async (request: FastifyRequest, reply: FastifyReply) => {
         const params = request.params as { assetId: string };
-        const result = await componentService.getAssetComponents(params.assetId);
-        return reply.send(result);
+        try {
+            const result = await componentService.getAssetComponents(params.assetId);
+            return reply.send(result);
+        } catch {
+            return reply.send({ components: [], installed: [], history: [] });
+        }
     });
 
     // ==================== Receipt Routes ====================

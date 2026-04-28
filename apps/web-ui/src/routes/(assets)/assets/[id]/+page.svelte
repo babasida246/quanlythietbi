@@ -380,8 +380,12 @@
         activeInventorySessionId = '';
       }
 
-      const compResp = await getAssetComponents(assetId);
-      assetComponents = compResp?.components ?? [];
+      try {
+        const compResp = await getAssetComponents(assetId);
+        assetComponents = compResp?.components ?? [];
+      } catch {
+        assetComponents = [];
+      }
 
       // Load spec defs, repair orders and licenses in parallel (non-blocking)
       const loadedAsset = detail.data?.asset ?? null;
@@ -845,7 +849,6 @@
         <TabsTrigger active={activeTab === 'repairs'} onclick={() => requestTabChange('repairs')}>{$isLoading ? 'Repairs' : $_('assets.tabs.repairs')}</TabsTrigger>
         <TabsTrigger active={activeTab === 'maintenance'} onclick={() => requestTabChange('maintenance')}>{$isLoading ? 'Maintenance' : $_('assets.tabs.maintenance')}</TabsTrigger>
         <TabsTrigger active={activeTab === 'software'} onclick={() => requestTabChange('software')}>{$isLoading ? 'Software' : $_('assets.tabs.software')}</TabsTrigger>
-        <TabsTrigger active={activeTab === 'components'} onclick={() => requestTabChange('components')}>{$isLoading ? 'Components' : $_('assets.tabs.components')}</TabsTrigger>
         <TabsTrigger active={activeTab === 'warranty'} onclick={() => requestTabChange('warranty')}>{$isLoading ? 'Warranty' : $_('assets.tabs.warranty')}</TabsTrigger>
         {#if caps.canManageAssets}
           <TabsTrigger active={activeTab === 'inventory'} onclick={() => requestTabChange('inventory')}>{$isLoading ? 'Inventory' : $_('assets.tabs.inventory')}</TabsTrigger>
@@ -1597,12 +1600,6 @@
           </Table>
         {/if}
       </div>
-    {:else if activeTab === 'components'}
-        <AssetComponentsPanel
-          assetId={asset.id}
-          bind:components={assetComponents}
-          canManage={caps.canManageAssets}
-        />
     {:else if activeTab === 'attachments'}
         <div class="card p-4 sm:p-5">
           <h2 class="text-base font-semibold mb-4 pb-3 border-b border-border">{$isLoading ? 'Attachments' : $_('assets.attachments')}</h2>
