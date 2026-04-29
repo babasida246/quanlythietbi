@@ -82,7 +82,6 @@
     { kind: 'leaf', href: '/me/assets', labelKey: 'nav.myAssets', icon: HardDrive, testId: 'nav-my-assets', requires: (caps) => caps.assets.read },
     { kind: 'leaf', href: '/me/requests', labelKey: 'nav.myRequests', icon: ClipboardList, testId: 'nav-my-requests', requires: (caps) => caps.requests.read },
     { kind: 'leaf', href: '/notifications', labelKey: 'nav.notifications', icon: Bell, testId: 'nav-notifications', requires: (caps) => caps.requests.read || caps.assets.read },
-    { kind: 'leaf', href: '/inbox', labelKey: 'nav.inbox', icon: ClipboardList, testId: 'nav-inbox', requires: (caps) => caps.requests.read },
   ];
 
   const assetNodes: NavNode[] = [

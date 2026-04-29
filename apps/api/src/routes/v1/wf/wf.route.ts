@@ -197,7 +197,7 @@ export async function wfRoute(
                 ? ['approved']
                 : parse.data.statusGroup === 'all'
                     ? undefined
-                    : ['submitted', 'approved'];
+                    : ['submitted', 'in_review', 'approved'];
         const result = await wfService.listInbox(userId, parse.data.page, parse.data.limit, role, requestStatuses);
         return reply.send({ success: true, ...result });
     });
@@ -294,6 +294,7 @@ export async function wfRoute(
     // POST /wf/approvals/:id/delegate
     fastify.post('/wf/approvals/:id/delegate', async (request: FastifyRequest, reply: FastifyReply) => {
         const { userId } = requirePermission(request, 'requests:approve');
+        const { role } = getUserContext(request);
         const param = idParamSchema.safeParse(request.params);
         if (!param.success) {
             return reply.status(400).send({ success: false, error: 'Invalid approval ID' });
@@ -306,6 +307,7 @@ export async function wfRoute(
             const result = await wfService.delegateApproval({
                 approvalId: param.data.id,
                 actorId: userId,
+                actorRole: role,
                 toUserId: parse.data.toUserId,
                 reason: parse.data.reason,
             });
@@ -318,6 +320,7 @@ export async function wfRoute(
     // POST /wf/approvals/:id/request-info
     fastify.post('/wf/approvals/:id/request-info', async (request: FastifyRequest, reply: FastifyReply) => {
         const { userId } = requirePermission(request, 'requests:approve');
+        const { role } = getUserContext(request);
         const param = idParamSchema.safeParse(request.params);
         if (!param.success) {
             return reply.status(400).send({ success: false, error: 'Invalid approval ID' });
@@ -330,6 +333,7 @@ export async function wfRoute(
             await wfService.requestMoreInfo({
                 approvalId: param.data.id,
                 actorId: userId,
+                actorRole: role,
                 question: parse.data.question,
             });
             return reply.send({ success: true });

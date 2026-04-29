@@ -32,6 +32,8 @@ type StockChange = {
  * Posting is transactional: inventory adjustments, movements, and asset updates
  * are committed together through WarehouseUnitOfWork.
  */
+const ADMIN_BYPASS_ROLES = new Set(['admin', 'super_admin', 'root'])
+
 export class StockDocumentService {
     constructor(
         private documents: IStockDocumentRepo,
@@ -63,12 +65,15 @@ export class StockDocumentService {
     ): Promise<StockDocumentDetail> {
         const existing = await this.documents.getById(id)
         if (!existing) throw AppError.notFound('Stock document not found')
-        if (existing.status !== 'draft') {
-            throw AppError.badRequest('Only draft documents can be updated')
+        if (existing.status !== 'draft' && existing.status !== 'submitted') {
+            throw AppError.badRequest('Only draft or submitted documents can be updated')
         }
         const updated = await this.documents.update(id, { ...patch, correlationId: ctx.correlationId })
         if (!updated) throw AppError.notFound('Stock document not found')
-        const savedLines = await this.documents.replaceLines(id, lines)
+        // For submitted documents (e.g. auto-generated from workflow), only update header fields — preserve existing lines
+        const savedLines = existing.status === 'submitted'
+            ? await this.documents.listLines(id)
+            : await this.documents.replaceLines(id, lines)
         const payload: Record<string, unknown> = { ...patch }
         await this.appendEvent(updated.id, 'STOCK_DOC_UPDATED', payload, ctx)
         return { document: updated, lines: savedLines }
@@ -117,8 +122,8 @@ export class StockDocumentService {
         if (document.status !== 'submitted') {
             throw AppError.badRequest('Only submitted documents can be approved')
         }
-        if (document.createdBy && document.createdBy === ctx.userId) {
-            // Enforce maker-checker separation.
+        if (!ADMIN_BYPASS_ROLES.has(ctx.role ?? '') && document.createdBy && document.createdBy === ctx.userId) {
+            // Enforce maker-checker separation (admin roles are exempt).
             throw AppError.forbidden('Document creator cannot approve the same document')
         }
         const lines = await this.documents.listLines(id)
@@ -145,10 +150,11 @@ export class StockDocumentService {
         if (!document.approvedBy) {
             throw AppError.badRequest('Approved document missing approver')
         }
-        if (document.createdBy && document.createdBy === ctx.userId) {
+        const isAdmin = ADMIN_BYPASS_ROLES.has(ctx.role ?? '')
+        if (!isAdmin && document.createdBy && document.createdBy === ctx.userId) {
             throw AppError.forbidden('Document creator cannot post the same document')
         }
-        if (document.approvedBy === ctx.userId) {
+        if (!isAdmin && document.approvedBy === ctx.userId) {
             // Posting must be executed by a third actor (not creator, not approver).
             throw AppError.forbidden('Approver cannot post the same document')
         }
@@ -227,11 +233,11 @@ export class StockDocumentService {
                     }
                     const asset = await tx.assets.getById(line.assetId)
                     if (!asset) throw AppError.notFound(`Asset ${line.assetId} not found`)
-                    if (asset.status !== 'in_stock') {
-                        throw AppError.badRequest(`Asset ${asset.assetCode} is not in stock`)
-                    }
                     if (asset.warehouseId !== document.warehouseId) {
                         throw AppError.badRequest(`Asset ${asset.assetCode} is not in the document warehouse`)
+                    }
+                    if (asset.status && !['in_stock', 'in_use'].includes(asset.status)) {
+                        throw AppError.badRequest(`Asset ${asset.assetCode} cannot be issued from status ${asset.status}`)
                     }
 
                     await tx.assets.update(asset.id, {
@@ -277,13 +283,15 @@ export class StockDocumentService {
         lines: StockDocumentLineRecord[]
     ): StockChange[] {
         const changes: StockChange[] = []
-        const warehouseId = document.warehouseId ?? undefined
-        if (!warehouseId) {
-            throw AppError.badRequest('Warehouse is required for this document')
-        }
 
         for (const line of lines) {
             if (!line.assetModelId) continue
+
+            // Warehouse is only required when there are actual stock movements to record.
+            const warehouseId = document.warehouseId
+            if (!warehouseId) {
+                throw AppError.badRequest('Warehouse is required for this document')
+            }
 
             if (document.docType === 'receipt') {
                 changes.push({

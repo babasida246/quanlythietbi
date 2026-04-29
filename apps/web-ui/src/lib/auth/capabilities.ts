@@ -362,8 +362,8 @@ export function isRouteAllowed(pathname: string, caps: Capabilities): boolean {
   if (pathname.startsWith('/integrations')) return caps.integrations.read
   if (pathname.startsWith('/security')) return caps.security.read
 
-  // Inbox/notifications: ai cũng xem được
-  if (pathname.startsWith('/inbox')) return caps.requests.read || caps.requests.approve
+  // Inbox page is temporarily hidden from the app
+  if (pathname.startsWith('/inbox')) return false
   if (pathname.startsWith('/notifications') || pathname.startsWith('/me')) return true
   if (pathname.startsWith('/settings/theme')) return true
   if (pathname.startsWith('/settings/print')) return caps.reports.read

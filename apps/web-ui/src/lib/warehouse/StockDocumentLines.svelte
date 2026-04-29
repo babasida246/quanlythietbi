@@ -379,7 +379,9 @@
               {:else}
                 <!-- ── Spare-part line ──────────────────────────────── -->
                 {#if readonly}
-                  <span class="text-slate-200">{getPartLabel(line.assetModelId ?? '')}</span>
+                  <span class="text-slate-200">
+                    {line.resolvedModelName ?? (line.assetModelId ? getPartLabel(line.assetModelId) : (line.assetName ?? '—'))}
+                  </span>
                 {:else}
                   <!-- Category filter -->
                   {#if sparePartCategories.length > 0}
@@ -452,16 +454,12 @@
 
             <!-- Category -->
             <td class="px-2 py-1.5 text-xs text-slate-400">
-              {#if isAssetLine}
-                {getModelCategory(line.assetModelId)}
-              {:else}
-                {getPartCategory(line.assetModelId ?? '')}
-              {/if}
+              {line.resolvedCategoryName ?? (isAssetLine ? getModelCategory(line.assetModelId) : getPartCategory(line.assetModelId ?? ''))}
             </td>
 
             <!-- Unit -->
             <td class="px-2 py-1.5 text-center text-slate-400 text-xs">
-              {#if isAssetLine}—{:else}{getPartUom(line.assetModelId ?? '')}{/if}
+              {#if isAssetLine}—{:else}{line.resolvedModelUom ?? getPartUom(line.assetModelId ?? '')}{/if}
             </td>
 
             <!-- Adjust direction -->

@@ -346,7 +346,8 @@ export class WfService {
         if (approval.status !== 'pending') {
             throw new WfError(`Approval is not pending: ${approval.status}`);
         }
-        if (approval.assigneeUserId !== dto.actorId) {
+        const isAdminBypass = WfService.ADMIN_BYPASS_ROLES.has(dto.actorRole ?? '');
+        if (!isAdminBypass && approval.assigneeUserId !== dto.actorId) {
             throw new WfForbiddenError('Only the current assignee can delegate this approval');
         }
         if (dto.toUserId === dto.actorId) {
@@ -372,7 +373,7 @@ export class WfService {
         if (approval.status !== 'pending') {
             throw new WfError(`Approval is not pending: ${approval.status}`);
         }
-        if (approval.assigneeUserId !== dto.actorId) {
+        if (!WfService.ADMIN_BYPASS_ROLES.has(dto.actorRole ?? '') && approval.assigneeUserId !== dto.actorId) {
             throw new WfForbiddenError('Only the assignee can request additional info');
         }
         await this.repo.appendEvent({
@@ -393,6 +394,7 @@ export class WfService {
     // ---- Inbox ----
 
     private static readonly FULL_INBOX_ROLES = new Set(['admin', 'super_admin', 'it_asset_manager']);
+    private static readonly ADMIN_BYPASS_ROLES = new Set(['admin', 'super_admin', 'root']);
 
     async listInbox(
         assigneeId: string,

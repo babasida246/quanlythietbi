@@ -12,7 +12,12 @@ export type StockDocumentRecord = Omit<import('@qltb/contracts').StockDocumentRe
 export type { StockDocumentLineRecord, StockDocumentDetail }
 export type { WarehouseRecord }
 export type { RepairOrderRecord, RepairOrderPartRecord, RepairOrderDetail, RepairOrderSummary }
-export type StockDocumentLine = StockDocumentLineInput
+export type StockDocumentLine = StockDocumentLineInput & {
+    id?: string
+    resolvedModelName?: string | null
+    resolvedModelUom?: string | null
+    resolvedCategoryName?: string | null
+}
 
 export type SparePartRecord = {
     id: string

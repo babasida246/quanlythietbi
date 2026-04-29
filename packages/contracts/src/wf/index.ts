@@ -228,6 +228,7 @@ export interface ClaimWfApprovalDto {
 export interface DelegateWfApprovalDto {
     approvalId: string;
     actorId: string;
+    actorRole?: string;
     toUserId: string;
     reason?: string;
 }
@@ -235,6 +236,7 @@ export interface DelegateWfApprovalDto {
 export interface RequestInfoDto {
     approvalId: string;
     actorId: string;
+    actorRole?: string;
     question: string;
 }
 

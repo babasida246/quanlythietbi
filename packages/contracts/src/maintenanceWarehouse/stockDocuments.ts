@@ -62,6 +62,10 @@ export interface StockDocumentLineRecord {
     /** Asset lines (issue): the specific in-stock asset to deploy.
      *  Asset lines (receipt): populated after posting with the created asset id. */
     assetId?: string | null
+    /** Resolved from asset_models JOIN — display-only, not stored in the line itself */
+    resolvedModelName?: string | null
+    resolvedModelUom?: string | null
+    resolvedCategoryName?: string | null
 }
 
 export interface StockDocumentLineInput {

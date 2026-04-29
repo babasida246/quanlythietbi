@@ -8,7 +8,10 @@ import {
     ConsumableRepo,
     DepreciationRepo,
     LicenseRepo,
+    MovementRepo,
+    OpsEventRepo,
     StockDocumentRepo,
+    WarehouseUnitOfWork,
     WfRepo,
     WfApproverResolverRepo
 } from '@qltb/infra-postgres'
@@ -21,6 +24,7 @@ import {
     ConsumableService,
     DepreciationService,
     LicenseService,
+    StockDocumentService,
     WfService
 } from '@qltb/application'
 import { accessoriesRoute } from '../accessories/accessories.route.js'
@@ -43,12 +47,21 @@ export async function registerInventoryContext(
     const consumableRepo = new ConsumableRepo(pgClient)
     const depreciationRepo = new DepreciationRepo(pgClient)
     const licenseRepo = new LicenseRepo(pgClient)
+    const movementRepo = new MovementRepo(pgClient)
+    const opsEventRepo = new OpsEventRepo(pgClient)
     const stockDocRepo = new StockDocumentRepo(pgClient)
+    const warehouseUnitOfWork = new WarehouseUnitOfWork(pgClient)
     const wfRepo = new WfRepo(pgClient)
     const wfApproverResolverRepo = new WfApproverResolverRepo(pgClient)
 
     const accessoryService = new AccessoryService(accessoryRepo)
-    const assetFlowService = new AssetFlowService(stockDocRepo)
+    const stockDocumentService = new StockDocumentService(
+        stockDocRepo,
+        movementRepo,
+        warehouseUnitOfWork,
+        opsEventRepo
+    )
+    const assetFlowService = new AssetFlowService(stockDocRepo, stockDocumentService)
     const auditService = new AuditService(auditRepo)
     const checkoutService = new CheckoutService(checkoutRepo)
     const componentService = new ComponentService(componentRepo)

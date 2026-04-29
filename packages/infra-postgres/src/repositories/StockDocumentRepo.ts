@@ -110,7 +110,10 @@ const mapLine = (row: LineRow): StockDocumentLineRecord => ({
     assetCategoryId: row.asset_category_id,
     assetName: row.asset_name,
     assetCode: row.asset_code,
-    assetId: row.asset_id
+    assetId: row.asset_id,
+    resolvedModelName: (row.resolved_model_name as string | null) ?? null,
+    resolvedModelUom: (row.resolved_model_uom as string | null) ?? null,
+    resolvedCategoryName: (row.resolved_category_name as string | null) ?? null,
 })
 
 function buildUpdates(patch: StockDocumentUpdatePatch): Update[] {
@@ -275,10 +278,15 @@ export class StockDocumentRepo implements IStockDocumentRepo {
 
     async listLines(documentId: string): Promise<StockDocumentLineRecord[]> {
         const result = await this.pg.query<LineRow>(
-            `SELECT ${LINE_COLS}
-             FROM stock_document_lines
-             WHERE document_id = $1
-             ORDER BY id ASC`,
+            `SELECT sdl.${LINE_COLS.replace(/,\s*/g, ', sdl.')},
+                    am.model  AS resolved_model_name,
+                    am.unit   AS resolved_model_uom,
+                    cat.name  AS resolved_category_name
+             FROM stock_document_lines sdl
+             LEFT JOIN asset_models     am  ON am.id  = sdl.asset_model_id
+             LEFT JOIN asset_categories cat ON cat.id = am.category_id
+             WHERE sdl.document_id = $1
+             ORDER BY sdl.id ASC`,
             [documentId]
         )
         return result.rows.map(mapLine)

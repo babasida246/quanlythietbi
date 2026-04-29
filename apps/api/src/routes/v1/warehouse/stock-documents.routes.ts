@@ -155,17 +155,19 @@ export async function stockDocumentRoutes(
 
     fastify.post('/stock-documents/:id/approve', async (request, reply) => {
         const ctx = requirePermission(request, 'warehouse:approve')
+        const { role } = getUserContext(request)
         const { id } = stockDocumentIdParamsSchema.parse(request.params)
-        const approved = await stockDocumentService.approveDocument(id, ctx)
+        const approved = await stockDocumentService.approveDocument(id, { ...ctx, role })
         return reply.send({ data: approved })
     })
 
     fastify.post('/stock-documents/:id/post', async (request, reply) => {
         const ctx = requirePermission(request, 'warehouse:approve')
+        const { role } = getUserContext(request)
         const { id } = stockDocumentIdParamsSchema.parse(request.params)
         // Optional idempotency key prevents duplicate posting on client retries.
         const idempotencyKey = (request.headers['idempotency-key'] as string) || undefined
-        const posted = await stockDocumentService.postDocument(id, ctx, idempotencyKey)
+        const posted = await stockDocumentService.postDocument(id, { ...ctx, role }, idempotencyKey)
         return reply.send({ data: posted })
     })
 
@@ -203,7 +205,9 @@ export async function stockDocumentRoutes(
         })
     })
 
-    // List assets currently in-stock at a warehouse (for issue document line picker)
+    // List assets currently stored at a warehouse (for issue document line picker).
+    // We exclude terminal statuses to tolerate legacy rows where status may lag behind
+    // physical warehouse placement.
     fastify.get('/stock/assets', async (request, reply) => {
         getUserContext(request)
         const query = z.object({
@@ -224,12 +228,14 @@ export async function stockDocumentRoutes(
         const result = await pgClient.query<AssetRow>(
             `SELECT a.id, a.asset_code, a.serial_no,
                     m.name AS model_name, c.name AS category_name
-             FROM assets a
-             LEFT JOIN asset_models m ON m.id = a.model_id
-             LEFT JOIN asset_categories c ON c.id = m.category_id
-             WHERE a.warehouse_id = $1 AND a.status = 'in_stock'${qCondition}
-             ORDER BY a.asset_code ASC
-             LIMIT 200`,
+              FROM assets a
+              LEFT JOIN asset_models m ON m.id = a.model_id
+              LEFT JOIN asset_categories c ON c.id = m.category_id
+              WHERE a.warehouse_id = $1
+                AND COALESCE(a.status, 'in_stock') NOT IN ('disposed', 'lost', 'retired')
+                ${qCondition}
+              ORDER BY a.asset_code ASC
+              LIMIT 200`,
             params
         )
         return reply.send({

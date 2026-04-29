@@ -63,6 +63,9 @@
 
   const isDraft = $derived(document?.status === 'draft');
   const isSubmitted = $derived(document?.status === 'submitted');
+  // Header fields (warehouse, date, note, receiver) editable in draft AND submitted.
+  // Submitted docs auto-generated from workflow need the warehouse set before posting.
+  const canEditHeader = $derived(isDraft || isSubmitted);
   const isApproved = $derived(document?.status === 'approved');
   const canCancel = $derived(document?.status === 'draft' || document?.status === 'submitted' || document?.status === 'approved');
   const statusLabel = $derived(document ? $_(`warehouse.docStatus.${document.status}`) : '');
@@ -251,6 +254,18 @@
     try {
       saving = true;
       error = '';
+      // Auto-save header (warehouse, receiver, etc.) before approving
+      if (isSubmitted) {
+        const saved = await updateStockDocument(document.id, {
+          docDate, note: note || null,
+          warehouseId: warehouseId || null,
+          targetWarehouseId: document.docType === 'transfer' ? (targetWarehouseId || null) : null,
+          supplier: supplier || null, submitterName: submitterName || null,
+          receiverName: receiverName || null, recipientOuId: recipientOuId || null,
+          lines
+        });
+        document = saved.data.document;
+      }
       const response = await approveStockDocument(document.id);
       document = response.data ?? null;
       addNotification(`${$_('warehouse.toast.approvedDoc')} ${document?.code}`, 'success');
@@ -321,7 +336,7 @@
         <!-- Ngày lập -->
         <div>
           <label for="doc-date" class="mb-1 block text-xs font-medium text-slate-400">{$isLoading ? 'Date' : $_('warehouse.field.docDate')}</label>
-          <input id="doc-date" class="input-base text-sm" type="date" bind:value={docDate} disabled={!isDraft} />
+          <input id="doc-date" class="input-base text-sm" type="date" bind:value={docDate} disabled={!canEditHeader} />
         </div>
 
         <!-- Kho -->
@@ -329,7 +344,7 @@
           <label for="doc-warehouse" class="mb-1 block text-xs font-medium text-slate-400">
             {document.docType === 'issue' ? ($isLoading ? 'Source Warehouse' : $_('warehouse.field.sourceWarehouse')) : document.docType === 'transfer' ? ($isLoading ? 'Source Warehouse' : $_('warehouse.field.sourceWarehouse')) : ($isLoading ? 'Warehouse' : $_('warehouse.field.warehouse'))}
           </label>
-          <select id="doc-warehouse" class="select-base text-sm" bind:value={warehouseId} disabled={!isDraft}>
+          <select id="doc-warehouse" class="select-base text-sm" bind:value={warehouseId} disabled={!canEditHeader}>
             <option value="">{$isLoading ? '-- Select --' : $_('warehouse.field.selectWarehouse')}</option>
             {#each warehouses as wh}
               <option value={wh.id}>{wh.name} ({wh.code})</option>
@@ -341,7 +356,7 @@
         {#if document.docType === 'transfer'}
           <div>
             <label for="doc-target" class="mb-1 block text-xs font-medium text-slate-400">{$isLoading ? 'Dest. Warehouse' : $_('warehouse.field.destWarehouse')}</label>
-            <select id="doc-target" class="select-base text-sm" bind:value={targetWarehouseId} disabled={!isDraft}>
+            <select id="doc-target" class="select-base text-sm" bind:value={targetWarehouseId} disabled={!canEditHeader}>
               <option value="">{$isLoading ? '-- Select --' : $_('warehouse.field.selectDestWarehouse')}</option>
               {#each warehouses as wh}
                 <option value={wh.id}>{wh.name} ({wh.code})</option>
@@ -354,11 +369,11 @@
         {#if document.docType === 'receipt'}
           <div>
             <label for="doc-supplier" class="mb-1 block text-xs font-medium text-slate-400">{$isLoading ? 'Supplier' : $_('warehouse.field.supplier')}</label>
-            <input id="doc-supplier" class="input-base text-sm" bind:value={supplier} disabled={!isDraft} placeholder={$isLoading ? 'Supplier name...' : $_('warehouse.field.supplierPlaceholder')} />
+            <input id="doc-supplier" class="input-base text-sm" bind:value={supplier} disabled={!canEditHeader} placeholder={$isLoading ? 'Supplier name...' : $_('warehouse.field.supplierPlaceholder')} />
           </div>
           <div>
             <label for="doc-submitter" class="mb-1 block text-xs font-medium text-slate-400">{$isLoading ? 'Submitter' : $_('warehouse.field.submitter')}</label>
-            <input id="doc-submitter" class="input-base text-sm" bind:value={submitterName} disabled={!isDraft} placeholder={$isLoading ? 'Submitter name...' : $_('warehouse.field.submitterPlaceholder')} />
+            <input id="doc-submitter" class="input-base text-sm" bind:value={submitterName} disabled={!canEditHeader} placeholder={$isLoading ? 'Submitter name...' : $_('warehouse.field.submitterPlaceholder')} />
           </div>
         {/if}
 
@@ -366,7 +381,7 @@
         {#if document.docType === 'issue'}
           <div>
             <label for="doc-receiver" class="mb-1 block text-xs font-medium text-slate-400">{$isLoading ? 'Receiver' : $_('warehouse.field.receiver')}</label>
-            <input id="doc-receiver" class="input-base text-sm" bind:value={receiverName} disabled={!isDraft} placeholder={$isLoading ? 'Receiver name...' : $_('warehouse.field.receiverPlaceholder')} />
+            <input id="doc-receiver" class="input-base text-sm" bind:value={receiverName} disabled={!canEditHeader} placeholder={$isLoading ? 'Receiver name...' : $_('warehouse.field.receiverPlaceholder')} />
           </div>
           <div>
             <label for="doc-ou" class="mb-1 block text-xs font-medium text-slate-400">{$isLoading ? 'Recipient' : $_('warehouse.field.department')}</label>
@@ -400,14 +415,14 @@
           </div>
           <div>
             <label for="doc-submitter2" class="mb-1 block text-xs font-medium text-slate-400">{$isLoading ? 'Executor' : $_('warehouse.field.executor')}</label>
-            <input id="doc-submitter2" class="input-base text-sm" bind:value={submitterName} disabled={!isDraft} placeholder={$isLoading ? 'Executor name...' : $_('warehouse.field.executorPlaceholder')} />
+            <input id="doc-submitter2" class="input-base text-sm" bind:value={submitterName} disabled={!canEditHeader} placeholder={$isLoading ? 'Executor name...' : $_('warehouse.field.executorPlaceholder')} />
           </div>
         {/if}
 
         <!-- Ghi chú -->
         <div class="col-span-2" style="grid-column: span 2">
           <label for="doc-note" class="mb-1 block text-xs font-medium text-slate-400">{$isLoading ? 'Notes' : $_('common.note')}</label>
-          <input id="doc-note" class="input-base text-sm" bind:value={note} disabled={!isDraft} placeholder={$isLoading ? 'Enter notes...' : $_('common.notePlaceholder')} />
+          <input id="doc-note" class="input-base text-sm" bind:value={note} disabled={!canEditHeader} placeholder={$isLoading ? 'Enter notes...' : $_('common.notePlaceholder')} />
         </div>
       </div>
     </div>
@@ -482,6 +497,9 @@
           </Button>
         {:else if isSubmitted}
           <Button variant="secondary" disabled={saving} onclick={cancelDoc}>{$isLoading ? 'Cancel Document' : $_('warehouse.action.cancelDoc')}</Button>
+          <Button variant="secondary" disabled={saving} onclick={save}>
+            {saving ? '...' : $isLoading ? 'Save' : $_('warehouse.action.saveDraft')}
+          </Button>
           <Button disabled={saving} onclick={approveDoc}>
             {saving ? '...' : $isLoading ? 'Approve' : $_('warehouse.action.approve')}
           </Button>
