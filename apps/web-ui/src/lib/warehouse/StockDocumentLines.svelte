@@ -120,8 +120,8 @@
 
   function handleOcrSelect(part: SparePartSearchResult) {
     lines = [...lines, {
-      lineType: 'spare_part',
-      partId: part.id,
+      lineType: 'qty',
+      assetModelId: part.id,
       qty: 1,
       unitCost: showPrice ? (part.unitCost ?? 0) : undefined,
       adjustDirection: showAdjDir ? 'plus' : undefined,
@@ -131,8 +131,8 @@
 
   function addSparePartLine() {
     lines = [...lines, {
-      lineType: 'spare_part',
-      partId: undefined,
+      lineType: 'qty',
+      assetModelId: undefined,
       qty: 1,
       unitCost: showPrice ? 0 : undefined,
       adjustDirection: showAdjDir ? 'plus' : undefined,
@@ -142,8 +142,7 @@
 
   function addAssetLine() {
     lines = [...lines, {
-      lineType: 'asset',
-      partId: undefined,
+      lineType: 'serial',
       assetModelId: undefined,
       assetName: '',
       assetCode: '',
@@ -252,11 +251,11 @@
         </tr>
       {:else}
         {#each lines as line, i}
-          {@const isAssetLine  = line.lineType === 'asset'}
-          {@const stock        = stockCache[line.partId ?? '']}
-          {@const over         = !isAssetLine && isOverStock(line.partId ?? '', line.qty)}
-          {@const partSpec     = !isAssetLine ? getSpecForPart(line.partId ?? '') : {}}
-          {@const hasSpec      = !readonly && docType === 'receipt' && !isAssetLine && (line.partId ?? '') !== '' && Object.keys(partSpec).length > 0}
+          {@const isAssetLine  = line.lineType === 'serial' || line.lineType === 'asset'}
+          {@const stock        = stockCache[line.assetModelId ?? '']}
+          {@const over         = !isAssetLine && isOverStock(line.assetModelId ?? '', line.qty)}
+          {@const partSpec     = !isAssetLine ? getSpecForPart(line.assetModelId ?? '') : {}}
+          {@const hasSpec      = !readonly && docType === 'receipt' && !isAssetLine && (line.assetModelId ?? '') !== '' && Object.keys(partSpec).length > 0}
           {@const lineTotal    = (line.qty ?? 0) * (line.unitCost ?? 0)}
 
           <tr class="border-t border-slate-800 hover:bg-slate-800/30 transition-colors {over ? 'bg-red-950/20' : ''} {isAssetLine ? 'bg-amber-950/10' : ''}">
@@ -273,11 +272,11 @@
                 <select
                   aria-label="Loai dong {i + 1}"
                   class="w-full rounded-md border border-slate-600 bg-slate-900 px-1.5 py-1 text-xs focus:border-primary focus:outline-none"
-                  value={line.lineType ?? 'spare_part'}
+                  value={line.lineType === 'spare_part' ? 'qty' : line.lineType === 'asset' ? 'serial' : (line.lineType ?? 'qty')}
                   onchange={(e) => {
-                    const v = (e.currentTarget as HTMLSelectElement).value as 'spare_part' | 'asset';
+                    const v = (e.currentTarget as HTMLSelectElement).value as 'qty' | 'serial';
                     const n = [...lines];
-                    n[i] = { qty: line.qty, lineType: v, partId: undefined,
+                    n[i] = { qty: line.qty, lineType: v,
                               assetModelId: undefined,
                               assetId: undefined,
                               unitCost: showPrice ? (line.unitCost ?? 0) : undefined,
@@ -285,8 +284,8 @@
                     lines = n;
                   }}
                 >
-                  <option value="spare_part">{$isLoading ? 'Part' : $_('stockDoc.lineTypeSparePart')}</option>
-                  <option value="asset">{$isLoading ? 'Asset' : $_('stockDoc.lineTypeAsset')}</option>
+                  <option value="qty">{$isLoading ? 'Part' : $_('stockDoc.lineTypeSparePart')}</option>
+                  <option value="serial">{$isLoading ? 'Asset' : $_('stockDoc.lineTypeAsset')}</option>
                 </select>
               {/if}
             </td>
@@ -380,7 +379,7 @@
               {:else}
                 <!-- ── Spare-part line ──────────────────────────────── -->
                 {#if readonly}
-                  <span class="text-slate-200">{getPartLabel(line.partId ?? '')}</span>
+                  <span class="text-slate-200">{getPartLabel(line.assetModelId ?? '')}</span>
                 {:else}
                   <!-- Category filter -->
                   {#if sparePartCategories.length > 0}
@@ -391,11 +390,10 @@
                       onchange={(e) => {
                         const v = (e.currentTarget as HTMLSelectElement).value;
                         lineCategoryFilter = { ...lineCategoryFilter, [i]: v };
-                        // Clear part selection if it no longer matches the new filter
-                        const currentPart = line.partId;
+                        const currentPart = line.assetModelId;
                         if (currentPart && v) {
                           const stillVisible = partOptions.find((p: PartOption) => p.id === currentPart && p.categoryId === v);
-                          if (!stillVisible) updateLine(i, 'partId', '');
+                          if (!stillVisible) updateLine(i, 'assetModelId', '');
                         }
                       }}
                     >
@@ -408,10 +406,10 @@
                   <select
                     aria-label="Hang hoa vat tu dong {i + 1}"
                     class="w-full rounded-md border {over ? 'border-red-500 bg-red-900/10' : 'border-slate-600 bg-slate-900'} px-2 py-1 text-sm focus:border-primary focus:outline-none"
-                    value={line.partId ?? ''}
+                    value={line.assetModelId ?? ''}
                     onchange={async (e) => {
                       const v = (e.currentTarget as HTMLSelectElement).value;
-                      updateLine(i, 'partId', v);
+                      updateLine(i, 'assetModelId', v);
                       await checkStock(v);
                     }}
                   >
@@ -423,12 +421,12 @@
                 {/if}
 
                 <!-- stock badge (spare-part) -->
-                {#if needsStockCheck && (line.partId ?? '') && warehouseId}
+                {#if needsStockCheck && (line.assetModelId ?? '') && warehouseId}
                   {#if stock}
                     <div class="mt-0.5 text-xs {over ? 'text-red-400 font-semibold' : 'text-green-400'}">
                       {$isLoading ? 'Available: ' : $_('stockDoc.available')}<strong>{stock.available}</strong>{over ? ' — ' + ($isLoading ? 'Over stock!' : $_('stockDoc.overStock')) : ''}
                     </div>
-                  {:else if line.partId}
+                  {:else if line.assetModelId}
                     <div class="mt-0.5 text-xs text-slate-500 animate-pulse">{$isLoading ? 'Checking...' : $_('stockDoc.checking')}</div>
                   {/if}
                 {/if}
@@ -457,13 +455,13 @@
               {#if isAssetLine}
                 {getModelCategory(line.assetModelId)}
               {:else}
-                {getPartCategory(line.partId ?? '')}
+                {getPartCategory(line.assetModelId ?? '')}
               {/if}
             </td>
 
             <!-- Unit -->
             <td class="px-2 py-1.5 text-center text-slate-400 text-xs">
-              {#if isAssetLine}—{:else}{getPartUom(line.partId ?? '')}{/if}
+              {#if isAssetLine}—{:else}{getPartUom(line.assetModelId ?? '')}{/if}
             </td>
 
             <!-- Adjust direction -->

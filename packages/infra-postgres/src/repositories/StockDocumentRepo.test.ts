@@ -31,6 +31,39 @@ describe('StockDocumentRepo', () => {
         expect(query).toHaveBeenCalledWith(expect.stringContaining('INSERT INTO stock_documents'), expect.any(Array))
     })
 
+    it('persists assetModelId when replacing stock document lines', async () => {
+        const query = vi.fn()
+            .mockResolvedValueOnce({ rows: [] })
+            .mockResolvedValueOnce({
+                rows: [{
+                    id: 'line-1',
+                    document_id: 'doc-1',
+                    line_type: 'qty',
+                    qty: 2,
+                    unit_cost: null,
+                    serial_no: null,
+                    note: null,
+                    adjust_direction: null,
+                    spec_fields: null,
+                    asset_model_id: 'model-1',
+                    asset_category_id: null,
+                    asset_name: null,
+                    asset_code: null,
+                    asset_id: null
+                }]
+            })
+        const pg = { query } as unknown as Queryable
+        const repo = new StockDocumentRepo(pg)
+
+        const lines = await repo.replaceLines('doc-1', [{ qty: 2, assetModelId: 'model-1', lineType: 'qty' }])
+
+        expect(lines[0]?.assetModelId).toBe('model-1')
+        expect(query).toHaveBeenCalledWith(
+            expect.stringContaining('asset_model_id'),
+            expect.arrayContaining(['doc-1', 'qty', 2, null, null, null, null, null, 'model-1'])
+        )
+    })
+
     it('lists stock documents with pagination', async () => {
         const query = vi.fn()
         const pg = { query } as unknown as Queryable

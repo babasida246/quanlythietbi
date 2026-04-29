@@ -36,7 +36,7 @@ export type StockViewRecord = {
     warehouseId: string
     warehouseCode: string
     warehouseName: string
-    partId: string
+    modelId: string
     partCode: string
     partName: string
     onHand: number

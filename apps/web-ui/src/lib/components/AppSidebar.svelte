@@ -171,6 +171,7 @@
         },
         { kind: 'leaf', href: '/inventory', labelKey: 'nav.inventory', icon: ClipboardList, testId: 'nav-inventory', requires: (caps) => caps.inventory.read },
         { kind: 'leaf', href: '/depreciation', labelKey: 'nav.depreciation', icon: TrendingDown, testId: 'nav-depreciation', requires: (caps) => caps.depreciation.read },
+        { kind: 'leaf', href: '/licenses', labelKey: 'nav.licenses', icon: ShieldCheck, testId: 'nav-licenses', requires: (caps) => caps.licenses.read },
       ]
     },
     {

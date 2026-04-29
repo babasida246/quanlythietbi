@@ -247,7 +247,7 @@ export async function warehouseRoutes(
         for (const token of rawTokens) {
             const like = `%${token}%`
             conditions.push(
-                `(name ILIKE $${paramIdx} OR part_code ILIKE $${paramIdx} OR manufacturer ILIKE $${paramIdx} OR model ILIKE $${paramIdx})`
+                `(am.model ILIKE $${paramIdx} OR am.brand ILIKE $${paramIdx} OR ac.name ILIKE $${paramIdx})`
             )
             params.push(like)
             paramIdx++
@@ -259,13 +259,15 @@ export async function warehouseRoutes(
         const boostParam = paramIdx
 
         const sql = `
-            SELECT id, part_code, name, category, uom, manufacturer, model, unit_cost
-            FROM spare_parts
-            WHERE deleted_at IS NULL
-              AND (${conditions.join(' OR ')})
+            SELECT am.id, '' AS part_code, am.model AS name,
+                   ac.name AS category, am.unit AS uom,
+                   am.brand AS manufacturer, am.model, 0 AS unit_cost
+            FROM asset_models am
+            LEFT JOIN asset_categories ac ON ac.id = am.category_id
+            WHERE (${conditions.join(' OR ')})
             ORDER BY
-                CASE WHEN part_code ILIKE $${boostParam} OR name ILIKE $${boostParam} THEN 0 ELSE 1 END,
-                length(name)
+                CASE WHEN am.model ILIKE $${boostParam} OR am.brand ILIKE $${boostParam} THEN 0 ELSE 1 END,
+                length(am.model)
             LIMIT ${limit}
         `
         const result = await opts.pgClient.query<{

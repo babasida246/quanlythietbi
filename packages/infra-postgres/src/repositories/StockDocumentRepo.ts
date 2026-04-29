@@ -41,8 +41,7 @@ type DocumentRow = {
 type LineRow = {
     id: string
     document_id: string
-    line_type: 'spare_part' | 'asset'
-    part_id: string | null
+    line_type: 'qty' | 'serial'
     qty: number
     unit_cost: number | string | null
     serial_no: string | null
@@ -63,7 +62,7 @@ const DOC_COLS = `id, doc_type, code, status, warehouse_id, target_warehouse_id,
                   recipient_ou_id, location_id, item_group, equipment_group_id,
                   created_by, approved_by, correlation_id, created_at, updated_at`
 
-const LINE_COLS = `id, document_id, line_type, part_id, qty, unit_cost, serial_no, note,
+const LINE_COLS = `id, document_id, line_type, qty, unit_cost, serial_no, note,
                    adjust_direction, spec_fields, asset_model_id, asset_category_id,
                    asset_name, asset_code, asset_id`
 
@@ -100,8 +99,7 @@ const mapDocument = (row: DocumentRow): StockDocumentRecord => ({
 const mapLine = (row: LineRow): StockDocumentLineRecord => ({
     id: row.id,
     documentId: row.document_id,
-    lineType: row.line_type ?? 'spare_part',
-    partId: row.part_id,
+    lineType: row.line_type ?? 'qty',
     qty: row.qty,
     unitCost: row.unit_cost === null ? null : Number(row.unit_cost),
     serialNo: row.serial_no,
@@ -290,14 +288,13 @@ export class StockDocumentRepo implements IStockDocumentRepo {
         await this.pg.query('DELETE FROM stock_document_lines WHERE document_id = $1', [documentId])
         if (lines.length === 0) return []
 
-        const COLS_PER_ROW = 14
+        const COLS_PER_ROW = 13
         const params: unknown[] = []
         const values = lines.map((line, index) => {
             const base = index * COLS_PER_ROW
             params.push(
                 documentId,
-                line.lineType ?? 'spare_part',
-                line.partId ?? null,
+                line.lineType ?? 'qty',
                 line.qty,
                 line.unitCost ?? null,
                 line.serialNo ?? null,
@@ -311,12 +308,12 @@ export class StockDocumentRepo implements IStockDocumentRepo {
                 line.assetId ?? null
             )
             const p = (n: number) => `$${base + n}`
-            return `(${p(1)},${p(2)},${p(3)},${p(4)},${p(5)},${p(6)},${p(7)},${p(8)},${p(9)},${p(10)},${p(11)},${p(12)},${p(13)},${p(14)})`
+            return `(${p(1)},${p(2)},${p(3)},${p(4)},${p(5)},${p(6)},${p(7)},${p(8)},${p(9)},${p(10)},${p(11)},${p(12)},${p(13)})`
         })
 
         const result = await this.pg.query<LineRow>(
             `INSERT INTO stock_document_lines (
-                document_id, line_type, part_id, qty, unit_cost, serial_no, note,
+                document_id, line_type, qty, unit_cost, serial_no, note,
                 adjust_direction, spec_fields, asset_model_id, asset_category_id,
                 asset_name, asset_code, asset_id
              ) VALUES ${values.join(', ')}

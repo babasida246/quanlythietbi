@@ -22,7 +22,8 @@ type StockViewRow = {
     warehouse_code: string
     warehouse_name: string
     model_id: string
-    model_name: string
+    part_code: string
+    part_name: string
     brand: string | null
     category_name: string | null
     on_hand: number
@@ -46,7 +47,8 @@ const mapViewRow = (row: StockViewRow): StockViewRecord => ({
     warehouseCode: row.warehouse_code,
     warehouseName: row.warehouse_name,
     modelId: row.model_id,
-    modelName: row.model_name,
+    partCode: row.part_code,
+    partName: row.part_name,
     brand: row.brand,
     categoryName: row.category_name,
     onHand: row.on_hand,
@@ -213,7 +215,8 @@ export class StockRepo implements IStockRepo {
                 w.code  AS warehouse_code,
                 w.name  AS warehouse_name,
                 ams.model_id,
-                am.model AS model_name,
+                am.model AS part_code,
+                am.brand || ' ' || am.model AS part_name,
                 am.brand,
                 ac.name  AS category_name,
                 am.unit  AS uom,

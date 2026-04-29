@@ -74,29 +74,23 @@ const optUuid = z.preprocess(
 )
 
 export const stockDocumentLineSchema = z.object({
-    lineType: z.enum(['spare_part', 'asset']).default('spare_part'),
-    /** Required for spare_part lines */
-    partId: optUuid,
+    lineType: z.enum(['qty', 'serial', 'spare_part', 'asset'])
+        .transform(v => v === 'spare_part' ? 'qty' : v === 'asset' ? 'serial' : v)
+        .default('qty'),
     qty: z.coerce.number().int().min(1),
     unitCost: z.coerce.number().min(0).optional(),
     serialNo: z.string().optional(),
     note: z.string().optional(),
     adjustDirection: z.enum(['plus', 'minus']).optional(),
     specFields: z.record(z.unknown()).nullable().optional(),
-    /** Asset lines (receipt): model to create from */
     assetModelId: optUuid,
     assetCategoryId: optUuid,
     assetName: z.string().max(255).optional(),
-    /** Optional explicit code; auto-generated if omitted */
     assetCode: z.string().max(100).optional(),
-    /** Asset lines (issue): the specific asset to deploy */
     assetId: optUuid
 }).superRefine((val, ctx) => {
-    if (val.lineType === 'spare_part' && !val.partId) {
-        ctx.addIssue({ code: 'custom', path: ['partId'], message: 'partId is required for spare_part lines' })
-    }
-    if (val.lineType === 'asset' && !val.assetModelId && !val.assetId) {
-        ctx.addIssue({ code: 'custom', path: ['assetModelId'], message: 'assetModelId (receipt) or assetId (issue) is required for asset lines' })
+    if (val.lineType === 'serial' && !val.assetModelId && !val.assetId) {
+        ctx.addIssue({ code: 'custom', path: ['assetModelId'], message: 'assetModelId (receipt) or assetId (issue) is required for serial lines' })
     }
 })
 

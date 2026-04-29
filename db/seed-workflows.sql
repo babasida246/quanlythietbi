@@ -1,7 +1,7 @@
 -- =============================================================================
 -- SEED: WORKFLOW / AUTOMATION DATA
 -- Dependencies: wf_definitions (fb...), wf_steps (fc...) already exist from seed-assets
---               users, assets, spare_parts, asset_requests (a5...) already exist
+--               users, assets, asset_models, asset_requests (a5...) already exist
 -- =============================================================================
 BEGIN;
 

@@ -70,7 +70,13 @@ export type CreateLicenseInput = {
 }
 
 type ApiResponse<T> = { data: T }
-type PaginatedResponse<T> = { data: T[]; total: number; page: number; limit: number }
+type PaginatedResponse<T> = {
+    data: T[];
+    pagination?: { total: number; page: number; limit: number; totalPages: number };
+    total?: number;
+    page?: number;
+    limit?: number;
+}
 
 export async function getLicensesByAsset(assetId: string): Promise<ApiResponse<LicenseWithAssetSeat[]>> {
     return apiJson<ApiResponse<LicenseWithAssetSeat[]>>(

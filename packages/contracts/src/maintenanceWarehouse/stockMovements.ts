@@ -71,7 +71,8 @@ export interface StockViewRecord {
     warehouseCode: string
     warehouseName: string
     modelId: string
-    modelName: string
+    partCode: string
+    partName: string
     brand?: string | null
     categoryName?: string | null
     onHand: number

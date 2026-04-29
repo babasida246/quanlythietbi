@@ -253,8 +253,8 @@ export async function stockDocumentRoutes(
         if (!pgClient) return reply.send({ data: { onHand: 0, reserved: 0, available: 0 } })
         type StockRow = { on_hand: number; reserved: number }
         const result = await pgClient.query<StockRow>(
-            `SELECT on_hand, reserved FROM spare_part_stock
-             WHERE warehouse_id = $1 AND part_id = $2`,
+            `SELECT on_hand, reserved FROM asset_model_stock
+             WHERE warehouse_id = $1 AND model_id = $2`,
             [query.warehouseId, query.partId]
         )
         const row = result.rows[0]

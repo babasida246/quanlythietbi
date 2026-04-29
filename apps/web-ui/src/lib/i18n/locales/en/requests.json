@@ -30,6 +30,14 @@
       "allStatuses": "All statuses",
       "allTypes": "All types"
     },
+    "inbox": {
+      "filters": {
+        "active": "Submitted and approved",
+        "submitted": "Submitted only",
+        "approved": "Approved only",
+        "all": "All"
+      }
+    },
     "status": {
       "submitted": "Submitted",
       "approved": "Approved",

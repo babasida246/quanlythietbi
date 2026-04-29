@@ -238,10 +238,12 @@ export async function withdrawWfRequest(
 export async function listInboxApprovals(params: {
     page?: number;
     limit?: number;
+    statusGroup?: 'active' | 'submitted' | 'approved' | 'all';
 } = {}): Promise<PaginatedResponse<InboxApproval>> {
     const qs = new URLSearchParams();
     if (params.page) qs.set('page', String(params.page));
     if (params.limit) qs.set('limit', String(params.limit));
+    if (params.statusGroup) qs.set('statusGroup', params.statusGroup);
     const query = qs.toString() ? `?${qs.toString()}` : '';
     return apiJson<PaginatedResponse<InboxApproval>>(`${WF_BASE}/wf/inbox${query}`, {
         headers: authHeaders(),

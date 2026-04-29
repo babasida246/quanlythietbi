@@ -2,6 +2,7 @@
   import { Button } from '$lib/components/ui';
   import { goto } from '$app/navigation';
   import { _, isLoading } from '$lib/i18n';
+  import { toast } from '$lib/components/toast';
   import StockDocumentLines from '$lib/warehouse/StockDocumentLines.svelte';
   import {
     createStockDocument,
@@ -89,7 +90,9 @@
 
   function validateLines(): string {
     for (const l of lines) {
-      if (l.lineType === 'asset') {
+      const lineType = (l as { lineType?: string }).lineType
+      const isSerial = lineType === 'serial' || lineType === 'asset'
+      if (isSerial) {
         if ((docType === 'issue' || docType === 'transfer') && !l.assetId) {
           return $_('warehouse.errors.missingAssetId');
         }
@@ -97,10 +100,19 @@
           return $_('warehouse.errors.missingAssetModel');
         }
       } else {
-        if (!l.partId) return $_('warehouse.errors.missingCodeOrPart');
+        if (!l.assetModelId) return $_('warehouse.errors.missingCodeOrPart');
       }
     }
     return '';
+  }
+
+  function mapLinesForSubmit(): StockDocumentLine[] {
+    return lines.map((line) => {
+      const lineType = (line as { lineType?: string }).lineType
+      const isSerial = lineType === 'serial' || lineType === 'asset'
+      const mapped: StockDocumentLine = { ...line, lineType: isSerial ? 'serial' : 'qty' }
+      return mapped
+    })
   }
 
   async function submit() {
@@ -123,9 +135,10 @@
         submitterName: submitterName || null,
         receiverName: receiverName || null,
         recipientOuId: recipientOuId || null,
-        lines
+        lines: mapLinesForSubmit()
       });
-      await goto(`/warehouse/documents/${response.data.document.id}`);
+      toast.success($_('common.createdSuccess'));
+      await goto('/warehouse/documents');
     } catch (err) {
       error = err instanceof Error ? err.message : $_('warehouse.errors.createDocumentFailed');
     } finally {

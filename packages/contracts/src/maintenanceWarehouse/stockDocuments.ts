@@ -51,6 +51,8 @@ export interface StockDocumentLineRecord {
     adjustDirection?: 'plus' | 'minus' | null
     /** Additional spec key-value pairs from the spare part catalog */
     specFields?: Record<string, unknown> | null
+    /** Spare-part lines use this FK */
+    partId?: string | null
     /** Asset lines (receipt): model to use when auto-creating the asset */
     assetModelId?: string | null
     assetCategoryId?: string | null
@@ -71,6 +73,8 @@ export interface StockDocumentLineInput {
     adjustDirection?: 'plus' | 'minus' | null
     /** Additional spec key-value pairs from the spare part catalog */
     specFields?: Record<string, unknown> | null
+    /** Spare-part lines only */
+    partId?: string | null
     /** Asset lines only */
     assetModelId?: string | null
     assetCategoryId?: string | null

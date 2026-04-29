@@ -316,8 +316,8 @@
         <table class="min-w-full text-sm">
           <thead class="bg-slate-800 text-left text-xs uppercase tracking-wide text-slate-300">
             <tr>
-              <th class="px-4 py-3">Mã linh kiện</th>
-              <th class="px-4 py-3">Tên linh kiện</th>
+              <th class="px-4 py-3">Mã thiết bị</th>
+              <th class="px-4 py-3">Tên thiết bị</th>
               <th class="px-4 py-3">Kho</th>
               <th class="px-4 py-3 text-right">Tồn kho</th>
               <th class="px-4 py-3 text-right">Dự trữ</th>

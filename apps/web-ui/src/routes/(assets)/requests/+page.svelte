@@ -136,6 +136,7 @@
   let approvals       = $state<InboxApproval[]>([]);
   let inboxSummary    = $state<InboxSummary>({ pendingCount: 0, urgentCount: 0, overdueCount: 0, unassignedCount: 0 });
   let inboxMeta       = $state({ total: 0, page: 1, limit: 20 });
+  let inboxStatusGroup = $state<'active' | 'submitted' | 'approved' | 'all'>('active');
   let inboxDetailOpen  = $state(false);
   let selectedApproval = $state<InboxApproval | null>(null);
   let inboxComment     = $state('');
@@ -145,7 +146,7 @@
     try {
       inboxLoading = true; inboxError = '';
       const [listRes, summaryRes] = await Promise.all([
-        listInboxApprovals({ page: p, limit: inboxMeta.limit }),
+        listInboxApprovals({ page: p, limit: inboxMeta.limit, statusGroup: inboxStatusGroup }),
         getInboxSummary(),
       ]);
       approvals    = listRes.data ?? [];
@@ -250,10 +251,18 @@
         </Button>
       </div>
     {:else if activeTab === 'inbox'}
-      <Button variant="secondary" size="sm" onclick={() => loadInbox(inboxMeta.page)} disabled={inboxLoading}>
-        {#snippet leftIcon()}<RefreshCw class="h-3.5 w-3.5" />{/snippet}
-        {$isLoading ? 'Refresh' : $_('common.refresh')}
-      </Button>
+      <div class="flex items-center gap-2">
+        <select class="select-base w-52" bind:value={inboxStatusGroup} onchange={() => loadInbox(1)}>
+          <option value="active">{$isLoading ? 'Submitted & approved' : $_('requests.inbox.filters.active')}</option>
+          <option value="submitted">{$isLoading ? 'Submitted only' : $_('requests.inbox.filters.submitted')}</option>
+          <option value="approved">{$isLoading ? 'Approved only' : $_('requests.inbox.filters.approved')}</option>
+          <option value="all">{$isLoading ? 'All statuses' : $_('requests.inbox.filters.all')}</option>
+        </select>
+        <Button variant="secondary" size="sm" onclick={() => loadInbox(inboxMeta.page)} disabled={inboxLoading}>
+          {#snippet leftIcon()}<RefreshCw class="h-3.5 w-3.5" />{/snippet}
+          {$isLoading ? 'Refresh' : $_('common.refresh')}
+        </Button>
+      </div>
     {:else}
       <Button variant="secondary" size="sm" onclick={() => loadAll(allMeta.page)} disabled={allLoading}>
         {#snippet leftIcon()}<RefreshCw class="h-3.5 w-3.5" />{/snippet}

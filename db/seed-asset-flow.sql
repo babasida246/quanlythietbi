@@ -14,10 +14,10 @@
 --   wf_events.event_type         CHECK  — created/submitted/step_started/approved/... ✓
 --   stock_documents.doc_type     CHECK  — receipt/issue/adjust/transfer ✓
 --   stock_documents.status       CHECK  — draft/submitted/approved/posted/canceled ✓
---   stock_document_lines.line_type CHECK — spare_part/asset ✓
+--   stock_document_lines.line_type CHECK — qty/serial ✓
 --   stock_document_lines.qty     CHECK  — > 0 ✓
 --   stock_document_lines.adjust_direction CHECK — plus/minus/NULL ✓
---   stock_doc_lines_content_chk         — part_id OR asset_model_id OR asset_id NOT NULL ✓
+--   stock_doc_lines_content_chk         — asset_model_id OR asset_id NOT NULL ✓
 --   uidx_wf_approvals_one_approved_per_step — unique approved per (request_id, step_no) ✓
 --
 -- FK phụ thuộc:

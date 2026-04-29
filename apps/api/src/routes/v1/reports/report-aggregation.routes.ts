@@ -430,25 +430,25 @@ async function assetsByLocation(pool: import('pg').Pool, _f: FilterParams) {
 
 async function inventoryStock(pool: import('pg').Pool, f: FilterParams) {
     const params: Params = []
-    const whCond = f.warehouseId ? `AND sps.warehouse_id = ${p(params, f.warehouseId)}` : ''
+    const whCond = f.warehouseId ? `AND ams.warehouse_id = ${p(params, f.warehouseId)}` : ''
 
     const [kpiRow, stockRows] = await Promise.all([
         pool.query<{ total_lines: string; total_qty: string; warehouses: string }>(`
             SELECT COUNT(*) AS total_lines,
-                   SUM(sps.on_hand) AS total_qty,
-                   COUNT(DISTINCT sps.warehouse_id) AS warehouses
-            FROM spare_part_stock sps
-            WHERE sps.on_hand > 0 ${whCond}
+                   SUM(ams.on_hand) AS total_qty,
+                   COUNT(DISTINCT ams.warehouse_id) AS warehouses
+            FROM asset_model_stock ams
+            WHERE ams.on_hand > 0 ${whCond}
         `, params),
         pool.query<{ part_name: string; part_code: string; warehouse_name: string; on_hand: string; reserved: string }>(`
-            SELECT p.name AS part_name, p.part_code,
+            SELECT am.model AS part_name, ''::text AS part_code,
                    COALESCE(w.name,'?') AS warehouse_name,
-                   sps.on_hand, sps.reserved
-            FROM spare_part_stock sps
-            JOIN spare_parts p ON p.id = sps.part_id
-            LEFT JOIN warehouses w ON w.id = sps.warehouse_id
-            WHERE sps.on_hand > 0 ${whCond}
-            ORDER BY sps.on_hand DESC
+                   ams.on_hand, ams.reserved
+            FROM asset_model_stock ams
+            JOIN asset_models am ON am.id = ams.model_id
+            LEFT JOIN warehouses w ON w.id = ams.warehouse_id
+            WHERE ams.on_hand > 0 ${whCond}
+            ORDER BY ams.on_hand DESC
             LIMIT 30
         `, params)
     ])
@@ -525,20 +525,20 @@ async function inventoryMovement(pool: import('pg').Pool, f: FilterParams) {
 
 async function inventoryLowStock(pool: import('pg').Pool, f: FilterParams) {
     const params: Params = []
-    const whCond = f.warehouseId ? `AND sps.warehouse_id = ${p(params, f.warehouseId)}` : ''
+    const whCond = f.warehouseId ? `AND ams.warehouse_id = ${p(params, f.warehouseId)}` : ''
 
     const rows = await pool.query<{
         part_name: string; part_code: string; warehouse_name: string;
         on_hand: string; min_level: string; shortfall: string
     }>(`
-        SELECT p.name AS part_name, p.part_code,
+        SELECT am.model AS part_name, ''::text AS part_code,
                COALESCE(w.name,'?') AS warehouse_name,
-               sps.on_hand, p.min_level,
-               (p.min_level - sps.on_hand) AS shortfall
-        FROM spare_part_stock sps
-        JOIN spare_parts p ON p.id = sps.part_id
-        LEFT JOIN warehouses w ON w.id = sps.warehouse_id
-        WHERE p.min_level IS NOT NULL AND sps.on_hand < p.min_level
+               ams.on_hand, am.min_stock_qty,
+               (am.min_stock_qty - ams.on_hand) AS shortfall
+        FROM asset_model_stock ams
+        JOIN asset_models am ON am.id = ams.model_id
+        LEFT JOIN warehouses w ON w.id = ams.warehouse_id
+        WHERE am.min_stock_qty IS NOT NULL AND ams.on_hand < am.min_stock_qty
         ${whCond}
         ORDER BY shortfall DESC
         LIMIT 100
@@ -869,41 +869,42 @@ async function runDrilldown(pool: import('pg').Pool, key: ReportKey, p_: z.infer
 
 async function warehouseStockOnHand(pool: import('pg').Pool, f: FilterParams) {
     const params: Params = []
-    const whCond = f.warehouseId ? `AND sps.warehouse_id = ${p(params, f.warehouseId)}` : ''
+    const whCond = f.warehouseId ? `AND ams.warehouse_id = ${p(params, f.warehouseId)}` : ''
 
     const [kpiRow, rows, byWhRows, byGroupRows] = await Promise.all([
         pool.query<{ lines: string; total_qty: string; wh_count: string }>(`
-            SELECT COUNT(*) AS lines, COALESCE(SUM(sps.on_hand),0) AS total_qty,
-                   COUNT(DISTINCT sps.warehouse_id) AS wh_count
-            FROM spare_part_stock sps WHERE sps.on_hand > 0 ${whCond}
+            SELECT COUNT(*) AS lines, COALESCE(SUM(ams.on_hand),0) AS total_qty,
+                   COUNT(DISTINCT ams.warehouse_id) AS wh_count
+            FROM asset_model_stock ams WHERE ams.on_hand > 0 ${whCond}
         `, params),
         pool.query<{ part_name: string; part_code: string; warehouse_name: string; on_hand: string; reserved: string }>(`
-            SELECT sp.name AS part_name, sp.part_code, COALESCE(w.name,'?') AS warehouse_name,
-                   sps.on_hand, sps.reserved
-            FROM spare_part_stock sps
-            JOIN spare_parts sp ON sp.id = sps.part_id
-            LEFT JOIN warehouses w ON w.id = sps.warehouse_id
-            WHERE sps.on_hand > 0 ${whCond}
-            ORDER BY sps.on_hand DESC
+            SELECT am.model AS part_name, ''::text AS part_code, COALESCE(w.name,'?') AS warehouse_name,
+                   ams.on_hand, ams.reserved
+            FROM asset_model_stock ams
+            JOIN asset_models am ON am.id = ams.model_id
+            LEFT JOIN warehouses w ON w.id = ams.warehouse_id
+            WHERE ams.on_hand > 0 ${whCond}
+            ORDER BY ams.on_hand DESC
             LIMIT ${f.pageSize} OFFSET ${(f.page - 1) * f.pageSize}
         `, params),
         pool.query<{ warehouse_name: string; total_qty: string }>(`
             SELECT COALESCE(w.name,'Chưa xác định') AS warehouse_name,
-                   COALESCE(SUM(sps.on_hand), 0) AS total_qty
-            FROM spare_part_stock sps
-            LEFT JOIN warehouses w ON w.id = sps.warehouse_id
-            WHERE sps.on_hand > 0 ${whCond}
+                   COALESCE(SUM(ams.on_hand), 0) AS total_qty
+            FROM asset_model_stock ams
+            LEFT JOIN warehouses w ON w.id = ams.warehouse_id
+            WHERE ams.on_hand > 0 ${whCond}
             GROUP BY w.name
             ORDER BY total_qty DESC
             LIMIT 10
         `, params),
         pool.query<{ category: string; total_qty: string }>(`
-            SELECT COALESCE(sp.category,'Khác') AS category,
-                   COALESCE(SUM(sps.on_hand), 0) AS total_qty
-            FROM spare_part_stock sps
-            JOIN spare_parts sp ON sp.id = sps.part_id
-            WHERE sps.on_hand > 0 ${whCond}
-            GROUP BY sp.category
+            SELECT COALESCE(ac.name,'Khác') AS category,
+                   COALESCE(SUM(ams.on_hand), 0) AS total_qty
+            FROM asset_model_stock ams
+            JOIN asset_models am ON am.id = ams.model_id
+            LEFT JOIN asset_categories ac ON ac.id = am.category_id
+            WHERE ams.on_hand > 0 ${whCond}
+            GROUP BY ac.name
             ORDER BY total_qty DESC
             LIMIT 10
         `, params)
@@ -934,45 +935,46 @@ async function warehouseStockOnHand(pool: import('pg').Pool, f: FilterParams) {
 
 async function warehouseValuation(pool: import('pg').Pool, f: FilterParams) {
     const params: Params = []
-    const whCond = f.warehouseId ? `AND sps.warehouse_id = ${p(params, f.warehouseId)}` : ''
+    const whCond = f.warehouseId ? `AND ams.warehouse_id = ${p(params, f.warehouseId)}` : ''
 
     const [kpiRow, rows, byWhRows, byGroupRows] = await Promise.all([
         pool.query<{ total_value: string; lines: string }>(`
-            SELECT COALESCE(SUM(sps.on_hand * COALESCE(sp.unit_cost, 0)), 0) AS total_value,
+            SELECT COALESCE(SUM(ams.on_hand * 0), 0) AS total_value,
                    COUNT(*) AS lines
-            FROM spare_part_stock sps
-            JOIN spare_parts sp ON sp.id = sps.part_id
-            WHERE sps.on_hand > 0 ${whCond}
+            FROM asset_model_stock ams
+            JOIN asset_models am ON am.id = ams.model_id
+            WHERE ams.on_hand > 0 ${whCond}
         `, params),
         pool.query<{ part_name: string; warehouse_name: string; on_hand: string; unit_cost: string; total_value: string }>(`
-            SELECT sp.name AS part_name, COALESCE(w.name,'?') AS warehouse_name,
-                   sps.on_hand, COALESCE(sp.unit_cost,0) AS unit_cost,
-                   (sps.on_hand * COALESCE(sp.unit_cost, 0)) AS total_value
-            FROM spare_part_stock sps
-            JOIN spare_parts sp ON sp.id = sps.part_id
-            LEFT JOIN warehouses w ON w.id = sps.warehouse_id
-            WHERE sps.on_hand > 0 ${whCond}
-            ORDER BY (sps.on_hand * COALESCE(sp.unit_cost, 0)) DESC
+            SELECT am.model AS part_name, COALESCE(w.name,'?') AS warehouse_name,
+                   ams.on_hand, 0::numeric AS unit_cost,
+                   0::numeric AS total_value
+            FROM asset_model_stock ams
+            JOIN asset_models am ON am.id = ams.model_id
+            LEFT JOIN warehouses w ON w.id = ams.warehouse_id
+            WHERE ams.on_hand > 0 ${whCond}
+            ORDER BY ams.on_hand DESC
             LIMIT ${f.pageSize} OFFSET ${(f.page - 1) * f.pageSize}
         `, params),
         pool.query<{ warehouse_name: string; total_value: string }>(`
             SELECT COALESCE(w.name,'Chưa xác định') AS warehouse_name,
-                   COALESCE(SUM(sps.on_hand * COALESCE(sp.unit_cost, 0)), 0) AS total_value
-            FROM spare_part_stock sps
-            JOIN spare_parts sp ON sp.id = sps.part_id
-            LEFT JOIN warehouses w ON w.id = sps.warehouse_id
-            WHERE sps.on_hand > 0 ${whCond}
+                   0::numeric AS total_value
+            FROM asset_model_stock ams
+            JOIN asset_models am ON am.id = ams.model_id
+            LEFT JOIN warehouses w ON w.id = ams.warehouse_id
+            WHERE ams.on_hand > 0 ${whCond}
             GROUP BY w.name
             ORDER BY total_value DESC
             LIMIT 10
         `, params),
         pool.query<{ category: string; total_value: string }>(`
-            SELECT COALESCE(sp.category,'Khác') AS category,
-                   COALESCE(SUM(sps.on_hand * COALESCE(sp.unit_cost, 0)), 0) AS total_value
-            FROM spare_part_stock sps
-            JOIN spare_parts sp ON sp.id = sps.part_id
-            WHERE sps.on_hand > 0 ${whCond}
-            GROUP BY sp.category
+            SELECT COALESCE(ac.name,'Khác') AS category,
+                   0::numeric AS total_value
+            FROM asset_model_stock ams
+            JOIN asset_models am ON am.id = ams.model_id
+            LEFT JOIN asset_categories ac ON ac.id = am.category_id
+            WHERE ams.on_hand > 0 ${whCond}
+            GROUP BY ac.name
             ORDER BY total_value DESC
             LIMIT 10
         `, params)
@@ -1002,15 +1004,15 @@ async function warehouseValuation(pool: import('pg').Pool, f: FilterParams) {
 
 async function warehouseReorderAlerts(pool: import('pg').Pool, f: FilterParams) {
     const params: Params = []
-    const whCond = f.warehouseId ? `AND sps.warehouse_id = ${p(params, f.warehouseId)}` : ''
+    const whCond = f.warehouseId ? `AND ams.warehouse_id = ${p(params, f.warehouseId)}` : ''
 
     const rows = await pool.query<{ part_name: string; part_code: string; warehouse_name: string; on_hand: string; min_level: string; shortfall: string }>(`
-        SELECT sp.name AS part_name, sp.part_code, COALESCE(w.name,'?') AS warehouse_name,
-               sps.on_hand, sp.min_level, (sp.min_level - sps.on_hand) AS shortfall
-        FROM spare_part_stock sps
-        JOIN spare_parts sp ON sp.id = sps.part_id
-        LEFT JOIN warehouses w ON w.id = sps.warehouse_id
-        WHERE sp.min_level IS NOT NULL AND sps.on_hand < sp.min_level ${whCond}
+        SELECT am.model AS part_name, ''::text AS part_code, COALESCE(w.name,'?') AS warehouse_name,
+               ams.on_hand, am.min_stock_qty, (am.min_stock_qty - ams.on_hand) AS shortfall
+        FROM asset_model_stock ams
+        JOIN asset_models am ON am.id = ams.model_id
+        LEFT JOIN warehouses w ON w.id = ams.warehouse_id
+        WHERE am.min_stock_qty IS NOT NULL AND ams.on_hand < am.min_stock_qty ${whCond}
         ORDER BY shortfall DESC
         LIMIT ${f.pageSize} OFFSET ${(f.page - 1) * f.pageSize}
     `, params)
@@ -1025,65 +1027,33 @@ async function warehouseReorderAlerts(pool: import('pg').Pool, f: FilterParams) 
     }
 }
 
-async function warehouseFEFOLots(pool: import('pg').Pool, f: FilterParams) {
-    const params: Params = []
-    const whCond = f.warehouseId ? `AND sl.warehouse_id = ${p(params, f.warehouseId)}` : ''
-
-    const [rows, expiryRows] = await Promise.all([
-        pool.query<{ part_name: string; lot_number: string; warehouse_name: string; qty: string; expiry_date: string | null }>(`
-            SELECT sp.name AS part_name, sl.lot_number, COALESCE(w.name,'?') AS warehouse_name,
-                   sl.on_hand AS qty, sl.expiry_date
-            FROM spare_part_lots sl
-            JOIN spare_parts sp ON sp.id = sl.part_id
-            LEFT JOIN warehouses w ON w.id = sl.warehouse_id
-            WHERE sl.on_hand > 0 ${whCond}
-            ORDER BY sl.expiry_date ASC NULLS LAST
-            LIMIT ${f.pageSize} OFFSET ${(f.page - 1) * f.pageSize}
-        `, params),
-        pool.query<{ month: string; qty: string }>(`
-            SELECT TO_CHAR(sl.expiry_date, 'YYYY-MM') AS month, SUM(sl.on_hand) AS qty
-            FROM spare_part_lots sl
-            WHERE sl.on_hand > 0 AND sl.expiry_date IS NOT NULL ${whCond}
-              AND sl.expiry_date >= CURRENT_DATE
-              AND sl.expiry_date < CURRENT_DATE + INTERVAL '12 months'
-            GROUP BY 1
-            ORDER BY 1
-        `, params)
-    ])
-
+async function warehouseFEFOLots(_pool: import('pg').Pool, f: FilterParams) {
+    // spare_part_lots table was dropped in migration 078 — return empty result
     return {
-        kpis: [{ key: 'active_lots', label: 'Lô hàng đang hoạt động', value: rows.rowCount ?? 0, unit: '' }],
-        charts: {
-            expiringByMonth: {
-                labels: expiryRows.rows.map(r => r.month),
-                series: [{ name: 'Số lượng hết hạn', data: expiryRows.rows.map(r => Number(r.qty)) }]
-            }
-        },
-        table: {
-            rows: rows.rows.map(r => ({ partName: r.part_name, lotNumber: r.lot_number, warehouse: r.warehouse_name, qty: Number(r.qty), expiryDate: r.expiry_date })),
-            total: rows.rowCount ?? 0, page: f.page, pageSize: f.pageSize
-        }
+        kpis: [{ key: 'active_lots', label: 'Lô hàng đang hoạt động', value: 0, unit: '' }],
+        charts: { expiringByMonth: { labels: [], series: [{ name: 'Số lượng hết hạn', data: [] }] } },
+        table: { rows: [], total: 0, page: f.page, pageSize: f.pageSize }
     }
 }
 
 async function warehouseStockAvailable(pool: import('pg').Pool, f: FilterParams) {
     const params: Params = []
-    const whCond = f.warehouseId ? `AND sps.warehouse_id = ${p(params, f.warehouseId)}` : ''
+    const whCond = f.warehouseId ? `AND ams.warehouse_id = ${p(params, f.warehouseId)}` : ''
 
     const [kpiRow, rows] = await Promise.all([
         pool.query<{ total_available: string; lines: string }>(`
-            SELECT COALESCE(SUM(GREATEST(sps.on_hand - COALESCE(sps.reserved, 0), 0)), 0) AS total_available,
-                   COUNT(*) FILTER (WHERE sps.on_hand > COALESCE(sps.reserved, 0)) AS lines
-            FROM spare_part_stock sps WHERE 1=1 ${whCond}
+            SELECT COALESCE(SUM(GREATEST(ams.on_hand - COALESCE(ams.reserved, 0), 0)), 0) AS total_available,
+                   COUNT(*) FILTER (WHERE ams.on_hand > COALESCE(ams.reserved, 0)) AS lines
+            FROM asset_model_stock ams WHERE 1=1 ${whCond}
         `, params),
         pool.query<{ part_name: string; part_code: string; warehouse_name: string; on_hand: string; reserved: string; available: string }>(`
-            SELECT sp.name AS part_name, sp.part_code, COALESCE(w.name,'?') AS warehouse_name,
-                   sps.on_hand, COALESCE(sps.reserved,0) AS reserved,
-                   GREATEST(sps.on_hand - COALESCE(sps.reserved,0), 0) AS available
-            FROM spare_part_stock sps
-            JOIN spare_parts sp ON sp.id = sps.part_id
-            LEFT JOIN warehouses w ON w.id = sps.warehouse_id
-            WHERE sps.on_hand > COALESCE(sps.reserved, 0) ${whCond}
+            SELECT am.model AS part_name, ''::text AS part_code, COALESCE(w.name,'?') AS warehouse_name,
+                   ams.on_hand, COALESCE(ams.reserved,0) AS reserved,
+                   GREATEST(ams.on_hand - COALESCE(ams.reserved,0), 0) AS available
+            FROM asset_model_stock ams
+            JOIN asset_models am ON am.id = ams.model_id
+            LEFT JOIN warehouses w ON w.id = ams.warehouse_id
+            WHERE ams.on_hand > COALESCE(ams.reserved, 0) ${whCond}
             ORDER BY available DESC
             LIMIT ${f.pageSize} OFFSET ${(f.page - 1) * f.pageSize}
         `, params)

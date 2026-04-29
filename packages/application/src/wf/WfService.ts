@@ -398,10 +398,11 @@ export class WfService {
         assigneeId: string,
         page = 1,
         limit = 20,
-        role?: string
+        role?: string,
+        requestStatuses?: WfRequestStatus[]
     ): Promise<WfPaginatedResult<WfApprovalWithDetails & { request: WfRequestWithDetails }>> {
         const viewAll = role ? WfService.FULL_INBOX_ROLES.has(role) : false;
-        return this.repo.listInboxApprovals(assigneeId, page, limit, viewAll) as any;
+        return this.repo.listInboxApprovals(assigneeId, page, limit, viewAll, requestStatuses) as any;
     }
 
     async getInboxSummary(assigneeId: string, role?: string): Promise<InboxSummary> {

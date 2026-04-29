@@ -135,8 +135,8 @@ export class AssetFlowService {
 
             if (line.itemType === 'part' && line.partId) {
                 output.push({
-                    lineType: 'spare_part',
-                    partId: line.partId,
+                    lineType: 'qty',
+                    assetModelId: line.partId,
                     qty: remainingQty,
                     unitCost: line.unitCost ?? null,
                     note: line.note ?? null,
@@ -146,7 +146,7 @@ export class AssetFlowService {
 
             if (line.itemType === 'asset' && line.assetId) {
                 output.push({
-                    lineType: 'asset',
+                    lineType: 'serial',
                     assetId: line.assetId,
                     qty: 1,
                     unitCost: line.unitCost ?? null,
@@ -163,7 +163,7 @@ export class AssetFlowService {
                 if (!assetModelId) continue;
 
                 output.push({
-                    lineType: 'asset',
+                    lineType: 'serial',
                     assetModelId,
                     qty: 1,
                     unitCost: line.unitCost ?? null,
@@ -180,7 +180,7 @@ export class AssetFlowService {
         for (const line of requestLines) {
             if (line.itemType !== 'asset' || !line.assetId) continue;
             output.push({
-                lineType: 'asset',
+                lineType: 'serial',
                 assetId: line.assetId,
                 qty: 1,
                 note: line.note ?? null,
@@ -217,8 +217,8 @@ export class AssetFlowService {
 
             if ((itemType === 'part' || partId) && partId) {
                 output.push({
-                    lineType: 'spare_part',
-                    partId,
+                    lineType: 'qty',
+                    assetModelId: partId,
                     qty,
                     unitCost: Number.isFinite(unitCost ?? NaN) ? unitCost : null,
                     note,
@@ -228,7 +228,7 @@ export class AssetFlowService {
 
             if (itemType === 'asset' || assetId || assetModelId) {
                 output.push({
-                    lineType: 'asset',
+                    lineType: 'serial',
                     assetId,
                     assetModelId,
                     qty: 1,

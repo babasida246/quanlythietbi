@@ -22,6 +22,45 @@
   let selected = $state<InboxApproval | null>(null);
   let comment = $state('');
   let busy = $state(false);
+  
+  // Filters / search (client-side)
+  let filterType = $state('');
+  let filterPriority = $state('');
+  let filterFrom = $state('');
+  let filterTo = $state('');
+  let search = $state('');
+  
+  const PRIORITY_BADGE: Record<string, string> = {
+    low: 'badge-gray',
+    normal: 'badge-blue',
+    high: 'badge-yellow',
+    urgent: 'badge-red',
+  };
+  
+  const TYPE_BADGE: Record<string, string> = {
+    request: 'badge-blue',
+    change: 'badge-yellow',
+    policy: 'badge-gray',
+  };
+  
+  const filteredApprovals = $derived(() => {
+    return approvals
+      .filter(a => !filterType || a.request.requestType === filterType)
+      .filter(a => !filterPriority || a.request.priority === filterPriority)
+      .filter(a => {
+        if (!filterFrom && !filterTo) return true;
+        const d = new Date(a.createdAt).toISOString().slice(0, 10);
+        if (filterFrom && d < filterFrom) return false;
+        if (filterTo && d > filterTo) return false;
+        return true;
+      })
+      .filter(a => {
+        if (!search) return true;
+        const s = search.toLowerCase();
+        return (a.request.code || '').toLowerCase().includes(s)
+          || (a.request.title || '').toLowerCase().includes(s);
+      });
+  });
 
   async function load(p = 1) {
     try {

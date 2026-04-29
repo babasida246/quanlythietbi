@@ -30,6 +30,14 @@
       "allStatuses": "Tất cả trạng thái",
       "allTypes": "Tất cả loại"
     },
+    "inbox": {
+      "filters": {
+        "active": "Đã trình và đã phê duyệt",
+        "submitted": "Chỉ đã trình",
+        "approved": "Chỉ đã phê duyệt",
+        "all": "Tất cả"
+      }
+    },
     "status": {
       "submitted": "Đã gửi",
       "approved": "Được phê duyệt",

@@ -50,7 +50,11 @@
   import { getAssetCatalogs, getCategorySpecDefs, type Catalogs, type CategorySpecDef } from '$lib/api/assetCatalogs';
   import { getAssetComponents, type ComponentAssignmentWithDetails } from '$lib/api/components';
   import { listRepairOrders, getRepairOrder, createRepairOrder, type RepairOrderRecord, type RepairOrderPartRecord } from '$lib/api/warehouse';
-  import { getLicensesByAsset, type LicenseWithAssetSeat } from '$lib/api/licenses';
+  import {
+    getLicensesByAsset, listLicenses, assignSeat, revokeSeat,
+    type LicenseWithAssetSeat, type LicenseWithUsage
+  } from '$lib/api/licenses';
+  import { toast } from '$lib/components/toast';
   let asset = $state<Asset | null>(null);
   let assignments = $state<AssetAssignment[]>([]);
   let maintenance = $state<MaintenanceTicket[]>([]);
@@ -121,6 +125,11 @@
   let expandedRepairOrder = $state<string | null>(null);
   let licenses = $state<LicenseWithAssetSeat[]>([]);
   let licensesLoading = $state(false);
+  let showAssignLicense = $state(false);
+  let licensePickList = $state<LicenseWithUsage[]>([]);
+  let licensePickSearch = $state('');
+  let licensePickLoading = $state(false);
+  let licenseAssigning = $state<string | null>(null);
   let driverRecommendations = $state<DriverRecommendation[]>([]);
   let relatedDocuments = $state<KnowledgeDocument[]>([]);
   let knowledgeLoading = $state(false);
@@ -711,6 +720,52 @@
     } catch { licenses = []; }
     finally { licensesLoading = false; }
   }
+
+  async function openAssignLicense() {
+    showAssignLicense = true;
+    licensePickLoading = true;
+    licensePickSearch = '';
+    try {
+      const res = await listLicenses({ status: 'active', limit: 50 });
+      licensePickList = (res.data ?? []).filter(l => l.licenseType === 'unlimited' || l.seatsAvailable > 0);
+    } catch { licensePickList = []; }
+    finally { licensePickLoading = false; }
+  }
+
+  async function handleAssignLicense(licenseId: string) {
+    if (!assetId || licenseAssigning) return;
+    licenseAssigning = licenseId;
+    try {
+      await assignSeat(licenseId, { assignmentType: 'asset', assignedAssetId: assetId });
+      showAssignLicense = false;
+      toast.success('Đã liên kết giấy phép');
+      void loadLicenses();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Lỗi khi gán giấy phép');
+    } finally {
+      licenseAssigning = null;
+    }
+  }
+
+  async function handleRevokeLicense(licenseId: string, seatId: string) {
+    if (!confirm('Thu hồi giấy phép này khỏi thiết bị?')) return;
+    try {
+      await revokeSeat(licenseId, seatId);
+      toast.success('Đã thu hồi giấy phép');
+      void loadLicenses();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Lỗi khi thu hồi');
+    }
+  }
+
+  let filteredLicensePicks = $derived(
+    licensePickSearch.trim()
+      ? licensePickList.filter(l =>
+          l.softwareName.toLowerCase().includes(licensePickSearch.toLowerCase()) ||
+          l.licenseCode?.toLowerCase().includes(licensePickSearch.toLowerCase())
+        )
+      : licensePickList
+  );
 
   async function handleCreateRepair() {
     if (!repairTitle || !assetId) return;
@@ -1559,16 +1614,30 @@
       <div class="card p-4 sm:p-5">
         <div class="flex items-center justify-between gap-2 mb-4">
           <h2 class="text-base font-semibold">{$isLoading ? 'Software & Licenses' : $_('assets.tabs.software')}</h2>
-          <a href="/licenses" class="btn-sm btn-secondary inline-flex items-center gap-1 text-xs">
-            {$isLoading ? 'Manage Licenses →' : $_('assets.software.manageLink')}
-          </a>
+          <div class="flex items-center gap-2">
+            {#if caps.canManageAssets}
+              <button class="btn btn-primary btn-sm gap-1 text-xs" onclick={openAssignLicense}>
+                + {$isLoading ? 'Assign License' : $_('assets.software.assignBtn')}
+              </button>
+            {/if}
+            <a href="/licenses" class="btn btn-sm text-xs">
+              {$isLoading ? 'Manage Licenses →' : $_('assets.software.manageLink')}
+            </a>
+          </div>
         </div>
         {#if licensesLoading}
           <div class="flex items-center justify-center py-10">
             <div class="h-6 w-6 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
           </div>
         {:else if licenses.length === 0}
-          <p class="text-sm text-slate-500">{$isLoading ? 'No software licenses assigned.' : $_('assets.software.empty')}</p>
+          <div class="flex flex-col items-center gap-3 py-10 text-slate-500">
+            <p class="text-sm">{$isLoading ? 'No software licenses assigned.' : $_('assets.software.empty')}</p>
+            {#if caps.canManageAssets}
+              <button class="btn btn-sm text-xs" onclick={openAssignLicense}>
+                + {$isLoading ? 'Assign License' : $_('assets.software.assignBtn')}
+              </button>
+            {/if}
+          </div>
         {:else}
           <Table>
             <TableHeader>
@@ -1579,6 +1648,7 @@
                 <TableHeaderCell>{$isLoading ? 'Status' : $_('assets.status')}</TableHeaderCell>
                 <TableHeaderCell>{$isLoading ? 'Expiry' : $_('assets.software.expiry')}</TableHeaderCell>
                 <TableHeaderCell>{$isLoading ? 'Assigned' : $_('assets.assignedAt')}</TableHeaderCell>
+                {#if caps.canManageAssets}<TableHeaderCell>{' '}</TableHeaderCell>{/if}
               </tr>
             </TableHeader>
             <tbody>
@@ -1586,20 +1656,114 @@
                 <TableRow>
                   <TableCell><span class="font-medium text-slate-100">{lic.softwareName}</span></TableCell>
                   <TableCell><code class="text-xs font-mono text-slate-300">{lic.licenseCode}</code></TableCell>
-                  <TableCell>{lic.licenseType.replace('_', ' ')}</TableCell>
                   <TableCell>
-                    <span class={lic.status === 'active' ? 'badge-success' : lic.status === 'expired' ? 'badge-error' : 'badge-primary'}>
-                      {lic.status}
+                    <span class="text-sm text-slate-300">
+                      {$isLoading ? lic.licenseType : $_(`assets.licenses.type.${lic.licenseType}`)}
                     </span>
                   </TableCell>
-                  <TableCell>{lic.expiryDate ? formatDate(lic.expiryDate) : '—'}</TableCell>
-                  <TableCell>{formatDate(lic.assignedAt)}</TableCell>
+                  <TableCell>
+                    <span class="badge {lic.status === 'active' ? 'badge-success' : lic.status === 'expired' ? 'badge-error' : 'badge-secondary'} text-xs">
+                      {$isLoading ? lic.status : $_(`assets.licenses.status.${lic.status}`)}
+                    </span>
+                  </TableCell>
+                  <TableCell>
+                    <span class="{lic.expiryDate && new Date(lic.expiryDate) < new Date() ? 'text-error' : ''}">
+                      {lic.expiryDate ? formatDate(lic.expiryDate) : '—'}
+                    </span>
+                  </TableCell>
+                  <TableCell class="text-slate-400">{formatDate(lic.assignedAt)}</TableCell>
+                  {#if caps.canManageAssets}
+                    <TableCell>
+                      <button
+                        class="btn btn-sm text-xs text-error"
+                        onclick={() => handleRevokeLicense(lic.licenseId, lic.seatId)}
+                        title="Thu hồi giấy phép"
+                      >
+                        Thu hồi
+                      </button>
+                    </TableCell>
+                  {/if}
                 </TableRow>
               {/each}
             </tbody>
           </Table>
         {/if}
       </div>
+
+      <!-- ─── Assign License Picker Modal ─── -->
+      {#if showAssignLicense}
+        <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/60" role="dialog" aria-modal="true">
+          <div class="modal-panel w-full max-w-lg">
+            <div class="flex items-center justify-between border-b border-border p-4">
+              <h2 class="text-base font-semibold">
+                {$isLoading ? 'Assign Software License' : $_('assets.software.assignModalTitle')}
+              </h2>
+              <button class="btn btn-sm" onclick={() => showAssignLicense = false}>✕</button>
+            </div>
+            <div class="p-4 space-y-3">
+              <input
+                type="text"
+                bind:value={licensePickSearch}
+                placeholder={$isLoading ? 'Search licenses...' : $_('assets.software.assignSearchPlaceholder')}
+                class="input-base w-full text-sm"
+                autofocus
+              />
+              <div class="max-h-72 overflow-y-auto space-y-1">
+                {#if licensePickLoading}
+                  <div class="flex items-center justify-center py-8 gap-2 text-sm text-slate-400">
+                    <span class="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent"></span>
+                    Đang tải...
+                  </div>
+                {:else if filteredLicensePicks.length === 0}
+                  <p class="py-6 text-center text-sm text-slate-400">
+                    {$isLoading ? 'No available licenses.' : $_('assets.software.assignEmpty')}
+                  </p>
+                {:else}
+                  {#each filteredLicensePicks as lic (lic.id)}
+                    <button
+                      class="flex w-full items-start gap-3 rounded-lg border border-slate-700 bg-surface-2 px-3 py-2.5
+                             text-left transition-colors hover:border-primary/40 hover:bg-surface-3
+                             disabled:opacity-50 disabled:cursor-not-allowed"
+                      onclick={() => handleAssignLicense(lic.id)}
+                      disabled={licenseAssigning === lic.id}
+                    >
+                      <div class="flex-1 min-w-0">
+                        <div class="font-medium text-sm text-slate-100 truncate">{lic.softwareName}</div>
+                        <div class="flex items-center gap-2 mt-0.5">
+                          {#if lic.licenseCode}
+                            <code class="text-xs font-mono text-slate-400">{lic.licenseCode}</code>
+                          {/if}
+                          <span class="text-xs text-slate-500">
+                            {$isLoading ? lic.licenseType : $_(`assets.licenses.type.${lic.licenseType}`)}
+                          </span>
+                        </div>
+                      </div>
+                      <div class="shrink-0 text-right">
+                        {#if lic.licenseType === 'unlimited'}
+                          <span class="text-xs text-success">∞ ghế</span>
+                        {:else}
+                          <span class="text-xs {lic.seatsAvailable <= 0 ? 'text-error' : 'text-success'}">
+                            {lic.seatsAvailable} ghế còn
+                          </span>
+                        {/if}
+                        {#if lic.expiryDate}
+                          <div class="text-xs text-slate-500 mt-0.5">HH: {formatDate(lic.expiryDate)}</div>
+                        {/if}
+                      </div>
+                      {#if licenseAssigning === lic.id}
+                        <span class="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent shrink-0 mt-0.5"></span>
+                      {/if}
+                    </button>
+                  {/each}
+                {/if}
+              </div>
+            </div>
+            <div class="flex justify-end border-t border-border p-3">
+              <button class="btn btn-sm" onclick={() => showAssignLicense = false}>Đóng</button>
+            </div>
+          </div>
+        </div>
+      {/if}
     {:else if activeTab === 'attachments'}
         <div class="card p-4 sm:p-5">
           <h2 class="text-base font-semibold mb-4 pb-3 border-b border-border">{$isLoading ? 'Attachments' : $_('assets.attachments')}</h2>

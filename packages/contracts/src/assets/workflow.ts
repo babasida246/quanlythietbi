@@ -53,4 +53,11 @@ export interface IWorkflowRepo {
     list(filters: WorkflowRequestListFilters): Promise<WorkflowRequestPage>
     getById(id: string): Promise<WorkflowRequestRecord | null>
     updateStatus(id: string, status: WorkflowRequestStatus, patch: WorkflowStatusPatch): Promise<WorkflowRequestRecord | null>
+    listInboxApprovals(
+        assigneeId: string,
+        page?: number,
+        limit?: number,
+        viewAll?: boolean,
+        requestStatuses?: WorkflowRequestStatus[]
+    ): Promise<WfPaginatedResult<WfApprovalWithDetails & { request: WfRequest }>>
 }

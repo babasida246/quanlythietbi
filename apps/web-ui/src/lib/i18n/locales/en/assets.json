@@ -259,7 +259,70 @@
       "licenseCode": "License code",
       "type": "License type",
       "expiry": "Expiry date",
-      "manageLink": "Manage Licenses →"
+      "manageLink": "Manage Licenses →",
+      "assignBtn": "Assign License",
+      "assignModalTitle": "Assign Software License",
+      "assignSearchPlaceholder": "Search software name, license code...",
+      "assignEmpty": "No licenses available.",
+      "revokeBtn": "Revoke",
+      "seatsAvailable": "available",
+      "assignSuccess": "License assigned successfully",
+      "revokeSuccess": "License revoked successfully"
+    },
+    "licenses": {
+      "pageTitle": "Software License Management",
+      "add": "Add License",
+      "searchPlaceholder": "Search by software name, license code...",
+      "empty": "No licenses found.",
+      "filterAll": "All",
+      "col": {
+        "software": "Software",
+        "code": "License Code",
+        "type": "Type",
+        "seats": "Seats",
+        "expiry": "Expiry",
+        "status": "Status",
+        "actions": "Actions"
+      },
+      "type": {
+        "per_seat": "Per Seat",
+        "per_device": "Per Device",
+        "per_user": "Per User",
+        "site_license": "Site License",
+        "unlimited": "Unlimited"
+      },
+      "status": {
+        "draft": "Draft",
+        "active": "Active",
+        "expired": "Expired",
+        "retired": "Retired"
+      },
+      "form": {
+        "title": "Add New License",
+        "editTitle": "Edit License",
+        "softwareName": "Software Name",
+        "licenseCode": "License Code",
+        "licenseType": "License Type",
+        "seatCount": "Seat Count",
+        "unitPrice": "Unit Price (VND)",
+        "purchaseDate": "Purchase Date",
+        "expiryDate": "Expiry Date",
+        "notes": "Notes",
+        "save": "Save"
+      },
+      "seats": {
+        "title": "Assigned Seats — {name}",
+        "empty": "No seats assigned.",
+        "assignAsset": "Assign Asset",
+        "assetIdLabel": "Asset ID",
+        "revoke": "Revoke",
+        "colAsset": "Asset",
+        "colAssigned": "Assigned At",
+        "colBy": "Assigned By"
+      },
+      "confirmRetire": "Retire this license?",
+      "confirmDelete": "Delete this license? This action cannot be undone.",
+      "confirmRevoke": "Revoke this seat?"
     },
     "maintenanceEmpty": "No maintenance records yet.",
     "warranty": "Warranty",

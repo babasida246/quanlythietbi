@@ -191,7 +191,14 @@ export async function wfRoute(
         if (!parse.success) {
             return reply.status(400).send({ success: false, error: 'Validation failed', details: parse.error.errors });
         }
-        const result = await wfService.listInbox(userId, parse.data.page, parse.data.limit, role);
+        const requestStatuses = parse.data.statusGroup === 'submitted'
+            ? ['submitted']
+            : parse.data.statusGroup === 'approved'
+                ? ['approved']
+                : parse.data.statusGroup === 'all'
+                    ? undefined
+                    : ['submitted', 'approved'];
+        const result = await wfService.listInbox(userId, parse.data.page, parse.data.limit, role, requestStatuses);
         return reply.send({ success: true, ...result });
     });
 

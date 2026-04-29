@@ -109,6 +109,7 @@ export const wfRequestListQuerySchema = z.object({
 export const inboxQuerySchema = z.object({
     page: z.coerce.number().int().min(1).default(1),
     limit: z.coerce.number().int().min(1).max(100).default(20),
+    statusGroup: z.enum(['active', 'submitted', 'approved', 'all']).optional(),
 });
 
 // ==================== Path params ====================

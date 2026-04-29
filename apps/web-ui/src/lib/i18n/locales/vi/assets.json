@@ -199,7 +199,70 @@
       "licenseCode": "Mã giấy phép",
       "type": "Loại giấy phép",
       "expiry": "Hết hạn",
-      "manageLink": "Quản lý giấy phép →"
+      "manageLink": "Quản lý giấy phép →",
+      "assignBtn": "Gán giấy phép",
+      "assignModalTitle": "Gán giấy phép phần mềm",
+      "assignSearchPlaceholder": "Tìm tên phần mềm, mã giấy phép...",
+      "assignEmpty": "Không có giấy phép nào khả dụng.",
+      "revokeBtn": "Thu hồi",
+      "seatsAvailable": "còn trống",
+      "assignSuccess": "Đã gán giấy phép thành công",
+      "revokeSuccess": "Đã thu hồi giấy phép thành công"
+    },
+    "licenses": {
+      "pageTitle": "Quản lý giấy phép phần mềm",
+      "add": "Thêm giấy phép",
+      "searchPlaceholder": "Tìm tên phần mềm, mã giấy phép...",
+      "empty": "Chưa có giấy phép nào.",
+      "filterAll": "Tất cả",
+      "col": {
+        "software": "Phần mềm",
+        "code": "Mã giấy phép",
+        "type": "Loại",
+        "seats": "Số lượt",
+        "expiry": "Hết hạn",
+        "status": "Trạng thái",
+        "actions": "Thao tác"
+      },
+      "type": {
+        "per_seat": "Theo lượt",
+        "per_device": "Theo thiết bị",
+        "per_user": "Theo người dùng",
+        "site_license": "Toàn công ty",
+        "unlimited": "Không giới hạn"
+      },
+      "status": {
+        "draft": "Nháp",
+        "active": "Hoạt động",
+        "expired": "Hết hạn",
+        "retired": "Đã ngừng"
+      },
+      "form": {
+        "title": "Thêm giấy phép mới",
+        "editTitle": "Chỉnh sửa giấy phép",
+        "softwareName": "Tên phần mềm",
+        "licenseCode": "Mã giấy phép",
+        "licenseType": "Loại giấy phép",
+        "seatCount": "Số lượt",
+        "unitPrice": "Đơn giá (VND)",
+        "purchaseDate": "Ngày mua",
+        "expiryDate": "Ngày hết hạn",
+        "notes": "Ghi chú",
+        "save": "Lưu"
+      },
+      "seats": {
+        "title": "Lượt cấp phép — {name}",
+        "empty": "Chưa có lượt nào.",
+        "assignAsset": "Gán thiết bị",
+        "assetIdLabel": "Mã thiết bị (Asset ID)",
+        "revoke": "Thu hồi",
+        "colAsset": "Thiết bị",
+        "colAssigned": "Ngày gán",
+        "colBy": "Người gán"
+      },
+      "confirmRetire": "Ngừng sử dụng giấy phép này?",
+      "confirmDelete": "Xóa giấy phép này? Hành động không thể hoàn tác.",
+      "confirmRevoke": "Thu hồi lượt cấp phép này?"
     },
     "maintenanceEmpty": "Chưa có bản ghi bảo trì.",
     "warranty": "Bảo hành",

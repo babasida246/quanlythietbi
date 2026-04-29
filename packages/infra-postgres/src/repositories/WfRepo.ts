@@ -354,18 +354,43 @@ export class WfRepo {
         assigneeId: string,
         page = 1,
         limit = 20,
-        viewAll = false
+        viewAll = false,
+        requestStatuses?: WfRequestStatus[]
     ): Promise<WfPaginatedResult<WfApprovalWithDetails & { request: WfRequest }>> {
         const offset = (page - 1) * limit;
         const assigneeCond = `($1::boolean = true OR a.assignee_user_id = $2)`;
 
+        // Build dynamic parameter placeholders
+        let paramIndex = 2;
+        let statusCond = '';
+        const countParams: unknown[] = [viewAll, assigneeId];
+
+        if (requestStatuses && requestStatuses.length > 0) {
+            countParams.push(requestStatuses);
+            statusCond = ` AND r.status = ANY($${++paramIndex}::text[])`;
+        }
+
         const countRes = await this.db.query<{ total: string }>(
             `SELECT COUNT(*) AS total
              FROM   wf_approvals a
-             WHERE  ${assigneeCond} AND a.status = 'pending'`,
-            [viewAll, assigneeId]
+             JOIN   wf_requests  r ON r.id = a.request_id
+             WHERE  ${assigneeCond} AND a.status IN ('pending', 'approved')${statusCond}`,
+            countParams
         );
         const total = Number(countRes.rows[0].total);
+
+        // Build SELECT query with dynamic placeholders
+        paramIndex = 2;
+        const selectParams: unknown[] = [viewAll, assigneeId];
+
+        if (requestStatuses && requestStatuses.length > 0) {
+            selectParams.push(requestStatuses);
+            paramIndex++;
+        }
+
+        const limitPlaceholder = ++paramIndex;
+        const offsetPlaceholder = ++paramIndex;
+        selectParams.push(limit, offset);
 
         const { rows } = await this.db.query<Record<string, unknown>>(
             `SELECT a.*,
@@ -396,10 +421,10 @@ export class WfRepo {
              LEFT JOIN wf_steps  s ON s.id = a.step_id
              LEFT JOIN users     u ON u.id = a.assignee_user_id
              LEFT JOIN users     d ON d.id = a.decision_by
-             WHERE  ${assigneeCond} AND a.status = 'pending'
+             WHERE  ${assigneeCond} AND a.status IN ('pending', 'approved')${statusCond}
              ORDER BY r.created_at DESC
-             LIMIT $3 OFFSET $4`,
-            [viewAll, assigneeId, limit, offset]
+             LIMIT $${limitPlaceholder} OFFSET $${offsetPlaceholder}`,
+            selectParams
         );
 
         const data = rows.map(r => ({
@@ -723,12 +748,11 @@ export class WfRepo {
     async findLinesByRequest(requestId: string): Promise<WfRequestLine[]> {
         const { rows } = await this.db.query<Record<string, unknown>>(
             `SELECT l.*,
-                    sp.part_code  AS part_code,
-                    sp.name       AS part_name,
+                    NULL::text    AS part_code,
+                    NULL::text    AS part_name,
                     a.asset_code  AS asset_code,
                     am.model      AS asset_name
              FROM   wf_request_lines l
-             LEFT JOIN spare_parts  sp ON sp.id = l.part_id
              LEFT JOIN assets       a  ON a.id  = l.asset_id
              LEFT JOIN asset_models am ON am.id = a.model_id
              WHERE  l.request_id = $1

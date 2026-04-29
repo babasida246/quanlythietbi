@@ -26,7 +26,7 @@ BEGIN;
      'warning','["role:it_manager"]'::jsonb,
      168,'email','weekly','00000000-0000-0000-0000-000000000002'),
     ('30000000-0000-0000-0000-000000000003','Ton kho phu tung thap','Canh bao khi so luong duoi muc an toan',
-     'stock',true,'spare_part_stock.qty_available','lt_reorder_point','{"compare":"reorder_point"}'::jsonb,
+     'stock',true,'asset_model_stock.qty_available','lt_reorder_point','{"compare":"reorder_point"}'::jsonb,
      'critical','["role:warehouse_staff"]'::jsonb,
      1,'both','daily','00000000-0000-0000-0000-000000000002'),
     ('30000000-0000-0000-0000-000000000004','Kiem ke phat hien mat','Canh bao khi kiem ke phat hien tai san mat',
@@ -86,7 +86,7 @@ ON CONFLICT
 INSERT INTO alert_dedup
     (dedup_key, last_sent_at, count)
 VALUES
-    ('spare_parts:c1000000-0000-0000-0000-000000000001:low', '2024-02-20 10:00:00', 1),
+    ('asset_models:c1000000-0000-0000-0000-000000000001:low', '2024-02-20 10:00:00', 1),
     ('assets:a1000000-0000-0000-0000-000000000034:warranty', '2024-04-01 08:00:00', 1),
     ('maintenance:a1000000-0000-0000-0000-000000000001:due', '2024-03-03 08:00:00', 1)
 ON CONFLICT
@@ -488,7 +488,7 @@ VALUES
      '2024-02-01 10:00:00'),
 ('3f000000-0000-0000-0000-000000000005','COR-A005',
      '00000000-0000-0000-0000-000000000003',
-     'create','spare_part_stock/b5000000-0000-0000-0000-000000000001',
+     'create','asset_model_stock/b5000000-0000-0000-0000-000000000001',
      '{"qty_added":15,"old_qty":5,"new_qty":20}'::jsonb,
      '2024-01-20 10:00:00')
 ON CONFLICT
